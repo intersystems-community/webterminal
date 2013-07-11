@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/app.js" application="/csp/webterm/" default="1"><![CDATA[
+/**
+ * Basic application scripts
+ *
+ * Required:
+ *  base.js
+ *  terminal.js
+ *
+ *  Known bugs:
+ *      - IE block flow when line overflows
+ *      - Copy/paste troubles (caused by editable div, maybe, there is no way to solve it using editable div)
+ *      - FF text selection (selecting text from background, not from hidden input)
+ *      - FF autocomplete (cursor jumps to string beginning)
+ *
+ *  TODO:
+ *      - Fix bugs
+ *      - A tons of features todo :)
+ */
+
+var webSocket = null, // socket to exchange data with server
+    commandHistory = [""], // history of all submitted commands
+    historyCurrent = 0; // current position in this history
+
+/**
+ * Function initializing basic application components, like events, etc.
+ */
+function terminalInitialize() {
+
+    terminalFocusOnInput();
+    bindEvent( document, "keydown", bodyKeyDown );
+    bindEvent( document, "keyup", bodyKeyUp );
+    bindEvent( document, "keydown", terminalGlobalKeyDown );
+    setInterval("terminalCaretTick()",500);
+    terminalSetCommandZone("server");
+    terminalOutput("Terminal ready.", 0, "system");
+    for (var i = 0; i < 256; i++) keyPressed[i] = 0; // initializing keys
+
+    terminalServerConnect();
+
+}
+
+/**
+ * Connects machine to server, add handlers, etc.
+ */
+function terminalServerConnect() {
+
+    var error = 0;
+
+    try {
+        webSocket = new WebSocket("ws://localhost:57787/csp/webterm/WebTerminal.Engine.cls"); // test url
+    } catch (e) {
+        error = 1;
+    }
+
+    if (typeof webSocket == "undefined" || error) {
+        terminalOutput("Your browser does not support <b>WebSockets</b>. Please, update your browser.",
+            0,"<span style=\"color: red\">warning</span>");
+        return;
+    }
+
+    webSocket.onopen = function() {
+        terminalOutput("Connection established: <span class=\"hint\">" + webSocket.url + "</span>", 0, "server")
+    };
+
+    webSocket.onclose = function(event) {
+
+        var t;
+        if (event.wasClean) {
+            t = "<span class=\"hint\">Connection closed.</span>"
+        } else {
+            t = "<span class=\"error\">Connection broken.</span>"
+        }
+        terminalOutput(t + " Code: " + event.code + ((event.reason)?"; reason: "+event.reason:"") );
+
+    };
+
+    webSocket.onmessage = function(event) {
+        terminalOutput(event.data,1,"server")
+    };
+
+    webSocket.onerror = function(error) {
+        terminalOutput("<span class=\"error\">error: " + error.message + "</span>",1,"server")
+    };
+
+
+}]]></CSP>
+</Export>

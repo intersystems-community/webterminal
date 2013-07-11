@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/terminal.js" application="/csp/webterm/" default="1"><![CDATA[
+/**
+ * Basic scripts for web-based Cache terminal.
+ *
+ * Required:
+ *  parser.js
+ *  base.js
+ */
+
+var autocompleteVariants = []; // available variants of autocomplete
+
+/**
+ * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
+ *
+ * @returns {object}
+ *  Returns required object.
+ */
+function terminalGetInputObject() { return document.getElementsByClassName("terminalHiddenInput")[0] }
+function terminalGetInputViewObject() { return document.getElementsByClassName("terminalInputView")[0] }
+function terminalGetOutputObject() { return document.getElementsByClassName("terminalOutput")[0] }
+function terminalGetInputHeaderObjects() { return document.getElementsByClassName("terminalInputHeader") }
+function terminalGetCaretObject() { return document.getElementsByClassName("caret")[0] ||
+    document.getElementsByClassName("caret-blink")[0] }
+function terminalGetAutocompleteObject() { return document.getElementsByClassName("terminalAutocompleteOption")[0] }
+
+/**
+ * Focuses on terminal input object.
+ */
+function terminalFocusOnInput() {
+    terminalGetInputObject().focus();
+    placeCaretAtEnd(terminalGetInputObject());
+}
+
+/**
+ * Function by default called every .5-1 second and does input caret blink.
+ */
+function terminalCaretTick() {
+    var caret = terminalGetCaretObject();
+    if (caret) (caret.getAttribute("class") == "caret-blink") ?
+        caret.setAttribute("class", "caret") :
+        caret.setAttribute("class", "caret-blink");
+}
+
+/**
+ * Sets current command zone to zoneName.
+ *
+ * @param zoneName
+ *  Command zone.
+ */
+function terminalSetCommandZone(zoneName) {
+    var zs = terminalGetInputHeaderObjects();
+    var length = zs.length;
+    for (var i = 0; i < length; i++) {
+        zs[i].innerHTML = zoneName;
+    }
+}
+
+/**
+ * Function returns current working command zone.
+ *
+ * @returns {string}
+ */
+function terminalGetCommandZone() {
+    return terminalGetInputHeaderObjects()[0].innerHTML;
+}
+
+/**
+ * Returns data typed to terminal input field.
+ *
+ * @returns {string}
+ *  Value of terminal input
+ */
+function terminalGetInputValue() {
+    var input = terminalGetInputObject();
+    return input.innerHTML;
+}
+
+/**
+ * Sets the value of terminal input object.
+ */
+function terminalSetInputValue(value) {
+
+    var input = terminalGetInputObject();
+    //var selectionRange = selectionGetRange(); // saving selection
+    //saveSelection();
+    //log(selectionRange);
+    input.innerHTML = value;
+    placeCaretAtEnd(input);
+    //restoreSelection();
+    //selectionRestoreRange(selectionRange); // restoring selection
+
+}
+
+/**
+ * Returns data within terminal input (highlighted).
+ *
+ * @returns {string}
+ *  Value of terminal input
+ */
+function terminalGetInputViewValue() {
+    var input = terminalGetInputViewObject();
+    return input.innerHTML;
+}
+
+/**
+ * Outputs data to terminal output.
+ * @param data
+ *  Data to output.
+ * [ @param highlight ]
+ *  Set to positive if it is necessary to highlight output. Default: no highlight.
+ * [ @param zone ]
+ *  Set output visible zone to any zone you want. If not defined, default zone will be used.
+ */
+function terminalOutput(data, highlight, zone) {
+
+    highlight = (typeof highlight !== 'undefined') ? highlight : 0;
+    zone = (typeof zone !== 'undefined') ? zone : terminalGetCommandZone();
+    var output = terminalGetOutputObject();
+    data = (highlight)?parserHighlight(data):data;
+
+    output.innerHTML += "<div class=\"terminalOutputMessage\">"+
+        "<span class=\"terminalOutputHeader\">" + zone + "</span>"+
+        "<span class=\"terminalOutputBody\">"+
+        data +'</span></div>';
+
+}
+
+/**
+ * Submits data from terminal input to server with all necessary actions. Clears input.
+ */
+function terminalSubmit(data) {
+
+    /*var caret = terminalGetCaretObject();
+    if (caret) try {
+        terminalGetInputView().removeChild(caret);
+    } catch (e) {
+        log("terminalSubmit(...) caret removing: ",e)
+    } */
+
+    historyCurrent = commandHistory.length;
+    commandHistory[historyCurrent - 1] = terminalGetInputValue();
+    commandHistory.push("");
+
+    terminalOutput(data, 1);
+    terminalExecute(data);
+
+    terminalClearInput();
+    scrollToBottom(document.body);
+    terminalUpdateInputView();
+
+}
+
+/**
+ * Executes command on server side. Simply sends command to server.
+ *
+ * @param command
+ *  Command to execute.
+ */
+function terminalExecute(command) {
+
+    try {
+        var data = parserPrepareSubmitData(command);
+        log("Sending: ", data);
+        webSocket.send( data );
+    } catch (e) {
+        terminalOutput("Problems with <b>WebSocket</b>. Exception: " + e,
+            0,"<span class=\"error\">warning</span>");
+    }
+
+}
+
+/**
+ * Clears input of the terminal.
+ */
+function terminalClearInput() {
+
+    terminalGetInputObject().innerHTML = "";
+    placeCaretAtEnd(terminalGetInputObject());
+
+}
+
+/**
+ * Performs suitable actions for terminal input, basing on keyPress event:
+ * - Performs submitting while enter pressed;
+ * - Prevents and handles <tab> key press;
+ *
+ * @param event
+ *  Key press event.
+ */
+function terminalKeyDowned(event) {
+
+    var keyCode = getKeyCode(event);
+
+    if (keyCode == 9 || keyCode == 13 || keyCode == 17 || keyCode == 38 || keyCode == 40 ) {
+        if (event && event.preventDefault) {
+            event.stopPropagation();
+            event.preventDefault();
+        } else {
+            window.event.cancelBubble = true; // IE
+        }
+    }
+
+    terminalPerformKeyAction(keyCode); // perform suitable action for pressed key
+
+    if (keyCode != 17) setTimeout("terminalUpdateInputView()",1);
+
+}
+
+/**
+ * Function focuses on terminal input, if focus locates somewhere else and
+ * calls terminalKeyDowned(event) function.
+ *
+ * @param event
+ *  Keyboard event.
+ */
+function terminalGlobalKeyDown(event) {
+
+    if (document.activeElement != terminalGetInputObject()) {
+        if (keyPressed[17] == 0)
+            terminalFocusOnInput();
+    }
+    terminalKeyDowned(event);
+
+}
+
+/**
+ * Function just updates input view: highlights it and do some other stuff.
+ */
+function terminalUpdateInputView() {
+
+    terminalGetInputViewObject().innerHTML = parseInput(terminalGetInputValue());
+
+}
+
+/**
+ * Just returns value of current autocomplete option.
+ *
+ * @returns {string}
+ *  Part of string autocomplete object holds.
+ */
+function terminalGetAutocompleteValue() {
+
+    var obj = terminalGetAutocompleteObject();
+    return (obj)?terminalGetAutocompleteObject().innerHTML:"";
+
+}
+
+/**
+ * Sets value directly to autocomplete object.
+ * @param value
+ *  Value to set.
+ */
+function terminalSetAutocompleteValue(value) {
+
+    var obj = terminalGetAutocompleteObject();
+    if (obj) { obj.innerHTML = value } else { log("No autocomplete object found to set value to.") }
+
+}
+
+/**
+ * Function returns one of query results from command history.
+ *
+ * @param increment
+ *  Relative value to seek in history stack
+ *
+ * @returns {string}
+ *  Command from history.
+ */
+function terminalLoadFromHistory(increment) {
+
+    log("Old history: ",historyCurrent);
+    historyCurrent += increment;
+    if (historyCurrent < 0) historyCurrent = commandHistory.length-1;
+    if (historyCurrent >= commandHistory.length) historyCurrent = 0;
+    log("New history: ",historyCurrent);
+    return commandHistory[historyCurrent].toString();
+
+}
+
+/**
+ * Inserts autocomplete option (if exists) into current cursor position of input.
+ */
+function terminalPerformAutocomplete() {
+
+    var input = terminalGetInputObject();
+    var caretPosition = getCaretPosition(input);
+    terminalSetInputValue(parserInsertString(terminalGetInputValue(),caretPosition,terminalGetAutocompleteValue()));
+
+}
+
+/**
+ * Performs specified action according to key.
+ *
+ * @param key
+ *  Code of trigger key.
+ */
+function terminalPerformKeyAction(key) {
+
+    switch (key) {
+        case 9: terminalPerformAutocomplete(); break; // TAB
+        case 13: terminalSubmit( terminalGetInputValue() ); break; // ENTER
+        case 17: terminalChangeAutocompleteVariant(); break; // CTRL
+        case 38: terminalSetInputValue(terminalLoadFromHistory(-1)); break;
+        case 40: terminalSetInputValue(terminalLoadFromHistory(1)); break;
+    }
+
+}
+
+/**
+ * Changes variants of autocomplete to one of the next available.
+ */
+function terminalChangeAutocompleteVariant() {
+
+    var val = terminalGetAutocompleteValue();
+    if (val != "") {
+        for (var i = 0; i < autocompleteVariants.length; i++) {
+            if (autocompleteVariants[i].toLowerCase() == val) {
+                var v = (i+1 < autocompleteVariants.length)?autocompleteVariants[i+1]:autocompleteVariants[0];
+                terminalSetAutocompleteValue(v);
+            }
+        }
+    }
+
+}
+
+/**
+ * Checks for autocomplete in current position and guesses variants
+ */
+function parserInsertAutocompleteOption(text) {
+
+    var input = terminalGetInputObject();
+    var caretPosition = getCaretPosition(input);
+    var data = terminalGetInputValue();
+    autocompleteVariants = parserGetAutocompleteVariants(data,caretPosition);
+    if (autocompleteVariants.length > 0) {
+        text = parserInsertString(text,parserGetRealPosition(text,caretPosition),
+            "<span class=\"terminalAutocompleteOption\">"+autocompleteVariants[0]+"</span>");
+    }
+    return text;
+
+}]]></CSP>
+</Export>

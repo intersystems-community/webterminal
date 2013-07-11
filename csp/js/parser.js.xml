@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/parser.js" application="/csp/webterm/" default="1"><![CDATA[
+/**
+ * Contains functions that take part in text processing.
+ */
+
+var autocomplete = ["cache","set","write","for","while","do","chAnGe AnYtHiNg!"];
+
+/**
+ * Function removes any tags in content.
+ * @param content {string}
+ *  String to parse.
+ */
+function parserRemoveTags(content) { return content.replace(/(<([^>]+)>)/ig, "") }
+
+/**
+ * Inserts string to text in position pos. If pos is incorrect, += operation will be performed.
+ *
+ * @param text
+ *  Text to insert into.
+ * @param position
+ *  Position where to insert.
+ * @param string
+ *  String to insert.
+ */
+function parserInsertString(text,position,string) {
+    try {
+        text = text.substring(0,position) + string + text.substring(position,text.length);
+    } catch (e) { log(e); text += string }
+    return text;
+}
+
+/**
+ * Function returns array of string variants, which best fits in current string position.
+ * Note that function try to guess paying attention only to the symbols BEFORE position.
+ *
+ * @param string
+ *  String with some text.
+ * @param position
+ *  Position in string where function will try to guess.
+ * @returns {Array}
+ *  Array with possible variants.
+ */
+function parserGetAutocompleteVariants(string,position) {
+
+    var i = Math.min(position-1,string.length-1), s = '', variants = [];
+    if (i+1<string.length && string[i+1].match(/\w/g)) return []; // leave autocomplete if next letter detected
+    while (i >= 0) { // get the part of string
+        if (string[i].match(/\w/g)) s += string[i]; else break;
+        i--;
+    }
+    if (s == '') return [];
+
+    s = s.reverse();
+    var l = autocomplete.length;
+    s = s.toLowerCase();
+    for (i= 0; i < l; i++) {
+        if (autocomplete[i].indexOf(s) === 0) { // word beginning
+            if (s == autocomplete[i]) return [];
+            variants.push(autocomplete[i].substring(s.length,autocomplete[i].length));
+        }
+    }
+    return variants;
+
+}
+
+/**
+ * Analyzing stringPart, function returns correct name of element to use.
+ * Usage: for example, to form highlighting "class" attribute. "set" -> "-set"
+ * "$function" -> "-f_function", "$$$macro" -> "-m_macro" etc.
+ *
+ * @param stringPart
+ *  Part of string, which name needed to return.
+ */
+function parserSyntaxGetAttrName(stringPart) {
+
+    var result = null;
+    if (stringPart.match(/^[a-zA-Z]*$/)) { // simple words
+        result = stringPart.toLowerCase();
+    } else if (stringPart.match(/^[0-9]*$/)) {
+        result = "digit"
+    } else if (stringPart.match(/^[{}()\[\]+=-\\*:$#]*/)) {
+        result = "symbol"
+    } else result = "";
+    return (result)?"-"+result:result;
+
+}
+
+/**
+ * Parses text for tags and unnecessary symbols and returns correct text ready to execute on server side.
+ *
+ * @param data
+ *  not formatted string which must be prepared to execute on server side
+ * @returns {string}
+ *  formatted string ready-to-execute on server side
+ */
+function parserPrepareSubmitData(data) {
+    return ">"+parserRemoveTags(data).trim();
+}
+
+/**
+ * Function inserts color tags to string and returns string with tags.
+ *
+ * @param string
+ *  String to highlight.
+ * @returns {string}
+ *  Highlighted string.
+ */
+function parserHighlight(string) {
+
+    return string.replace(/(\w+|\W)/g, function(a) {  // \S+   //  \w+
+
+        if (a.match(/(lt|gt|<|>|&|br|nbsp|amp|;)/g) || // html special characters
+            //a.match(/^[^\s]*<div$/) ||
+            //a.match(/^class="caret-blink"><\/div>[^\s]*$/)) {
+            a.match(/.*(<|>).*/g)) { // any tag symbol
+            return a; // just skip
+        }
+        return "<span class=\"syntax" + parserSyntaxGetAttrName(a) + "\">" + a + "</span>";
+
+    });
+
+}
+
+/**
+ * Function returns real position in string, according to visible position pos.
+ * In other words, it skips tags and special html symbols like &nbsp;
+ *
+ * @param string
+ *  String
+ * @param position
+ *  Position to convert.
+ * @returns {number}
+ *  New real position according to html-string.
+ */
+function parserGetRealPosition(string,position) {
+
+    var i = 0, l = string.length, pos = 0;
+    while (i<l && pos<position) {
+        if (string[i]=="&") {
+            var m = string.substr(i+1,5).match(/(nbsp|lt|gt|amp);/g);
+            if (m) i += m[0].length;
+        } else if (string[i]=="<") {
+            var p = string.indexOf(">",i+1);
+            if (p==-1) { i = pos = l-1 } else { i += p-i; pos--; }
+        }
+        pos++; i++;
+    }
+    return i;
+}
+
+/**
+ * Function inserts caret html code to position, missing tags and &nbsp; symbols.
+ * With any problems caret will be inserted at the end.
+ *
+ * @param text
+ *  Text insert to.
+ * @param position
+ *  Position where to insert without tags.
+ * @returns {string}
+ *  String with caret code inside.
+ */
+function parserInsertCaret(text,position) {
+
+    text = parserInsertString(text,parserGetRealPosition(text,position),"<div class=\"caret-blink\"></div>");
+    return text;
+
+}
+
+/**
+ * Function parses input text for view. Adds styles, etc.
+ *
+ * @param text
+ *  Text to parse.
+ * @return {string}
+ *  Parsed stylized string.
+ */
+function parseInput(text) {
+
+    var p = getCaretPosition(terminalGetInputObject());
+
+    var l = text.length;
+    if (text.substr(l-5,l)==" <br>") text = text.replaceSymbol(l-5,"&nbsp;"); // Hello, Firefox!
+
+    text = parserHighlight(text);
+    text = parserInsertAutocompleteOption(text);
+    text = parserInsertCaret(text,p);
+
+    return text;
+
+}]]></CSP>
+</Export>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/base.js" application="/csp/webterm/" default="1"><![CDATA[
+/**
+ * Basic scripts for handling events, logging, etc.
+ */
+
+var keyPressed = []; // shows if certain key is pressed on the moment. Usage: keyPressed[keyCode]
+
+String.prototype.replaceSymbol = function (index, string) {
+    return this.substr(0, index) + string + this.substr(index + 1);
+};
+String.prototype.reverse = function () {
+    return this.split("").reverse().join("")
+};
+
+/**
+ * Analog of console.log() created to prevent Internet Explorer javascript error.
+ */
+function log() { ('console' in window)?console.log(arguments):null }
+
+/**
+ * Places caret at the end of input (editable div).
+ *
+ * @param object
+ *  Input object.
+ */
+function placeCaretAtEnd(object) {
+
+    object.focus();
+    if (typeof window.getSelection != "undefined" && typeof document.createRange != "undefined") {
+        var range = document.createRange();
+        range.selectNodeContents(object);
+        range.collapse(false);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    } else if (typeof document.body.createTextRange != "undefined") {
+        var textRange = document.body.createTextRange();
+        textRange.moveToElementText(object);
+        textRange.collapse(false);
+        textRange.select();
+    }
+
+}
+
+/**
+ * Simply returns key code of keyPress event.
+ *
+ * @param event
+ *  KeyPress event.
+ * @returns {Number}
+ *  Code of key.
+ */
+function getKeyCode(event) { return (window.event)?event.keyCode:event.which } // returns code of pressed key (key event)
+
+/**
+ * Sets global keyPressed[keyCode] variable to 1, if key pressed, and 0, if it had released.
+ *
+ * @param event
+ *  KeyPress event.
+ */
+function bodyKeyDown(event) { var c = getKeyCode(event); (c)?keyPressed[c]=1:log("Key unrecognised.") }
+function bodyKeyUp(event) { var c = getKeyCode(event); (c)?keyPressed[c]=0:log("Key unrecognised.") }
+
+/**
+ * Binds event to object with callback function handler(event).
+ *
+ * @param object {object}
+ *  Object to bind event on.
+ * @param event {string}
+ *  Event name.
+ * @param handler {function}
+ *  Function, that will handle event.
+ */
+function bindEvent(object, event, handler) {
+
+    if(object.addEventListener ) {
+        object.addEventListener(event,handler,false);
+    } else if(object.attachEvent ) {
+        var exp = (event.substr(0, 5) == "mouse") ? "" : "on"; // Internet Explorer binding
+        object.attachEvent(exp+event,handler); // IE
+    }
+
+}
+
+/**
+ * Scrolling functions.
+ *
+ * @param object
+ *  Just scrollable object.
+ * @param value
+ *  "Height" to scroll to.
+ */
+function scrollTo(object,value) { object.scrollTop = value }
+function scrollToBottom(object) { scrollTo(object,object.scrollHeight) }
+
+/**
+ * Function return caret position in editable div.
+ *
+ * @param editableDiv
+ * @returns {number}
+ *  Position.
+ */
+function getCaretPosition(editableDiv) {
+    var caretPos = 0, sel, range;
+    if (window.getSelection) {
+        sel = window.getSelection();
+        if (sel.rangeCount) {
+            range = sel.getRangeAt(0);
+            if (range.commonAncestorContainer.parentNode == editableDiv) {
+                caretPos = range.endOffset;
+            }
+        }
+    } else if (document.selection && document.selection.createRange) {
+        range = document.selection.createRange();
+        if (range.parentElement() == editableDiv) {
+            var tempEl = document.createElement("span");
+            editableDiv.insertBefore(tempEl, editableDiv.firstChild);
+            var tempRange = range.duplicate();
+            tempRange.moveToElementText(tempEl);
+            tempRange.setEndPoint("EndToEnd", range);
+            caretPos = tempRange.text.length;
+        }
+    }
+    return caretPos;
+}
+
+
+/**
+ * @deprecated Functions gets and restores selection range in document.
+ *
+ * @returns {*}
+ *  Selection range of null.
+ */
+function selectionGetRange()
+{
+    if(window.getSelection) { // non-IE
+        return window.getSelection().getRangeAt(0);
+    }
+    else if(document.selection) { // IE
+        return document.selection.createRange();
+    } else {
+        log("Can't find caret position!");
+        return null;
+    }
+
+}
+
+function selectionRestoreRange(range) {
+
+    if (range != null) {
+        if (window.getSelection) { //non-IE + already selection
+            var s = window.getSelection();
+            if (s.rangeCount > 0) s.removeAllRanges();
+            s.addRange(range);
+        } else if (document.createRange) { //non-IE + no selection
+            window.getSelection().addRange(range);
+        } else if (document.selection) { // IE
+            range.select();
+        }
+    }
+
+}]]></CSP>
+</Export>

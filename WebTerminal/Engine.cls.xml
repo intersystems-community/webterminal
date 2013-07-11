@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="WebTerminal.Engine">
+<Super>%CSP.WebSocket,%Library.Routine</Super>
+<TimeCreated>63011,62967.655821</TimeCreated>
+
+<Method name="OnPreServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set SharedConnection = 0
+	Do $system.Process.Undefined(2)
+	//Set ^tmp($Increment(^tmp),"OnPreServer")=""
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OnPostServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+ 	//Set ^tmp($Increment(^tmp),"OnPostServer")=""
+ 	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ExecuteCommand">
+<Description>
+TODO: Authorization, zones, users, ...</Description>
+<FormalSpec>command:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    
+	if (s'=$$$OK) { // in other words - really all right
+			    
+		try {
+			set status = $XECUTE(command _ " QUIT """"")
+			Do ..Write()	
+		} catch exception {
+			Do ..Write($ZERROR)
+		}
+		   
+		//Write System.GetOneStatusText()
+		
+			    	
+	} else {
+		
+		Do ..Write("Syntax error! " _ s _ " " _ $$$OK)
+		
+	}
+	
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Server">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+  
+	for {
+		
+		set data=..Read(,.status) 
+    
+    	If $$$ISOK(status) {
+	    	
+	    	Set action = $Extract(data,1,1) // read first character of data to determine action
+	    	
+	    	if (action = ">") { // execute
+	    	
+		    	Set status = ..ExecuteCommand($Extract(data,2,))		    	
+		    	
+	    	} else {
+		    	
+		    	Do ..Write("Unrecognised query.")	
+	    	
+	    	}
+      		
+    	} Else {
+	    	
+      		Quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
+    
+    	}
+  
+  	}
+  	
+  	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// $Server
+
+]]></Content>
+</UDLText>
+</Class>
+</Export>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="css/terminal.css" application="/csp/webterm/" default="1"><![CDATA[
+.terminalBase {
+    position: relative;
+    font-family: FreeMono, monospace;
+    font-size: 14px;
+}
+
+.terminalOutput {
+
+}
+
+.terminalOutputMessage {
+
+}
+
+.terminalInputContainer {
+    position: relative;
+    display: inline;
+}
+
+.terminalOutputHeader:after {
+    content: ">";
+    margin-right: 6px;
+}
+
+.terminalOutputBody {
+
+}
+
+.terminalInputPreContainer {
+    position: relative;
+}
+
+.terminalInputHiddenPart {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.terminalInputViewPart {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 0;
+}
+
+.terminalHiddenInput {
+    position: relative;
+    display: inline;
+    color: rgba(255,255,255,0);
+    outline: none;
+    /*opacity: 0;*/
+}
+
+.terminalInputView {
+    position: relative;
+    display: inline;
+    outline: none;
+    vertical-align: top;
+}
+
+.terminalInputHeader { /* global zone (like "dev> ") */
+    display: inline;
+}
+
+.terminalInputHeader:after {
+    content: ">";
+    margin-right: 6px;
+}
+
+.caret, .caret-blink {
+    position: relative;
+    display: inline;
+    width: 0;
+    height: 1pt;
+    vertical-align: baseline;
+}
+
+.caret-blink:after {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    content: "_";
+}
+
+.terminalAutocompleteOption {
+    opacity: 0.5;
+}]]></CSP>
+</Export>

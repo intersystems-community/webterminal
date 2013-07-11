@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="css/syntax.css" application="/csp/webterm/" default="1"><![CDATA[
+
+.syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit
+{ color: #29cfe9; }
+
+.syntax-for, .syntax-while, .syntax-if, .syntax-else { color: #ff00fe; }
+
+.syntax-digit { color: #00ffb4; }
+
+.syntax-symbol { color: #b5fdff; }
+]]></CSP>
+</Export>

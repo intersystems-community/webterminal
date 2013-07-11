@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="css/base.css" application="/csp/webterm/" default="1"><![CDATA[
+/*
+  Cache Web Terminal main stylesheet
+*/
+
+body {
+    padding: 0;
+    margin: 20px;
+    background-color: black;
+    color: white;
+    overflow: visible;
+}]]></CSP>
+</Export>
