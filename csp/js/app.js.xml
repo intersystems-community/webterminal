@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="js/app.js" application="/csp/webterm/" default="1"><![CDATA[
+<CSP name="js/app.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic application scripts.
  *
@@ -20,6 +20,9 @@ var webSocket = null, // socket to exchange data with server
 
 var lastCommandId = -1; // Every command has it's own id. It can be used to change logs, etc.
 
+var handleInput = 0, // while true, function terminalHandledInput(data) will be called.
+    tempStack = ""; // variable for all temp queries within handle
+
 /**
  * Function initializing basic application components, like events, etc.
  */
@@ -30,6 +33,7 @@ function terminalInitialize() {
     bindEvent( document, "keydown", bodyKeyDown );
     bindEvent( document, "keyup", bodyKeyUp );
     bindEvent( document, "keydown", terminalGlobalKeyDown );
+    bindEvent( terminalGetInputObject(), "blur", clearKeyStates );
     addTextareasAutoresize();
     if (!ie()) setInterval("terminalCaretTick()",500);
     terminalSetCommandZone("server");
@@ -48,6 +52,9 @@ function terminalInitialize() {
 function terminalServerConnect(server) {
 
     var error = 0, url = (server.substr(0,5)=="ws://")?server:("ws://"+server+"/csp/sys/WebTerminal.Engine.cls");
+    if (webSocket != null) {
+        terminalOutput("Connection already established.", 0,"<span class=\"warning\">warning</span>");
+    }
 
     terminalOutput("Connecting <span class=\"info\">" + url + "</span>...", 0, "server");
     try {
@@ -63,7 +70,8 @@ function terminalServerConnect(server) {
     }
 
     webSocket.onopen = function() {
-        terminalOutput("Connection established: <span class=\"hint\">" + webSocket.url + "</span>", 0, "server")
+        terminalOutput("Connection established: <span class=\"hint\">" + webSocket.url + "</span>", 0, "server");
+        terminalExecute("",ACTION_MESSAGE); // simple ping (in case of server-side authorization)
     };
 
     webSocket.onclose = function(event) {
@@ -79,15 +87,32 @@ function terminalServerConnect(server) {
 
     };
 
-    webSocket.onmessage = function(event) {
-        terminalOutput(event.data,1,"server");
-        scrollToBottom(document.body);
-    };
+    webSocket.onmessage = function(event) { terminalMessageReceived(event) };
 
     webSocket.onerror = function(error) {
         terminalOutput("<span class=\"error\">error: " + error.message + "</span>",1,"server")
     };
 
+
+}
+
+function terminalMessageReceived(event) {
+
+    var data = event.data; if (data.length == 0) return;
+    log("received: ",data);
+    var action = data[0]; data = data.substr(1);
+
+    switch (action) {
+        case "?": {
+            terminalOutput("Please, authorize first:",1,"server");
+            handleInput = 1;
+            terminalSetCommandZone("login");
+        } break;
+        case ">": {
+            terminalOutput(data,1,"server");
+            scrollToBottom(document.body);
+        }
+    }
 
 }
 
@@ -157,8 +182,10 @@ function terminalInternalCommand_help() {
         "       <td>Next line in current command stack.</td>" +
         "   </tr>" +
         "</table>" +
-        "<div>For testing: use \"/connect ws://localhost:[PORT]/csp/[USERNAME]/WebTerminal.Engine.cls\" to connect" +
-        " after server installed.</div>"
+        "<div style=\"margin-bottom: 20px;\">" +
+        "   For testing: use \"/connect ws://localhost:[PORT]/csp/[USERNAME]/WebTerminal.Engine.cls\"" +
+        "to connect after server installed. If authorization required, use \"admin\"-\"admin\" combination." +
+        "</div>"
         ,0,"<span class=\"warning\">system</span>")
 
 }
@@ -166,10 +193,8 @@ function terminalInternalCommand_help() {
 function terminalInternalCommand_connect() {
 
     if (typeof arguments[0] == "undefined") {
-        log("1");
         terminalOutput("Please enter server address.",0,"<span class=\"error\">system</span>")
     } else {
-        log("2");
         terminalServerConnect(arguments[0][0]);
     }
 
@@ -177,6 +202,7 @@ function terminalInternalCommand_connect() {
 
 function terminalInternalCommand_disconnect() {
 
+    terminalOutput("Closing connection...",0,"<span class=\"warning\">system</span>");
     webSocket.close();
     webSocket = null;
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="js/terminal.js" application="/csp/webterm/" default="1"><![CDATA[
+<CSP name="js/terminal.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic scripts for web-based Cache terminal.
  *
@@ -10,6 +10,9 @@
  */
 
 var autocompleteVariants = []; // available variants of autocomplete
+
+var ACTION_MESSAGE = ">",
+    ACTION_AUTHORIZATION = "?";
 
 /**
  * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
@@ -64,6 +67,7 @@ function terminalSetCommandZone(zoneName) {
     for (var i = 0; i < length; i++) {
         wrappers[i].style.marginLeft = l + "px";
     }
+
     header.style.width = l + "px";
     header.innerHTML = zoneName;
 
@@ -147,13 +151,14 @@ function terminalOutput(data, highlight, zone) {
  */
 function terminalSubmit(data) {
 
+    //function terminalHandledOutput
     terminalOutput(data, 1);
 
     if (data.trim() != "") {
 
-        if (data[0]=="/") { // internal (browser-side) instruction
+        if (handleInput) { // scenario script
 
-            terminalInternalExecute(data.substr(1,data.length-1));
+            terminalHandledInput(data);
 
         } else {
 
@@ -162,9 +167,18 @@ function terminalSubmit(data) {
             commandHistory[historyCurrent - 1] = terminalGetInputValue();
             commandHistory.push("");
 
-            terminalExecute(data);
+            if (data[0]=="/") { // internal (browser-side) instruction
+
+                terminalInternalExecute(data.substr(1,data.length-1));
+
+            } else {
+
+                terminalExecute(data);
+
+            }
 
         }
+
 
     }
 
@@ -175,20 +189,48 @@ function terminalSubmit(data) {
 }
 
 /**
+ * Function executes every submit time when handleInput flag equals true.
+ *
+ * @param data
+ *  Input data.
+ */
+function terminalHandledInput(data) {
+
+    handleInput = 0;
+    var zone = terminalGetCommandZone();
+    if (zone == "login") {
+        tempStack = data;
+        terminalSetCommandZone("password");
+        terminalGetInputViewObject().style.visibility = "hidden";
+        handleInput = 1;
+    } else if (zone == "password") {
+        terminalGetInputViewObject().style.visibility = "visible";
+        tempStack += "?"+data;
+        terminalSetCommandZone("server");
+        terminalExecute(tempStack,ACTION_AUTHORIZATION);
+        tempStack = "";
+    }
+
+}
+
+/**
  * Executes command on server side. Simply sends command to server.
  *
  * @param command
  *  Command to execute.
+ * [ @param action ]
+ *  Action prefix for server. Default: ACTION_MESSAGE.
  */
-function terminalExecute(command) {
+function terminalExecute(command,action) {
 
+    if (typeof action == "undefined") action = ACTION_MESSAGE;
     var data = parserPrepareSubmitData(command);
     if (webSocket == null) {
         terminalOutput("No connection established. Please, use <span class=\"hint\">/connect</span> command first.",
             0,"<span class=\"error\">system</span>");
     } else try {
-        log("sending: ",data);
-        webSocket.send(data);
+        log("sending: ",action + data);
+        webSocket.send(action + data);
     } catch (e) {
         terminalOutput("Problems with <b>WebSocket</b>. Exception: " + e,
             0,"<span class=\"error\">system</span>");

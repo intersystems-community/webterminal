@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="css/syntax.css" application="/csp/webterm/" default="1"><![CDATA[
+<CSP name="css/syntax.css" application="/csp/zitro/" default="1"><![CDATA[
 
 .syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit, .syntax-kill,
 .syntax-close, .syntax-quit

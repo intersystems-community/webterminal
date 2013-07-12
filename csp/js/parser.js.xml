@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="js/parser.js" application="/csp/webterm/" default="1"><![CDATA[
+<CSP name="js/parser.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Contains functions that take part in text processing.
  */
@@ -101,7 +101,7 @@ function parserSyntaxGetAttrName(stringPart) {
  *  formatted string ready-to-execute on server side
  */
 function parserPrepareSubmitData(data) {
-    return ">"+parserRemoveTags(data).trim().replace(/\r\n|\r|\n/g,"\n");
+    return parserRemoveTags(data).trim().replace(/\r\n|\r|\n/g,"\n");
 }
 
 /**
@@ -184,14 +184,18 @@ function parserFillHTMLSpaces(text) {
 
     while (i<l) {
         if (text[i].match(/\r|\n/g)) {
-            if (i+1<l && text[i+1].match(/\r|\n/g)) {
+            if (i+1<l && text[i]=="\r" && text[i+1]=="\n") {
                 text = text.replaceSymbol(i+1,"");
                 l--;
             }
             text = text.replaceSymbol(i,"<br>");
             i += 2;
             l += 3;
-        }
+        } /*else if (text[i].match(/<|>/g)) {
+            text = text.replaceSymbol(i,"&"+((text[i]=="<")?"lt":"gt")+";");
+            i += 2;
+            l += 3;
+        }   */
         if (text[i] == " ") {
             if (space) {
                 replacingCurrent()

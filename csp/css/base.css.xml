@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="css/base.css" application="/csp/webterm/" default="1"><![CDATA[
+<CSP name="css/base.css" application="/csp/zitro/" default="1"><![CDATA[
 /*
   Cache Web Terminal main stylesheet
 */

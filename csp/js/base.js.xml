@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="js/base.js" application="/csp/webterm/" default="1"><![CDATA[
+<CSP name="js/base.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic scripts for handling events, logging, etc.
  */
@@ -99,6 +99,14 @@ function setCaretPosition(element, position) {
 function getKeyCode(event) { return (window.event)?event.keyCode:event.which } // returns code of pressed key (key event)
 
 /**
+ * Function clears keyPressed status of keys. Usage: safe onblur
+ */
+function clearKeyStates() {
+
+    for (var i = 0; i < 256; i++) keyPressed[i] = 0;
+
+}
+/**
  * Sets global keyPressed[keyCode] variable to 1, if key pressed, and 0, if it had released.
  *
  * @param event
@@ -146,10 +154,11 @@ function scrollToBottom(object) { scrollTo(object,object.scrollHeight) }
  * @returns {number}
  *  Position.
  */
+
 function getCaretPosition(input) {
     input.focus();
     if(input.selectionStart) return input.selectionStart;
-        else if(!document.selection) return 0;
+    else if(!document.selection) return 0;
     var c = "\001";
     var sel	= document.selection.createRange();
     var dul	= sel.duplicate();
