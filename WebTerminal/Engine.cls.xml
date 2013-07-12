@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="WebTerminal.Engine">
+<Super>%CSP.WebSocket,%Library.Routine,%CSP.Session</Super>
+<TimeCreated>63011,62967.655821</TimeCreated>
+
+<Property name="login">
+<Type>%String</Type>
+<InitialExpression>"admin"</InitialExpression>
+</Property>
+
+<Property name="password">
+<Type>%String</Type>
+<InitialExpression>"admin"</InitialExpression>
+</Property>
+
+<Property name="lastClientId">
+<Type>%Numeric</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="MESSAGE">
+<Type>%String</Type>
+<InitialExpression><![CDATA[">"]]></InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="AUTHORIZATION">
+<Type>%String</Type>
+<InitialExpression>"?"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Method name="OnPreServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set ..SharedConnection = 0
+	do $system.Process.Undefined(2)
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OnPostServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[ 	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OnStartSession">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="SendData">
+<Description><![CDATA[
+Sends message to client. Prefix and query are optional parameters
+@param prefix
+		Declares first symbol in a query, for example, ">" to simple message]]></Description>
+<FormalSpec>prefix:%Char,query:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	do ..Write(prefix _ query)
+]]></Implementation>
+</Method>
+
+<Method name="ExecuteCommand">
+<Description>
+TODO: Authorization, zones, users, ...</Description>
+<FormalSpec>query:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	if (query = "") quit $$$OK
+	
+	set commands = $LISTFROMSTRING(query,$CHAR(10)) // break command by lines (multilining)
+		
+	FOR i=1:1:$LISTLENGTH(commands) {
+		
+		set $ZERROR = ""
+		
+    	SET value = $LIST(commands,i)
+    	try {
+	    	
+	    	Write ..MESSAGE // message identifier
+	    	XECUTE value // simple, so simple
+	    	Do ..SendData(,$ZERROR) // send writed stack
+				
+    	} catch exeption {
+	    	
+	    	Do ..SendData(..MESSAGE,$ZERROR)
+	    	
+    	}
+    	
+    }
+	
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ClientLoop">
+<FormalSpec>clientID:%Numeric</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	set authorized = 0 // client autorization required
+	
+	for {
+		
+		set readedData = ..Read(,.status) 
+    
+    	if $$$ISOK(status) {
+	    	
+	    	set action = $Extract(readedData,1,1) // read first character of data to determine action
+	    	set data = $Extract(readedData,2,) // data after first character
+	    		    	
+	    	if (action = ..AUTHORIZATION) { // autorize
+			    	
+			    Do ..SendData(..MESSAGE,"Result: " _ $System.Security.Login("UnknownUser",""))
+			    if (data = (..login _ "?" _ ..password)) {
+				    set authorized = 1
+				    Do ..SendData(..MESSAGE,"Authorization successful. Welcome, " _ ..login _ "!")
+			    } else {
+				    Do ..SendData(..MESSAGE,"Wrong name/password. Try again.")
+			    }
+			    	
+		    } elseif (authorized = 0) {
+			    	
+			    Do ..SendData(..AUTHORIZATION,"Authorization required.")
+			    	
+		    } elseif (action = ..MESSAGE) { // autorized
+	    	
+		    	Do ..ExecuteCommand(data)	    	
+		    	
+	    	} else { // something scary
+		    	
+		    	Do ..SendData(..MESSAGE,"Unrecognised query.")
+		    		
+	    	}
+      		
+    	} else {
+	    	
+      		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
+    
+    	}
+}
+]]></Implementation>
+</Method>
+
+<Method name="Server">
+<Description>
+New connection established</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	set ..lastClientId = ..lastClientId + 1
+	
+	Do ..ClientLoop(..lastClientId)
+  	
+  	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// $Server
+
+]]></Content>
+</UDLText>
+</Class>
+</Export>
