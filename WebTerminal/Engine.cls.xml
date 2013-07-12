@@ -113,8 +113,7 @@ TODO: Authorization, zones, users, ...</Description>
 	    	set data = $Extract(readedData,2,) // data after first character
 	    		    	
 	    	if (action = ..AUTHORIZATION) { // autorize
-			    	
-			    Do ..SendData(..MESSAGE,"Result: " _ $System.Security.Login("UnknownUser",""))
+			    
 			    if (data = (..login _ "?" _ ..password)) {
 				    set authorized = 1
 				    Do ..SendData(..MESSAGE,"Authorization successful. Welcome, " _ ..login _ "!")
