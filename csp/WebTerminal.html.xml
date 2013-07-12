@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="WebTerminal.html" application="/csp/zitro/" default="1"><![CDATA[
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Remote Caché terminal</title>
+    <meta charset="utf-8">
+    <meta name="author" content="ZitRo - InterSystems">
+    <meta name="Description" content="Web-based terminal for Caché administration.">
+    <meta name="keywords" content="cache,caché,terminal,web,web-based,remote,control">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/terminal.css">
+    <link rel="stylesheet" href="css/extra.css">
+    <link rel="stylesheet" href="css/syntax.css">
+    <script type="text/javascript" src="js/base.js"></script>
+    <script type="text/javascript" src="js/parser.js"></script>
+    <script type="text/javascript" src="js/terminal.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+</head>
+
+<body>
+    <div class="terminalBase">
+        <div class="terminalOutput">
+        </div>
+        <div class="terminalInputPreContainer">
+            <div class="terminalInputViewPart terminalInputContainer">
+                <div class="terminalInputHeader">emulate</div>
+                <div class="terminalInputWrapper">
+                    <div class="terminalInput terminalInputView"></div>
+                </div>
+            </div>
+            <div class="terminalInputHiddenPart terminalInputContainer">
+                <div class="terminalInputWrapper">
+                    <textarea class="terminalInput terminalHiddenInput"></textarea>
+                </div>
+            </div>
+        </div>
+        <span id="ruler"></span> <!--Cross-browser string width-->
+    </div>
+    <script type="text/javascript">terminalInitialize()</script>
+</body>
+
+</html>]]></CSP>
+</Export>
