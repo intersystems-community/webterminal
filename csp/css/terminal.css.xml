@@ -17,16 +17,15 @@
 
 .terminalInputContainer {
     position: relative;
-    display: inline;
 }
 
 .terminalOutputHeader:after {
     content: ">";
-    margin-right: 6px;
+    margin: 0 6px 0 6px;
 }
 
 .terminalOutputBody {
-
+    word-wrap: break-word;
 }
 
 .terminalInputPreContainer {
@@ -41,6 +40,11 @@
     z-index: 100;
 }
 
+.terminalInputWrapper {
+    margin-left: 100px;
+    position: relative;
+}
+
 .terminalInputViewPart {
     position: absolute;
     left: 0;
@@ -49,28 +53,41 @@
     z-index: 0;
 }
 
-.terminalHiddenInput {
-    position: relative;
-    display: inline;
-    color: rgba(255,255,255,0);
+.terminalInput {
+    display: block;
+    margin: 0;
+    width: 100%;
+    padding: 0;
     outline: none;
-    /*opacity: 0;*/
+    border: none;
+    line-height: inherit;
+    font: inherit;
+    background: none;
+    color: inherit;
+    overflow: hidden;
+    min-height: 20px;
+    word-wrap: break-word;
+    resize: none;
+}
+
+.terminalHiddenInput {
+    width: 100%;
+    color: rgba(255,255,255,0);
 }
 
 .terminalInputView {
-    position: relative;
-    display: inline;
-    outline: none;
-    vertical-align: top;
+
 }
 
 .terminalInputHeader { /* global zone (like "dev> ") */
-    display: inline;
+    float: left;
+    vertical-align: top;
+    width: 100px;
 }
 
 .terminalInputHeader:after {
     content: ">";
-    margin-right: 6px;
+    margin: 0 6px 0 6px;
 }
 
 .caret, .caret-blink {
@@ -78,7 +95,7 @@
     display: inline;
     width: 0;
     height: 1pt;
-    vertical-align: baseline;
+    vertical-align: bottom;
 }
 
 .caret-blink:after {

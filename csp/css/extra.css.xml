@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <CSP name="css/extra.css" application="/csp/webterm/" default="1"><![CDATA[
-.hidden {
-    visibility: hidden;
-}
-
 .warning {
     color: #ffa500;
 }
@@ -15,6 +11,10 @@
 
 .error {
     color: #ff0000;
+}
+
+.info {
+    color: #fffd7c;
 }
 
 @-webkit-keyframes blinker {

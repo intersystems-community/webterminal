@@ -20,7 +20,8 @@ var autocompleteVariants = []; // available variants of autocomplete
 function terminalGetInputObject() { return document.getElementsByClassName("terminalHiddenInput")[0] }
 function terminalGetInputViewObject() { return document.getElementsByClassName("terminalInputView")[0] }
 function terminalGetOutputObject() { return document.getElementsByClassName("terminalOutput")[0] }
-function terminalGetInputHeaderObjects() { return document.getElementsByClassName("terminalInputHeader") }
+function terminalGetInputWrappersObjects() { return document.getElementsByClassName("terminalInputWrapper") }
+function terminalGetInputHeaderObject() { return document.getElementsByClassName("terminalInputHeader")[0] }
 function terminalGetCaretObject() { return document.getElementsByClassName("caret")[0] ||
     document.getElementsByClassName("caret-blink")[0] }
 function terminalGetAutocompleteObject() { return document.getElementsByClassName("terminalAutocompleteOption")[0] }
@@ -50,11 +51,22 @@ function terminalCaretTick() {
  *  Command zone.
  */
 function terminalSetCommandZone(zoneName) {
-    var zs = terminalGetInputHeaderObjects();
-    var length = zs.length;
+
+    var header = terminalGetInputHeaderObject();
+    var wrappers = terminalGetInputWrappersObjects();
+
+    // we need to update terminalInputHeader.width && terminalInputWrappers[].margin-left property
+
+    var l = zoneName.visualLength() + 20; // @const
+    log(l);
+    var length = wrappers.length;
+
     for (var i = 0; i < length; i++) {
-        zs[i].innerHTML = zoneName;
+        wrappers[i].style.marginLeft = l + "px";
     }
+    header.style.width = l + "px";
+    header.innerHTML = zoneName;
+
 }
 
 /**
@@ -63,7 +75,7 @@ function terminalSetCommandZone(zoneName) {
  * @returns {string}
  */
 function terminalGetCommandZone() {
-    return terminalGetInputHeaderObjects()[0].innerHTML;
+    return terminalGetInputHeaderObject().innerHTML;
 }
 
 /**
@@ -74,7 +86,7 @@ function terminalGetCommandZone() {
  */
 function terminalGetInputValue() {
     var input = terminalGetInputObject();
-    return input.innerHTML;
+    return input.value;
 }
 
 /**
@@ -86,7 +98,7 @@ function terminalSetInputValue(value) {
     //var selectionRange = selectionGetRange(); // saving selection
     //saveSelection();
     //log(selectionRange);
-    input.innerHTML = value;
+    input.value = value;
     placeCaretAtEnd(input);
     //restoreSelection();
     //selectionRestoreRange(selectionRange); // restoring selection
@@ -120,7 +132,10 @@ function terminalOutput(data, highlight, zone) {
     var output = terminalGetOutputObject();
     data = (highlight)?parserHighlight(data):data;
 
-    output.innerHTML += "<div class=\"terminalOutputMessage\">"+
+    var idText = (document.getElementById("CommandLog"+lastCommandId))?
+        "":(" id=\"CommandLog"+lastCommandId+"\"");
+
+    output.innerHTML += "<div class=\"terminalOutputMessage\""+idText+">"+
         "<span class=\"terminalOutputHeader\">" + zone + "</span>"+
         "<span class=\"terminalOutputBody\">"+
         data +'</span></div>';
@@ -132,23 +147,30 @@ function terminalOutput(data, highlight, zone) {
  */
 function terminalSubmit(data) {
 
-    /*var caret = terminalGetCaretObject();
-    if (caret) try {
-        terminalGetInputView().removeChild(caret);
-    } catch (e) {
-        log("terminalSubmit(...) caret removing: ",e)
-    } */
-
-    historyCurrent = commandHistory.length;
-    commandHistory[historyCurrent - 1] = terminalGetInputValue();
-    commandHistory.push("");
-
     terminalOutput(data, 1);
-    terminalExecute(data);
+
+    if (data.trim() != "") {
+
+        if (data[0]=="/") { // internal (browser-side) instruction
+
+            terminalInternalExecute(data.substr(1,data.length-1));
+
+        } else {
+
+            lastCommandId++;
+            historyCurrent = commandHistory.length;
+            commandHistory[historyCurrent - 1] = terminalGetInputValue();
+            commandHistory.push("");
+
+            terminalExecute(data);
+
+        }
+
+    }
 
     terminalClearInput();
-    scrollToBottom(document.body);
     terminalUpdateInputView();
+    scrollToBottom(document.body);
 
 }
 
@@ -160,15 +182,22 @@ function terminalSubmit(data) {
  */
 function terminalExecute(command) {
 
-    try {
-        var data = parserPrepareSubmitData(command);
-        log("Sending: ", data);
-        webSocket.send( data );
+    var data = parserPrepareSubmitData(command);
+    if (webSocket == null) {
+        terminalOutput("No connection established. Please, use <span class=\"hint\">/connect</span> command first.",
+            0,"<span class=\"error\">system</span>");
+    } else try {
+        log("sending: ",data);
+        webSocket.send(data);
     } catch (e) {
         terminalOutput("Problems with <b>WebSocket</b>. Exception: " + e,
-            0,"<span class=\"error\">warning</span>");
+            0,"<span class=\"error\">system</span>");
     }
 
+}
+
+function terminalSaveCurrentQueryToHistory() {
+    commandHistory[commandHistory.length-1] = terminalGetInputValue();
 }
 
 /**
@@ -176,7 +205,7 @@ function terminalExecute(command) {
  */
 function terminalClearInput() {
 
-    terminalGetInputObject().innerHTML = "";
+    terminalGetInputObject().value = "";
     placeCaretAtEnd(terminalGetInputObject());
 
 }
@@ -193,19 +222,22 @@ function terminalKeyDowned(event) {
 
     var keyCode = getKeyCode(event);
 
-    if (keyCode == 9 || keyCode == 13 || keyCode == 17 || keyCode == 38 || keyCode == 40 ) {
-        if (event && event.preventDefault) {
-            event.stopPropagation();
-            event.preventDefault();
-        } else {
-            window.event.cancelBubble = true; // IE
-        }
-    }
+    // SHIFT == 16
+    if (keyCode == 9 || (keyCode == 13 && !(keyPressed[16] || keyPressed[17])) || keyCode == 17 || keyCode == 38 || keyCode == 40 ) {
+        preventDefaultEvent(event);
+    } else setTimeout("terminalSaveCurrentQueryToHistory()",1); // letter pressed
 
-    terminalPerformKeyAction(keyCode); // perform suitable action for pressed key
+    if (keyCode != 13 || ( keyCode == 13 && !(keyPressed[16] || keyPressed[17])))
+        terminalPerformKeyAction(keyCode); // SHIFT/CTRL + ENTER
 
-    if (keyCode != 17) setTimeout("terminalUpdateInputView()",1);
+    if (keyCode != 17) setTimeout("terminalUpdateInputView()",1); // CTRL
 
+}
+
+function terminalUpdateInputHeight() {
+    var obj = terminalGetInputObject();
+    var h = getElementInnerHeight(terminalGetInputViewObject());
+    obj.style.height = h + "px";
 }
 
 /**
@@ -286,7 +318,9 @@ function terminalPerformAutocomplete() {
 
     var input = terminalGetInputObject();
     var caretPosition = getCaretPosition(input);
-    terminalSetInputValue(parserInsertString(terminalGetInputValue(),caretPosition,terminalGetAutocompleteValue()));
+    var autocompleteValue = terminalGetAutocompleteValue();
+    terminalSetInputValue(parserInsertString(terminalGetInputValue(),caretPosition,autocompleteValue));
+    setCaretPosition(input,caretPosition + autocompleteValue.length);
 
 }
 

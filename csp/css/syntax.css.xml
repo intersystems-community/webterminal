@@ -2,7 +2,8 @@
 <Export generator="Cache" version="25">
 <CSP name="css/syntax.css" application="/csp/webterm/" default="1"><![CDATA[
 
-.syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit
+.syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit, .syntax-kill,
+.syntax-close, .syntax-quit
 { color: #29cfe9; }
 
 .syntax-for, .syntax-while, .syntax-if, .syntax-else { color: #ff00fe; }

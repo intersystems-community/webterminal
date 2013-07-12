@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="index.csp" application="/csp/webterm/" default="1"><![CDATA[
+<CSP name="webterm.csp" application="/csp/webterm/" default="1"><![CDATA[
 <!DOCTYPE html>
 
 <html>
@@ -26,15 +26,19 @@
         <div class="terminalOutput">
         </div>
         <div class="terminalInputPreContainer">
-            <div class="terminalInputViewPart">
-                <div class="terminalInputHeader">emulate</div><!--
-                --><div class="terminalInputView"></div>
+            <div class="terminalInputViewPart terminalInputContainer">
+                <div class="terminalInputHeader">emulate</div>
+                <div class="terminalInputWrapper">
+                    <div class="terminalInput terminalInputView"></div>
+                </div>
             </div>
-            <div class="terminalInputHiddenPart">
-                <div class="terminalInputHeader hidden">emulate</div><!--
-                --><div class="terminalHiddenInput" id="inp" contenteditable="true"></div>
+            <div class="terminalInputHiddenPart terminalInputContainer">
+                <div class="terminalInputWrapper">
+                    <textarea class="terminalInput terminalHiddenInput"></textarea>
+                </div>
             </div>
         </div>
+        <span id="ruler"></span> <!--Cross-browser string width-->
     </div>
     <script type="text/javascript">terminalInitialize()</script>
 </body>

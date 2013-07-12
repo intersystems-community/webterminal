@@ -2,20 +2,15 @@
 <Export generator="Cache" version="25">
 <CSP name="js/app.js" application="/csp/webterm/" default="1"><![CDATA[
 /**
- * Basic application scripts
+ * Basic application scripts.
  *
  * Required:
  *  base.js
  *  terminal.js
  *
- *  Known bugs:
- *      - IE block flow when line overflows
- *      - Copy/paste troubles (caused by editable div, maybe, there is no way to solve it using editable div)
- *      - FF text selection (selecting text from background, not from hidden input)
- *      - FF autocomplete (cursor jumps to string beginning)
+ * @author ZitRo
  *
  *  TODO:
- *      - Fix bugs
  *      - A tons of features todo :)
  */
 
@@ -23,33 +18,40 @@ var webSocket = null, // socket to exchange data with server
     commandHistory = [""], // history of all submitted commands
     historyCurrent = 0; // current position in this history
 
+var lastCommandId = -1; // Every command has it's own id. It can be used to change logs, etc.
+
 /**
  * Function initializing basic application components, like events, etc.
  */
 function terminalInitialize() {
 
     terminalFocusOnInput();
+    for (var i = 0; i < 256; i++) keyPressed[i] = 0; // initializing keys
     bindEvent( document, "keydown", bodyKeyDown );
     bindEvent( document, "keyup", bodyKeyUp );
     bindEvent( document, "keydown", terminalGlobalKeyDown );
-    setInterval("terminalCaretTick()",500);
+    addTextareasAutoresize();
+    if (!ie()) setInterval("terminalCaretTick()",500);
     terminalSetCommandZone("server");
-    terminalOutput("Terminal ready.", 0, "system");
-    for (var i = 0; i < 256; i++) keyPressed[i] = 0; // initializing keys
-
-    terminalServerConnect();
+    terminalUpdateInputView();
+    terminalOutput("Terminal ready. Type " +
+        "<span class=\"warning\">/help</span> to get more information.", 0, "<b>system</b>");
 
 }
 
 /**
  * Connects machine to server, add handlers, etc.
+ *
+ * @param server
+ *  URL or pair IP:PORT of server to connect to.
  */
-function terminalServerConnect() {
+function terminalServerConnect(server) {
 
-    var error = 0;
+    var error = 0, url = (server.substr(0,5)=="ws://")?server:("ws://"+server+"/csp/sys/WebTerminal.Engine.cls");
 
+    terminalOutput("Connecting <span class=\"info\">" + url + "</span>...", 0, "server");
     try {
-        webSocket = new WebSocket("ws://localhost:57787/csp/webterm/WebTerminal.Engine.cls"); // test url
+        webSocket = new WebSocket(url);
     } catch (e) {
         error = 1;
     }
@@ -66,6 +68,7 @@ function terminalServerConnect() {
 
     webSocket.onclose = function(event) {
 
+        webSocket = null;
         var t;
         if (event.wasClean) {
             t = "<span class=\"hint\">Connection closed.</span>"
@@ -77,13 +80,105 @@ function terminalServerConnect() {
     };
 
     webSocket.onmessage = function(event) {
-        terminalOutput(event.data,1,"server")
+        terminalOutput(event.data,1,"server");
+        scrollToBottom(document.body);
     };
 
     webSocket.onerror = function(error) {
         terminalOutput("<span class=\"error\">error: " + error.message + "</span>",1,"server")
     };
 
+
+}
+
+/**
+ * Function executes local script.
+ *
+ * @param string
+ *  String to execute.
+ */
+function terminalInternalExecute(string) {
+
+    var arguments = string.split(/\s*\s+\s*/g);
+    var command = arguments.splice(0,1)[0];
+    try {
+        log("terminalInternalCommand_"+command+"(arguments)");
+        eval("terminalInternalCommand_"+command+"(arguments)");
+    } catch (e) {
+        terminalOutput("Unknown command \""+command+"\".",0,"<span class=\"warning\">system</span>")
+    }
+
+}
+
+/**
+ * Shows help.
+ */
+function terminalInternalCommand_help() {
+
+    terminalOutput("<div class=\"center\"><h3>Caché Web Terminal</h3></div>" +
+        "<table>" +
+        "   <tr>" +
+        "       <td class=\"hint\">Available commands</td>" +
+        "       <td class=\"hint\">Description</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">help</td>" +
+        "       <td>Shows help</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">connect [{ip}:{port} | {url}]</td>" +
+        "       <td>Connecting to Caché server via <b>WebSockets</b></td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">disconnect</td>" +
+        "       <td>Disconnecting from current server</td>" +
+        "   </tr>" +
+        "</table>" +
+        "<div class=\"center\"><h3>Controls</h3></div>" +
+        "<table>" +
+        "   <tr>" +
+        "       <td class=\"hint\">Key</td>" +
+        "       <td class=\"hint\">Description</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">TAB</td>" +
+        "       <td>Ends current input with suggested autocomplete option</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">CTRL</td>" +
+        "       <td>While few autocomplete option is present, changes variant of option to next available</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">keys UP/DOWN</td>" +
+        "       <td>Affords access to command history. <i>Current query will be saved.</i></td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">SHIFT/CTRL + ENTER</td>" +
+        "       <td>Next line in current command stack.</td>" +
+        "   </tr>" +
+        "</table>" +
+        "<div>For testing: use \"/connect ws://localhost:[PORT]/csp/[USERNAME]/WebTerminal.Engine.cls\" to connect" +
+        " after server installed.</div>"
+        ,0,"<span class=\"warning\">system</span>")
+
+}
+
+function terminalInternalCommand_connect() {
+
+    if (typeof arguments[0] == "undefined") {
+        log("1");
+        terminalOutput("Please enter server address.",0,"<span class=\"error\">system</span>")
+    } else {
+        log("2");
+        terminalServerConnect(arguments[0][0]);
+    }
+
+}
+
+function terminalInternalCommand_disconnect() {
+
+    webSocket.close();
+    webSocket = null;
 
 }]]></CSP>
 </Export>

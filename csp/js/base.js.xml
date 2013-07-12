@@ -10,8 +10,15 @@ var keyPressed = []; // shows if certain key is pressed on the moment. Usage: ke
 String.prototype.replaceSymbol = function (index, string) {
     return this.substr(0, index) + string + this.substr(index + 1);
 };
+
 String.prototype.reverse = function () {
     return this.split("").reverse().join("")
+};
+
+String.prototype.visualLength = function() {
+    var ruler = document.getElementById("ruler");
+    ruler.innerHTML = this;
+    return ruler.offsetWidth;
 };
 
 /**
@@ -22,24 +29,61 @@ function log() { ('console' in window)?console.log(arguments):null }
 /**
  * Places caret at the end of input (editable div).
  *
- * @param object
- *  Input object.
+ * @param input
+ *  Input.
  */
-function placeCaretAtEnd(object) {
+function placeCaretAtEnd(input) {
 
-    object.focus();
-    if (typeof window.getSelection != "undefined" && typeof document.createRange != "undefined") {
-        var range = document.createRange();
-        range.selectNodeContents(object);
-        range.collapse(false);
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-    } else if (typeof document.body.createTextRange != "undefined") {
-        var textRange = document.body.createTextRange();
-        textRange.moveToElementText(object);
-        textRange.collapse(false);
-        textRange.select();
+    setCaretPosition(input, input.value.length)
+
+}
+
+function addTextareasAutoresize() {
+
+    var t = document.getElementsByTagName("textarea")[0];
+    var offset = !window.opera?
+        (t.offsetHeight - t.clientHeight):
+        (t.offsetHeight + parseInt(window.getComputedStyle(t, null).getPropertyValue("border-top-width")));
+
+    var resize  = function(t) {
+        t.style.height = "auto";
+        t.style.height = (t.scrollHeight  + offset ) + "px";
+    };
+
+    t.addEventListener && t.addEventListener("input", function(event) {
+        resize(t);
+    });
+
+    t["attachEvent"]  && t.attachEvent("onkeyup", function() {
+        resize(t);
+    });
+
+}
+
+/**
+ * Sets the cater position on element (input).
+ *
+ * @param element
+ *  Input where to set position.
+ * @param position
+ *  Position to set.
+ */
+function setCaretPosition(element, position) {
+
+    if(element != null) {
+        if(element.createTextRange) {
+            var range = element.createTextRange();
+            range.move('character', position);
+            range.select();
+        }
+        else {
+            if(element.selectionStart) {
+                element.focus();
+                element.setSelectionRange(position, position);
+            }
+            else
+                element.focus();
+        }
     }
 
 }
@@ -98,68 +142,44 @@ function scrollToBottom(object) { scrollTo(object,object.scrollHeight) }
 /**
  * Function return caret position in editable div.
  *
- * @param editableDiv
+ * @param input
  * @returns {number}
  *  Position.
  */
-function getCaretPosition(editableDiv) {
-    var caretPos = 0, sel, range;
-    if (window.getSelection) {
-        sel = window.getSelection();
-        if (sel.rangeCount) {
-            range = sel.getRangeAt(0);
-            if (range.commonAncestorContainer.parentNode == editableDiv) {
-                caretPos = range.endOffset;
-            }
-        }
-    } else if (document.selection && document.selection.createRange) {
-        range = document.selection.createRange();
-        if (range.parentElement() == editableDiv) {
-            var tempEl = document.createElement("span");
-            editableDiv.insertBefore(tempEl, editableDiv.firstChild);
-            var tempRange = range.duplicate();
-            tempRange.moveToElementText(tempEl);
-            tempRange.setEndPoint("EndToEnd", range);
-            caretPos = tempRange.text.length;
-        }
-    }
-    return caretPos;
+function getCaretPosition(input) {
+    input.focus();
+    if(input.selectionStart) return input.selectionStart;
+        else if(!document.selection) return 0;
+    var c = "\001";
+    var sel	= document.selection.createRange();
+    var dul	= sel.duplicate();
+    dul.moveToElementText(input);
+    sel.text = c;
+    var len = dul.text.indexOf(c);
+    sel.moveStart('character',-1);
+    sel.text = "";
+    return len;
 }
 
+function getElementInnerHeight(element) {
+    return element.scrollHeight;
+}
+
+function ie() {
+    return navigator.appName == "Microsoft Internet Explorer"
+}
 
 /**
- * @deprecated Functions gets and restores selection range in document.
+ * Function prevents browser default action for event.
  *
- * @returns {*}
- *  Selection range of null.
+ * @param event
  */
-function selectionGetRange()
-{
-    if(window.getSelection) { // non-IE
-        return window.getSelection().getRangeAt(0);
-    }
-    else if(document.selection) { // IE
-        return document.selection.createRange();
+function preventDefaultEvent(event) {
+    if (event && event.preventDefault) {
+        event.stopPropagation();
+        event.preventDefault();
     } else {
-        log("Can't find caret position!");
-        return null;
+        window.event.cancelBubble = true; // IE
     }
-
-}
-
-function selectionRestoreRange(range) {
-
-    if (range != null) {
-        if (window.getSelection) { //non-IE + already selection
-            var s = window.getSelection();
-            if (s.rangeCount > 0) s.removeAllRanges();
-            s.addRange(range);
-        } else if (document.createRange) { //non-IE + no selection
-            window.getSelection().addRange(range);
-        } else if (document.selection) { // IE
-            range.select();
-        }
-    }
-
 }]]></CSP>
 </Export>

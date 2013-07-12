@@ -5,7 +5,10 @@
  * Contains functions that take part in text processing.
  */
 
-var autocomplete = ["cache","set","write","for","while","do","chAnGe AnYtHiNg!"];
+var autocomplete = [
+    "/help","/connect","/disconnect",
+    "set","write","for","while","do","kill","quit","close","else","if",
+    "$$$OK"];
 
 /**
  * Function removes any tags in content.
@@ -44,10 +47,12 @@ function parserInsertString(text,position,string) {
  */
 function parserGetAutocompleteVariants(string,position) {
 
+
     var i = Math.min(position-1,string.length-1), s = '', variants = [];
+    if (i<0) return variants;
     if (i+1<string.length && string[i+1].match(/\w/g)) return []; // leave autocomplete if next letter detected
     while (i >= 0) { // get the part of string
-        if (string[i].match(/\w/g)) s += string[i]; else break;
+        if (string[i].match(/[\w$#\\^/]/g)) s += string[i]; else break;
         i--;
     }
     if (s == '') return [];
@@ -96,7 +101,7 @@ function parserSyntaxGetAttrName(stringPart) {
  *  formatted string ready-to-execute on server side
  */
 function parserPrepareSubmitData(data) {
-    return ">"+parserRemoveTags(data).trim();
+    return ">"+parserRemoveTags(data).trim().replace(/\r\n|\r|\n/g,"\n");
 }
 
 /**
@@ -168,6 +173,39 @@ function parserInsertCaret(text,position) {
 
 }
 
+function parserFillHTMLSpaces(text) {
+
+    var i = 0, l = text.length, space = 0;
+    var replacingCurrent = function() {
+        text = text.replaceSymbol(i,"&nbsp;");
+        i += 4;
+        l += 5;
+    };
+
+    while (i<l) {
+        if (text[i].match(/\r|\n/g)) {
+            if (i+1<l && text[i+1].match(/\r|\n/g)) {
+                text = text.replaceSymbol(i+1,"");
+                l--;
+            }
+            text = text.replaceSymbol(i,"<br>");
+            i += 2;
+            l += 3;
+        }
+        if (text[i] == " ") {
+            if (space) {
+                replacingCurrent()
+            } else {
+                if (i+1==l || i==0) replacingCurrent(); // replace last space
+                space = 1
+            }
+        } else space = 0;
+        i++;
+    }
+    return text;
+
+}
+
 /**
  * Function parses input text for view. Adds styles, etc.
  *
@@ -180,12 +218,10 @@ function parseInput(text) {
 
     var p = getCaretPosition(terminalGetInputObject());
 
-    var l = text.length;
-    if (text.substr(l-5,l)==" <br>") text = text.replaceSymbol(l-5,"&nbsp;"); // Hello, Firefox!
-
+    text = parserFillHTMLSpaces(text);
     text = parserHighlight(text);
     text = parserInsertAutocompleteOption(text);
-    text = parserInsertCaret(text,p);
+    if (!ie()) text = parserInsertCaret(text,p); // simply checks for IE browser :)
 
     return text;
 
