@@ -107,7 +107,7 @@ If the key is empty, generates new key value.</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	if (^TerminalAuthKey = "") {
+	if ($get(^TerminalAuthKey) = "") {
 		Do ..GenerateAuthKey()
 	}
 	quit ^TerminalAuthKey
