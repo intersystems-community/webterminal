@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:41:33">
-<CSP name="WebTerminal.CSP" application="/csp/zitro/" default="1"><![CDATA[
+<Export generator="Cache" version="25">
+<CSP name="WebTerminal.CSP" application="/csp/webterm/" default="1"><![CDATA[
 <!DOCTYPE html>
 
 <html>
