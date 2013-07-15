@@ -1,40 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Class name="WebTerminal.Engine">
-<Super>%CSP.WebSocket,%Library.Routine,%CSP.Session</Super>
+<Super>%CSP.WebSocket,%Library.Routine,%CSP.REST</Super>
 <TimeCreated>63011,62967.655821</TimeCreated>
 
-<Property name="login">
+<UDLText name="T">
+<Content><![CDATA[
+// Parameter AuthKey As %String; HOW TO CHANGE PARAMETER AT RUNTIME? ELSE CLASS WILL USE GLOBAL.
+
+]]></Content>
+</UDLText>
+
+<Property name="WebSocketID">
+<Description>
+The unique identity of this WebSocket.</Description>
 <Type>%String</Type>
-<InitialExpression>"admin"</InitialExpression>
 </Property>
 
-<Property name="password">
+<Property name="SharedConnection">
+<Description><![CDATA[
+This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
+conection or over a pool of shared connections.  It may be set to one of the following:
+<br><ul>
+<li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
+<li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
+</ul>]]></Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="SessionId">
+<Description>
+The CSP Session ID from which this WebSocket was created.</Description>
 <Type>%String</Type>
-<InitialExpression>"admin"</InitialExpression>
+</Property>
+
+<Property name="GWClientAddress">
+<Description><![CDATA[
+The address through which a WebSocket operating asynchronously (<property>SharedConnection=1</property>) can communicate with the hosting CSP Gateway.]]></Description>
+<Type>%String</Type>
 </Property>
 
 <Property name="lastClientId">
+<Description>
+Last joined client id</Description>
 <Type>%Numeric</Type>
 <InitialExpression>0</InitialExpression>
 </Property>
 
+<Property name="AUTHORIZATION">
+<Description>
+Authorization identifier</Description>
+<Type>%Char</Type>
+<InitialExpression>"?"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
 <Property name="MESSAGE">
-<Type>%String</Type>
+<Description>
+Message identifier</Description>
+<Type>%Char</Type>
 <InitialExpression><![CDATA[">"]]></InitialExpression>
 <ReadOnly>1</ReadOnly>
 </Property>
 
-<Property name="AUTHORIZATION">
-<Type>%String</Type>
-<InitialExpression>"?"</InitialExpression>
+<Property name="CHANGENAMESPACE">
+<Description>
+Zone change identifier</Description>
+<Type>%Char</Type>
+<InitialExpression>"_"</InitialExpression>
 <ReadOnly>1</ReadOnly>
 </Property>
 
 <Method name="OnPreServer">
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set ..SharedConnection = 0
 	do $system.Process.Undefined(2)
 	quit $$$OK
 ]]></Implementation>
@@ -46,9 +86,31 @@
 ]]></Implementation>
 </Method>
 
-<Method name="OnStartSession">
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[	quit $$$OK
+<Method name="GenerateAuthKey">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set temp = ""
+	set length = 64 + $Random(33)
+	for {
+    	set temp = temp _ $Char(65 + $Random(25)) // over googol combinations!
+    	quit:$Length(temp)>length
+	}
+	set ^TerminalAuthKey = temp
+]]></Implementation>
+</Method>
+
+<Method name="GetAuthKey">
+<Description>
+Returns key for client authorization.
+If the key is empty, generates new key value.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	if (^TerminalAuthKey = "") {
+		Do ..GenerateAuthKey()
+	}
+	quit ^TerminalAuthKey
 ]]></Implementation>
 </Method>
 
@@ -76,8 +138,8 @@ TODO: Authorization, zones, users, ...</Description>
 	FOR i=1:1:$LISTLENGTH(commands) {
 		
 		set $ZERROR = ""
-		
     	SET value = $LIST(commands,i)
+    	
     	try {
 	    	
 	    	Write ..MESSAGE // message identifier
@@ -105,7 +167,7 @@ TODO: Authorization, zones, users, ...</Description>
 	
 	for {
 		
-		set readedData = ..Read(,.status) 
+		set readedData = ..Read(,.status)
     
     	if $$$ISOK(status) {
 	    	
@@ -114,12 +176,22 @@ TODO: Authorization, zones, users, ...</Description>
 	    		    	
 	    	if (action = ..AUTHORIZATION) { // autorize
 			    
-			    if (data = (..login _ "?" _ ..password)) {
+			    if (data = ..GetAuthKey()) {
+				    
 				    set authorized = 1
-				    Do ..SendData(..MESSAGE,"Authorization successful. Welcome, " _ ..login _ "!")
+				    Do ..SendData(..MESSAGE,"Authorization succeeded! " _
+				    "Your client id: " _ ..SessionId)
+				    Do ..SendData(..CHANGENAMESPACE,$Znspace) // change client namespace
+				    	
 			    } else {
-				    Do ..SendData(..MESSAGE,"Wrong name/password. Try again.")
+				    
+				    Do ..SendData(..MESSAGE,"Wrong auth key, so... " _
+				    "Good bye, brother!")
+				    Do ..EndServer()
+				    
 			    }
+			    
+			    Do ..GenerateAuthKey() // client fails/logins. Generate new key in both situations.
 			    	
 		    } elseif (authorized = 0) {
 			    	
@@ -149,10 +221,11 @@ TODO: Authorization, zones, users, ...</Description>
 New connection established</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	
 	set ..lastClientId = ..lastClientId + 1
 	
-	Do ..ClientLoop(..lastClientId)
+	if (^TerminalAuthKey '= "") {
+		Do ..ClientLoop(..lastClientId)
+	}
   	
   	Quit $$$OK
 ]]></Implementation>

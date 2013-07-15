@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:42:43">
 <CSP name="js/base.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic scripts for handling events, logging, etc.
@@ -190,5 +190,56 @@ function preventDefaultEvent(event) {
     } else {
         window.event.cancelBubble = true; // IE
     }
+}
+
+/**
+ * Uses browser inbuilt HTML escape functionality to convert all symbols to html entities.
+ *
+ * @param string
+ *  String to escape.
+ *
+ * @returns {string}
+ *  Escaped string.
+ */
+function htmlEncode(string)
+{
+    var el = document.createElement("div");
+    el.innerText = el.textContent = string;
+    string = el.innerHTML;
+    return string;
+}
+
+/**
+ * Animates object fading in during timeout.
+ *
+ * @param object
+ *  Object to animate.
+ * @param timeout
+ * [ @param value ]
+ *  Value to reach between 0..1 ( default = 1 )
+ * [ @param startTime ]
+ *  Function-used value.
+ * [ @param initialValue ]
+ *  Function-used value.
+ */
+function animationFadeIn(object, timeout, value, startTime, initialValue) {
+
+    if (object) {
+        var speed = 20;
+        log("animating",timeout,value);
+        if (timeout > 0) {
+            if (typeof initialValue == "undefined") initialValue = object.opacity;
+            if (typeof startTime == "undefined") startTime = timeout;
+            object.opacity = value + (initialValue - value)*(startTime - timeout)/startTime; // [0 -> 1]
+            setTimeout("animationFadeIn(object,timeout-speed,value)",speed);
+        } else {
+            object.opacity = value;
+        }
+    }
+
+}
+
+function removeElement(element) {
+    element.parentNode.removeChild(element);
 }]]></CSP>
 </Export>

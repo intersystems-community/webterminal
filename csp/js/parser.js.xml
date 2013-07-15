@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:42:51">
 <CSP name="js/parser.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Contains functions that take part in text processing.
@@ -168,14 +168,17 @@ function parserGetRealPosition(string,position) {
  */
 function parserInsertCaret(text,position) {
 
-    text = parserInsertString(text,parserGetRealPosition(text,position),"<div class=\"caret-blink\"></div>");
-    return text;
+    return parserInsertString(text,parserGetRealPosition(text,position),"<div class=\"caret-blink\"></div>");
 
 }
 
 function parserFillHTMLSpaces(text) {
 
-    var i = 0, l = text.length, space = 0;
+    if (text.length>0) {
+        if (text[text.length-1] == " ") text = text.replaceSymbol(text.length - 1,"&nbsp;");
+        text = text.replace(/\n/g,"<br/>").replace(/  /g,"&nbsp;&nbsp;");
+    }
+    /*var i = 0, l = text.length, space = 0;
     var replacingCurrent = function() {
         text = text.replaceSymbol(i,"&nbsp;");
         i += 4;
@@ -191,11 +194,7 @@ function parserFillHTMLSpaces(text) {
             text = text.replaceSymbol(i,"<br>");
             i += 2;
             l += 3;
-        } /*else if (text[i].match(/<|>/g)) {
-            text = text.replaceSymbol(i,"&"+((text[i]=="<")?"lt":"gt")+";");
-            i += 2;
-            l += 3;
-        }   */
+        }
         if (text[i] == " ") {
             if (space) {
                 replacingCurrent()
@@ -206,6 +205,7 @@ function parserFillHTMLSpaces(text) {
         } else space = 0;
         i++;
     }
+    */
     return text;
 
 }
@@ -222,10 +222,11 @@ function parseInput(text) {
 
     var p = getCaretPosition(terminalGetInputObject());
 
+    text = htmlEncode(text);
     text = parserFillHTMLSpaces(text);
     text = parserHighlight(text);
     text = parserInsertAutocompleteOption(text);
-    if (!ie()) text = parserInsertCaret(text,p); // simply checks for IE browser :)
+    if (!ie()) text = parserInsertCaret(text,p); // do not show caret in IE - here's the native caret impossible to hide
 
     return text;
 

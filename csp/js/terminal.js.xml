@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:43:02">
 <CSP name="js/terminal.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic scripts for web-based Cache terminal.
@@ -12,7 +12,8 @@
 var autocompleteVariants = []; // available variants of autocomplete
 
 var ACTION_MESSAGE = ">",
-    ACTION_AUTHORIZATION = "?";
+    ACTION_AUTHORIZATION = "?",
+    ACTION_NAMESPACE = "_";
 
 /**
  * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
@@ -131,8 +132,9 @@ function terminalGetInputViewValue() {
  */
 function terminalOutput(data, highlight, zone) {
 
-    highlight = (typeof highlight !== 'undefined') ? highlight : 0;
-    zone = (typeof zone !== 'undefined') ? zone : terminalGetCommandZone();
+    highlight = (typeof highlight !== "undefined") ? highlight : 0;
+    log("OutPutting zone: ",zone);
+    zone = (typeof zone !== "undefined") ? zone : terminalGetCommandZone();
     var output = terminalGetOutputObject();
     data = (highlight)?parserHighlight(data):data;
 
@@ -152,7 +154,6 @@ function terminalOutput(data, highlight, zone) {
 function terminalSubmit(data) {
 
     //function terminalHandledOutput
-    terminalOutput(data, 1);
 
     if (data.trim() != "") {
 
@@ -161,6 +162,8 @@ function terminalSubmit(data) {
             terminalHandledInput(data);
 
         } else {
+
+            terminalOutput(data, 1);
 
             lastCommandId++;
             historyCurrent = commandHistory.length;
@@ -229,7 +232,7 @@ function terminalExecute(command,action) {
         terminalOutput("No connection established. Please, use <span class=\"hint\">/connect</span> command first.",
             0,"<span class=\"error\">system</span>");
     } else try {
-        log("sending: ",action + data);
+        //log("sending: ",action + data);
         webSocket.send(action + data);
     } catch (e) {
         terminalOutput("Problems with <b>WebSocket</b>. Exception: " + e,
@@ -274,12 +277,6 @@ function terminalKeyDowned(event) {
 
     if (keyCode != 17) setTimeout("terminalUpdateInputView()",1); // CTRL
 
-}
-
-function terminalUpdateInputHeight() {
-    var obj = terminalGetInputObject();
-    var h = getElementInnerHeight(terminalGetInputViewObject());
-    obj.style.height = h + "px";
 }
 
 /**

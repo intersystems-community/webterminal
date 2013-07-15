@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:42:30">
 <CSP name="js/app.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic application scripts.
@@ -25,8 +25,11 @@ var handleInput = 0, // while true, function terminalHandledInput(data) will be 
 
 /**
  * Function initializing basic application components, like events, etc.
+ *
+ * @param authKey
+ *  Default server-given parameter to access WebSocket application.
  */
-function terminalInitialize() {
+function terminalInitialize(authKey) {
 
     terminalFocusOnInput();
     for (var i = 0; i < 256; i++) keyPressed[i] = 0; // initializing keys
@@ -38,8 +41,10 @@ function terminalInitialize() {
     if (!ie()) setInterval("terminalCaretTick()",500);
     terminalSetCommandZone("server");
     terminalUpdateInputView();
-    terminalOutput("Terminal ready. Type " +
+    terminalOutput("Terminal base ready. Type " +
         "<span class=\"warning\">/help</span> to get more information.", 0, "<b>system</b>");
+    terminalServerConnect(document.URL.replace(/.CSP/,".Engine.cls").replace(/http:\/\//,"ws://"),authKey);
+    removeElement(document.getElementById("startup")); // remove forever any information about authKey on pages
 
 }
 
@@ -48,12 +53,17 @@ function terminalInitialize() {
  *
  * @param server
  *  URL or pair IP:PORT of server to connect to.
+ *
+ * @param authKey
+ *  Authorization parameter.
  */
-function terminalServerConnect(server) {
+function terminalServerConnect(server, authKey) {
 
     var error = 0, url = (server.substr(0,5)=="ws://")?server:("ws://"+server+"/csp/sys/WebTerminal.Engine.cls");
+
     if (webSocket != null) {
         terminalOutput("Connection already established.", 0,"<span class=\"warning\">warning</span>");
+        terminalInternalCommand_disconnect()
     }
 
     terminalOutput("Connecting <span class=\"info\">" + url + "</span>...", 0, "server");
@@ -70,8 +80,8 @@ function terminalServerConnect(server) {
     }
 
     webSocket.onopen = function() {
-        terminalOutput("Connection established: <span class=\"hint\">" + webSocket.url + "</span>", 0, "server");
-        terminalExecute("",ACTION_MESSAGE); // simple ping (in case of server-side authorization)
+        terminalOutput("Connection established. Authorizing...", 0, "server");
+        terminalExecute(authKey,ACTION_AUTHORIZATION);
     };
 
     webSocket.onclose = function(event) {
@@ -93,26 +103,28 @@ function terminalServerConnect(server) {
         terminalOutput("<span class=\"error\">error: " + error.message + "</span>",1,"server")
     };
 
-
 }
 
 function terminalMessageReceived(event) {
 
     var data = event.data; if (data.length == 0) return;
-    log("received: ",data);
     var action = data[0]; data = data.substr(1);
 
     switch (action) {
-        case "?": {
+        case ACTION_AUTHORIZATION: {
             terminalOutput("Please, authorize first:",1,"server");
             handleInput = 1;
             terminalSetCommandZone("login");
         } break;
-        case ">": {
-            terminalOutput(data,1,"server");
-            scrollToBottom(document.body);
+        case ACTION_MESSAGE: {
+            terminalOutput(data,1,terminalGetCommandZone());
+        } break;
+        case ACTION_NAMESPACE: {
+            terminalSetCommandZone(data);
         }
     }
+
+    scrollToBottom(document.body);
 
 }
 
@@ -152,7 +164,7 @@ function terminalInternalCommand_help() {
         "   </tr>" +
         "   <tr>" +
         "       <td class=\"info\">connect [{ip}:{port} | {url}]</td>" +
-        "       <td>Connecting to Caché server via <b>WebSockets</b></td>" +
+        "       <td>[deprecated] Manually connect to Caché server via <b>WebSocket</b></td>" +
         "   </tr>" +
         "   <tr>" +
         "       <td class=\"info\">disconnect</td>" +
@@ -180,12 +192,7 @@ function terminalInternalCommand_help() {
         "   <tr>" +
         "       <td class=\"info\">SHIFT/CTRL + ENTER</td>" +
         "       <td>Next line in current command stack.</td>" +
-        "   </tr>" +
-        "</table>" +
-        "<div style=\"margin-bottom: 20px;\">" +
-        "   For testing: use \"/connect ws://localhost:[PORT]/csp/[USERNAME]/WebTerminal.Engine.cls\"" +
-        "to connect after server installed. If authorization required, use \"admin\"-\"admin\" combination." +
-        "</div>"
+        "   </tr>"
         ,0,"<span class=\"warning\">system</span>")
 
 }
