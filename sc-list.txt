@@ -1,2 +1,5 @@
-<cspapp>
+<cspapp>/WebTerminal.CSP
+<cspapp>/css
+<cspapp>/img
+<cspapp>/js
 WebTerminal.Engine.CLS

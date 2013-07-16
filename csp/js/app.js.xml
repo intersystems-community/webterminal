@@ -110,29 +110,6 @@ function terminalServerConnect(server, authKey) {
 
 }
 
-function terminalMessageReceived(event) {
-
-    var data = event.data; if (data.length == 0) return;
-    var action = data[0]; data = data.substr(1);
-
-    switch (action) {
-        case ACTION_AUTHORIZATION: {
-            terminalOutput("Please, authorize first:",1,"server");
-            handleInput = 1;
-            terminalSetCommandZone("login");
-        } break;
-        case ACTION_MESSAGE: {
-            terminalOutput(data,1,terminalGetCommandZone());
-        } break;
-        case ACTION_NAMESPACE: {
-            terminalSetCommandZone(data);
-        }
-    }
-
-    scrollToBottom(document.body);
-
-}
-
 /**
  * Function executes local script.
  *

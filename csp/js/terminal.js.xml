@@ -99,13 +99,8 @@ function terminalGetInputValue() {
 function terminalSetInputValue(value) {
 
     var input = terminalGetInputObject();
-    //var selectionRange = selectionGetRange(); // saving selection
-    //saveSelection();
-    //log(selectionRange);
     input.value = value;
     placeCaretAtEnd(input);
-    //restoreSelection();
-    //selectionRestoreRange(selectionRange); // restoring selection
 
 }
 
@@ -134,7 +129,7 @@ function terminalOutput(data, highlight, zone) {
     highlight = (typeof highlight !== "undefined") ? highlight : 0;
     zone = (typeof zone !== "undefined") ? zone : terminalGetCommandZone();
     var output = terminalGetOutputObject();
-    data = (highlight)?parserHighlight(data):data;
+    data = ((highlight)?parserHighlight(data):data).replace(/\n/g,"<br>");
 
     var idText = (document.getElementById("CommandLog"+lastCommandId))?
         "":(" id=\"CommandLog"+lastCommandId+"\"");
@@ -142,7 +137,7 @@ function terminalOutput(data, highlight, zone) {
     output.innerHTML += "<div class=\"terminalOutputMessage\""+idText+">"+
         "<span class=\"terminalOutputHeader\">" + zone + "</span>"+
         "<span class=\"terminalOutputBody\">"+
-        data +'</span></div>';
+        data +"</span></div>";
 
 }
 
@@ -150,8 +145,6 @@ function terminalOutput(data, highlight, zone) {
  * Submits data from terminal input to server with all necessary actions. Clears input.
  */
 function terminalSubmit(data) {
-
-    //function terminalHandledOutput
 
     if (data.trim() != "") {
 
@@ -226,6 +219,35 @@ function terminalHandledInput(data) {
         terminalExecute(tempStack,ACTION_AUTHORIZATION);
         tempStack = "";
     }
+
+}
+
+/**
+ * Function called when message received from the server.
+ *
+ * @param event
+ *  Event data.
+ */
+function terminalMessageReceived(event) {
+
+    var data = event.data; if (data.length == 0) return;
+    var action = data[0]; data = data.substr(1);
+
+    switch (action) {
+        case ACTION_AUTHORIZATION: {
+            terminalOutput("Please, authorize first:",1,"server");
+            handleInput = 1;
+            terminalSetCommandZone("login");
+        } break;
+        case ACTION_MESSAGE: {
+            terminalOutput(data,1,terminalGetCommandZone());
+        } break;
+        case ACTION_NAMESPACE: {
+            terminalSetCommandZone(data);
+        }
+    }
+
+    scrollToBottom(document.body);
 
 }
 

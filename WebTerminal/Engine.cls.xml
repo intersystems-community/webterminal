@@ -143,6 +143,7 @@ TODO: Authorization, zones, users, ...</Description>
 	FOR i=1:1:$LISTLENGTH(commands) {
 		
 		set $ZERROR = ""
+		
     	SET value = $LIST(commands,i)
     	
     	try {
