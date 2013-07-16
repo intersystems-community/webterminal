@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:42:43">
+<Export generator="Cache" version="25">
 <CSP name="js/base.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic scripts for handling events, logging, etc.

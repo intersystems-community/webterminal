@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:43:02">
+<Export generator="Cache" version="25">
 <CSP name="js/terminal.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic scripts for web-based Cache terminal.
@@ -62,7 +62,6 @@ function terminalSetCommandZone(zoneName) {
     // we need to update terminalInputHeader.width && terminalInputWrappers[].margin-left property
 
     var l = zoneName.visualLength() + 20; // @const
-    log(l);
     var length = wrappers.length;
 
     for (var i = 0; i < length; i++) {
@@ -133,7 +132,6 @@ function terminalGetInputViewValue() {
 function terminalOutput(data, highlight, zone) {
 
     highlight = (typeof highlight !== "undefined") ? highlight : 0;
-    log("OutPutting zone: ",zone);
     zone = (typeof zone !== "undefined") ? zone : terminalGetCommandZone();
     var output = terminalGetOutputObject();
     data = (highlight)?parserHighlight(data):data;
@@ -189,6 +187,21 @@ function terminalSubmit(data) {
     terminalUpdateInputView();
     scrollToBottom(document.body);
 
+}
+
+/**
+ * Function clears all visual logs
+ */
+function terminalClearLog() {
+    terminalGetOutputObject().innerHTML = ""
+}
+
+/**
+ * Function clears all command history
+ */
+function terminalClearHistory() {
+    commandHistory = [""];
+    historyCurrent = 0;
 }
 
 /**
@@ -341,11 +354,9 @@ function terminalSetAutocompleteValue(value) {
  */
 function terminalLoadFromHistory(increment) {
 
-    log("Old history: ",historyCurrent);
     historyCurrent += increment;
     if (historyCurrent < 0) historyCurrent = commandHistory.length-1;
     if (historyCurrent >= commandHistory.length) historyCurrent = 0;
-    log("New history: ",historyCurrent);
     return commandHistory[historyCurrent].toString();
 
 }

@@ -72,6 +72,11 @@ Zone change identifier</Description>
 <ReadOnly>1</ReadOnly>
 </Property>
 
+<Property name="CurrentNamespace">
+<Type>%String</Type>
+<InitialExpression>"USER"</InitialExpression>
+</Property>
+
 <Method name="OnPreServer">
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
@@ -107,7 +112,7 @@ If the key is empty, generates new key value.</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	if (^TerminalAuthKey = "") {
+	if ($get(^TerminalAuthKey) = "") {
 		Do ..GenerateAuthKey()
 	}
 	quit ^TerminalAuthKey
@@ -153,6 +158,11 @@ TODO: Authorization, zones, users, ...</Description>
     	}
     	
     }
+    
+    if (..CurrentNamespace '= $Znspace) {
+	    Set ..CurrentNamespace = $Znspace
+	 	Do ..SendData(..CHANGENAMESPACE,..CurrentNamespace)   
+    }
 	
 	quit $$$OK
 ]]></Implementation>
@@ -181,7 +191,8 @@ TODO: Authorization, zones, users, ...</Description>
 				    set authorized = 1
 				    Do ..SendData(..MESSAGE,"Authorization succeeded! " _
 				    "Your client id: " _ ..SessionId)
-				    Do ..SendData(..CHANGENAMESPACE,$Znspace) // change client namespace
+				    set ..CurrentNamespace = $Znspace
+				    Do ..SendData(..CHANGENAMESPACE,..CurrentNamespace) // change client namespace
 				    	
 			    } else {
 				    

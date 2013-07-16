@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:41:33">
+<Export generator="Cache" version="25">
 <CSP name="WebTerminal.CSP" application="/csp/zitro/" default="1"><![CDATA[
 <!DOCTYPE html>
 
@@ -9,8 +9,8 @@
     <title>Remote Caché terminal</title>
     <meta charset="utf-8">
     <meta name="author" content="ZitRo - InterSystems">
-    <meta name="Description" content="Web-based terminal for CachГ© administration.">
-    <meta name="keywords" content="cache,cachГ©,terminal,web,web-based,remote,control">
+    <meta name="Description" content="Web-based terminal for Caché administration.">
+    <meta name="keywords" content="cache,caché,terminal,web,web-based,remote,control">
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/terminal.css">
     <link rel="stylesheet" href="css/extra.css">

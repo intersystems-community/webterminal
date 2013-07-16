@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2013.2 (Build 395U)" ts="2013-07-15 17:42:30">
+<Export generator="Cache" version="25">
 <CSP name="js/app.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Basic application scripts.
@@ -43,7 +43,7 @@ function terminalInitialize(authKey) {
     terminalUpdateInputView();
     terminalOutput("Terminal base ready. Type " +
         "<span class=\"warning\">/help</span> to get more information.", 0, "<b>system</b>");
-    terminalServerConnect(document.URL.replace(/.CSP/,".Engine.cls").replace(/http:\/\//,"ws://"),authKey);
+    terminalServerConnect(document.URL.replace(/(\.CSP|\.csp)/,".Engine.cls").replace(/http:\/\//,"ws://"),authKey);
     removeElement(document.getElementById("startup")); // remove forever any information about authKey on pages
 
 }
@@ -73,10 +73,15 @@ function terminalServerConnect(server, authKey) {
         error = 1;
     }
 
-    if (typeof webSocket == "undefined" || error) {
+    if (error) {
         terminalOutput("Your browser does not support <b>WebSockets</b>. Please, update your browser.",
             0,"<span style=\"color: red\">warning</span>");
         return;
+    }
+
+    if (typeof webSocket == "undefined") {
+        terminalOutput("There is a problem to create <b>WebSocket</b>. Please, check the URL and class location.",
+            0,"<span style=\"color: red\">warning</span>");
     }
 
     webSocket.onopen = function() {
@@ -139,7 +144,6 @@ function terminalInternalExecute(string) {
     var arguments = string.split(/\s*\s+\s*/g);
     var command = arguments.splice(0,1)[0];
     try {
-        log("terminalInternalCommand_"+command+"(arguments)");
         eval("terminalInternalCommand_"+command+"(arguments)");
     } catch (e) {
         terminalOutput("Unknown command \""+command+"\".",0,"<span class=\"warning\">system</span>")
@@ -170,6 +174,10 @@ function terminalInternalCommand_help() {
         "       <td class=\"info\">disconnect</td>" +
         "       <td>Disconnecting from current server</td>" +
         "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">clear</td>" +
+        "       <td>Clears terminal command log. Just a visual feature.</td>" +
+        "   </tr>" +
         "</table>" +
         "<div class=\"center\"><h3>Controls</h3></div>" +
         "<table>" +
@@ -199,13 +207,19 @@ function terminalInternalCommand_help() {
 
 function terminalInternalCommand_connect() {
 
-    if (typeof arguments[0] == "undefined") {
+    /*if (typeof arguments[0] == "undefined") {
         terminalOutput("Please enter server address.",0,"<span class=\"error\">system</span>")
     } else {
-        terminalServerConnect(arguments[0][0]);
-    }
+        terminalServerConnect(arguments[0],);
+    }*/
+    terminalOutput("Authorization key lost forever. Please, reload this page.",0,"<span class=\"error\">system</span>")
 
 }
+
+/**
+ * Just clears all logs
+ */
+function terminalInternalCommand_clear() { terminalClearLog() }
 
 function terminalInternalCommand_disconnect() {
 
