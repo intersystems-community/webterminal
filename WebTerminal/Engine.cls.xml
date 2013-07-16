@@ -155,11 +155,11 @@ The heart of terminal application</Description>
 				
     	} catch exception {
 	    	
-	    	set error = exception.DisplayString()
+	    	write exception.DisplayString()
 	    	
     	}
     	
-    	Do ..SendData("",error)
+    	Do ..SendData()
     	
     }
     
