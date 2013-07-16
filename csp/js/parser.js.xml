@@ -175,36 +175,10 @@ function parserFillHTMLSpaces(text) {
 
     if (text.length>0) {
         if (text[text.length-1] == " ") text = text.replaceSymbol(text.length - 1,"&nbsp;");
-        text = text.replace(/\n/g,"<br/>").replace(/  /g,"&nbsp;&nbsp;");
+        if (text[0] == " ") text = text.replaceSymbol(0,"&nbsp;");
+        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;");
     }
-    /*var i = 0, l = text.length, space = 0;
-    var replacingCurrent = function() {
-        text = text.replaceSymbol(i,"&nbsp;");
-        i += 4;
-        l += 5;
-    };
 
-    while (i<l) {
-        if (text[i].match(/\r|\n/g)) {
-            if (i+1<l && text[i]=="\r" && text[i+1]=="\n") {
-                text = text.replaceSymbol(i+1,"");
-                l--;
-            }
-            text = text.replaceSymbol(i,"<br>");
-            i += 2;
-            l += 3;
-        }
-        if (text[i] == " ") {
-            if (space) {
-                replacingCurrent()
-            } else {
-                if (i+1==l || i==0) replacingCurrent(); // replace last space
-                space = 1
-            }
-        } else space = 0;
-        i++;
-    }
-    */
     return text;
 
 }
