@@ -79,9 +79,7 @@ Zone change identifier</Description>
 
 <Method name="OnPreServer">
 <ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	do $system.Process.Undefined(2)
-	quit $$$OK
+<Implementation><![CDATA[	quit $$$OK
 ]]></Implementation>
 </Method>
 
@@ -92,6 +90,8 @@ Zone change identifier</Description>
 </Method>
 
 <Method name="GenerateAuthKey">
+<Description>
+Generating new authorization key</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
@@ -124,7 +124,7 @@ If the key is empty, generates new key value.</Description>
 Sends message to client. Prefix and query are optional parameters
 @param prefix
 		Declares first symbol in a query, for example, ">" to simple message]]></Description>
-<FormalSpec>prefix:%Char,query:%String</FormalSpec>
+<FormalSpec>prefix:%Char="",query:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[	do ..Write(prefix _ query)
 ]]></Implementation>
@@ -132,8 +132,8 @@ Sends message to client. Prefix and query are optional parameters
 
 <Method name="ExecuteCommand">
 <Description>
-TODO: Authorization, zones, users, ...</Description>
-<FormalSpec>query:%String</FormalSpec>
+The heart of terminal application</Description>
+<FormalSpec>query:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	if (query = "") quit $$$OK
@@ -142,25 +142,28 @@ TODO: Authorization, zones, users, ...</Description>
 		
 	FOR i=1:1:$LISTLENGTH(commands) {
 		
-		set $ZERROR = ""
+		set error = "" // clear error
+		#dim exception as %Exception.AbstractException
 		
-    	SET value = $LIST(commands,i)
+    	set value = $LIST(commands,i) // split received data by lines
+    	
+    	write ..MESSAGE // write message identifier to stack
     	
     	try {
 	    	
-	    	Write ..MESSAGE // message identifier
-	    	XECUTE value // simple, so simple
-	    	Do ..SendData(,$ZERROR) // send writed stack
+	    	xecute value // just xecute
 				
-    	} catch exeption {
+    	} catch exception {
 	    	
-	    	Do ..SendData(..MESSAGE,$ZERROR)
+	    	set error = exception.DisplayString()
 	    	
     	}
     	
+    	Do ..SendData("",error)
+    	
     }
     
-    if (..CurrentNamespace '= $Znspace) {
+    if (..CurrentNamespace '= $Znspace) { // change client namespace
 	    Set ..CurrentNamespace = $Znspace
 	 	Do ..SendData(..CHANGENAMESPACE,..CurrentNamespace)   
     }
@@ -170,6 +173,27 @@ TODO: Authorization, zones, users, ...</Description>
 </Method>
 
 <Method name="ClientLoop">
+<Description><![CDATA[
+Main method for every new client.
+
+Authorization process description:
+	1.	Client requests cache server page called "WebTerminal.csp";
+	2.	Server return this page with ClassMethod GetAuthKey() value;
+	3.	After client receives page, it performs websocket connection;
+		to same web-resource, but with next URL changes:
+		"http://" -> "ws://", "WebTerminal.csp" -> "Webterminal.Engine.cls";
+	4.	After connection established, client sends his AuthKey to server
+		and removes it locally (because it needed only one time);
+	5.	Server compares again received key with ..GetAuthKey() value and
+		grants permission, if keys are equal.
+	>>	As a result - there is no way to autorize via websocket without
+		accessing WebTerminal.csp.
+
+Method description:
+	First, method requires from client
+	a key, which will be compared with ..GetAuthKey() (global). If 
+	succeeded, method sets "authorized" flag to true and changes global
+	key with ..GenerateAuthKey() for the next client.]]></Description>
 <FormalSpec>clientID:%Numeric</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
@@ -190,41 +214,41 @@ TODO: Authorization, zones, users, ...</Description>
 			    if (data = ..GetAuthKey()) {
 				    
 				    set authorized = 1
-				    Do ..SendData(..MESSAGE,"Authorization succeeded! " _
+				    do ..SendData(..MESSAGE,"Authorization succeeded! " _
 				    "Your client id: " _ ..SessionId)
 				    set ..CurrentNamespace = $Znspace
-				    Do ..SendData(..CHANGENAMESPACE,..CurrentNamespace) // change client namespace
+				    do ..SendData(..CHANGENAMESPACE,..CurrentNamespace) // change client namespace
 				    	
 			    } else {
 				    
-				    Do ..SendData(..MESSAGE,"Wrong auth key, so... " _
+				    do ..SendData(..MESSAGE,"Wrong auth key, so... " _
 				    "Good bye, brother!")
-				    Do ..EndServer()
+				    do ..EndServer()
 				    
 			    }
 			    
-			    Do ..GenerateAuthKey() // client fails/logins. Generate new key in both situations.
+			    do ..GenerateAuthKey() // client fails/logins. Generate new key in both situations.
 			    	
 		    } elseif (authorized = 0) {
 			    	
-			    Do ..SendData(..AUTHORIZATION,"Authorization required.")
+			    do ..SendData(..AUTHORIZATION,"Authorization required.")
 			    	
 		    } elseif (action = ..MESSAGE) { // autorized
 	    	
-		    	Do ..ExecuteCommand(data)	    	
+		    	do ..ExecuteCommand(data)	    	
 		    	
 	    	} else { // something scary
 		    	
-		    	Do ..SendData(..MESSAGE,"Unrecognised query.")
+		    	do ..SendData(..MESSAGE,"Unrecognised query.")
 		    		
 	    	}
       		
-    	} else {
-	    	
+    	} else { // $$$ISOK(status)
+	    	 
       		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
     
     	}
-}
+	} // for
 ]]></Implementation>
 </Method>
 
@@ -239,7 +263,7 @@ New connection established</Description>
 		Do ..ClientLoop(..lastClientId)
 	}
   	
-  	Quit $$$OK
+  	quit $$$OK
 ]]></Implementation>
 </Method>
 

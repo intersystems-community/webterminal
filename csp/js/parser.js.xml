@@ -6,7 +6,7 @@
  */
 
 var autocomplete = ["/help","/clear","/connect","/disconnect",
-    "set","write","for","while","do","kill","quit","close","else","if",
+    "set","write","zwrite","for","while","do","kill","quit","close","else","if",
     "$$$OK"];
 
 /**

@@ -3,10 +3,16 @@
 <CSP name="css/syntax.css" application="/csp/zitro/" default="1"><![CDATA[
 
 .syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit, .syntax-kill,
-.syntax-close, .syntax-quit
+.syntax-close, .syntax-zw, .syntax-zwrite, .syntax-break, .syntax-catch, .syntax-read
+.syntax-continue, .syntax-goto, .syntax-halt, .syntax-hang, .syntax-job, .syntax-kill,
+.syntax-lock, .syntax-merge, .syntax-new, .syntax-open, .syntax-return, .syntax-tcommit,
+.syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
+.syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite
 { color: #29cfe9; }
 
-.syntax-for, .syntax-while, .syntax-if, .syntax-else { color: #ff00fe; }
+.syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,
+.syntax-catch
+{ color: #ff00fe; }
 
 .syntax-digit { color: #00ffb4; }
 

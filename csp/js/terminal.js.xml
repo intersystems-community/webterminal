@@ -230,7 +230,7 @@ function terminalHandledInput(data) {
  */
 function terminalMessageReceived(event) {
 
-    var data = event.data; if (data.length == 0) return;
+    var data = event.data; if (data.length < 2) return;
     var action = data[0]; data = data.substr(1);
 
     switch (action) {
