@@ -124,10 +124,17 @@ function terminalServerConnect(server, authKey) {
  */
 function terminalInternalExecute(string) {
 
-    var arguments = string.split(/\s*\s+\s*/g);
-    var command = arguments.splice(0,1)[0];
+    var args = string.split(/\s*\s+\s*/g);
+    var command = args.splice(0,1)[0];
+    var l = args.length, argss = "";
+    for (var i = 0; i < l; i++) {
+        eval("var arg"+i+" = \""+args[i]+"\"");
+        argss += ",arg"+i;
+    }
+    if (argss) argss = argss.replaceSymbol(0,"");
     try {
-        eval("terminalInternalCommand_"+command+"(arguments)");
+        log("terminalInternalCommand_"+command+"("+argss+")");
+        eval("terminalInternalCommand_"+command+"("+argss+")");
     } catch (e) {
         terminalOutput("Unknown command \""+command+"\".",0,"<span class=\"warning\">system</span>")
     }
@@ -160,6 +167,10 @@ function terminalInternalCommand_help() {
         "   <tr>" +
         "       <td class=\"info\">clear</td>" +
         "       <td>Clears terminal command log. Just a visual feature.</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">define {definition} {redefinition}</td>" +
+        "       <td>Every occurrence of {definition} will be replaced with {redefinition}</td>" +
         "   </tr>" +
         "</table>" +
         "<div class=\"center\"><h3>Controls</h3></div>" +
@@ -258,6 +269,22 @@ function terminalInternalCommand_disconnect() {
     terminalOutput("Closing connection...",0,"<span class=\"warning\">system</span>");
     webSocket.close();
     webSocket = null;
+
+}
+
+function terminalInternalCommand_define(definition, redefinition) {
+
+    try {
+        if (definition && redefinition) {
+            terminalRedefined.push(definition);
+            terminalDefines[definition] = redefinition;
+            terminalOutput("\"" + definition + "\" <span class=\"hint\">defined as</span> \"" + redefinition + "\"",0,"<span class=\"hint\">system</span>");
+        } else terminalOutput("Incorrect definition.",0,"<span class=\"error\">system</span>");
+    } catch (e) {
+        log(e);
+    }
+
+
 
 }
 ]]></CSP>

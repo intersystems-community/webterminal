@@ -22,6 +22,17 @@ String.prototype.visualLength = function() {
 };
 
 /**
+ * Makes any str searchable by regexp.
+ *
+ * @param str
+ *  String.
+ * @returns {XML|string|void}
+ */
+function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+}
+
+/**
  * Analog of console.log() created to prevent Internet Explorer javascript error.
  */
 function log() { ('console' in window)?console.log(arguments):null }

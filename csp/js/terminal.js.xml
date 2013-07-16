@@ -13,6 +13,9 @@
 
 var autocompleteVariants = []; // currently available variants of autocomplete
 
+var terminalRedefined = []; // holds user-defined words that are stored in  //  terminalRedefined[i] = "word"
+var terminalDefines = []; // holds redefinition of defined words  //  terminalDefines["word"] = "word"
+
 /**
  * Actions are used as server-client communication prefixes and shows what action server/client have to perform.
  * For example, message from server ">test" means, that client must put to log text "test", when message "_USER"
@@ -160,6 +163,8 @@ function terminalSubmit(data) {
 
     if (data.trim() != "") {
 
+        data = parserReplaceUserRedefinitions(data);
+
         if (handleInput) { // scenario script
 
             terminalHandledInput(data);
@@ -186,7 +191,7 @@ function terminalSubmit(data) {
         }
 
 
-    }
+    } else terminalOutput(""); // just for geeks :)
 
     terminalClearInput();
     terminalUpdateInputView();
