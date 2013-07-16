@@ -3,6 +3,8 @@
 <CSP name="js/parser.js" application="/csp/zitro/" default="1"><![CDATA[
 /**
  * Contains functions that take part in text processing.
+ *
+ * @author ZitRo
  */
 
 var autocomplete = ["/help","/clear","/connect","/disconnect",

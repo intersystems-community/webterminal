@@ -4,16 +4,26 @@
 /**
  * Basic scripts for web-based Cache terminal.
  *
+ * @author ZitRo
+ *
  * Required:
  *  parser.js
  *  base.js
  */
 
-var autocompleteVariants = []; // available variants of autocomplete
+var autocompleteVariants = []; // currently available variants of autocomplete
 
-var ACTION_MESSAGE = ">",
-    ACTION_AUTHORIZATION = "?",
-    ACTION_NAMESPACE = "_";
+/**
+ * Actions are used as server-client communication prefixes and shows what action server/client have to perform.
+ * For example, message from server ">test" means, that client must put to log text "test", when message "_USER"
+ * meaning is to change current namespace to USER.
+ *
+ * @type {string}
+ */
+var ACTION_MESSAGE = ">",// stores message. Second separator means for server that message has it's own id
+    ACTION_AUTHORIZATION = "?",// used to authorize client, holds authorization key
+    ACTION_NAMESPACE = "_", // holds namespace to change
+    ACTION_EXECUTED = "!"; // holds the id of message that has been just executed
 
 /**
  * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
@@ -29,6 +39,7 @@ function terminalGetInputHeaderObject() { return document.getElementsByClassName
 function terminalGetCaretObject() { return document.getElementsByClassName("caret")[0] ||
     document.getElementsByClassName("caret-blink")[0] }
 function terminalGetAutocompleteObject() { return document.getElementsByClassName("terminalAutocompleteOption")[0] }
+function terminalGetOutputMessage(id) { return document.getElementById("terminalCommand"+id) }
 
 /**
  * Focuses on terminal input object.
@@ -124,18 +135,18 @@ function terminalGetInputViewValue() {
  *  Set to positive if it is necessary to highlight output. Default: no highlight.
  * [ @param zone ]
  *  Set output visible zone to any zone you want. If not defined, default zone will be used.
+ * [ @param id ]
+ *  Insert command identifier.
  */
-function terminalOutput(data, highlight, zone) {
+function terminalOutput(data, highlight, zone, id) {
 
     highlight = (typeof highlight !== "undefined") ? highlight : 0;
+    id = ((typeof id !== "undefined") && (typeof terminalGetOutputMessage(id) !== "undefined"))?" id=\"terminalCommand"+id+"\"":"";
     zone = (typeof zone !== "undefined") ? zone : terminalGetCommandZone();
     var output = terminalGetOutputObject();
     data = ((highlight)?parserHighlight(data):data).replace(/\n/g,"<br>");
 
-    var idText = (document.getElementById("CommandLog"+lastCommandId))?
-        "":(" id=\"CommandLog"+lastCommandId+"\"");
-
-    output.innerHTML += "<div class=\"terminalOutputMessage\""+idText+">"+
+    output.innerHTML += "<div class=\"terminalOutputMessage\""+id+">"+
         "<span class=\"terminalOutputHeader\">" + zone + "</span>"+
         "<span class=\"terminalOutputBody\">"+
         data +"</span></div>";
@@ -155,7 +166,7 @@ function terminalSubmit(data) {
 
         } else {
 
-            terminalOutput(data, 1);
+            terminalOutput(data, 1, terminalGetCommandZone(), lastCommandId+1);
 
             lastCommandId++;
             historyCurrent = commandHistory.length;
@@ -232,23 +243,50 @@ function terminalHandledInput(data) {
 function terminalMessageReceived(event) {
 
     var data = event.data; if (data.length < 2) return;
+    log("received: " + data);
     var action = data[0]; data = data.substr(1);
 
     switch (action) {
+
         case ACTION_AUTHORIZATION: {
             terminalOutput("Please, authorize first:",1,"server");
             handleInput = 1;
             terminalSetCommandZone("login");
         } break;
+
         case ACTION_MESSAGE: {
-            terminalOutput(data,1,terminalGetCommandZone());
+            terminalOutput(data,1,"<span class=\"info\">"+terminalGetCommandZone()+"</span>");
         } break;
+
         case ACTION_NAMESPACE: {
             terminalSetCommandZone(data);
+        } break;
+
+        case ACTION_EXECUTED: {
+            terminalMarkOutputMessageAsExecuted(data);
+        } break;
+
+        default: {
+            terminalOutput("Something scary received from the server. Unrecognised action "+action+", data: "+data,1,terminalGetCommandZone());
         }
+
     }
 
     scrollToBottom(document.body);
+
+}
+
+function terminalMarkOutputMessageAsExecuted(messageId) {
+
+    var obj = terminalGetOutputMessage(messageId);
+    if (obj) {
+        var header = obj.firstChild;
+        if (header) {
+            header.innerHTML = "<span class=\"executed\">" + header.innerHTML + "</span>"
+        }
+    } else {
+        log("Message with id="+messageId+" executed, but log of this message does not exists (or just was cleared).")
+    }
 
 }
 
@@ -264,6 +302,8 @@ function terminalExecute(command,action) {
 
     if (typeof action == "undefined") action = ACTION_MESSAGE;
     var data = parserPrepareSubmitData(command);
+    if (action == ACTION_MESSAGE) data = lastCommandId + ACTION_MESSAGE + data;
+
     if (webSocket == null) {
         terminalOutput("No connection established. Please, use <span class=\"hint\">/connect</span> command first.",
             0,"<span class=\"error\">system</span>");
@@ -447,5 +487,6 @@ function parserInsertAutocompleteOption(text) {
     }
     return text;
 
-}]]></CSP>
+}
+]]></CSP>
 </Export>

@@ -72,6 +72,14 @@ Zone change identifier</Description>
 <ReadOnly>1</ReadOnly>
 </Property>
 
+<Property name="EXECUTED">
+<Description>
+When command executed</Description>
+<Type>%Char</Type>
+<InitialExpression>"!"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
 <Property name="CurrentNamespace">
 <Type>%String</Type>
 <InitialExpression>"USER"</InitialExpression>
@@ -235,7 +243,12 @@ Method description:
 			    	
 		    } elseif (action = ..MESSAGE) { // autorized
 	    	
-		    	do ..ExecuteCommand(data)	    	
+	    		set pos = $Find(data,..MESSAGE,1) // find first separator
+	    		set messageId = $Extract(data,1,pos-2)
+	    		set message = $Extract(data,pos,)
+	    	
+		    	do ..ExecuteCommand(message)
+		    	do ..SendData(..EXECUTED,messageId) // alert client
 		    	
 	    	} else { // something scary
 		    	

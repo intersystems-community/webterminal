@@ -6,7 +6,7 @@
 }
 
 .hint {
-    color: #a0ff00;
+    color: #c7ff34;
 }
 
 .error {
@@ -15,6 +15,10 @@
 
 .info {
     color: #fffd7c;
+}
+
+.executed {
+    color: #34ff00;
 }
 
 @-webkit-keyframes blinker {
