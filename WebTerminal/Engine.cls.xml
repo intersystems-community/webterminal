@@ -190,7 +190,7 @@ Authorization process description:
 		accessing WebTerminal.csp.
 
 Method description:
-	First, method requires from client
+	First, method requires from client 
 	a key, which will be compared with ..GetAuthKey() (global). If 
 	succeeded, method sets "authorized" flag to true and changes global
 	key with ..GenerateAuthKey() for the next client.]]></Description>

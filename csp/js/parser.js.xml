@@ -19,7 +19,7 @@ function parserRemoveTags(content) { return content.replace(/(<([^>]+)>)/ig, "")
 /**
  * Inserts string to text in position pos. If pos is incorrect, += operation will be performed.
  *
- * @param text
+ * @param text 
  *  Text to insert into.
  * @param position
  *  Position where to insert.

@@ -29,7 +29,7 @@ function log() { ('console' in window)?console.log(arguments):null }
 /**
  * Places caret at the end of input (editable div).
  *
- * @param input
+ * @param input 
  *  Input.
  */
 function placeCaretAtEnd(input) {

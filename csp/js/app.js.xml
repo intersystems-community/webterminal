@@ -27,7 +27,7 @@ var handleInput = 0, // while true, function terminalHandledInput(data) will be 
  * Function initializing basic application components, like events, etc.
  *
  * @param authKey
- *  Default server-given parameter to access WebSocket application.
+ *  Default server-given parameter to access WebSocket application. 
  */
 function terminalInitialize(authKey) {
 

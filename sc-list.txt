@@ -1,3 +1,4 @@
+<cspapp>
 <cspapp>/WebTerminal.CSP
 <cspapp>/css
 <cspapp>/img
