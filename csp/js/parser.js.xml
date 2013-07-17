@@ -191,7 +191,7 @@ function parserFillHTMLSpaces(text) {
     if (text.length>0) {
         if (text[text.length-1] == " ") text = text.replaceSymbol(text.length - 1,"&nbsp;");
         if (text[0] == " ") text = text.replaceSymbol(0,"&nbsp;");
-        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;");
+        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;").replace(/<br> /g,"<br>&nbsp;");
     }
 
     return text;

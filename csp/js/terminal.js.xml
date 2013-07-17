@@ -147,7 +147,13 @@ function terminalOutput(data, highlight, zone, id) {
     id = ((typeof id !== "undefined") && (typeof terminalGetOutputMessage(id) !== "undefined"))?" id=\"terminalCommand"+id+"\"":"";
     zone = (typeof zone !== "undefined") ? zone : terminalGetCommandZone();
     var output = terminalGetOutputObject();
-    data = ((highlight)?parserHighlight(data):data).replace(/\n/g,"<br>");
+
+    data = ((highlight)?parserHighlight(data):data);//.replace(/\n/g,"<br>");
+    //text = htmlEncode(text);
+    //text = parserFillHTMLSpaces(text);
+    //text = (highlight)?parserHighlight(data):data;
+
+    //visualLength
 
     output.innerHTML += "<div class=\"terminalOutputMessage\""+id+">"+
         "<span class=\"terminalOutputHeader\">" + zone + "</span>"+
@@ -171,7 +177,9 @@ function terminalSubmit(data) {
 
         } else {
 
-            terminalOutput(data, 1, terminalGetCommandZone(), lastCommandId+1);
+            var odata = htmlEncode(data);
+            odata = parserFillHTMLSpaces(data);
+            terminalOutput(odata, 1, terminalGetCommandZone(), lastCommandId+1);
 
             lastCommandId++;
             historyCurrent = commandHistory.length;
@@ -249,7 +257,6 @@ function terminalHandledInput(data) {
 function terminalMessageReceived(event) {
 
     var data = event.data; if (data.length < 2) return;
-    log("received: " + data);
     var action = data[0]; data = data.substr(1);
 
     switch (action) {
@@ -352,11 +359,11 @@ function terminalKeyDowned(event) {
     if ( keyCode == 9 || (keyCode == 13 && !(keyPressed[16] || keyPressed[17])) || keyCode == 17) {
         preventDefaultEvent(event);
     } else {
-        log("SAVING")
         setTimeout("terminalSaveCurrentQueryToHistory()",1);
     } // letter pressed
 
-    var prevent = (keyCode != 13 || ( keyCode == 13 && !(keyPressed[16] || keyPressed[17])))?terminalPerformKeyAction(keyCode):1; // SHIFT/CTRL + ENTER
+    if (keyCode != 13 || ( keyCode == 13 && !(keyPressed[16] || keyPressed[17])))
+        terminalPerformKeyAction(keyCode); // SHIFT/CTRL + ENTER
 
     // SHIFT == 16
 
@@ -457,7 +464,15 @@ function terminalPerformAutocomplete() {
 function terminalPerformKeyAction(key) {
 
     switch (key) {
-        case 9: terminalPerformAutocomplete(); break; // TAB
+        case 9: {
+            /*if (autocompleteVariants.length == 0) { TODO: <tab>
+                var p = getCaretPosition(terminalGetInputObject());
+                var val = terminalGetInputValue();
+                terminalSetInputValue(val.replaceSymbol(p,val[p]+"\t"));
+                setCaretPosition(terminalGetInputObject(),p+1);
+            }*/
+            terminalPerformAutocomplete();
+        } break; // TAB
         case 13: terminalSubmit( terminalGetInputValue() ); break; // ENTER
         case 17: terminalChangeAutocompleteVariant(); break; // CTRL
         case 38: {

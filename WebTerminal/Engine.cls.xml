@@ -224,7 +224,7 @@ Method description:
 				    
 				    set authorized = 1
 				    do ..SendData(..MESSAGE,"Authorization succeeded! " _
-				    "Your client id: " _ ..SessionId)
+				    "WSID: " _ ..WebSocketID)
 				    set ..CurrentNamespace = $Znspace
 				    do ..SendData(..CHANGENAMESPACE,..CurrentNamespace) // change client namespace
 				    	

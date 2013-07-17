@@ -133,8 +133,8 @@ function terminalInternalExecute(string) {
     }
     if (argss) argss = argss.replaceSymbol(0,"");
     try {
-        log("terminalInternalCommand_"+command+"("+argss+")");
-        eval("terminalInternalCommand_"+command+"("+argss+")");
+        log("terminalInternalCommand_"+command.toLowerCase()+"("+argss+")");
+        eval("terminalInternalCommand_"+command.toLowerCase()+"("+argss+")");
     } catch (e) {
         terminalOutput("Unknown command \""+command+"\".",0,"<span class=\"warning\">system</span>")
     }
