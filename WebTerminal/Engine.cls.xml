@@ -146,14 +146,15 @@ The heart of terminal application</Description>
 <Implementation><![CDATA[
 	if (query = "") quit $$$OK
 	
-	set commands = $LISTFROMSTRING(query,$CHAR(10)) // break command by lines (multilining)
+	//set commands = $LISTFROMSTRING(query,$CHAR(10)) // break command by lines (multilining)
+	set value = $Replace(query,$CHAR(10)," ")
 		
-	FOR i=1:1:$LISTLENGTH(commands) {
+	//FOR i=1:1:$LISTLENGTH(commands) {
 		
 		set error = "" // clear error
 		#dim exception as %Exception.AbstractException
 		
-    	set value = $LIST(commands,i) // split received data by lines
+    	//set value = $LIST(commands,i) // split received data by lines
     	
     	write ..MESSAGE // write message identifier to stack
     	
@@ -169,7 +170,7 @@ The heart of terminal application</Description>
     	
     	Do ..SendData()
     	
-    }
+    //}
     
     if (..CurrentNamespace '= $Znspace) { // change client namespace
 	    Set ..CurrentNamespace = $Znspace

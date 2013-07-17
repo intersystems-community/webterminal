@@ -149,6 +149,10 @@ function parserGetRealPosition(string,position) {
             if (m) i += m[0].length;
         } else if (string[i]=="<") {
             var p = string.indexOf(">",i+1);
+            var inside = string.substring(i+1,p);
+            if (inside == "br" || inside.substr(0,3) == "br/" || inside.substr(0,3) == "br ") {
+                pos++;
+            }
             if (p==-1) { i = pos = l-1 } else { i += p-i; pos--; }
         }
         pos++; i++;
