@@ -7,10 +7,6 @@
     font-size: 14px;
 }
 
-.terminalOutput {
-
-}
-
 .terminalOutputMessage {
 
 }
@@ -19,14 +15,18 @@
     position: relative;
 }
 
-.terminalOutputHeader:after {
+.terminalOutputContainer {
+    position: relative;
+}
+
+/*.terminalOutputHeader:after {
     content: ">";
     margin: 0 6px 0 6px;
 }
 
 .terminalOutputBody {
     word-wrap: break-word;
-}
+}        */
 
 .terminalInputPreContainer {
     position: relative;
@@ -53,7 +53,7 @@
     z-index: 0;
 }
 
-.terminalInput {
+.terminalInput, .terminalOutput {
     display: block;
     margin: 0;
     width: 100%;
@@ -65,7 +65,7 @@
     background: none;
     color: inherit;
     overflow: hidden;
-    min-height: 20px;
+    min-height: 12px;
     word-wrap: break-word;
     resize: none;
 }
@@ -79,13 +79,13 @@
 
 }
 
-.terminalInputHeader { /* global zone (like "dev> ") */
+.terminalInputHeader, .terminalOutputHeader { /* global zone (like "dev> ") */
     float: left;
     vertical-align: top;
     width: 100px;
 }
 
-.terminalInputHeader:after {
+.terminalInputHeader:after, .terminalOutputHeader:after {
     content: ">";
     margin: 0 6px 0 6px;
 }
@@ -101,11 +101,11 @@
 .caret-blink:after {
     position: absolute;
     left: 0;
-    bottom: 0;
-    width: 9px;
+    top: 0;
+    width: 8px;
     height: 1px;
-    background: aqua;
-    content: "_";
+    background: #e300ff;
+    content: "";
 }
 
 .terminalAutocompleteOption {

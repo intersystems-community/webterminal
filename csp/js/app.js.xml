@@ -28,6 +28,13 @@ var lastCommandId = -1; // Every command has it's own id. It can be used to chan
 var handleInput = 0, // while true, function terminalHandledInput(data) will be called.
     tempStack = ""; // variable for all temp queries within handle
 
+var terminalMode = MODE_EXECUTE; // mode changes current terminal submit action and behavior
+
+var MODE_EXECUTE = 0, // executing commands on server
+    MODE_SQL = 1, // executing sql queries
+    MODE_MACRO = 2, // macro recording (set of commands)
+    MODE_LOGIN = 3; // @deprecated used while logging in
+
 /**
  * Function initializing basic application components, like events, etc.
  *

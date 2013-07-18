@@ -26,6 +26,11 @@
     to { opacity: 0.0; }
 }
 
+.tab {
+    display: inline-block;
+    width: 24pt;
+}
+
 .blinking {
     /*animation-name: blinker;
     -webkit-animation-iteration-count: infinite;

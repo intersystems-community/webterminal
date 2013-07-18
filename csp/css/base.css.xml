@@ -13,7 +13,6 @@ body {
     padding: 0;
     margin: 20px;
     color: white;
-    overflow: visible;
 }
 
 #ruler { visibility: hidden; white-space: nowrap; }

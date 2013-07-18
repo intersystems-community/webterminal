@@ -155,10 +155,22 @@ function terminalOutput(data, highlight, zone, id) {
 
     //visualLength
 
+    /*
     output.innerHTML += "<div class=\"terminalOutputMessage\""+id+">"+
         "<span class=\"terminalOutputHeader\">" + zone + "</span>"+
         "<span class=\"terminalOutputBody\">"+
         data +"</span></div>";
+    */
+
+    var ww = zone.visualLength() + 20; // @const
+
+    output.innerHTML += "<div class=\"terminalOutputContainer\" " + id + ">" +
+        "<div class=\"terminalOutputHeader\" style=\"width: " + ww + "px;\">" + zone + "</div>" +
+        "   <div class=\"terminalOutputWrapper\" style=\"margin-left: " + ww + "px;\">" +
+        "       <div class=\"terminalOutput\">" + data + "</div>" +
+        "   </div>" +
+        "</div>";
+
 
 }
 
@@ -358,12 +370,12 @@ function terminalKeyDowned(event) {
 
     if ( keyCode == 9 || (keyCode == 13 && !(keyPressed[16] || keyPressed[17])) || keyCode == 17) {
         preventDefaultEvent(event);
-    } else {
-        setTimeout("terminalSaveCurrentQueryToHistory()",1);
-    } // letter pressed
+    }
 
     if (keyCode != 13 || ( keyCode == 13 && !(keyPressed[16] || keyPressed[17])))
-        terminalPerformKeyAction(keyCode); // SHIFT/CTRL + ENTER
+        if (terminalPerformKeyAction(keyCode)) { // SHIFT/CTRL + ENTER
+            preventDefaultEvent(event);
+        } else setTimeout("terminalSaveCurrentQueryToHistory()",1);
 
     // SHIFT == 16
 
@@ -463,9 +475,11 @@ function terminalPerformAutocomplete() {
  */
 function terminalPerformKeyAction(key) {
 
+    var caretPos, nPos;
+
     switch (key) {
         case 9: {
-            /*if (autocompleteVariants.length == 0) { //TODO: <tab>
+            /*if (autocompleteVariants.length == 0) { // TODO: <tab> (after clever syntax highlighting)
                 var p = getCaretPosition(terminalGetInputObject());
                 var val = terminalGetInputValue();
                 log(p,val);
@@ -477,19 +491,21 @@ function terminalPerformKeyAction(key) {
         case 13: terminalSubmit( terminalGetInputValue() ); break; // ENTER
         case 17: terminalChangeAutocompleteVariant(); break; // CTRL
         case 38: {
-            var caretPos = getCaretPosition(terminalGetInputObject());
-            var nPos = terminalGetInputValue().indexOf("\n");
+            caretPos = getCaretPosition(terminalGetInputObject());
+            nPos = terminalGetInputValue().indexOf("\n");
             if (caretPos < nPos || nPos == -1) { // if placed on first line of input
                 terminalSetInputValue(terminalLoadFromHistory(-1));
-                return 0;
+                //setTimeout("placeCaretAtEnd(terminalGetInputObject())",1);
+                return 1;
             }
         } break;
         case 40: {
-            var caretPos = getCaretPosition(terminalGetInputObject());
-            var nPos = terminalGetInputValue().lastIndexOf("\n");
+            caretPos = getCaretPosition(terminalGetInputObject());
+            nPos = terminalGetInputValue().lastIndexOf("\n");
             if (caretPos > nPos || nPos == -1) { // if placed on last line of input
                 terminalSetInputValue(terminalLoadFromHistory(1));
-                return 0;
+                //setTimeout("placeCaretAtEnd(terminalGetInputObject())",1);
+                return 1;
             }
         } break;
     }

@@ -58,7 +58,7 @@ function addTextareasAutoresize() {
 
     var resize  = function(t) {
         t.style.height = "auto";
-        t.style.height = (t.scrollHeight  + offset ) + "px";
+        t.style.height = t.scrollHeight  + offset + "px";
     };
 
     t.addEventListener && t.addEventListener("input", function(event) {
