@@ -145,7 +145,7 @@ function parserGetRealPosition(string,position) {
     var i = 0, l = string.length, pos = 0;
     while (i<l && pos<position) {
         if (string[i]=="&") {
-            var m = string.substr(i+1,5).match(/(nbsp|lt|gt|amp);/g);
+            var m = string.substr(i+1,5).match(/(nbsp|lt|gt|amp|#09);/g);
             if (m) i += m[0].length;
         } else if (string[i]=="<") {
             var p = string.indexOf(">",i+1);
@@ -191,10 +191,10 @@ function parserFillHTMLSpaces(text) {
     if (text.length>0) {
         if (text[text.length-1] == " ") text = text.replaceSymbol(text.length - 1,"&nbsp;");
         if (text[0] == " ") text = text.replaceSymbol(0,"&nbsp;");
-        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;").replace(/<br> /g,"<br>&nbsp;");
+        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;").replace(/(<br>|<br\/>|<br \/>) /g,"<br>&nbsp;");
     }
 
-    return text;
+    return text;//.replace(/\t/g,"<span class=\"tab\">&nbsp;</span>");
 
 }
 

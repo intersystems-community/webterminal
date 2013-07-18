@@ -465,10 +465,11 @@ function terminalPerformKeyAction(key) {
 
     switch (key) {
         case 9: {
-            /*if (autocompleteVariants.length == 0) { TODO: <tab>
+            /*if (autocompleteVariants.length == 0) { //TODO: <tab>
                 var p = getCaretPosition(terminalGetInputObject());
                 var val = terminalGetInputValue();
-                terminalSetInputValue(val.replaceSymbol(p,val[p]+"\t"));
+                log(p,val);
+                terminalSetInputValue(val.replaceSymbol(p,val.charAt(p)+"\t"));
                 setCaretPosition(terminalGetInputObject(),p+1);
             }*/
             terminalPerformAutocomplete();
