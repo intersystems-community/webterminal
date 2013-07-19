@@ -26,7 +26,8 @@ var terminalDefines = []; // holds redefinition of defined words  //  terminalDe
 var ACTION_MESSAGE = ">",// stores message. Second separator means for server that message has it's own id
     ACTION_AUTHORIZATION = "?",// used to authorize client, holds authorization key
     ACTION_NAMESPACE = "_", // holds namespace to change
-    ACTION_EXECUTED = "!"; // holds the id of message that has been just executed
+    ACTION_EXECUTED = "!", // holds the id of message that has been just executed
+    ACTION_SQL = "@"; // includes sql-query to server
 
 /**
  * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
@@ -149,6 +150,7 @@ function terminalOutput(data, highlight, zone, id) {
     var output = terminalGetOutputObject();
 
     data = ((highlight)?parserHighlight(data):data);//.replace(/\n/g,"<br>");
+    //data = data.replace(/\t/g,"&#09;"); @todo
     //text = htmlEncode(text);
     //text = parserFillHTMLSpaces(text);
     //text = (highlight)?parserHighlight(data):data;
@@ -189,10 +191,9 @@ function terminalSubmit(data) {
 
         } else {
 
-            var odata = htmlEncode(data);
-            odata = parserFillHTMLSpaces(data);
-            terminalOutput(odata, 1, terminalGetCommandZone(), lastCommandId+1);
+            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)), 1, terminalGetCommandZone(), lastCommandId+1);
 
+            // increase command stack for history
             lastCommandId++;
             historyCurrent = commandHistory.length;
             commandHistory[historyCurrent - 1] = terminalGetInputValue();
@@ -204,7 +205,10 @@ function terminalSubmit(data) {
 
             } else {
 
-                terminalExecute(data);
+                if (terminalMode == MODE_EXECUTE)
+                    terminalExecute(data);
+                else if (terminalMode == MODE_SQL)
+                    terminalExecute(data,ACTION_SQL);
 
             }
 
@@ -243,20 +247,8 @@ function terminalClearHistory() {
  */
 function terminalHandledInput(data) {
 
+    // by flag handleInput
     handleInput = 0;
-    var zone = terminalGetCommandZone();
-    if (zone == "login") {
-        tempStack = data;
-        terminalSetCommandZone("password");
-        terminalGetInputViewObject().style.visibility = "hidden";
-        handleInput = 1;
-    } else if (zone == "password") {
-        terminalGetInputViewObject().style.visibility = "visible";
-        tempStack += "?"+data;
-        terminalSetCommandZone("server");
-        terminalExecute(tempStack,ACTION_AUTHORIZATION);
-        tempStack = "";
-    }
 
 }
 
@@ -269,6 +261,7 @@ function terminalHandledInput(data) {
 function terminalMessageReceived(event) {
 
     var data = event.data; if (data.length < 2) return;
+    log("received: " + data);
     var action = data[0]; data = data.substr(1);
 
     switch (action) {
@@ -284,6 +277,7 @@ function terminalMessageReceived(event) {
         } break;
 
         case ACTION_NAMESPACE: {
+            namespace = data;
             terminalSetCommandZone(data);
         } break;
 
@@ -327,7 +321,7 @@ function terminalExecute(command,action) {
 
     if (typeof action == "undefined") action = ACTION_MESSAGE;
     var data = parserPrepareSubmitData(command);
-    if (action == ACTION_MESSAGE) data = lastCommandId + ACTION_MESSAGE + data;
+    if ( (action == ACTION_MESSAGE) || (action == ACTION_SQL) ) data = lastCommandId + ACTION_MESSAGE + data;
 
     if (webSocket == null) {
         terminalOutput("No connection established. Please, use <span class=\"hint\">/connect</span> command first.",

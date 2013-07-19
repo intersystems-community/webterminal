@@ -7,12 +7,15 @@
 .syntax-continue, .syntax-goto, .syntax-halt, .syntax-hang, .syntax-job, .syntax-kill,
 .syntax-lock, .syntax-merge, .syntax-new, .syntax-open, .syntax-return, .syntax-tcommit,
 .syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
-.syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite
+.syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite, .syntax-d
 { color: #29cfe9; } 
 
 .syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,
 .syntax-catch
 { color: #ff00fe; }
+
+.syntax-select, .syntax-from, .syntax-where, .syntax-join, .syntax-into
+{ color: #f34800; }
 
 .syntax-digit { color: #00ffb4; }
 

@@ -17,6 +17,7 @@
 
 .terminalOutputContainer {
     position: relative;
+    overflow: hidden;
 }
 
 /*.terminalOutputHeader:after {

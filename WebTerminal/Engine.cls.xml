@@ -64,6 +64,12 @@ Message identifier</Description>
 <ReadOnly>1</ReadOnly>
 </Property>
 
+<Property name="SQL">
+<Type>%Char</Type>
+<InitialExpression>"@"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
 <Property name="CHANGENAMESPACE">
 <Description>
 Zone change identifier</Description>
@@ -138,6 +144,18 @@ Sends message to client. Prefix and query are optional parameters
 ]]></Implementation>
 </Method>
 
+<Method name="ExecuteSQL">
+<FormalSpec>query:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	SET result = $SYSTEM.SQL.Execute(query)
+	write ..MESSAGE
+	do result.%Display()
+	do ..SendData()
+	quit $$$OK
+]]></Implementation>
+</Method>
+
 <Method name="ExecuteCommand">
 <Description>
 The heart of terminal application</Description>
@@ -159,7 +177,9 @@ The heart of terminal application</Description>
     	write ..MESSAGE // write message identifier to stack
     	
     	try {
-	    	
+	    
+	    	// $IO
+	    	// use $P
 	    	xecute value // just xecute
 				
     	} catch exception {
@@ -251,6 +271,15 @@ Method description:
 		    	do ..ExecuteCommand(message)
 		    	do ..SendData(..EXECUTED,messageId) // alert client
 		    	
+	    	} elseif (action = ..SQL) { // sql
+		    	
+		    	set pos = $Find(data,..MESSAGE,1) // find first separator
+	    		set messageId = $Extract(data,1,pos-2)
+	    		set message = $Extract(data,pos,)
+	    	
+		    	do ..ExecuteSQL(message)
+		    	do ..SendData(..EXECUTED,messageId) // alert client
+		    		
 	    	} else { // something scary
 		    	
 		    	do ..SendData(..MESSAGE,"Unrecognised query.")
