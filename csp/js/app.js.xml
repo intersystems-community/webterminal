@@ -25,10 +25,9 @@ var webSocket = null, // socket to exchange data with server
 
 var lastCommandId = -1; // Every command has it's own id. It can be used to change logs, etc.
 
-var handleInput = 0, // while true, function terminalHandledInput(data) will be called.
-    tempStack = ""; // variable for all temp queries within handle
+var handleInput = 0; // while true, function terminalHandledInput(data) will be called.
 
-var namespace = "testing"; // shows current namespace (real on server, not on client!)
+var namespace = "NoNamespace"; // shows current namespace (real on server, not on client!)
 
 var MODE_EXECUTE = 0, // executing commands on server
     MODE_SQL = 1, // executing sql queries
@@ -38,6 +37,8 @@ var MODE_EXECUTE = 0, // executing commands on server
 
 var terminalMode = MODE_EXECUTE; // mode changes current terminal submit action and behavior
 
+var terminalCurrentOutputField; // all terminal output will be directed into this object
+
 /**
  * Function initializing basic application components, like events, etc.
  *
@@ -46,7 +47,7 @@ var terminalMode = MODE_EXECUTE; // mode changes current terminal submit action 
  */
 function terminalInitialize(authKey) {
 
-    terminalFocusOnInput();
+    terminalCurrentOutputField = terminalGetOutputObject();
     for (var i = 0; i < 256; i++) keyPressed[i] = 0; // initializing keys
     bindEvent( document, "keydown", bodyKeyDown );
     bindEvent( document, "keyup", bodyKeyUp );
@@ -55,12 +56,13 @@ function terminalInitialize(authKey) {
     bindEvent( terminalGetInputObject(), "blur", clearKeyStates );
     addTextareasAutoresize();
     if (!ie()) setInterval("terminalCaretTick()",500);
-    terminalSetCommandZone("server");
+    terminalSetNamespace("server");
     terminalUpdateInputView();
     terminalOutput("Terminal base ready. Type " +
         "<span class=\"warning\">/help</span> to get more information.", 0, "<b>system</b>");
     terminalServerConnect(document.URL.replace(/(\.CSP|\.csp)/,".Engine.cls").replace(/http:\/\//,"ws://"),authKey);
     removeElement(document.getElementById("startup")); // remove forever any information about authKey on pages
+    terminalFocusOnInput();
 
 }
 
@@ -102,7 +104,8 @@ function terminalServerConnect(server, authKey) {
 
     webSocket.onopen = function() {
         terminalOutput("Connection established. Authorizing...", 0, "server");
-        terminalExecute(authKey,ACTION_AUTHORIZATION);
+        terminalSendToServer(authKey); // CTWPv2
+        //terminalExecute(authKey,ACTION_AUTHORIZATION); // CTWPv1
     };
 
     webSocket.onclose = function(event) {
@@ -121,6 +124,7 @@ function terminalServerConnect(server, authKey) {
     webSocket.onmessage = function(event) { terminalMessageReceived(event) };
 
     webSocket.onerror = function(error) {
+        log(error);
         terminalOutput("<span class=\"error\">error: " + error.message + "</span>",1,"server")
     };
 
@@ -253,7 +257,22 @@ function terminalInternalCommand_sql() {
     terminalMode = (terminalMode != MODE_SQL)?MODE_SQL:MODE_DEFAULT;
     terminalOutput("SQL mode " + ((terminalMode == MODE_SQL)?"enabled":"disabled") + ".",
         0,"<span class=\"hint\">system</span>");
-    terminalSetCommandZone((terminalMode == MODE_SQL)?"SQL":namespace);
+    terminalSetNamespace((terminalMode == MODE_SQL)?"SQL":namespace);
+
+}
+
+function terminalInternalCommand_siege(iter,msec) {
+
+    if (typeof msec == "undefined") msec = 40;
+    if (typeof iter == "undefined") iter = 100;
+
+    handle = function(left) {
+        terminalOutput("Test! Iteration " + left + "; Speed: 1/" + msec);
+        if (left > 0) setTimeout("handle(" + (left-1) + ")",msec);
+        scrollToBottom(document.body);
+    };
+
+    handle(iter);
 
 }]]></CSP>
 </Export>

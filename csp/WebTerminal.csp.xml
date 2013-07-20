@@ -24,7 +24,7 @@
 
 <body>
     <div class="terminalBase">
-        <div class="terminalOutput">
+        <div class="terminalOutputBody">
         </div>
         <div class="terminalInputPreContainer">
             <div class="terminalInputViewPart terminalInputContainer">

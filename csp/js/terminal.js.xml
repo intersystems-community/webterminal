@@ -9,6 +9,32 @@
  * Required:
  *  parser.js
  *  base.js
+ *
+ * Cache terminal protocol over-WebSocket description (CTWPv2):
+ *  WebSocket data exchange based on messages transferring between server and client. The rules for exchanging
+ *  for CTWPv2 are the next:
+ *
+ *  AUTHORIZATION:
+ *      First package: client sends string to server which includes ONLY authorization key. If server accepts
+ *      key, it forming ACTION_AUTHORIZATION package (including one character), which means for client that
+ *      authorization was successful and execution can be performed. If authorization fails, server closes
+ *      connection immediately.
+ *  MESSAGING:
+ *      Server-client messaging based on less-three-packages rule. Every command (or command stack) transfers
+ *      between server and client according to the next rules:
+ *          - FIRST PACKAGE (any of the first received after authorization succeeded or ACTION_END) includes
+ *          identifier that shows client/server suitable action. It means that next package(s) will be
+ *          interpreted as one unit and action.
+ *          - SECOND+ PACKAGE(s) (also called intermediate data) includes information to be interpreted by
+ *          established rules in first package.
+ *          - LAST PACKAGE includes terminator symbol combination - it brings client/server to break current
+ *          action and start waiting for FIRST PACKAGE again.
+ *      + Note that even second package can include terminator string (last package). In this case package will
+ *      be interpreted as null string.
+ *      ? If one of the second packages will include terminator string, and than terminator string will come
+ *      again, it means that previous terminator was a simple string. *This situation causes special action for
+ *      whole "intermediate data".
+ *
  */
 
 var autocompleteVariants = []; // currently available variants of autocomplete
@@ -23,11 +49,17 @@ var terminalDefines = []; // holds redefinition of defined words  //  terminalDe
  *
  * @type {string}
  */
-var ACTION_MESSAGE = ">",// stores message. Second separator means for server that message has it's own id
+var ACTION_NONE = "", // makes terminal to listen for action
+    ACTION_MESSAGE = ">",// stores message. Second separator means for server that message has it's own id
     ACTION_AUTHORIZATION = "?",// used to authorize client, holds authorization key
     ACTION_NAMESPACE = "_", // holds namespace to change
     ACTION_EXECUTED = "!", // holds the id of message that has been just executed
-    ACTION_SQL = "@"; // includes sql-query to server
+    ACTION_SQL = "@", // includes sql-query to server
+    ACTION_TERMINATOR = "/END/"; // end of operation identifier (start from CTWPv2)
+
+var terminalCurrentAction = ACTION_NONE, // current action shows what to expect from the server and how to handle it
+    terminalActionsRegExp = RegExp("["+escapeRegExp(ACTION_MESSAGE+ACTION_AUTHORIZATION+ACTION_NAMESPACE+ACTION_EXECUTED+
+    ACTION_SQL+"("+ACTION_TERMINATOR+")")+"]", "g");
 
 /**
  * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
@@ -37,13 +69,24 @@ var ACTION_MESSAGE = ">",// stores message. Second separator means for server th
  */
 function terminalGetInputObject() { return document.getElementsByClassName("terminalHiddenInput")[0] }
 function terminalGetInputViewObject() { return document.getElementsByClassName("terminalInputView")[0] }
-function terminalGetOutputObject() { return document.getElementsByClassName("terminalOutput")[0] }
+function terminalGetOutputObject() { return document.getElementsByClassName("terminalOutputBody")[0] }
 function terminalGetInputWrappersObjects() { return document.getElementsByClassName("terminalInputWrapper") }
 function terminalGetInputHeaderObject() { return document.getElementsByClassName("terminalInputHeader")[0] }
 function terminalGetCaretObject() { return document.getElementsByClassName("caret")[0] ||
     document.getElementsByClassName("caret-blink")[0] }
 function terminalGetAutocompleteObject() { return document.getElementsByClassName("terminalAutocompleteOption")[0] }
 function terminalGetOutputMessage(id) { return document.getElementById("terminalCommand"+id) }
+function terminalGetOutputMessageOutput(id) {
+    var a = document.getElementById("terminalCommand"+id);
+    if (a) {
+        var b = a.lastChild;
+        if (b) {
+            var c = b.firstChild;
+            if (c) return c;
+        }
+    }
+    return null;
+}
 
 /**
  * Focuses on terminal input object.
@@ -69,7 +112,7 @@ function terminalCaretTick() {
  * @param zoneName
  *  Command zone.
  */
-function terminalSetCommandZone(zoneName) {
+function terminalSetNamespace(zoneName) {
 
     var header = terminalGetInputHeaderObject();
     var wrappers = terminalGetInputWrappersObjects();
@@ -94,7 +137,7 @@ function terminalSetCommandZone(zoneName) {
  * @returns {string}
  *  E.g. Namespace
  */
-function terminalGetCommandZone() {
+function terminalGetNamespace() {
     return terminalGetInputHeaderObject().innerHTML;
 }
 
@@ -144,35 +187,35 @@ function terminalGetInputViewValue() {
  */
 function terminalOutput(data, highlight, zone, id) {
 
+    var normalOutput = terminalGetOutputObject(); // indicates normal output. Unusual output will provide only text insertion
+    var output = terminalCurrentOutputField || normalOutput;
     highlight = (typeof highlight !== "undefined") ? highlight : 0;
-    id = ((typeof id !== "undefined") && (typeof terminalGetOutputMessage(id) !== "undefined"))?" id=\"terminalCommand"+id+"\"":"";
-    zone = (typeof zone !== "undefined") ? zone : terminalGetCommandZone();
-    var output = terminalGetOutputObject();
+    data = ((highlight)?parserHighlight(data):data);//.replace(/\n/g,"<br>"); @todo
 
-    data = ((highlight)?parserHighlight(data):data);//.replace(/\n/g,"<br>");
-    //data = data.replace(/\t/g,"&#09;"); @todo
-    //text = htmlEncode(text);
-    //text = parserFillHTMLSpaces(text);
-    //text = (highlight)?parserHighlight(data):data;
+    if (output.getAttribute("class") == "terminalOutputBody") {
 
-    //visualLength
+        id = ((typeof id !== "undefined") && (typeof terminalGetOutputMessage(id) !== "undefined"))?" id=\"terminalCommand"+id+"\"":"";
+        zone = (typeof zone !== "undefined") ? zone : terminalGetNamespace();
 
-    /*
-    output.innerHTML += "<div class=\"terminalOutputMessage\""+id+">"+
-        "<span class=\"terminalOutputHeader\">" + zone + "</span>"+
-        "<span class=\"terminalOutputBody\">"+
-        data +"</span></div>";
-    */
+        //data = data.replace(/\t/g,"&#09;"); todo!
+        //text = htmlEncode(text);
+        //text = parserFillHTMLSpaces(text);
+        //text = (highlight)?parserHighlight(data):data;
 
-    var ww = zone.visualLength() + 20; // @const
+        var ww = zone.visualLength() + 20; // @const
 
-    output.innerHTML += "<div class=\"terminalOutputContainer\" " + id + ">" +
-        "<div class=\"terminalOutputHeader\" style=\"width: " + ww + "px;\">" + zone + "</div>" +
-        "   <div class=\"terminalOutputWrapper\" style=\"margin-left: " + ww + "px;\">" +
-        "       <div class=\"terminalOutput\">" + data + "</div>" +
-        "   </div>" +
-        "</div>";
+        output.innerHTML += "<div class=\"terminalOutputContainer\" " + id + ">" +
+            "<div class=\"terminalOutputHeader\" style=\"width: " + ww + "px;\">" + zone + "</div>" +
+            "<div class=\"terminalOutputWrapper\" style=\"margin-left: " + ww + "px;\">" +
+            "<div class=\"terminalOutput\">" + data + "</div>" +
+            "</div>" +
+            "</div>";
 
+    } else {
+
+        output.innerHTML += data;
+
+    }
 
 }
 
@@ -191,7 +234,7 @@ function terminalSubmit(data) {
 
         } else {
 
-            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)), 1, terminalGetCommandZone(), lastCommandId+1);
+            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)), 1, terminalGetNamespace(), lastCommandId+1);
 
             // increase command stack for history
             lastCommandId++;
@@ -220,7 +263,6 @@ function terminalSubmit(data) {
     terminalClearInput();
     terminalUpdateInputView();
     scrollToBottom(document.body);
-    log(terminalGetInputValue());
 
 }
 
@@ -260,7 +302,10 @@ function terminalHandledInput(data) {
  */
 function terminalMessageReceived(event) {
 
-    var data = event.data; if (data.length < 2) return;
+    var data = event.data;
+
+    /*
+    if (data.length < 2) return; // CTWPv1
     log("received: " + data);
     var action = data[0]; data = data.substr(1);
 
@@ -269,16 +314,16 @@ function terminalMessageReceived(event) {
         case ACTION_AUTHORIZATION: {
             terminalOutput("Please, authorize first:",1,"server");
             handleInput = 1;
-            terminalSetCommandZone("login");
+            terminalSetNamespace("login");
         } break;
 
         case ACTION_MESSAGE: {
-            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)),1,"<span class=\"info\">"+terminalGetCommandZone()+"</span>");
+            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)),1,"<span class=\"info\">"+terminalGetNamespace()+"</span>");
         } break;
 
         case ACTION_NAMESPACE: {
             namespace = data;
-            terminalSetCommandZone(data);
+            terminalSetNamespace(data);
         } break;
 
         case ACTION_EXECUTED: {
@@ -286,8 +331,49 @@ function terminalMessageReceived(event) {
         } break;
 
         default: {
-            terminalOutput("Something scary received from the server. Unrecognised action "+action+", data: "+data,1,terminalGetCommandZone());
+            terminalOutput(parserFillHTMLSpaces(htmlEncode(action+data)),1,"<span class=\"info\">"+terminalGetNamespace()+"</span>");
+            //terminalOutput("Something scary received from the server. Unrecognised action "+action+", data: "+data,1,terminalGetNamespace());
         }
+
+    } */
+
+    log("received: ",data);
+    if (data == ACTION_TERMINATOR) terminalCurrentAction = ACTION_TERMINATOR;
+
+    switch (terminalCurrentAction) { // CTWPv2
+
+        case ACTION_NONE: { // assign new action
+            if (data.match(terminalActionsRegExp)) {
+                terminalCurrentAction = data;
+            } else {
+                terminalLog("Unrecognised data from server: " + data)
+            }
+        } break;
+
+        case ACTION_EXECUTED: {
+            terminalMarkOutputMessageAsExecuted(data); // @deprecated
+        } break;
+
+        case ACTION_NAMESPACE: {
+            namespace = data;
+            terminalSetNamespace(data);
+        } break;
+
+        case ACTION_MESSAGE: {
+            lastCommandId++;
+            terminalOutput("",0,terminalGetNamespace(),lastCommandId);
+            var out = terminalGetOutputMessageOutput(lastCommandId);
+            if (out) {
+                terminalCurrentOutputField = out;
+            }
+            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)),1,"<span class=\"info\">"+terminalGetNamespace()+"</span>");
+        } break;
+
+        case ACTION_TERMINATOR: {
+            terminalCurrentOutputField = terminalGetOutputObject();
+            terminalMarkOutputMessageAsExecuted(lastCommandId);
+            terminalCurrentAction = ACTION_NONE; // todo: special function for 2nd+ occurrence
+        } break;
 
     }
 
@@ -310,6 +396,30 @@ function terminalMarkOutputMessageAsExecuted(messageId) {
 }
 
 /**
+ * Logs message to terminal.
+ *
+ * @param message
+ */
+function terminalLog(message) {
+    terminalOutput(message,0,"<span class=\"warning\">log</span>")
+}
+
+/**
+ * Just sends data to server. Returns 1 if succeeded, else returns 0.
+ *
+ * @param stringData
+ *
+ * @returns {number}
+ */
+function terminalSendToServer(stringData) {
+    try {
+        webSocket.send(stringData)
+    } catch (e) {
+        terminalLog("WebSocket error. Data: " + e.message)
+    }
+}
+
+/**
  * Executes command on server side. Simply sends command to server.
  *
  * @param command
@@ -321,14 +431,16 @@ function terminalExecute(command,action) {
 
     if (typeof action == "undefined") action = ACTION_MESSAGE;
     var data = parserPrepareSubmitData(command);
-    if ( (action == ACTION_MESSAGE) || (action == ACTION_SQL) ) data = lastCommandId + ACTION_MESSAGE + data;
+    //if ( (action == ACTION_MESSAGE) || (action == ACTION_SQL) ) data = lastCommandId + ACTION_MESSAGE + data;
 
     if (webSocket == null) {
         terminalOutput("No connection established. Please, use <span class=\"hint\">/connect</span> command first.",
             0,"<span class=\"error\">system</span>");
     } else try {
-        //log("sending: ",action + data);
-        webSocket.send(action + data);
+        //webSocket.send(action+data); // CTWPv1
+        terminalSendToServer(action);
+        terminalSendToServer(data);
+        terminalSendToServer(ACTION_TERMINATOR); // CTWPv2
     } catch (e) {
         terminalOutput("Problems with <b>WebSocket</b>. Exception: " + e,
             0,"<span class=\"error\">system</span>");

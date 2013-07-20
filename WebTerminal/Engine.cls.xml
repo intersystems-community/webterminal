@@ -48,7 +48,7 @@ Last joined client id</Description>
 <InitialExpression>0</InitialExpression>
 </Property>
 
-<Property name="AUTHORIZATION">
+<Property name="ACTIONAUTHORIZATION">
 <Description>
 Authorization identifier</Description>
 <Type>%Char</Type>
@@ -56,7 +56,7 @@ Authorization identifier</Description>
 <ReadOnly>1</ReadOnly>
 </Property>
 
-<Property name="MESSAGE">
+<Property name="ACTIONMESSAGE">
 <Description>
 Message identifier</Description>
 <Type>%Char</Type>
@@ -64,13 +64,13 @@ Message identifier</Description>
 <ReadOnly>1</ReadOnly>
 </Property>
 
-<Property name="SQL">
+<Property name="ACTIONSQL">
 <Type>%Char</Type>
 <InitialExpression>"@"</InitialExpression>
 <ReadOnly>1</ReadOnly>
 </Property>
 
-<Property name="CHANGENAMESPACE">
+<Property name="ACTIONCHANGENAMESPACE">
 <Description>
 Zone change identifier</Description>
 <Type>%Char</Type>
@@ -78,11 +78,19 @@ Zone change identifier</Description>
 <ReadOnly>1</ReadOnly>
 </Property>
 
-<Property name="EXECUTED">
+<Property name="ACTIONEXECUTED">
 <Description>
 When command executed</Description>
 <Type>%Char</Type>
 <InitialExpression>"!"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONTERMINATOR">
+<Description>
+ACTION</Description>
+<Type>%String</Type>
+<InitialExpression>"/END/"</InitialExpression>
 <ReadOnly>1</ReadOnly>
 </Property>
 
@@ -134,13 +142,17 @@ If the key is empty, generates new key value.</Description>
 </Method>
 
 <Method name="SendData">
-<Description><![CDATA[
-Sends message to client. Prefix and query are optional parameters
-@param prefix
-		Declares first symbol in a query, for example, ">" to simple message]]></Description>
-<FormalSpec>prefix:%Char="",query:%String=""</FormalSpec>
+<Description>
+Function sends data derectly to server with specified action</Description>
+<FormalSpec>query:%String="",action:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[	do ..Write(prefix _ query)
+<Implementation><![CDATA[
+	if (action = "") { set action = ..ACTIONMESSAGE }
+	
+	// using CTWPv2
+	do ..Write(action)
+	do ..Write(query)
+	do ..Write(..ACTIONTERMINATOR)
 ]]></Implementation>
 </Method>
 
@@ -148,10 +160,16 @@ Sends message to client. Prefix and query are optional parameters
 <FormalSpec>query:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	do ..Write(..ACTIONMESSAGE)
+	USE $Principal:(/SEN=1)
+   	USE $Principal:(::"+Q")
+	
 	SET result = $SYSTEM.SQL.Execute(query)
-	write ..MESSAGE
 	do result.%Display()
-	do ..SendData()
+	
+	use $Principal:(/SEN=0)
+   	use $Principal:(::"-Q")
+	do ..Write(..ACTIONTERMINATOR)
 	quit $$$OK
 ]]></Implementation>
 </Method>
@@ -164,23 +182,18 @@ The heart of terminal application</Description>
 <Implementation><![CDATA[
 	if (query = "") quit $$$OK
 	
-	//set commands = $LISTFROMSTRING(query,$CHAR(10)) // break command by lines (multilining)
+	#dim exception as %Exception.AbstractException
+	do ..Write(..ACTIONMESSAGE)
+	USE $Principal:(/SEN=1)
+   	USE $Principal:(::"+Q")
+	
 	set value = $Replace(query,$CHAR(10)," ")
 		
-	//FOR i=1:1:$LISTLENGTH(commands) {
-		
 		set error = "" // clear error
-		#dim exception as %Exception.AbstractException
 		
-    	//set value = $LIST(commands,i) // split received data by lines
-    	
-    	write ..MESSAGE // write message identifier to stack
-    	
     	try {
 	    
-	    	// $IO
-	    	// use $P
-	    	xecute value // just xecute
+	    	xecute value // call a new stack
 				
     	} catch exception {
 	    	
@@ -188,16 +201,34 @@ The heart of terminal application</Description>
 	    	
     	}
     	
-    	Do ..SendData()
-    	
-    //}
-    
-    if (..CurrentNamespace '= $Znspace) { // change client namespace
-	    Set ..CurrentNamespace = $Znspace
-	 	Do ..SendData(..CHANGENAMESPACE,..CurrentNamespace)   
+    use $Principal:(/SEN=0)
+   	use $Principal:(::"-Q")
+	do ..Write(..ACTIONTERMINATOR)
+	
+	if (..CurrentNamespace '= $Znspace) { // change client namespace
+	    set ..CurrentNamespace = $Znspace
+	 	do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)   
     }
 	
 	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RequireAuthorization">
+<Description>
+This method holds process and expects only one package from
+the client - it includes authorization key.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set key = ..Read(,.status) // wait for package
+	set realKey = ..GetAuthKey() // remember current auth key
+	do ..GenerateAuthKey() // generate new auth key
+	
+	if (key = realKey) {
+		quit $$$OK	
+	}
+	
+	quit $$$NOTOK
 ]]></Implementation>
 </Method>
 
@@ -227,71 +258,47 @@ Method description:
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	
-	set authorized = 0 // client autorization required
-	
 	for {
 		
-		set readedData = ..Read(,.status)
+		set action = ..Read(,.status)
     
     	if $$$ISOK(status) {
-	    	
-	    	set action = $Extract(readedData,1,1) // read first character of data to determine action
-	    	set data = $Extract(readedData,2,) // data after first character
 	    		    	
-	    	if (action = ..AUTHORIZATION) { // autorize
-			    
-			    if (data = ..GetAuthKey()) {
-				    
-				    set authorized = 1
-				    do ..SendData(..MESSAGE,"Authorization succeeded! " _
-				    "WSID: " _ ..WebSocketID)
-				    set ..CurrentNamespace = $Znspace
-				    do ..SendData(..CHANGENAMESPACE,..CurrentNamespace) // change client namespace
-				    	
-			    } else {
-				    
-				    do ..SendData(..MESSAGE,"Wrong auth key, so... " _
-				    "Good bye, brother!")
-				    do ..EndServer()
-				    
-			    }
-			    
-			    do ..GenerateAuthKey() // client fails/logins. Generate new key in both situations.
-			    	
-		    } elseif (authorized = 0) {
-			    	
-			    do ..SendData(..AUTHORIZATION,"Authorization required.")
-			    	
-		    } elseif (action = ..MESSAGE) { // autorized
+	    	if (action = ..ACTIONMESSAGE) { // autorized
 	    	
-	    		set pos = $Find(data,..MESSAGE,1) // find first separator
-	    		set messageId = $Extract(data,1,pos-2)
-	    		set message = $Extract(data,pos,)
+	    		//USE $Principal:(/SEN=1)
+   				//USE $Principal:(::"+Q")
+	    		set data = ..Read(,.status)
 	    	
-		    	do ..ExecuteCommand(message)
-		    	do ..SendData(..EXECUTED,messageId) // alert client
+		    	do ..ExecuteCommand(data)
+		    	//do ..SendData(..ACTIONEXECUTED,messageId) // alert client
 		    	
-	    	} elseif (action = ..SQL) { // sql
+	    	} elseif (action = ..ACTIONSQL) { // sql
 		    	
-		    	set pos = $Find(data,..MESSAGE,1) // find first separator
-	    		set messageId = $Extract(data,1,pos-2)
-	    		set message = $Extract(data,pos,)
+		    	//set pos = $Find(data,..ACTIONMESSAGE,1) // find first separator
+	    		//set messageId = $Extract(data,1,pos-2)
+	    		//set message = $Extract(data,pos,)
+	    		set data = ..Read(,.status)
 	    	
-		    	do ..ExecuteSQL(message)
-		    	do ..SendData(..EXECUTED,messageId) // alert client
+		    	do ..ExecuteSQL(data)
 		    		
+	    	} elseif (action = ..ACTIONTERMINATOR) {
+		    	
+		    	// fu
+		    	
 	    	} else { // something scary
 		    	
-		    	do ..SendData(..MESSAGE,"Unrecognised query.")
+		    	do ..SendData(..ACTIONMESSAGE,"Unrecognised query.")
 		    		
 	    	}
       		
     	} else { // $$$ISOK(status)
 	    	 
+	    	do ..SendData("Not ok!",..ACTIONMESSAGE)
       		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
     
     	}
-	} // for
+	}
 ]]></Implementation>
 </Method>
 
@@ -302,19 +309,20 @@ New connection established</Description>
 <Implementation><![CDATA[
 	set ..lastClientId = ..lastClientId + 1
 	
-	if (^TerminalAuthKey '= "") {
-		Do ..ClientLoop(..lastClientId)
+	if ($$$ISOK(..RequireAuthorization())) {
+		do ..SendData("Authorization succeeded.")
+		set ..CurrentNamespace = $Znspace
+		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)   
+		do ..ClientLoop(..lastClientId)
+	} else {
+		do ..SendData("Wrong authorization key")
+		do ..EndServer()	
 	}
+	
+	do ..SendData("Good bye!",..ACTIONMESSAGE)
   	
   	quit $$$OK
 ]]></Implementation>
 </Method>
-
-<UDLText name="T">
-<Content><![CDATA[
-// $Server
-
-]]></Content>
-</UDLText>
 </Class>
 </Export>

@@ -3,6 +3,7 @@
 <CSP name="css/terminal.css" application="/csp/zitro/" default="1"><![CDATA[
 .terminalBase {
     position: relative;
+    margin: 20px;
     font-family: FreeMono, monospace;
     font-size: 14px;
 }
@@ -44,6 +45,12 @@
 .terminalInputWrapper, .terminalOutputWrapper {
     margin-left: 100px;
     position: relative;
+}
+
+.terminalOutputBody {
+    position: relative;
+    overflow: hidden;
+    display: block;
 }
 
 .terminalInputViewPart {
