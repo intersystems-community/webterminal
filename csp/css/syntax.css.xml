@@ -21,10 +21,18 @@
 .syntax-select, .syntax-from, .syntax-where, .syntax-join, .syntax-into
 { color: #f34800; }
 
-.syntax-digit { color: #00ffb4; }
+/* Syntax highlighter styles. Required: parser.js */
+.syntax-_digit { color: #00ff89; } /* 6006 */
+.syntax-_symbol { color: #82fffa; } /* +*-/=,!_'#?\ */
+.syntax-_bracket { color: #82fffa; } /* {}[]() */
+.syntax-_string { color: #26e500; } /* "test" */
+.syntax-_function { color: #9291ff; } /* $LENGTH */
+.syntax-_userFunction { color: #cea3ff; } /* $$MY */
+.syntax-_macro { color: #cb64ff; } /* $$$test */
+.syntax-_sysMacro { color: #ff00fe; } /* ##test */
+.syntax-_classProp { color: #0091ff; } /* ..test */
+.syntax-_global { color: #ff5156; } /* ^test */
+.syntax-_other { color: #82fffa; } /* html-escaped symbols, unrecognised */
 
-.syntax-symbol { color: #b5fdff; }
-
-.syntax-string { color: #26e500; }
 ]]></CSP>
 </Export>

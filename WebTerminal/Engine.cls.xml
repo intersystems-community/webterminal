@@ -315,7 +315,7 @@ New connection established</Description>
 		   
 		do ..ClientLoop(..lastClientId)
 	} else {
-		do ..SendData("Wrong authorization key")
+		do ..SendData("Hello, mr. Hacker!")
 		do ..EndServer()	
 	}
 	

@@ -84,15 +84,30 @@ function parserGetAutocompleteVariants(string,position) {
 function parserSyntaxGetAttrName(stringPart) {
 
     var result = null;
-    if (stringPart.match(/^[a-zA-Z]*$/)) { // simple words
+    var last = stringPart;
+    if (stringPart.match(/^[a-zA-Z][a-zA-Z0-9]*$/)) { // simple words
         result = stringPart.toLowerCase();
-    } else if (stringPart.match(/^[0-9]*$/)) {
-        result = "digit"
-    } else if (stringPart.match(/".*"/g)) {
-        result = "string"
-    } else if (stringPart.match(/^[{}()\[\]+=-\\*:$#]*/)) {
-        result = "symbol"
-    } else result = null;
+    } else if (stringPart.match(/^[0-9]+$/)) {
+        result = "_digit"
+    } else if (stringPart.match(/^".*"$/)) {
+        result = "_string"
+    } else if (stringPart.match(/^\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_function"
+    } else if (stringPart.match(/^\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_userFunction"
+    } else if (stringPart.match(/^[{}\]\[\(\)]+$/)) {
+        result = "_bracket"
+    } else if (stringPart.match(/^\^[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_global"
+    } else if (stringPart.match(/^##[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_sysMacro"
+    } else if (stringPart.match(/^\.\.[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_classProp"
+    } else if (stringPart.match(/^\$\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_macro"
+    } else if (stringPart.match(/^[\+\-=\*\/<>\\!_'#\?]+$/)) {
+        result = "_symbol"
+    } else { result = "_other" }
     return (result)?"-"+result:result;
 
 }
@@ -142,9 +157,9 @@ function parserHighlight(string) {
  *  Parsed string.
  */
 function parserHighlightHTML(string) {
-    return string.replace(/(((<|&|&#)|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+;?)|[\{\}\]\[\(\)]|("[^"]*")/g, function(part) {
-        //log("highlighting: " + part);
-        return (!part.match(/br/g))?"<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>":part;
+    return string.replace(/(((<|&|&#)|\^|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
+        function(part) {
+            return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
     })
 }
 
@@ -210,7 +225,7 @@ function parserFillHTMLSpaces(text) {
     if (text.length>0) {
         if (text[text.length-1] == " ") text = text.replaceSymbol(text.length - 1,"&nbsp;");
         if (text[0] == " ") text = text.replaceSymbol(0,"&nbsp;");
-        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;").replace(/(<br>|<br\/>|<br \/>) /g,"<br>&nbsp;");
+        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;").replace(/>\s/g,">&nbsp;");
     }
 
     return text;//.replace(/\t/g,"<span class=\"tab\">&nbsp;</span>");

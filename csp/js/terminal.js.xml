@@ -113,6 +113,7 @@ function terminalFreeOutputStack(outputObject,highlight) {
     if (typeof highlight == "undefined") highlight = 1;
     if (outputObject && (typeof outputObject.innerHTML != "undefined") ) {
         outputObject.innerHTML += (highlight)?parserHighlightHTML(parserFillHTMLSpaces(htmlEncode(terminalOutputStack))):parserFillHTMLSpaces(htmlEncode(terminalOutputStack));
+        scrollToBottom(document.body);
     } else log("Output cleared without target.");
     terminalOutputStack = "";
 
