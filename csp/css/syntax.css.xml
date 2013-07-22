@@ -15,6 +15,9 @@
 .syntax-catch
 { color: #ff00fe; }
 
+.syntax-help, .syntax-clear, .syntax-connect, .syntax-disconnect, .syntax-define, .syntax-siege
+{ color: #e2dc00; }
+
 .syntax-select, .syntax-from, .syntax-where, .syntax-join, .syntax-into
 { color: #f34800; }
 

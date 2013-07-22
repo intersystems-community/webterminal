@@ -23,9 +23,11 @@ var webSocket = null, // socket to exchange data with server
     commandHistory = [""], // history of all submitted commands
     historyCurrent = 0; // current position in this history
 
-var lastCommandId = -1; // Every command has it's own id. It can be used to change logs, etc.
+var lastCommandId = -1; // every command has it's own id. It can be used to change logs, etc.
 
-var handleInput = 0; // while true, function terminalHandledInput(data) will be called.
+// handlers. It is important to clear handler with null value if it became unnecessarily
+var handleInput = null, // function to call and prevent standard action for message submit. First argument - submitting data
+    handleMessageReceive = null; // function to call for received message from server
 
 var namespace = "NoNamespace"; // shows current namespace (real on server, not on client!)
 
@@ -184,11 +186,15 @@ function terminalInternalCommand_help() {
         "   </tr>" +
         "   <tr>" +
         "       <td class=\"info\">define {definition} {redefinition}</td>" +
-        "       <td>Every occurrence of {definition} will be replaced with {redefinition}</td>" +
+        "       <td>Every input occurrence of {definition} will be replaced with {redefinition}</td>" +
         "   </tr>" +
         "   <tr>" +
         "       <td class=\"info\">sql</td>" +
         "       <td>Enable/disable integrated SQL shell</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">siege {serverDelay = 0.05} {iterations = 20}</td>" +
+        "       <td>Test server/client connection. Executes cycle with delay on server and measures time/packages transferred.</td>" +
         "   </tr>" +
         "</table>" +
         "<div class=\"center\"><h3>Controls</h3></div>" +
@@ -261,18 +267,27 @@ function terminalInternalCommand_sql() {
 
 }
 
-function terminalInternalCommand_siege(iter,msec) {
+function terminalInternalCommand_siege(serverDelay, iterations) {
 
-    if (typeof msec == "undefined") msec = 40;
-    if (typeof iter == "undefined") iter = 100;
+    if (typeof iterations == "undefined") { iterations = 20 }
+    if (typeof serverDelay == "undefined") { serverDelay = 0.05 }
+    var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  for u=1:1:($RANDOM(80)) {" +
+        "\n    set s = s _ \" \"\n  }\n  write s,$CHAR(67+$RANDOM(26)),!\n  h "+serverDelay+"\n}";
 
-    handle = function(left) {
-        terminalOutput("Test! Iteration " + left + "; Speed: 1/" + msec);
-        if (left > 0) setTimeout("handle(" + (left-1) + ")",msec);
-        scrollToBottom(document.body);
-    };
 
-    handle(iter);
+    terminalSetInputValue( serverCommand );
+    terminalSubmit( terminalGetInputValue() );
+    var startTime = new Date().getTime();
+    var packages = 0;
+
+    handleMessageReceive = function(data) {
+        packages++;
+        if (data == ACTION_TERMINATOR) {
+            handleMessageReceive = null;
+            var timeDifference = new Date().getTime() - startTime;
+            terminalLog("<br>Query client execution time: "+timeDifference+"ms<br>Packages received: "+packages);
+        }
+    }
 
 }]]></CSP>
 </Export>

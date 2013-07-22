@@ -230,7 +230,12 @@ function terminalSubmit(data) {
 
         if (handleInput) { // scenario script
 
-            terminalHandledInput(data);
+            try {
+                handleInput.call(this,data);
+            } catch (e) {
+                terminalLog("Error handling function. " + e.message);
+            }
+
 
         } else {
 
@@ -339,6 +344,13 @@ function terminalMessageReceived(event) {
 
     log("received: ",data);
     if (data == ACTION_TERMINATOR) terminalCurrentAction = ACTION_TERMINATOR;
+    if (handleMessageReceive) {
+        try {
+            handleMessageReceive.call(this,data);
+        } catch (e) {
+            terminalLog("Error while handling server output. " + e.message);
+        }
+    }
 
     switch (terminalCurrentAction) { // CTWPv2
 
