@@ -37,10 +37,12 @@
  *
  */
 
-var autocompleteVariants = []; // currently available variants of autocomplete
+var terminalAutocompleteVariants = []; // currently available variants of autocomplete
 
 var terminalRedefined = []; // holds user-defined words that are stored in  //  terminalRedefined[i] = "word"
 var terminalDefines = []; // holds redefinition of defined words  //  terminalDefines["word"] = "word"
+
+var terminalOutputStack = ""; // data which waits for outputting.
 
 /**
  * Actions are used as server-client communication prefixes and shows what action server/client have to perform.
@@ -94,6 +96,26 @@ function terminalGetOutputMessageOutput(id) {
 function terminalFocusOnInput() {
     terminalGetInputObject().focus();
     placeCaretAtEnd(terminalGetInputObject());
+}
+
+/**
+ * Function pastes output stack to outputObject. If outputObject isn't assigned, it just clears terminalOutputStack
+ *
+ * [ @param outputObject ]
+ *  Object to insert output to. If not specified, output will be written to current output object.
+ * [ @param highlight ]
+ *  Highlight code?
+ */
+function terminalFreeOutputStack(outputObject,highlight) {
+
+    if (terminalOutputStack == "") return;
+    if (typeof outputObject == "undefined") outputObject = terminalCurrentOutputField;
+    if (typeof highlight == "undefined") highlight = 1;
+    if (outputObject && (typeof outputObject.innerHTML != "undefined") ) {
+        outputObject.innerHTML += (highlight)?parserHighlightHTML(parserFillHTMLSpaces(htmlEncode(terminalOutputStack))):parserFillHTMLSpaces(htmlEncode(terminalOutputStack));
+    } else log("Output cleared without target.");
+    terminalOutputStack = "";
+
 }
 
 /**
@@ -175,6 +197,17 @@ function terminalGetInputViewValue() {
 }
 
 /**
+ * Simply check if output object is default terminal output object.
+ *
+ * @param output
+ *  Object to check.
+ * @returns {boolean}
+ */
+function terminalCheckForDefaultOutput(output) {
+    return output.getAttribute("class") == "terminalOutputBody"
+}
+
+/**
  * Outputs data to terminal output.
  * @param data
  *  Data to output.
@@ -192,7 +225,7 @@ function terminalOutput(data, highlight, zone, id) {
     highlight = (typeof highlight !== "undefined") ? highlight : 0;
     data = ((highlight)?parserHighlightHTML(data):data);//.replace(/\n/g,"<br>"); @todo
 
-    if (output.getAttribute("class") == "terminalOutputBody") {
+    if (terminalCheckForDefaultOutput(output)) {
 
         id = ((typeof id !== "undefined") && (typeof terminalGetOutputMessage(id) !== "undefined"))?" id=\"terminalCommand"+id+"\"":"";
         zone = (typeof zone !== "undefined") ? zone : terminalGetNamespace();
@@ -235,7 +268,6 @@ function terminalSubmit(data) {
             } catch (e) {
                 terminalLog("Error handling function. " + e.message);
             }
-
 
         } else {
 
@@ -309,40 +341,6 @@ function terminalMessageReceived(event) {
 
     var data = event.data;
 
-    /*
-    if (data.length < 2) return; // CTWPv1
-    log("received: " + data);
-    var action = data[0]; data = data.substr(1);
-
-    switch (action) {
-
-        case ACTION_AUTHORIZATION: {
-            terminalOutput("Please, authorize first:",1,"server");
-            handleInput = 1;
-            terminalSetNamespace("login");
-        } break;
-
-        case ACTION_MESSAGE: {
-            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)),1,"<span class=\"info\">"+terminalGetNamespace()+"</span>");
-        } break;
-
-        case ACTION_NAMESPACE: {
-            namespace = data;
-            terminalSetNamespace(data);
-        } break;
-
-        case ACTION_EXECUTED: {
-            terminalMarkOutputMessageAsExecuted(data);
-        } break;
-
-        default: {
-            terminalOutput(parserFillHTMLSpaces(htmlEncode(action+data)),1,"<span class=\"info\">"+terminalGetNamespace()+"</span>");
-            //terminalOutput("Something scary received from the server. Unrecognised action "+action+", data: "+data,1,terminalGetNamespace());
-        }
-
-    } */
-
-    log("received: ",data);
     if (data == ACTION_TERMINATOR) terminalCurrentAction = ACTION_TERMINATOR;
     if (handleMessageReceive) {
         try {
@@ -367,21 +365,23 @@ function terminalMessageReceived(event) {
         } break;
 
         case ACTION_NAMESPACE: {
-            namespace = data;
             terminalSetNamespace(data);
         } break;
 
         case ACTION_MESSAGE: {
-            lastCommandId++;
-            terminalOutput("",0,terminalGetNamespace(),lastCommandId);
-            var out = terminalGetOutputMessageOutput(lastCommandId);
-            if (out) {
-                terminalCurrentOutputField = out;
+
+            if (terminalCheckForDefaultOutput(terminalCurrentOutputField)) { // while first message, create specified output
+                lastCommandId++;
+                terminalOutput("",0,terminalGetNamespace(),lastCommandId);
+                var out = terminalGetOutputMessageOutput(lastCommandId);
+                if (out) { terminalCurrentOutputField = out; }
             }
-            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)),1,"<span class=\"info\">"+terminalGetNamespace()+"</span>");
+            terminalOutputStack += data;
+
         } break;
 
         case ACTION_TERMINATOR: {
+            terminalFreeOutputStack();
             terminalCurrentOutputField = terminalGetOutputObject();
             terminalMarkOutputMessageAsExecuted(lastCommandId);
             terminalCurrentAction = ACTION_NONE; // todo: special function for 2nd+ occurrence
@@ -597,7 +597,7 @@ function terminalPerformKeyAction(key) {
 
     switch (key) {
         case 9: {
-            /*if (autocompleteVariants.length == 0) { // TODO: <tab> (after clever syntax highlighting)
+            /*if (terminalAutocompleteVariants.length == 0) { // TODO: <tab> (after clever syntax highlighting)
                 var p = getCaretPosition(terminalGetInputObject());
                 var val = terminalGetInputValue();
                 log(p,val);
@@ -639,9 +639,9 @@ function terminalChangeAutocompleteVariant() {
 
     var val = terminalGetAutocompleteValue();
     if (val != "") {
-        for (var i = 0; i < autocompleteVariants.length; i++) {
-            if (autocompleteVariants[i].toLowerCase() == val) {
-                var v = (i+1 < autocompleteVariants.length)?autocompleteVariants[i+1]:autocompleteVariants[0];
+        for (var i = 0; i < terminalAutocompleteVariants.length; i++) {
+            if (terminalAutocompleteVariants[i].toLowerCase() == val) {
+                var v = (i+1 < terminalAutocompleteVariants.length)?terminalAutocompleteVariants[i+1]:terminalAutocompleteVariants[0];
                 terminalSetAutocompleteValue(v);
             }
         }
@@ -657,10 +657,10 @@ function parserInsertAutocompleteOption(text) {
     var input = terminalGetInputObject();
     var caretPosition = getCaretPosition(input);
     var data = terminalGetInputValue();
-    autocompleteVariants = parserGetAutocompleteVariants(data,caretPosition);
-    if (autocompleteVariants.length > 0) {
+    terminalAutocompleteVariants = parserGetAutocompleteVariants(data,caretPosition);
+    if (terminalAutocompleteVariants.length > 0) {
         text = parserInsertString(text,parserGetRealPosition(text,caretPosition),
-            "<span class=\"terminalAutocompleteOption\">"+autocompleteVariants[0]+"</span>");
+            "<span class=\"terminalAutocompleteOption\">"+terminalAutocompleteVariants[0]+"</span>");
     }
     return text;
 

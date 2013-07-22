@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Class name="WebTerminal.Engine">
+<Description>
+This class represents core of web terminal.
+All operations with opened WebSocket placed here.
+USES GLOBAL ^TerminalAuthKey for client authorization.
+(Why global? Needed static (class-based) r/w variable. Any ideas?)</Description>
 <Super>%CSP.WebSocket,%Library.Routine,%CSP.REST</Super>
 <TimeCreated>63011,62967.655821</TimeCreated>
-
-<UDLText name="T">
-<Content><![CDATA[
-// Parameter AuthKey As %String; HOW TO CHANGE PARAMETER AT RUNTIME? ELSE CLASS WILL USE GLOBAL.
-
-]]></Content>
-</UDLText>
 
 <Property name="WebSocketID">
 <Description>
@@ -310,9 +308,11 @@ New connection established</Description>
 	set ..lastClientId = ..lastClientId + 1
 	
 	if ($$$ISOK(..RequireAuthorization())) {
-		do ..SendData("Authorization succeeded.")
+		do ..SendData("Authorization succeeded. Execution permitted.")
+		
 		set ..CurrentNamespace = $Znspace
-		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)   
+		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)
+		   
 		do ..ClientLoop(..lastClientId)
 	} else {
 		do ..SendData("Wrong authorization key")

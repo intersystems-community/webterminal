@@ -35,11 +35,12 @@ var MODE_EXECUTE = 0, // executing commands on server
     MODE_SQL = 1, // executing sql queries
     MODE_MACRO = 2, // macro recording (set of commands)
     MODE_LOGIN = 3, // used while logging in
-    MODE_DEFAULT = MODE_EXECUTE; // default mode
+    MODE_DEFAULT = MODE_EXECUTE; // default terminal mode
 
 var terminalMode = MODE_EXECUTE; // mode changes current terminal submit action and behavior
 
-var terminalCurrentOutputField; // all terminal output will be directed into this object
+var terminalCurrentOutputField, // all terminal output will be directed into this object
+    terminalOutputUpdateFrequency = 25; // how fast (in ms) update terminal output (incoming from server)
 
 /**
  * Function initializing basic application components, like events, etc.
@@ -64,6 +65,7 @@ function terminalInitialize(authKey) {
         "<span class=\"warning\">/help</span> to get more information.", 0, "<b>system</b>");
     terminalServerConnect(document.URL.replace(/(\.CSP|\.csp)/,".Engine.cls").replace(/http:\/\//,"ws://"),authKey);
     removeElement(document.getElementById("startup")); // remove forever any information about authKey on pages
+    setInterval(terminalFreeOutputStack,Math.max(terminalOutputUpdateFrequency,5));
     terminalFocusOnInput();
 
 }
@@ -105,7 +107,7 @@ function terminalServerConnect(server, authKey) {
     }
 
     webSocket.onopen = function() {
-        terminalOutput("Connection established. Authorizing...", 0, "server");
+        terminalOutput("Connection established. <span class=\"hint\">Authorizing...</span>", 0, "server");
         terminalSendToServer(authKey); // CTWPv2
         //terminalExecute(authKey,ACTION_AUTHORIZATION); // CTWPv1
     };
@@ -115,7 +117,7 @@ function terminalServerConnect(server, authKey) {
         webSocket = null;
         var t;
         if (event.wasClean) {
-            t = "<span class=\"hint\">Connection closed.</span>"
+            t = "<span class=\"hint\">Connection closed cleanly.</span>"
         } else {
             t = "<span class=\"error\">Connection broken.</span>"
         }
@@ -193,8 +195,11 @@ function terminalInternalCommand_help() {
         "       <td>Enable/disable integrated SQL shell</td>" +
         "   </tr>" +
         "   <tr>" +
-        "       <td class=\"info\">siege {serverDelay = 0.05} {iterations = 20}</td>" +
-        "       <td>Test server/client connection. Executes cycle with delay on server and measures time/packages transferred.</td>" +
+        "       <td class=\"info\">siege {iterations = 60} {serverDelay = 0.02}</td>" +
+        "       <td>" +
+        "           Test server/client connection. Executes cycle with delay on server and measures time/packages transferred." +
+        "           Be careful with serverDelay variable!" +
+        "       </td>" +
         "   </tr>" +
         "</table>" +
         "<div class=\"center\"><h3>Controls</h3></div>" +
@@ -267,13 +272,12 @@ function terminalInternalCommand_sql() {
 
 }
 
-function terminalInternalCommand_siege(serverDelay, iterations) {
+function terminalInternalCommand_siege(iterations, serverDelay) {
 
-    if (typeof iterations == "undefined") { iterations = 20 }
-    if (typeof serverDelay == "undefined") { serverDelay = 0.05 }
-    var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  for u=1:1:($RANDOM(80)) {" +
-        "\n    set s = s _ \" \"\n  }\n  write s,$CHAR(67+$RANDOM(26)),!\n  h "+serverDelay+"\n}";
-
+    if (typeof iterations == "undefined") { iterations = 60 }
+    if (typeof serverDelay == "undefined") { serverDelay = 0.02 }
+    var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(33+$RANDOM(93))\n" +
+        "  if ($RANDOM(5) = 0) { write \" \" }\n  h "+serverDelay+"\n}";
 
     terminalSetInputValue( serverCommand );
     terminalSubmit( terminalGetInputValue() );
@@ -285,9 +289,11 @@ function terminalInternalCommand_siege(serverDelay, iterations) {
         if (data == ACTION_TERMINATOR) {
             handleMessageReceive = null;
             var timeDifference = new Date().getTime() - startTime;
-            terminalLog("<br>Query client execution time: "+timeDifference+"ms<br>Packages received: "+packages);
+            terminalLog("<span class=\"info\"><br>Query client execution time: "+timeDifference+"/"+(serverDelay*iterations*1000)+
+                "ms (current/ideal)<br>Packages from server: "+packages+"</span>\n");
         }
     }
 
-}]]></CSP>
+}
+]]></CSP>
 </Export>
