@@ -16,7 +16,7 @@
  *  base.css
  *
  *  TODO:
- *      - A tons of features todo :)
+ *      - A tons of features :)
  */
 
 var webSocket = null, // socket to exchange data with server

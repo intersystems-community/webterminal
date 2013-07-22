@@ -190,7 +190,7 @@ function terminalOutput(data, highlight, zone, id) {
     var normalOutput = terminalGetOutputObject(); // indicates normal output. Unusual output will provide only text insertion
     var output = terminalCurrentOutputField || normalOutput;
     highlight = (typeof highlight !== "undefined") ? highlight : 0;
-    data = ((highlight)?parserHighlight(data):data);//.replace(/\n/g,"<br>"); @todo
+    data = ((highlight)?parserHighlightHTML(data):data);//.replace(/\n/g,"<br>"); @todo
 
     if (output.getAttribute("class") == "terminalOutputBody") {
 

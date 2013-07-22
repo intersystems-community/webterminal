@@ -24,5 +24,7 @@
 .syntax-digit { color: #00ffb4; }
 
 .syntax-symbol { color: #b5fdff; }
+
+.syntax-string { color: #26e500; }
 ]]></CSP>
 </Export>

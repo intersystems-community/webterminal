@@ -88,9 +88,11 @@ function parserSyntaxGetAttrName(stringPart) {
         result = stringPart.toLowerCase();
     } else if (stringPart.match(/^[0-9]*$/)) {
         result = "digit"
+    } else if (stringPart.match(/".*"/g)) {
+        result = "string"
     } else if (stringPart.match(/^[{}()\[\]+=-\\*:$#]*/)) {
         result = "symbol"
-    } else result = "";
+    } else result = null;
     return (result)?"-"+result:result;
 
 }
@@ -131,10 +133,18 @@ function parserHighlight(string) {
 
 }
 
-function parserHighlight2(string) {
-    return string.replace(/((\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+)|[\{\}\]\[\(\)]|(".*")|('.*')/g, function(part) {
-        log("parsing part of string: " + part);
-        return part;
+/**
+ * Function breaks code for parts with span tags and according styles, but skips &*; html-symbol combinations and tag <br>
+ *
+ * @param string
+ *  String to parse.
+ * @returns {string}
+ *  Parsed string.
+ */
+function parserHighlightHTML(string) {
+    return string.replace(/(((<|&|&#)|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+;?)|[\{\}\]\[\(\)]|("[^"]*")/g, function(part) {
+        //log("highlighting: " + part);
+        return (!part.match(/br/g))?"<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>":part;
     })
 }
 
@@ -246,8 +256,9 @@ function parseInput(text) {
     var p = getCaretPosition(terminalGetInputObject());
 
     text = htmlEncode(text);
+    text = parserHighlightHTML(text);
     text = parserFillHTMLSpaces(text);
-    text = parserHighlight(text);
+    //text = parserHighlight(text);
     text = parserInsertAutocompleteOption(text);
     if (!ie()) text = parserInsertCaret(text,p).replace(/\t/g,"&#09;"); // do not show caret in IE - here's the native caret impossible to hide
 
