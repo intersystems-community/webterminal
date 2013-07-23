@@ -92,6 +92,14 @@ ACTION</Description>
 <ReadOnly>1</ReadOnly>
 </Property>
 
+<Property name="ACTIONLOADnEXECUTE">
+<Description>
+Execute file on client</Description>
+<Type>%String</Type>
+<InitialExpression>"js"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
 <Property name="CurrentNamespace">
 <Type>%String</Type>
 <InitialExpression>"USER"</InitialExpression>
@@ -106,6 +114,37 @@ ACTION</Description>
 <Method name="OnPostServer">
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[ 	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetJSAutocompleteFilePath">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set data = ##class(%Library.File).ManagerDirectory()
+	set data = ##class(%Library.File).ParentDirectoryName(data)
+	set data = data _ "CSP\" _ $Znspace _ "\js\autocompleteExp.js" // UNIX?
+	quit data
+]]></Implementation>
+</Method>
+
+<Method name="GenJSAutocompleteFile">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
+	do result.Execute()
+	set data = "if(typeof tAC != ""undefined"")tAC=tAC.concat(["
+	while (result.Next()) {
+    	set data = data _ """" _ result.Data("Name") _ ""","
+	}
+	set data = data _ """§SUPERSECRET!""])"
+	
+	set file=##class(%File).%New(..GetJSAutocompleteFilePath())
+	do file.Open("WSN")
+	do file.WriteLine(data)
+	do file.Close()
+	quit $$$OK
 ]]></Implementation>
 </Method>
 
@@ -158,16 +197,17 @@ Function sends data derectly to server with specified action</Description>
 <FormalSpec>query:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	do ..Write(..ACTIONMESSAGE)
 	USE $Principal:(/SEN=1)
    	USE $Principal:(::"+Q")
+	do ..Write(..ACTIONMESSAGE)
+	
 	
 	SET result = $SYSTEM.SQL.Execute(query)
 	do result.%Display()
 	
+	do ..Write(..ACTIONTERMINATOR)
 	use $Principal:(/SEN=0)
    	use $Principal:(::"-Q")
-	do ..Write(..ACTIONTERMINATOR)
 	quit $$$OK
 ]]></Implementation>
 </Method>
@@ -286,7 +326,7 @@ Method description:
 		    	
 	    	} else { // something scary
 		    	
-		    	do ..SendData(..ACTIONMESSAGE,"Unrecognised query.")
+		    	do ..SendData("Unrecognised query: " _ data,..ACTIONMESSAGE)
 		    		
 	    	}
       		
@@ -310,8 +350,16 @@ New connection established</Description>
 	if ($$$ISOK(..RequireAuthorization())) {
 		do ..SendData("Authorization succeeded. Execution permitted.")
 		
+		If ('##class(%File).Exists(..GetJSAutocompleteFilePath())) {
+			do ..SendData("No classes database file. Generating newest...")
+			do ..GenJSAutocompleteFile()
+			do ..SendData("File generated.")
+		}
+		
 		set ..CurrentNamespace = $Znspace
 		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)
+		 
+		do ..SendData("js/autocompleteExp.js",..ACTIONLOADnEXECUTE)
 		   
 		do ..ClientLoop(..lastClientId)
 	} else {

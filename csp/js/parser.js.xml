@@ -7,7 +7,7 @@
  * @author ZitRo
  */
 
-var autocomplete = ["/help","/clear","/connect","/disconnect","/define","/siege",
+var tAC = ["/help","/clear","/connect","/disconnect","/define","/siege",
     "set","write","zwrite","zw","for","while","do","kill","quit","close","else","if",
     "select","from","where","join","into",
     "$$$OK","$$$ISERR","$$$ISOK",
@@ -55,18 +55,20 @@ function parserGetAutocompleteVariants(string,position) {
     if (i<0) return variants;
     if (i+1<string.length && string[i+1].match(/\w/g)) return []; // leave autocomplete if next letter detected
     while (i >= 0) { // get the part of string
-        if (string[i].match(/[\w$#\\^/]/g)) s += string[i]; else break;
+        if (string[i].match(/[\w\$%#\.\^/]/g)) s += string[i]; else break;
         i--;
     }
     if (s == '') return [];
 
+    var kk = 0;
     s = s.reverse();
-    var l = autocomplete.length;
-    s = s.toLowerCase();
+    var l = tAC.length;
+    //s = s.toLowerCase();
     for (i= 0; i < l; i++) {
-        if (autocomplete[i].indexOf(s) === 0) { // word beginning
-            if (s == autocomplete[i]) return [];
-            variants.push(autocomplete[i].substring(s.length,autocomplete[i].length));
+        if (tAC[i].indexOf(s) === 0) { // word beginning
+            if (s == tAC[i]) return [];
+            variants.push(tAC[i].substring(s.length,tAC[i].length));
+            kk++;
         }
     }
     return variants;
@@ -127,6 +129,8 @@ function parserPrepareSubmitData(data) {
 /**
  * Function inserts color tags to string and returns string with tags.
  *
+ * @deprecated
+ *
  * @param string
  *  String to highlight.
  * @returns {string}
@@ -160,7 +164,7 @@ function parserHighlightHTML(string) {
     return string.replace(/(((<|&|&#)|\^|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
         function(part) {
             return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
-    })
+    });
 }
 
 /**
@@ -270,12 +274,12 @@ function parseInput(text) {
 
     var p = getCaretPosition(terminalGetInputObject());
 
-    text = htmlEncode(text);
+    //text = htmlEncode(text);
     text = parserHighlightHTML(text);
-    text = parserFillHTMLSpaces(text);
+    //text = parserFillHTMLSpaces(text);
     //text = parserHighlight(text);
     text = parserInsertAutocompleteOption(text);
-    if (!ie()) text = parserInsertCaret(text,p).replace(/\t/g,"&#09;"); // do not show caret in IE - here's the native caret impossible to hide
+    if (!ie()) text = parserInsertCaret(text,p); // do not show caret in IE - here's the native caret impossible to hide
 
     return text;
 

@@ -57,11 +57,12 @@ var ACTION_NONE = "", // makes terminal to listen for action
     ACTION_NAMESPACE = "_", // holds namespace to change
     ACTION_EXECUTED = "!", // holds the id of message that has been just executed
     ACTION_SQL = "@", // includes sql-query to server
-    ACTION_TERMINATOR = "/END/"; // end of operation identifier (start from CTWPv2)
+    ACTION_TERMINATOR = "/END/", // end of operation identifier (start from CTWPv2)
+    ACTION_LOADnEXECUTE = "js"; // client-side execution of loaded script. Value: relative/patch/to/script.js
 
 var terminalCurrentAction = ACTION_NONE, // current action shows what to expect from the server and how to handle it
     terminalActionsRegExp = RegExp("["+escapeRegExp(ACTION_MESSAGE+ACTION_AUTHORIZATION+ACTION_NAMESPACE+ACTION_EXECUTED+
-    ACTION_SQL+"("+ACTION_TERMINATOR+")")+"]", "g");
+    ACTION_SQL+"("+ACTION_TERMINATOR+")"+"("+ACTION_LOADnEXECUTE+")")+"]", "g");
 
 /**
  * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
@@ -112,7 +113,7 @@ function terminalFreeOutputStack(outputObject,highlight) {
     if (typeof outputObject == "undefined") outputObject = terminalCurrentOutputField;
     if (typeof highlight == "undefined") highlight = 1;
     if (outputObject && (typeof outputObject.innerHTML != "undefined") ) {
-        outputObject.innerHTML += (highlight)?parserHighlightHTML(parserFillHTMLSpaces(htmlEncode(terminalOutputStack))):parserFillHTMLSpaces(htmlEncode(terminalOutputStack));
+        outputObject.innerHTML += (highlight)?parserHighlightHTML(terminalOutputStack):terminalOutputStack;
         scrollToBottom(document.body);
     } else log("Output cleared without target.");
     terminalOutputStack = "";
@@ -230,11 +231,6 @@ function terminalOutput(data, highlight, zone, id) {
 
         id = ((typeof id !== "undefined") && (typeof terminalGetOutputMessage(id) !== "undefined"))?" id=\"terminalCommand"+id+"\"":"";
         zone = (typeof zone !== "undefined") ? zone : terminalGetNamespace();
-
-        //data = data.replace(/\t/g,"&#09;"); todo!
-        //text = htmlEncode(text);
-        //text = parserFillHTMLSpaces(text);
-        //text = (highlight)?parserHighlight(data):data;
 
         var ww = zone.visualLength() + 20; // @const
 
@@ -379,6 +375,19 @@ function terminalMessageReceived(event) {
             }
             terminalOutputStack += data;
 
+        } break;
+
+        case ACTION_LOADnEXECUTE: {
+            try {
+                var oHead = document.getElementsByTagName('HEAD').item(0);
+                var oScript= document.createElement("script");
+                oScript.type = "text/javascript";
+                oScript.src=data;
+                oHead.appendChild( oScript);
+                //document.write("<script class=\"garbage\" src=\""+data+"\"><\/script>");
+            } catch (e) {
+                log(e)
+            }
         } break;
 
         case ACTION_TERMINATOR: {
@@ -598,17 +607,16 @@ function terminalPerformKeyAction(key) {
 
     switch (key) {
         case 9: {
-            /*if (terminalAutocompleteVariants.length == 0) { // TODO: <tab> (after clever syntax highlighting)
-                var p = getCaretPosition(terminalGetInputObject());
+            if (terminalAutocompleteVariants.length == 0) {
+                var p = getCaretPosition(terminalGetInputObject())-1;
                 var val = terminalGetInputValue();
-                log(p,val);
                 terminalSetInputValue(val.replaceSymbol(p,val.charAt(p)+"\t"));
-                setCaretPosition(terminalGetInputObject(),p+1);
-            }*/
+                setCaretPosition(terminalGetInputObject(),p+2);
+            }
             terminalPerformAutocomplete();
         } break; // TAB
         case 13: terminalSubmit( terminalGetInputValue() ); break; // ENTER
-        case 17: terminalChangeAutocompleteVariant(); break; // CTRL
+        case 17: terminalChangeAutocompleteVariant(1); break; // CTRL
         case 38: {
             caretPos = getCaretPosition(terminalGetInputObject());
             nPos = terminalGetInputValue().indexOf("\n");
@@ -635,15 +643,25 @@ function terminalPerformKeyAction(key) {
 
 /**
  * Changes variants of autocomplete to one of the next available.
+ *
+ * @param dir
+ *  Direction to list.
  */
-function terminalChangeAutocompleteVariant() {
+function terminalChangeAutocompleteVariant(dir) {
 
     var val = terminalGetAutocompleteValue();
+    var ll = terminalAutocompleteVariants.length;
     if (val != "") {
-        for (var i = 0; i < terminalAutocompleteVariants.length; i++) {
-            if (terminalAutocompleteVariants[i].toLowerCase() == val) {
-                var v = (i+1 < terminalAutocompleteVariants.length)?terminalAutocompleteVariants[i+1]:terminalAutocompleteVariants[0];
+        for (var i = 0; i < ll; i++) {
+            if (terminalAutocompleteVariants[i] == val) {
+                var v;
+                if (dir > 0) {
+                    v = (i+1 < ll)?terminalAutocompleteVariants[i+1]:terminalAutocompleteVariants[0];
+                } else {
+                    v = (i-1 < 0)?terminalAutocompleteVariants[ll-2]:terminalAutocompleteVariants[i-1];
+                }
                 terminalSetAutocompleteValue(v);
+                return;
             }
         }
     }

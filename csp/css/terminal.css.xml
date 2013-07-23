@@ -75,6 +75,7 @@
     overflow: hidden;
     min-height: 12px;
     word-wrap: break-word;
+    white-space: pre;
     resize: none;
 }
 
