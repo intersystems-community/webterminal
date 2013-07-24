@@ -282,7 +282,7 @@ function terminalSubmit(data) {
 
             } else {
 
-                if (terminalMode == MODE_EXECUTE)
+                if (terminalMode == MODE_EXECUTE || terminalMode == MODE_EXECUTION)
                     terminalExecute(data);
                 else if (terminalMode == MODE_SQL)
                     terminalExecute(data,ACTION_SQL);
@@ -334,9 +334,7 @@ function terminalHandledInput(data) {
  * @param event
  *  Event data.
  */
-function terminalMessageReceived(event) {
-
-    var data = event.data;
+function terminalMessageReceived(data) {
 
     if (data == ACTION_TERMINATOR) terminalCurrentAction = ACTION_TERMINATOR;
     if (handleMessageReceive) {
@@ -391,6 +389,7 @@ function terminalMessageReceived(event) {
         } break;
 
         case ACTION_TERMINATOR: {
+            if (terminalMode == MODE_EXECUTION) terminalMode = MODE_EXECUTE;
             terminalFreeOutputStack();
             terminalCurrentOutputField = terminalGetOutputObject();
             terminalMarkOutputMessageAsExecuted(lastCommandId);
@@ -435,7 +434,7 @@ function terminalLog(message) {
  */
 function terminalSendToServer(stringData) {
     try {
-        webSocket.send(stringData)
+        webSocket.send(stringData);
     } catch (e) {
         terminalLog("WebSocket error. Data: " + e.message)
     }
@@ -460,13 +459,15 @@ function terminalExecute(command,action) {
             0,"<span class=\"error\">system</span>");
     } else try {
         //webSocket.send(action+data); // CTWPv1
-        terminalSendToServer(action);
+        if (terminalMode != MODE_EXECUTION) terminalSendToServer(action);
         terminalSendToServer(data);
-        terminalSendToServer(ACTION_TERMINATOR); // CTWPv2
+        //terminalSendToServer(ACTION_TERMINATOR); // CTWPv2
     } catch (e) {
         terminalOutput("Problems with <b>WebSocket</b>. Exception: " + e,
             0,"<span class=\"error\">system</span>");
     }
+
+    if (action = ACTION_MESSAGE) terminalMode = MODE_EXECUTION;
 
 }
 

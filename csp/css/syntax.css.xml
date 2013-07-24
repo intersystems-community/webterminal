@@ -8,7 +8,7 @@
 .syntax-lock, .syntax-merge, .syntax-new, .syntax-open, .syntax-return, .syntax-tcommit,
 .syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
 .syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite, .syntax-d,
-.syntax-zn, .syntax-h
+.syntax-zn, .syntax-h, .syntax-read, .syntax-r
 { color: #29cfe9; font-weight: 900; }
 
 .syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,

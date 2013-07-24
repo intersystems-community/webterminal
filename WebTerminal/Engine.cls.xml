@@ -222,8 +222,12 @@ The heart of terminal application</Description>
 	
 	#dim exception as %Exception.AbstractException
 	do ..Write(..ACTIONMESSAGE)
-	USE $Principal:(/SEN=1)
-   	USE $Principal:(::"+Q")
+	
+	//use $Principal:(/SEN=1)
+   	use $Principal:(::"+T")
+   	use $Principal:(::"+Q")
+	//use $Principal:(/ACC=1)
+    //use $Principal:(::"+M")
 	
 	set value = $Replace(query,$CHAR(10)," ")
 		
@@ -238,10 +242,14 @@ The heart of terminal application</Description>
 	    	write exception.DisplayString()
 	    	
     	}
-    	
-    use $Principal:(/SEN=0)
+    
+    //use $Principal:(/ACC=0)
+    //use $Principal:(/SEN=0)
+   	use $Principal:(::"-T")
    	use $Principal:(::"-Q")
-	do ..Write(..ACTIONTERMINATOR)
+   	do ..Write(..ACTIONTERMINATOR)
+   	
+	//do ..Write(..ACTIONTERMINATOR)
 	
 	if (..CurrentNamespace '= $Znspace) { // change client namespace
 	    set ..CurrentNamespace = $Znspace
@@ -298,7 +306,9 @@ Method description:
 	
 	for {
 		
+		//do ..SendData("Debug: start reading action.")
 		set action = ..Read(,.status)
+		//do ..SendData("Debug: action readed: " _ action)
     
     	if $$$ISOK(status) {
 	    		    	
@@ -306,9 +316,13 @@ Method description:
 	    	
 	    		//USE $Principal:(/SEN=1)
    				//USE $Principal:(::"+Q")
+   				//do ..SendData("Debug: reading message from client.")
 	    		set data = ..Read(,.status)
-	    	
+	    		
+	    		//do ..SendData("Debug: message readed, starting execution.")
 		    	do ..ExecuteCommand(data)
+		    	//do ..SendData("Debug: command execution normally ended.")
+		    	
 		    	//do ..SendData(..ACTIONEXECUTED,messageId) // alert client
 		    	
 	    	} elseif (action = ..ACTIONSQL) { // sql
@@ -326,7 +340,7 @@ Method description:
 		    	
 	    	} else { // something scary
 		    	
-		    	do ..SendData("Unrecognised query: " _ data,..ACTIONMESSAGE)
+		    	do ..SendData("Unrecognised action: " _ action,..ACTIONMESSAGE)
 		    		
 	    	}
       		

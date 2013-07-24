@@ -8,10 +8,21 @@
  */
 
 var tAC = ["/help","/clear","/connect","/disconnect","/define","/siege",
-    "set","write","zwrite","zw","for","while","do","kill","quit","close","else","if",
+    "set","write","zwrite","for","while","kill","quit","close","else","read",
     "select","from","where","join","into",
     "$$$OK","$$$ISERR","$$$ISOK",
-    "##class"];
+    "##class("];
+
+var terminalCleverAutocomplete = {
+    "root": {
+        "/help": 1,
+        "/clear": 0,
+        "/connect": 0,
+        "/siege": 0,
+        "/disconnect": 0,
+        "/define": 0
+    }
+}
 
 /**
  * Function removes any tags in content.
@@ -123,7 +134,7 @@ function parserSyntaxGetAttrName(stringPart) {
  *  formatted string ready-to-execute on server side
  */
 function parserPrepareSubmitData(data) {
-    return parserRemoveTags(data).trim().replace(/\r\n|\r|\n/g,"\n");
+    return parserRemoveTags(data).trim().replace(/\r\n|\r|\n/g,"\n") + "\n"; // adds last terminator character
 }
 
 /**

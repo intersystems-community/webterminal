@@ -32,6 +32,7 @@ var handleInput = null, // function to call and prevent standard action for mess
 var namespace = "NoNamespace"; // shows current namespace (real on server, not on client!)
 
 var MODE_EXECUTE = 0, // executing commands on server
+    MODE_EXECUTION = 4,// real-time execution (while messageing) mode until /END/ from server
     MODE_SQL = 1, // executing sql queries
     MODE_MACRO = 2, // macro recording (set of commands)
     MODE_LOGIN = 3, // used while logging in
@@ -41,6 +42,20 @@ var terminalMode = MODE_EXECUTE; // mode changes current terminal submit action 
 
 var terminalCurrentOutputField, // all terminal output will be directed into this object
     terminalOutputUpdateFrequency = 25; // how fast (in ms) update terminal output (incoming from server)
+
+{
+    var terminalDebug = {};
+
+    terminalDebug.emulateReceive = function(data) {
+        terminalMessageReceived(data);
+    };
+
+    terminalDebug.emulateSend = function(data) {
+        terminalSendToServer(data);
+    };
+
+}
+
 
 /**
  * Function initializing basic application components, like events, etc.
@@ -52,11 +67,16 @@ function terminalInitialize(authKey) {
 
     terminalCurrentOutputField = terminalGetOutputObject();
     for (var i = 0; i < 256; i++) keyPressed[i] = 0; // initializing keys
+
     bindEvent( document, "keydown", bodyKeyDown );
     bindEvent( document, "keyup", bodyKeyUp );
     bindEvent( document, "keydown", terminalGlobalKeyDown );
     bindEvent( terminalGetInputObject(), "click", terminalUpdateInputView );
     bindEvent( terminalGetInputObject(), "blur", clearKeyStates );
+    window.onbeforeunload = function() {
+        webSocket.close(); // close socket (yes, onBeforeUnload)
+    };
+
     addTextareasAutoresize();
     if (!ie()) setInterval("terminalCaretTick()",500);
     terminalSetNamespace("server");
@@ -125,7 +145,7 @@ function terminalServerConnect(server, authKey) {
 
     };
 
-    webSocket.onmessage = function(event) { terminalMessageReceived(event) };
+    webSocket.onmessage = function(event) { terminalMessageReceived(event.data) };
 
     webSocket.onerror = function(error) {
         log(error);
