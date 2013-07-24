@@ -21,8 +21,38 @@ var terminalCleverAutocomplete = {
         "/siege": 0,
         "/disconnect": 0,
         "/define": 0
+    },
+    "class": {
+        "%Library": 1,
+        "%IO": 0,
+        "%System": {
+            "Level2": {
+                "Level31": {
+                    "Level4": 0
+                },
+                "Level32": {
+                    "Level4s": 0
+                },
+                "Level33": {
+                    "LevelO": 0,
+                    "LevelK": 0
+                }
+            },
+            "Level22": {
+                "LevelA(1)": {
+                    "Level4": 0
+                },
+                "LevelB(2)": {
+                    "Level4s": 0
+                },
+                "LevelC(3)": {
+                    "LevelO": 0,
+                    "LevelK": 0
+                }
+            }
+        }
     }
-}
+};
 
 /**
  * Function removes any tags in content.
@@ -79,6 +109,43 @@ function parserGetAutocompleteVariants(string,position) {
         if (tAC[i].indexOf(s) === 0) { // word beginning
             if (s == tAC[i]) return [];
             variants.push(tAC[i].substring(s.length,tAC[i].length));
+            kk++;
+        }
+    }
+    return variants;
+
+}
+
+function parserGetCleverAutocompleteVariants(string,position) {
+
+    var i = Math.min(position-1,string.length-1), variants = [], s = '', autocompleteRoot = "root";
+    if (i<0) return variants;
+    if (i+1<string.length && string[i+1].match(/\w/g)) return []; // leave autocomplete if next letter detected
+    while (i >= 0) { // get the part of string
+        if (string[i].match(/[\w\$\(\)%#\.\^/]/g)) {
+            if (string[i].match(/[\.\(\)]/g)) autocompleteRoot = "class";
+            s += string[i];
+        } else break;
+        i--;
+    }
+    if (s == '') return [];
+
+    var kk = 0;
+    s = s.reverse();
+    var a = [autocompleteRoot].concat(s.split(/\.|\(|\)/g));
+    if (a[1] == "") { a.splice(1,1) }
+    if (a[a.length-1] == "" && a[a.length-2] == "") { a.splice(a.length-1,1) }
+    //log(a);
+    var l = a.length; s = "";
+    for (i = 0; i<l-1; i++) s+="[\""+a[i]+"\"]";
+    var end = a[i] || "";
+    //log("Apatch: ",s);
+    var b = {}; eval("try {b = terminalCleverAutocomplete"+s+"} catch (e) {};");
+    //log("AC Obj: ",b);
+    for(var pName in b) {
+        //log("checking ",pName, "=", end);
+        if (b.hasOwnProperty(pName) && pName.indexOf(end) === 0) { // word beginning
+            variants.push(pName.substring(end.length,pName.length));
             kk++;
         }
     }

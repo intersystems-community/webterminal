@@ -38,23 +38,27 @@ var MODE_EXECUTE = 0, // executing commands on server
     MODE_LOGIN = 3, // used while logging in
     MODE_DEFAULT = MODE_EXECUTE; // default terminal mode
 
-var terminalMode = MODE_EXECUTE; // mode changes current terminal submit action and behavior
+var terminalMode = MODE_EXECUTE, // mode changes current terminal submit action and behavior
+    terminalDebugModeOn = 1;
 
 var terminalCurrentOutputField, // all terminal output will be directed into this object
     terminalOutputUpdateFrequency = 25; // how fast (in ms) update terminal output (incoming from server)
 
-{
-    var terminalDebug = {};
+var terminalDebug = {
 
-    terminalDebug.emulateReceive = function(data) {
+    emulateReceive: function(data) {
         terminalMessageReceived(data);
-    };
+    },
 
-    terminalDebug.emulateSend = function(data) {
+    emulateSend: function(data) {
         terminalSendToServer(data);
-    };
+    },
 
-}
+    log: function() {
+    ('console' in window && terminalDebugModeOn)?console.log(arguments):null
+    }
+
+};
 
 
 /**

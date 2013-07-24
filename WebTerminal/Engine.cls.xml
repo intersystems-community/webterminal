@@ -139,6 +139,13 @@ Execute file on client</Description>
     	set data = data _ """" _ result.Data("Name") _ ""","
 	}
 	set data = data _ """§SUPERSECRET!""])"
+	/*set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
+	do result.Execute()
+	set data = "if(typeof terminalCleverAutocomplete==""undefined"")return;with(terminalCleverAutocomplete[""class""])"
+	
+	while (result.Next()) {
+    	set data = data _ """" _ result.Data("Name") _ ""","
+	}*/
 	
 	set file=##class(%File).%New(..GetJSAutocompleteFilePath())
 	do file.Open("WSN")
@@ -221,6 +228,8 @@ The heart of terminal application</Description>
 	if (query = "") quit $$$OK
 	
 	#dim exception as %Exception.AbstractException
+	set value = $Replace(query,$CHAR(10)," ")
+	
 	do ..Write(..ACTIONMESSAGE)
 	
 	//use $Principal:(/SEN=1)
@@ -228,20 +237,19 @@ The heart of terminal application</Description>
    	use $Principal:(::"+Q")
 	//use $Principal:(/ACC=1)
     //use $Principal:(::"+M")
-	
-	set value = $Replace(query,$CHAR(10)," ")
 		
-		set error = "" // clear error
+	//read a
+	//set ^data2($I(^data2)) = a
 		
-    	try {
+    try {
 	    
-	    	xecute value // call a new stack
+	    xecute value // call a new stack
 				
-    	} catch exception {
+    } catch exception {
 	    	
-	    	write exception.DisplayString()
+	    write exception.DisplayString()
 	    	
-    	}
+    }
     
     //use $Principal:(/ACC=0)
     //use $Principal:(/SEN=0)
@@ -303,6 +311,8 @@ Method description:
 <FormalSpec>clientID:%Numeric</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	
+	kill // clear vars
 	
 	for {
 		

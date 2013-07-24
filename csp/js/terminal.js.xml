@@ -254,7 +254,7 @@ function terminalOutput(data, highlight, zone, id) {
  */
 function terminalSubmit(data) {
 
-    if (data.trim() != "") {
+    //if (data.trim() != "") {
 
         data = parserReplaceUserRedefinitions(data);
 
@@ -292,7 +292,7 @@ function terminalSubmit(data) {
         }
 
 
-    } else terminalOutput(""); // just for geeks :)
+    //} else terminalOutput(""); // just for geeks :)
 
     terminalClearInput();
     terminalUpdateInputView();
@@ -336,6 +336,8 @@ function terminalHandledInput(data) {
  */
 function terminalMessageReceived(data) {
 
+    terminalDebug.log("Server: ",data);
+
     if (data == ACTION_TERMINATOR) terminalCurrentAction = ACTION_TERMINATOR;
     if (handleMessageReceive) {
         try {
@@ -360,6 +362,7 @@ function terminalMessageReceived(data) {
         } break;
 
         case ACTION_NAMESPACE: {
+            namespace = data;
             terminalSetNamespace(data);
         } break;
 
@@ -434,6 +437,7 @@ function terminalLog(message) {
  */
 function terminalSendToServer(stringData) {
     try {
+        terminalDebug.log("Sending: ",stringData);
         webSocket.send(stringData);
     } catch (e) {
         terminalLog("WebSocket error. Data: " + e.message)
