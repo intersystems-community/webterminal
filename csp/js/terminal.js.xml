@@ -61,7 +61,7 @@ var ACTION_NONE = "", // makes terminal to listen for action
     ACTION_LOADnEXECUTE = "js"; // client-side execution of loaded script. Value: relative/patch/to/script.js
 
 var terminalCurrentAction = ACTION_NONE, // current action shows what to expect from the server and how to handle it
-    terminalActionsRegExp = RegExp("["+escapeRegExp(ACTION_MESSAGE+ACTION_AUTHORIZATION+ACTION_NAMESPACE+ACTION_EXECUTED+
+    terminalActionsRegExp = new RegExp("["+escapeRegExp(ACTION_MESSAGE+ACTION_AUTHORIZATION+ACTION_NAMESPACE+ACTION_EXECUTED+
     ACTION_SQL+"("+ACTION_TERMINATOR+")"+"("+ACTION_LOADnEXECUTE+")")+"]", "g");
 
 /**
@@ -113,7 +113,7 @@ function terminalFreeOutputStack(outputObject,highlight) {
     if (typeof outputObject == "undefined") outputObject = terminalCurrentOutputField;
     if (typeof highlight == "undefined") highlight = 1;
     if (outputObject && (typeof outputObject.innerHTML != "undefined") ) {
-        outputObject.innerHTML += (highlight)?parserHighlightHTML(terminalOutputStack):terminalOutputStack;
+        outputObject.innerHTML += (highlight)?parserHighlightHTML(htmlEncode(terminalOutputStack)):htmlEncode(terminalOutputStack);
         scrollToBottom(document.body);
     } else log("Output cleared without target.");
     terminalOutputStack = "";
@@ -225,7 +225,7 @@ function terminalOutput(data, highlight, zone, id) {
     var normalOutput = terminalGetOutputObject(); // indicates normal output. Unusual output will provide only text insertion
     var output = terminalCurrentOutputField || normalOutput;
     highlight = (typeof highlight !== "undefined") ? highlight : 0;
-    data = ((highlight)?parserHighlightHTML(data):data);//.replace(/\n/g,"<br>"); @todo
+    data = ((highlight)?parserHighlightHTML(data):data);
 
     if (terminalCheckForDefaultOutput(output)) {
 
@@ -471,7 +471,7 @@ function terminalExecute(command,action) {
             0,"<span class=\"error\">system</span>");
     }
 
-    if (action = ACTION_MESSAGE) terminalMode = MODE_EXECUTION;
+    if (action == ACTION_MESSAGE) terminalMode = MODE_EXECUTION;
 
 }
 

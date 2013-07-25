@@ -352,7 +352,7 @@ function parseInput(text) {
 
     var p = getCaretPosition(terminalGetInputObject());
 
-    //text = htmlEncode(text);
+    text = htmlEncode(text);
     text = parserHighlightHTML(text);
     //text = parserFillHTMLSpaces(text);
     //text = parserHighlight(text);

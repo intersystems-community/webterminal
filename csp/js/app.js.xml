@@ -29,7 +29,7 @@ var lastCommandId = -1; // every command has it's own id. It can be used to chan
 var handleInput = null, // function to call and prevent standard action for message submit. First argument - submitting data
     handleMessageReceive = null; // function to call for received message from server
 
-var namespace = "NoNamespace"; // shows current namespace (real on server, not on client!)
+var namespace = "default"; // shows current namespace (real on server, not on client!)
 
 var MODE_EXECUTE = 0, // executing commands on server
     MODE_EXECUTION = 4,// real-time execution (while messageing) mode until /END/ from server
@@ -313,6 +313,7 @@ function terminalInternalCommand_siege(iterations, serverDelay) {
         if (data == ACTION_TERMINATOR) {
             handleMessageReceive = null;
             var timeDifference = new Date().getTime() - startTime;
+            terminalFreeOutputStack();
             terminalLog("<span class=\"info\"><br>Query client execution time: "+timeDifference+"/"+(serverDelay*iterations*1000)+
                 "ms (current/ideal)<br>Packages from server: "+packages+"</span>\n");
         }

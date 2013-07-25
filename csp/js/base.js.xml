@@ -31,6 +31,14 @@ Array.prototype.clean = function(deleteValue) {
     return this;
 };
 
+Array.prototype.getOptimized = function() {
+
+    return this.filter(function (e, i, arr) {
+        return arr.lastIndexOf(e) === i;
+    });
+
+};
+
 /**
  * Makes any str searchable by regexp.
  *

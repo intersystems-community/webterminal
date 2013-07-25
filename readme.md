@@ -1,9 +1,10 @@
 # Cache Web Terminal
 Access cache database from the web, local network or even localhost.
 ### Installation
-Simply import and compile Engine class, placing csp-file and subdirectories in the same namespace.
+Use [Cache Git](https://github.com/intersystems-ru/cache-tort-git) utility or download archive, unpack and execute in namespace you want to install <code>do $System.OBJ.ImportDir("DIR_TO_ROOT_FOLDER\", "*.xml", "ckbud", .err, 1)</code><br>
+Go to <code>http://[host]:[port]/csp/[user]/WebTerminal.csp</code> to start.
 ### Usage
-Start from WebTerminal.csp page. Type “/help” to get more information.
+Start from WebTerminal.csp page. Type "/help" to get more information.
 ### Description
 <table>
 	<tr>
