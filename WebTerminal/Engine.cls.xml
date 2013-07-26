@@ -110,11 +110,21 @@ Execute file on client</Description>
 <InitialExpression>"USER"</InitialExpression>
 </Property>
 
+<Property name="TerminalPID">
+<Type>%Numeric</Type>
+</Property>
+
 <Method name="OnPreServer">
 <ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set ..InitialNamespace = $Znspace
-	quit $$$OK
+<Implementation><![CDATA[	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Debug">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>data:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	set ^debug($I(^debug)) = $ZTIMESTAMP _ ": " _ data
 ]]></Implementation>
 </Method>
 
@@ -172,21 +182,6 @@ Execute file on client</Description>
 	}
 	set data = data _ """§SUPERSECRET!""].getOptimized())"
 	set $NAMESPACE = oldNamespace
-	
-	/*set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
-	do result.Execute()
-	set data = "if(typeof terminalCleverAutocomplete==""undefined"")return;"
-	
-	set obj="", curObj="", propStack=0
-	while (result.Next()) {
-		set str = result.Data("Name")
-		set list = $LISTFROMSTRING(str,".")
-		SET len=$LISTLENGTH(list)
-		if (len>propStack) {
-			set data = data _ "terminalCleverAutocomplete[""object""][?"
-		}
-    	set data = data _ """" _ result.Data("Name") _ ""","
-	}*/
 	
 	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))
 	do file.Open("WSN")
@@ -422,15 +417,21 @@ New connection established</Description>
 	set ..lastClientId = ..lastClientId + 1
 	
 	if ($$$ISOK(..RequireAuthorization())) {
-		do ..SendData("Authorization succeeded. Execution permitted.")
+		
+		set ..InitialNamespace = $Znspace
+		do ..SendData("Dedicating a process for your, just wait a bit...")
+		JOB ##class(WebTerminal.Terminal).Start($JOB):(..InitialNamespace:0:::::"cacheWebTerminalClient")
+		set ..TerminalPID = $GET(^WebTerminal.ChildPID)
 		
 		do ..GenNLoadJSAutocompleteFile("%SYS")
 		do ..GenNLoadJSAutocompleteFile($Znspace)
+		do ..SendData("Everything ready. Welcome.")
 		
 		set ..CurrentNamespace = $Znspace
 		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)
 		   
 		do ..ClientLoop(..lastClientId)
+		
 	} else {
 		do ..SendData("Hello, mr. Hacker!")
 		do ..EndServer()	

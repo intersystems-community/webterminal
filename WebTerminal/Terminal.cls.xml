@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="WebTerminal.Terminal">
+<Super>%RegisteredObject</Super>
+<TimeCreated>63028,54112.843573</TimeCreated>
+
+<Property name="parentPID">
+<Type>%Numeric</Type>
+</Property>
+
+<Method name="Start">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&parentPID:%Numeric]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set ^WebTerminal.ChildPID = $JOB // return this process id back
+	do ##class(WebTerminal.Engine).Debug("Terminal started with id = " _ $JOB)
+	set ^||parentPID = parentPID
+	goto server
+	
+server
+	SET io="|TCP|2"
+	SET ^serverport=7001 
+	OPEN io:(:^serverport:"MA")
+	IF ('$TEST) { 
+		do ..Debug("Cannot open server port")
+		QUIT
+	} ELSE { do ..Debug("Server port opened") }
+loop
+	USE io READ x ; Read for accept 
+	USE io WRITE "pong",!
+	USE 0 WRITE !,"Accepted connection" 
+	//JOB child:(:5:io:io) ;Concurrent server bit is on 
+	GOTO loop
+	
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Debug">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>data:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	set ^debug($I(^debug)) = $ZTIMESTAMP _ ": " _ data
+]]></Implementation>
+</Method>
+
+<Method name="RunServer">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	/*set socket = ##class(%IO.ServerSocket).%New(), socket.TranslationTable = "UTF8" 
+  	do socket.Open("81",1,.sc)
+  	
+  	quit:$$$ISERR(sc)
+  	
+    do socket.Listen()
+    
+    for	{
+	    
+    	set data = socket.Read($$$PACKETLENGTH)
+    	if (packetSize="") q
+    	
+    	set l=##class(Globals.Utils).WordToValue($c($zh($e(packetSize,1,4)),$zh($e(packetSize,5,*))))
+    	
+    	//Получили длину пакета
+    	do sock.Write($c(1,1,1))
+    	set s=sock.Read(l, -1)
+    	set blockGot=$increment(blockGot)
+    	if (blockGot # $$$BLOCKTICK = 0) w $c(13),"                                    ",$c(13),$$$T("Packets read:"),blockGot
+    	//set s=##class(Globals.Utils).decode(s)
+    	set buf=(buf_s) 
+    	while ($f(buf,$$$NL)>0) 
+    		{
+   			q:buf=$$$NL
+    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3),.curGl) //все ок, NL не может быть в начале пакета	    			set buf=$e(buf,$f(buf,$$$NL),*)	
+	    		}
+	   	do sock.Write($c(1,1,1))
+    }
+    
+	quit $$$OK*/
+	
+	SET io="|TCP|5"
+	SET ^serverport=82
+	OPEN io:(:^serverport:"MA")
+	IF ('$TEST) { 
+		do ..Debug("Cannot open server port " _ ^serverport)
+		QUIT
+	} ELSE { do ..Debug("Server port " _ ^serverport _ " opened") }
+	do ##class(WebTerminal.Engine).Server()
+	
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Server">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	USE "|TCP|5"
+	do ..Debug("Server started.")
+	for {
+		do ..Debug("Reading data on socket...")
+		READ x ; Read for accept
+		quit:(x = "q") 
+		do ..Debug("Data readed: " _ x)
+		WRITE "pong ",x,!
+		//USE 0 WRITE !,"Accepted connection" 
+		//JOB child:(:5:io:io) ;Concurrent server bit is on 
+	}
+]]></Implementation>
+</Method>
+</Class>
+</Export>

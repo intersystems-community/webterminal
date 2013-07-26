@@ -4,3 +4,4 @@
 <cspapp>/img
 <cspapp>/js
 WebTerminal.Engine.CLS
+WebTerminal.Terminal.CLS
