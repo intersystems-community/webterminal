@@ -276,11 +276,8 @@ The heart of terminal application</Description>
 	
 	do ..Write(..ACTIONMESSAGE)
 	
-	//use $Principal:(/SEN=1)
-   	use $Principal:(::"+T")
-   	use $Principal:(::"+Q")
-	//use $Principal:(/ACC=1)
-    //use $Principal:(::"+M")
+   	use $Principal:(::"+T+Q")
+   	//use $Principal:(::"+Q")
 		
 	//read a
 	//set ^data2($I(^data2)) = a
@@ -295,10 +292,8 @@ The heart of terminal application</Description>
 	    	
     }
     
-    //use $Principal:(/ACC=0)
-    //use $Principal:(/SEN=0)
-   	use $Principal:(::"-T")
-   	use $Principal:(::"-Q")
+   	use $Principal:(::"-T-Q")
+   	//use $Principal:(::"-Q")
    	do ..Write(..ACTIONTERMINATOR)
    	
 	//do ..Write(..ACTIONTERMINATOR)

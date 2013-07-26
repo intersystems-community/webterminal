@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Class name="WebTerminal.Terminal">
+<Description>
+Just for tests</Description>
 <Super>%RegisteredObject</Super>
 <TimeCreated>63028,54112.843573</TimeCreated>
 
@@ -80,14 +82,10 @@ loop
     
 	quit $$$OK*/
 	
-	SET io="|TCP|5"
-	SET ^serverport=82
+	SET io="|TCP|8"
+	SET ^serverport=84
 	OPEN io:(:^serverport:"MA")
-	IF ('$TEST) { 
-		do ..Debug("Cannot open server port " _ ^serverport)
-		QUIT
-	} ELSE { do ..Debug("Server port " _ ^serverport _ " opened") }
-	do ##class(WebTerminal.Engine).Server()
+	do ##class(WebTerminal.Terminal).Server()
 	
 	quit $$$OK
 ]]></Implementation>
@@ -96,8 +94,9 @@ loop
 <Method name="Server">
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
-	USE "|TCP|5"
+	OPEN "|TCP|9":("127.0.0.1":84:"M") ;Connect to server
 	do ..Debug("Server started.")
+	USE 0
 	for {
 		do ..Debug("Reading data on socket...")
 		READ x ; Read for accept
