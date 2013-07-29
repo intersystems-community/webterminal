@@ -171,7 +171,9 @@ Execute file on client</Description>
 	}
 	set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
 	do result.Execute()
-	set data = "if(typeof tAC != ""undefined"")tAC=tAC.concat(["
+	//set data = "if(typeof tAC != ""undefined"")tAC=tAC.concat(["
+	set methodsData = "terminalAutocompleteMethods=[];"
+	set data = "terminalAutocompleteClasses=terminalAutocompleteClasses.concat(["
 	while (result.Next()) {
 		set temp = result.Data("Name")
 		if ($EXTRACT(temp,1)'="%") {
@@ -180,7 +182,9 @@ Execute file on client</Description>
 			set data = data _ """" _ result.Data("Name") _ ""","
 		}
 	}
-	set data = data _ """§SUPERSECRET!""].getOptimized())"
+	set data = data _ """§SUPERSECRET!""]);"
+	set data = data _ "terminalAutocompleteMethods"
+	
 	set $NAMESPACE = oldNamespace
 	
 	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))

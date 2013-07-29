@@ -13,44 +13,70 @@ var tAC = ["/help","/clear","/connect","/disconnect","/define","/siege",
     "$$$OK","$$$ISERR","$$$ISOK",
     "##class("];
 
-var terminalAutocompleteClasses = [];
-
-var terminalCleverAutocomplete = {
-    "root": {
-        "/help": 1,
-        "/clear": 0,
-        "/connect": 0,
-        "/siege": 0,
-        "/disconnect": 0,
-        "/define": 0
+/**
+ * This is the base of terminal main language dictionary. It holds data about classes, variables and functions.
+ * Each value has frequency indicator: for example, number of times used.
+ * Each root must have an "+syntaxRegExp" property. It determines how property name must be constructed. This is
+ * used to suggest autocomplete, for example.
+ *
+ * @type {object}
+ */
+var terminalLanguage = {
+    "client": { // RX /[a-zA-Z0-9_]
+        "+syntaxRegExp": new RegExp("/[a-zA-Z_]+[a-zA-Z0-9_]*","g"),
+        "help": 1,
+        "clear": 0,
+        "connect": 0,
+        "siege": 0,
+        "disconnect": 0,
+        "define": 0
+    },
+    "commands": {
+        "+syntaxRegExp": new RegExp("/[a-zA-Z]+","g"),
+        "SET": 0,
+        "WRITE": 0,
+        "FOR": 0,
+        "WHILE": 0
+    },
+    "functions": { // prefix: $
+        "+syntaxRegExp": new RegExp("/$[a-zA-Z]+[a-zA-Z0-9]*","g"),
+        "CHAR": 0,
+        "DATA": 0
+    },
+    "variables": { // prefix: $
+        "+syntaxRegExp": new RegExp("/$[a-zA-Z]+[a-zA-Z0-9]*","g"),
+        "DEVICE": 0,
+        "ECODE": 0
     },
     "class": {
+        "+syntaxRegExp": new RegExp("/##class\\(%?[a-zA-Z]+[a-zA-Z0-9\\.]*\\)?","g"),
         "%Library": 1,
         "%IO": 0,
-        "%System": {
-            "Level2": {
-                "Level31": {
-                    "Level4": 0
-                },
-                "Level32": {
-                    "Level4s": 0
-                },
-                "Level33": {
-                    "LevelO": 0,
-                    "LevelK": 0
-                }
+        "%System.IO.Count": {
+            "methods": {
+                "Recount": 0
             },
-            "Level22": {
-                "LevelA(1)": {
-                    "Level4": 0
-                },
-                "LevelB(2)": {
-                    "Level4s": 0
-                },
-                "LevelC(3)": {
-                    "LevelO": 0,
-                    "LevelK": 0
-                }
+            "properties": {
+                "lal": 0
+            },
+            "parameters": {
+                "param1": 0,
+                "param2": 0
+            }
+        },
+        "TEST": {
+            "methods": {
+                "method": 0,
+                "methodic": 0
+            },
+            "properties": {
+                "prop": 0,
+                "poropop": 0
+            },
+            "parameters": {
+                "param": 0,
+                "pam": 0,
+                "papam": 0
             }
         }
     }
@@ -153,6 +179,9 @@ function parserGetCleverAutocompleteVariants(string,position) {
 
     var PARSE_TYPE = 0; // 0: simple; 1: class
 
+    /**
+     * This function forms pattern for autocomplete.
+     */
     var formPattern = function(string,position) {
 
         if (string.match(/##class\(%?[a-zA-Z\.]*\)?\.?[a-zA-Z\.]*\(?\)?/g)) {
@@ -186,9 +215,12 @@ function parserGetCleverAutocompleteVariants(string,position) {
 
     };
 
+    // leave autocomplete process if cursor location is inside word (or on the beginning)
     position = Math.min(string.length,position);
     if (string.charAt(position).match(/\w/g)) return []; else string = string.substring(0,position);
 
+    // form special autocomplete pattern. This function returns pattern string AND sets variables:
+    // PARSE_TYPE: holds root for autocomplete object
     string = formPattern(string,position);
     //log(string, " BY TYPE: " + PARSE_TYPE);
     if (string == "") return [];
