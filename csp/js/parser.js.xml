@@ -13,6 +13,8 @@ var tAC = ["/help","/clear","/connect","/disconnect","/define","/siege",
     "$$$OK","$$$ISERR","$$$ISOK",
     "##class("];
 
+var terminalAutocompleteClasses = [];
+
 var terminalCleverAutocomplete = {
     "root": {
         "/help": 1,
@@ -128,39 +130,6 @@ function parserGetAutocompleteVariants(string,position) {
  */
 function parserGetCleverAutocompleteVariants(string,position) {
 
-    /*var i = Math.min(position-1,string.length-1), variants = [], s = '', autocompleteRoot = "root";
-    if (i<0) return variants;
-    if (i+1<string.length && string[i+1].match(/\w/g)) return []; // leave autocomplete if next letter detected
-    while (i >= 0) { // get the part of string
-        if (string[i].match(/[\w\$\(\)%#\.\^/]/g)) {
-            if (string[i].match(/[\.\(\)]/g)) autocompleteRoot = "class";
-            s += string[i];
-        } else break;
-        i--;
-    }
-    if (s == '') return [];
-
-    var kk = 0;
-    s = s.reverse();
-    var a = [autocompleteRoot].concat(s.split(/\.|\(|\)/g));
-    if (a[1] == "") { a.splice(1,1) }
-    if (a[a.length-1] == "" && a[a.length-2] == "") { a.splice(a.length-1,1) }
-    //log(a);
-    var l = a.length; s = "";
-    for (i = 0; i<l-1; i++) s+="[\""+a[i]+"\"]";
-    var end = a[i] || "";
-    //log("Apatch: ",s);
-    var b = {}; eval("try {b = terminalCleverAutocomplete"+s+"} catch (e) {};");
-    //log("AC Obj: ",b);
-    for(var pName in b) {
-        //log("checking ",pName, "=", end);
-        if (b.hasOwnProperty(pName) && pName.indexOf(end) === 0) { // word beginning
-            variants.push(pName.substring(end.length,pName.length));
-            kk++;
-        }
-    }
-    return variants;*/
-
     var completeClassPattern = function(acOption) {
 
         var variants = [], kk = 0;
@@ -178,7 +147,7 @@ function parserGetCleverAutocompleteVariants(string,position) {
 
         log("Class autocomplete variants: ", kk + "/" + tAC.length);
 
-        return variants;
+        return variants.getOptimized();
 
     };
 

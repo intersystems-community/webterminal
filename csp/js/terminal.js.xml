@@ -272,9 +272,11 @@ function terminalSubmit(data) {
 
             // increase command stack for history
             lastCommandId++;
-            historyCurrent = commandHistory.length;
-            commandHistory[historyCurrent - 1] = terminalGetInputValue();
-            commandHistory.push("");
+            if (data.trim() != "") {
+                historyCurrent = commandHistory.length;
+                commandHistory[historyCurrent - 1] = terminalGetInputValue();
+                commandHistory.push("");
+            }
 
             if (data[0]=="/") { // internal (browser-side) instruction
 
@@ -611,7 +613,7 @@ function terminalPerformKeyAction(key) {
     var caretPos, nPos;
 
     switch (key) {
-        case 9: {
+        case 9: { // TAB
             if (terminalAutocompleteVariants.length == 0) {
                 var p = getCaretPosition(terminalGetInputObject())-1;
                 var val = terminalGetInputValue();
@@ -619,7 +621,7 @@ function terminalPerformKeyAction(key) {
                 setCaretPosition(terminalGetInputObject(),p+2);
             }
             terminalPerformAutocomplete();
-        } break; // TAB
+        } break;
         case 13: terminalSubmit( terminalGetInputValue() ); break; // ENTER
         case 17: terminalChangeAutocompleteVariant(1); break; // CTRL
         case 38: {
