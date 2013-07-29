@@ -681,7 +681,7 @@ function parserInsertAutocompleteOption(text) {
     var input = terminalGetInputObject();
     var caretPosition = getCaretPosition(input);
     var data = terminalGetInputValue();
-    terminalAutocompleteVariants = parserGetAutocompleteVariants(data,caretPosition);
+    terminalAutocompleteVariants = parserGetCleverAutocompleteVariants(data,caretPosition);// parserGetAutocompleteVariants(data,caretPosition);
     if (terminalAutocompleteVariants.length > 0) {
         text = parserInsertString(text,parserGetRealPosition(text,caretPosition),
             "<span class=\"terminalAutocompleteOption\">"+terminalAutocompleteVariants[0]+"</span>");
