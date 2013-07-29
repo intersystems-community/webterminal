@@ -173,7 +173,7 @@ Execute file on client</Description>
 	do result.Execute()
 	//set data = "if(typeof tAC != ""undefined"")tAC=tAC.concat(["
 	set methodsData = "terminalAutocompleteMethods=[];"
-	set data = "terminalAutocompleteClasses=terminalAutocompleteClasses.concat(["
+	set data = "tAC=tAC.concat(["
 	while (result.Next()) {
 		set temp = result.Data("Name")
 		if ($EXTRACT(temp,1)'="%") {
@@ -183,7 +183,6 @@ Execute file on client</Description>
 		}
 	}
 	set data = data _ """§SUPERSECRET!""]);"
-	set data = data _ "terminalAutocompleteMethods"
 	
 	set $NAMESPACE = oldNamespace
 	

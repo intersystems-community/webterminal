@@ -19,6 +19,8 @@
  *      - A tons of features :)
  */
 
+var terminalAppVersion = "0.3.1";
+
 var webSocket = null, // socket to exchange data with server
     commandHistory = [""], // history of all submitted commands
     historyCurrent = 0; // current position in this history
@@ -188,7 +190,8 @@ function terminalInternalExecute(string) {
  */
 function terminalInternalCommand_help() {
 
-    terminalOutput("<div style=\"white-space: normal\"><div class=\"center\"><h3>Caché Web Terminal</h3></div>" +
+    terminalOutput("<div style=\"white-space: normal\"><div class=\"center\"><h3>Caché Web Terminal <span class=\"warning\">" +
+        "v" + terminalAppVersion + "</span></h3></div>" +
         "<table>" +
         "   <tr>" +
         "       <td class=\"hint\">Available client-side commands (type with slash)</td>" +
