@@ -114,6 +114,66 @@ Execute file on client</Description>
 <Type>%Numeric</Type>
 </Property>
 
+<Method name="redirects">
+<Description>
+Public point entries, using when redirecting i/o</Description>
+<Internal>1</Internal>
+<Private>1</Private>
+<ProcedureBlock>0</ProcedureBlock>
+<Implementation><![CDATA[
+wstr(s)
+	do ##class(%Device).ReDirectIO($$$NO) 
+	do ..Write(s)
+	do ##class(%Device).ReDirectIO($$$YES)
+	quit 
+wchr(c) 
+	do ##class(%Device).ReDirectIO($$$NO) 
+	do ..Write($c(c))
+	do ##class(%Device).ReDirectIO($$$YES) 
+	quit
+wnl 
+	do ##class(%Device).ReDirectIO($$$NO) 
+	do ..Write($c(13,10))
+	do ##class(%Device).ReDirectIO($$$YES)
+	quit 
+wff 
+	do ##class(%Device).ReDirectIO($$$NO) 
+	do ..Write($c(12))
+	do ##class(%Device).ReDirectIO($$$YES)
+	quit 
+wtab(s)
+	do ##class(%Device).ReDirectIO($$$NO) 
+	do ..Write($j("",s-$x))
+	do ##class(%Device).ReDirectIO($$$YES) 
+	quit
+	
+rstr(len,timeout)
+	set rd=##class(%Device).ReDirectIO($$$NO)
+	set data = ..Read(len,.status,timeout)
+	do ##class(%Device).ReDirectIO(rd)
+	quit data
+	/*rstr(len,timeout) 
+	set rd=##class(%Device).ReDirectIO($$$NO)
+	set data = ..Read(len,.status,timeout)
+	do ##class(%Device).ReDirectIO(rd)
+	quit data*/
+rchr(timeout)
+	quit ..Read(,.status,timeout)
+
+	/* этот код нужно менять под Ваши нужды  
+rstr(len,timeout)
+	n rd,vr,rt
+	s vr="rt"
+	s rd=##class(%Device).ReDirectIO($$$NO)
+	s:$d(len) vr=vr_"#"_len s:$d(timeout) vr=vr_":"_timeout
+	r @vr
+	s rd=##class(%Device).ReDirectIO(rd)
+	s rd=$zu(96,4,$t)
+	q rt
+	*/
+]]></Implementation>
+</Method>
+
 <Method name="OnPreServer">
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[	quit $$$OK
@@ -124,7 +184,7 @@ Execute file on client</Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>data:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
-<Implementation><![CDATA[	//set ^debug($I(^debug)) = $ZTIMESTAMP _ ": " _ data
+<Implementation><![CDATA[	set ^debug($I(^debug)) = $ZTIMESTAMP _ ": " _ data
 ]]></Implementation>
 </Method>
 
@@ -298,27 +358,23 @@ The heart of terminal application</Description>
 	
 	do ..Write(..ACTIONMESSAGE)
 	
-   	use $Principal:(::"+T+Q")
-   	//use $Principal:(::"+Q")
+   	//use $Principal:(::"+T+Q")
 		
-	//read a
-	//set ^data2($I(^data2)) = a
-		
-    try {
-	    
-	    xecute value // call a new stack
-				
-    } catch exception {
-	    	
-	    write exception.DisplayString()
-	    	
-    }
+  	//s pStream=##class(%Stream.TmpBinary).%New()
+  	use $io::("^"_$zn)
+  	do ..Debug("^"_$zn)
+ 	do ##class(%Device).ReDirectIO($$$YES)
+  
+    try { xecute value } catch exception { write exception.DisplayString() }
     
-   	use $Principal:(::"-T-Q")
-   	//use $Principal:(::"-Q")
-   	do ..Write(..ACTIONTERMINATOR)
+    do ##class(%Device).ReDirectIO($$$NO)
+  	use $io
+  	//d pStream.Rewind()
+    
+   	//use $Principal:(::"-T-Q")
    	
-	//do ..Write(..ACTIONTERMINATOR)
+   	
+   	do ..Write(..ACTIONTERMINATOR)
 	
 	if (..CurrentNamespace '= $Znspace) { // change client namespace
 	    set ..CurrentNamespace = $Znspace
