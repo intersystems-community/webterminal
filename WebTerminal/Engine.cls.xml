@@ -110,6 +110,11 @@ Execute file on client</Description>
 <InitialExpression>"USER"</InitialExpression>
 </Property>
 
+<Property name="InitialZName">
+<Type>%String</Type>
+<InitialExpression>"Webterminal.Engine.1"</InitialExpression>
+</Property>
+
 <Property name="TerminalPID">
 <Type>%Numeric</Type>
 </Property>
@@ -122,29 +127,29 @@ Public point entries, using when redirecting i/o</Description>
 <ProcedureBlock>0</ProcedureBlock>
 <Implementation><![CDATA[
 wstr(s)
-	do ##class(%Device).ReDirectIO($$$NO) 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
 	do ..Write(s)
-	do ##class(%Device).ReDirectIO($$$YES)
+	do ##class(%Device).ReDirectIO(rd)
 	quit 
 wchr(c) 
-	do ##class(%Device).ReDirectIO($$$NO) 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
 	do ..Write($c(c))
-	do ##class(%Device).ReDirectIO($$$YES) 
+	do ##class(%Device).ReDirectIO(rd) 
 	quit
 wnl 
-	do ##class(%Device).ReDirectIO($$$NO) 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
 	do ..Write($c(13,10))
-	do ##class(%Device).ReDirectIO($$$YES)
+	do ##class(%Device).ReDirectIO(rd)
 	quit 
 wff 
-	do ##class(%Device).ReDirectIO($$$NO) 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
 	do ..Write($c(12))
-	do ##class(%Device).ReDirectIO($$$YES)
+	do ##class(%Device).ReDirectIO(rd)
 	quit 
 wtab(s)
-	do ##class(%Device).ReDirectIO($$$NO) 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
 	do ..Write($j("",s-$x))
-	do ##class(%Device).ReDirectIO($$$YES) 
+	do ##class(%Device).ReDirectIO(rd) 
 	quit
 	
 rstr(len = 32656,timeout = 86400)
@@ -368,8 +373,9 @@ The heart of terminal application</Description>
 	
 	do ..Write(..ACTIONMESSAGE) // execute session start
 	
-  	use $io::("^"_$zn)
-  	do ..Debug("^"_$zn)
+	set io = $io
+  	use io::("^" _ ..InitialZName)
+  	do ..Debug("^" _ ..InitialZName)
  	do ##class(%Device).ReDirectIO($$$YES)
  	
     try { xecute value } catch exception {
@@ -377,7 +383,7 @@ The heart of terminal application</Description>
 	    }
 	    
     do ##class(%Device).ReDirectIO($$$NO)
-  	use $io
+  	use io
    	
    	do ..Write(..ACTIONTERMINATOR) // execute session end
 	
@@ -482,6 +488,7 @@ New connection established</Description>
 	if ($$$ISOK(..RequireAuthorization())) {
 		
 		set ..InitialNamespace = $Znspace
+		set ..InitialZName = $Zname
 		
 		do ..GenNLoadJSAutocompleteFile("%SYS")
 		do ..GenNLoadJSAutocompleteFile($Znspace)
