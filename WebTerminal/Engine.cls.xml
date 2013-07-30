@@ -147,18 +147,16 @@ wtab(s)
 	do ##class(%Device).ReDirectIO($$$YES) 
 	quit
 	
-rstr(len,timeout)
+rstr(len = 32656,timeout = 86400)
 	set rd=##class(%Device).ReDirectIO($$$NO)
 	set data = ..Read(len,.status,timeout)
 	do ##class(%Device).ReDirectIO(rd)
 	quit data
-	/*rstr(len,timeout) 
+rchr(timeout = 86400)
 	set rd=##class(%Device).ReDirectIO($$$NO)
-	set data = ..Read(len,.status,timeout)
+	set data = $ASCII(..Read(1,.status,timeout))
 	do ##class(%Device).ReDirectIO(rd)
-	quit data*/
-rchr(timeout)
-	quit ..Read(,.status,timeout)
+	quit data
 
 	/* этот код нужно менять под Ваши нужды  
 rstr(len,timeout)
@@ -356,25 +354,21 @@ The heart of terminal application</Description>
 	#dim exception as %Exception.AbstractException
 	set value = $Replace(query,$CHAR(10)," ")
 	
-	do ..Write(..ACTIONMESSAGE)
+	do ..Write(..ACTIONMESSAGE) // execute session start
 	
-   	//use $Principal:(::"+T+Q")
-		
-  	//s pStream=##class(%Stream.TmpBinary).%New()
   	use $io::("^"_$zn)
   	do ..Debug("^"_$zn)
  	do ##class(%Device).ReDirectIO($$$YES)
   
-    try { xecute value } catch exception { write exception.DisplayString() }
+    try { xecute value } catch exception {
+	    do ..Write("Code error!\n")
+	    do ..Write(exception.DisplayString())
+	    }
     
     do ##class(%Device).ReDirectIO($$$NO)
   	use $io
-  	//d pStream.Rewind()
-    
-   	//use $Principal:(::"-T-Q")
    	
-   	
-   	do ..Write(..ACTIONTERMINATOR)
+   	do ..Write(..ACTIONTERMINATOR) // execute session end
 	
 	if (..CurrentNamespace '= $Znspace) { // change client namespace
 	    set ..CurrentNamespace = $Znspace
