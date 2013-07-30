@@ -148,11 +148,13 @@ wtab(s)
 	quit
 	
 rstr(len = 32656,timeout = 86400)
+	do ..ClientAlertNamespace()
 	set rd=##class(%Device).ReDirectIO($$$NO)
 	set data = ..Read(len,.status,timeout)
 	do ##class(%Device).ReDirectIO(rd)
 	quit data
 rchr(timeout = 86400)
+	do ..ClientAlertNamespace()
 	set rd=##class(%Device).ReDirectIO($$$NO)
 	set data = $ASCII(..Read(1,.status,timeout))
 	do ##class(%Device).ReDirectIO(rd)
@@ -343,6 +345,16 @@ Function sends data derectly to server with specified action</Description>
 ]]></Implementation>
 </Method>
 
+<Method name="ClientAlertNamespace">
+<Implementation><![CDATA[
+	if (..CurrentNamespace '= $Znspace) { // change client namespace
+	    set ..CurrentNamespace = $Znspace
+	 	do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE) 
+	 	do ..GenNLoadJSAutocompleteFile($Znspace)  
+    }
+]]></Implementation>
+</Method>
+
 <Method name="ExecuteCommand">
 <Description>
 The heart of terminal application</Description>
@@ -359,22 +371,17 @@ The heart of terminal application</Description>
   	use $io::("^"_$zn)
   	do ..Debug("^"_$zn)
  	do ##class(%Device).ReDirectIO($$$YES)
-  
+ 	
     try { xecute value } catch exception {
-	    do ..Write("Code error!\n")
 	    do ..Write(exception.DisplayString())
 	    }
-    
+	    
     do ##class(%Device).ReDirectIO($$$NO)
   	use $io
    	
    	do ..Write(..ACTIONTERMINATOR) // execute session end
 	
-	if (..CurrentNamespace '= $Znspace) { // change client namespace
-	    set ..CurrentNamespace = $Znspace
-	 	do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE) 
-	 	do ..GenNLoadJSAutocompleteFile($Znspace)  
-    }
+	do ..ClientAlertNamespace()
 	
 	quit $$$OK
 ]]></Implementation>
@@ -428,37 +435,25 @@ Method description:
 	
 	for {
 		
-		//do ..SendData("Debug: start reading action.")
 		set action = ..Read(,.status)
-		//do ..SendData("Debug: action readed: " _ action)
     
     	if $$$ISOK(status) {
 	    		    	
 	    	if (action = ..ACTIONMESSAGE) { // autorized
 	    	
-	    		//USE $Principal:(/SEN=1)
-   				//USE $Principal:(::"+Q")
-   				//do ..SendData("Debug: reading message from client.")
 	    		set data = ..Read(,.status)
 	    		
-	    		//do ..SendData("Debug: message readed, starting execution.")
 		    	do ..ExecuteCommand(data)
-		    	//do ..SendData("Debug: command execution normally ended.")
-		    	
-		    	//do ..SendData(..ACTIONEXECUTED,messageId) // alert client
 		    	
 	    	} elseif (action = ..ACTIONSQL) { // sql
 		    	
-		    	//set pos = $Find(data,..ACTIONMESSAGE,1) // find first separator
-	    		//set messageId = $Extract(data,1,pos-2)
-	    		//set message = $Extract(data,pos,)
 	    		set data = ..Read(,.status)
 	    	
 		    	do ..ExecuteSQL(data)
 		    		
 	    	} elseif (action = ..ACTIONTERMINATOR) {
 		    	
-		    	// fu
+		    	// fuu
 		    	
 	    	} else { // something scary
 		    	
@@ -468,7 +463,8 @@ Method description:
       		
     	} else { // $$$ISOK(status)
 	    	 
-	    	do ..SendData("Not ok!",..ACTIONMESSAGE)
+	    	do ..Debug($$$CSPWebSocketClosed)
+	    	do ..SendData("Error occured while reading data.",..ACTIONMESSAGE)
       		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
     
     	}
@@ -486,13 +482,10 @@ New connection established</Description>
 	if ($$$ISOK(..RequireAuthorization())) {
 		
 		set ..InitialNamespace = $Znspace
-		//do ..SendData("Dedicating a process for your, just wait a bit...")
-		//JOB ##class(WebTerminal.Terminal).Start($JOB):(..InitialNamespace:0:::::"cacheWebTerminalClient")
-		//set ..TerminalPID = $GET(^WebTerminal.ChildPID)
 		
 		do ..GenNLoadJSAutocompleteFile("%SYS")
 		do ..GenNLoadJSAutocompleteFile($Znspace)
-		do ..SendData("Everything ready. Welcome.")
+		do ..SendData("Terminal remote ready. Welcome.")
 		
 		set ..CurrentNamespace = $Znspace
 		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)
