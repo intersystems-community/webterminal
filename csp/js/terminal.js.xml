@@ -338,7 +338,7 @@ function terminalHandledInput(data) {
  */
 function terminalMessageReceived(data) {
 
-    terminalDebug.log("Server: ",data);
+    //terminalDebug.log("Server: ",data);
 
     if (data == ACTION_TERMINATOR) terminalCurrentAction = ACTION_TERMINATOR;
     if (handleMessageReceive) {
@@ -439,7 +439,7 @@ function terminalLog(message) {
  */
 function terminalSendToServer(stringData) {
     try {
-        terminalDebug.log("Sending: ",stringData);
+        //terminalDebug.log("Sending: ",stringData);
         webSocket.send(stringData);
     } catch (e) {
         terminalLog("WebSocket error. Data: " + e.message)

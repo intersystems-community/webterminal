@@ -35,12 +35,24 @@ var terminalLanguage = {
         "+syntaxRegExp": new RegExp("^[a-zA-Z]+$"),
         "SET": 0,
         "set": 0,
+        "KILL": 0,
+        "kill": 0,
         "WRITE": 0,
         "write": 0,
+        "ZWRITE": 0,
+        "zwrite": 0,
         "FOR": 0,
         "for": 0,
+        "ELSE": 0,
+        "else": 0,
+        "QUIT": 0,
+        "quit": 0,
+        "READ": 0,
+        "read": 0,
         "WHILE": 0,
-        "while": 0
+        "while": 0,
+        "CLOSE": 0,
+        "close": 0
     },
     "functions": { // prefix: $
         "+syntaxRegExp": new RegExp("^\\$[a-zA-Z]+[a-zA-Z0-9]*$"),
@@ -52,23 +64,15 @@ var terminalLanguage = {
         "$DEVICE": 0,
         "$ECODE": 0
     },
+    "staticMethod": { // prefix: $
+        "+syntaxRegExp": new RegExp("^##[a-zA-Z0-9]*$"),
+        "##class(": 0
+    },
     "class": {
-        "+syntaxRegExp": new RegExp("^##class\\(%?([a-zA-Z]+[a-zA-Z0-9\\.]*)*$"),
-        "%Library": 1,
-        "%IO": 0,
-        "%System.IO.Count": {
-            "methods": {
-                "Recount": 0
-            },
-            "properties": {
-                "lal": 0
-            },
-            "parameters": {
-                "param1": 0,
-                "param2": 0
-            }
-        },
-        "TEST": {
+        // WARNING: RegExp must have remembering parentheses at: [1]: class, [2]: classProp
+        "+syntaxRegExp": new RegExp("^##class\\((%?[a-zA-Z]*[a-zA-Z0-9\\.]*)\\)?\\.?%?([a-zA-Z]+[a-zA-Z0-9]*)*$"),
+        "+childRegExp": new RegExp("^##class\\((%?[a-zA-Z]*[a-zA-Z0-9\\.]*)\\)\\.%?([a-zA-Z]+[a-zA-Z0-9]*)*$")
+        /*"EXAMPLE": {
             "methods": {
                 "method": 0,
                 "methodic": 0
@@ -82,7 +86,7 @@ var terminalLanguage = {
                 "pam": 0,
                 "papam": 0
             }
-        }
+        } */
     }
 };
 
@@ -160,69 +164,6 @@ function parserGetAutocompleteVariants(string,position) {
  */
 function parserGetCleverAutocompleteVariants(string,position) {
 
-    /*
-    var completeClassPattern = function(acOption) {
-
-        var variants = [], kk = 0;
-
-        for (var i = 0; i < tAC.length; i++) { // find in whole autocomplete base
-            if (tAC[i].indexOf(acOption) === 0) { // word beginning
-                if (tAC[i].replace(acOption,"").charAt(0) == ".") return [];
-                var option = tAC[i].substring(acOption.length,tAC[i].length);
-                option = (option.charAt(0) == ".")?option.split(/\./g)[1]:option.split(/\./g)[0];
-                variants.push(option);
-                //log(tAC[i] + " <=> " + acOption);
-                kk++;
-            }
-        }
-
-        log("Class autocomplete variants: ", kk + "/" + tAC.length);
-
-        return variants.getOptimized();
-
-    };
-
-    var PARSE_TYPE = 0; // 0: simple; 1: class
-    */
-
-    /**
-     * This function forms pattern for autocomplete.
-     */
-    /*
-    var formPattern = function(string,position) {
-
-        if (string.match(/##class\(%?[a-zA-Z\.]*\)?\.?[a-zA-Z\.]*\(?\)?/g)) {
-            var temp = string.match(/##class\(%?[a-zA-Z\.]*\)?\.?[a-zA-Z\.]*\(?\)?/g);
-            if (temp) temp = temp[0];
-            //log("TRY: " + (string.lastIndexOf(temp) + temp.length) + " == " + position);
-            if (string.lastIndexOf(temp) + temp.length == position) {
-                PARSE_TYPE = 1;
-                return temp;
-            }
-        }
-
-        var i = string.length- 1, breakSymbol = 0;
-        while (i>0) {
-            if (string[i].match(/[\$%#\^/]/g)) {
-                //log("bs: "+i+": "+string[i].match(/[\w\$%#\.\^/]/g));
-                breakSymbol = 1
-            } else if (breakSymbol) { // no other break symbols
-                //log("goodbye: "+i);
-                return string.substr(i+1,string.length-i);
-            } else if (string[i].match(/\w/g)) {
-
-            } else {
-                string = string.substr(i+1,string.length-i);
-                break;
-            }
-            i--;
-        }
-
-        return string;
-
-    };
-    */
-
     var systemSymbol = "+";
 
     // constructs object with two properties:
@@ -230,27 +171,48 @@ function parserGetCleverAutocompleteVariants(string,position) {
     // @property "string": commonly selected string
     // returns null if not fitting at all
     var mostCommonAutocompleteRoot = function(fullString,limit) {
+        if (typeof limit == "undefined") limit = 30; // characters to limit fit (time regexp will be compared)
 
-        if (typeof limit == "undefined") limit = 60; // characters to limit fit (time regexp will be compared)
-
-        // returns best fitting language root variant for string
+        // returns best fitting language root variant for string (object with variants)
         var fitsString = function(string) {
-            var lastFitRoot = "";
+            var lastFitRoot = null, type = "root"; // root and type of AC
             for(var key in terminalLanguage){
                 if (!terminalLanguage.hasOwnProperty(key)) continue;
                 if (!terminalLanguage[key].hasOwnProperty("+syntaxRegExp")) continue;
                 if (terminalLanguage[key]["+syntaxRegExp"].test(string)) {
-                    lastFitRoot = key;
+                    type = key;
+                    lastFitRoot = terminalLanguage[key]; // remember fitting
+                    if (key == "class" && terminalLanguage[key].hasOwnProperty("+childRegExp")) { // check if class method
+                        if (terminalLanguage[key]["+childRegExp"].test(string)) { // fits class
+                            var result = terminalLanguage[key]["+childRegExp"].exec(string);
+                            if (result && result.length > 2 && terminalLanguage[key][result[1]]) { // result[1]: className
+                                var temp = {};
+                                for(var method in terminalLanguage[key][result[1]]["methods"]) {
+                                    temp[method] = terminalLanguage[key][result[1]]["methods"][method];
+                                }
+                                for(var property in terminalLanguage[key][result[1]]["properties"]) {
+                                    temp[property] = terminalLanguage[key][result[1]]["properties"][property];
+                                }
+                                for(var parameter in terminalLanguage[key][result[1]]["parameters"]) {
+                                    temp[parameter] = terminalLanguage[key][result[1]]["parameters"][parameter];
+                                }
+                                type = "classMethod";
+                                lastFitRoot = temp;
+                            }
+                        }
+                    }
                 }
             }
-            return lastFitRoot; // now - last, then - best.
+            if (lastFitRoot) lastFitRoot[systemSymbol+"type"] = type;
+            return lastFitRoot; // OBJECT now - last, then - best.
         };
 
-        var i = fullString.length - 1, fittingString = "", fittingRoot = "";
-        while (i > -1 && limit > 0) {
+        var i = fullString.length - 1, fittingString = "", fittingRoot = null;
+
+        while (i > -1 && limit > 0) { // @todo IMPROVE!
             var string = fullString.substr(i,fullString.length);
             var bestFitting = fitsString(string);
-            if (bestFitting != "") { fittingString = string; fittingRoot = bestFitting }
+            if (bestFitting != null) { fittingString = string; fittingRoot = bestFitting }
             i--; limit--;
         }
 
@@ -261,8 +223,24 @@ function parserGetCleverAutocompleteVariants(string,position) {
     // returns array of full property names in object by it's beginning
     var partsToComplete = function(object, propertyNameBeginning) {
         var variants = [];
-        if (propertyNameBeginning.indexOf("##class(") === 0)
-            propertyNameBeginning = propertyNameBeginning.replace("##class(","");
+
+        var type = "";
+        if (object.hasOwnProperty(systemSymbol+"type")) {
+            type = object[systemSymbol+"type"];
+        }
+
+        switch (type) {
+            case "class": {
+                propertyNameBeginning = terminalLanguage["class"]["+syntaxRegExp"].exec(propertyNameBeginning)[1];
+            } break;
+            case "classMethod": {
+                propertyNameBeginning = terminalLanguage["class"]["+childRegExp"].exec(propertyNameBeginning)[2];
+            } break;
+            default: {
+                // leave
+            }
+        }
+        if (typeof propertyNameBeginning == "undefined") propertyNameBeginning = "";
 
         for(var key in object){
             if (!object.hasOwnProperty(key)) continue;
@@ -270,6 +248,7 @@ function parserGetCleverAutocompleteVariants(string,position) {
                 variants.push(key.substring(propertyNameBeginning.length,key.length));
             }
         }
+
         return variants;
     };
 
@@ -280,39 +259,15 @@ function parserGetCleverAutocompleteVariants(string,position) {
         string = string.substring(0,position); // cut letters right
 
     // now we will examine string using a dictionary patterns
-
     var root = mostCommonAutocompleteRoot(string);
     if (root == null) return [];
 
-    if (terminalLanguage.hasOwnProperty(root.languageRoot) && root.languageRoot != "object") {
-        return partsToComplete(terminalLanguage[root.languageRoot],root.string);
+    if (root.languageRoot) {
+
+        return partsToComplete(root.languageRoot,root.string);
     } else {
-        return ["object","wow!"]
+        return []
     }
-
-    /*
-    // form special autocomplete pattern. This function returns pattern string AND sets variables:
-    // PARSE_TYPE: holds root for autocomplete object
-    string = formPattern(string,position);
-    //log(string, " BY TYPE: " + PARSE_TYPE);
-    if (string == "") return [];
-
-    //log(pattern);
-    if (PARSE_TYPE == 1) {
-        var pattern = string.split(/##class\(|\)\.|\./g).slice(1).join(".");
-        if (pattern) return completeClassPattern(pattern);
-    } else if (PARSE_TYPE == 0) {
-        return completeClassPattern(string)
-    }
-    */
-
-    /*if (PARSE_TYPE == 1 && arr && arr.length > 0 && arr.splice(0,1)[0] == "class") {
-
-        return completeClassPattern(arr);
-
-    }*/
-
-    return [];
 
 }
 
@@ -492,7 +447,6 @@ function parserReplaceUserRedefinitions(text) {
         def = terminalRedefined[i];
         if (def) {
             regex = new RegExp(escapeRegExp(def), 'g');
-            log(regex);
             text = text.replace(regex,terminalDefines[def]);
         }
 
