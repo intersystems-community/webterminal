@@ -119,6 +119,11 @@ Execute file on client</Description>
 <Type>%Numeric</Type>
 </Property>
 
+<Property name="ExperimentalAutocompleteOn">
+<Type>%Boolean</Type>
+<InitialExpression>1</InitialExpression>
+</Property>
+
 <Method name="redirects">
 <Description>
 Public point entries, using when redirecting i/o</Description>
@@ -266,14 +271,13 @@ rstr(len,timeout)
 </Method>
 
 <Method name="GetJSAutocompleteFilePath">
-<FormalSpec>filename:%String</FormalSpec>
+<FormalSpec>namespace:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	
 	set data = ##class(%Library.File).ManagerDirectory()
 	set data = ##class(%Library.File).ParentDirectoryName(data)
-	set data = data _ "CSP\" _ ..InitialNamespace _ "\js\autocomplete\" _ filename _ ".js" // UNIX?
-	
+	set data = data _ "CSP\" _ $REPLACE(..InitialNamespace,"%","") _ "\webTerminal\js\autocomplete\" _ $REPLACE(namespace,"%","_") _ ".js" // UNIX?
 	quit data
 ]]></Implementation>
 </Method>
@@ -282,29 +286,30 @@ rstr(len,timeout)
 <FormalSpec>namespace:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	if ($FIND(namespace,"%")'=0) set namespace = $REPLACE(namespace,"%","_")
-	if (##class(%File).Exists(..GetJSAutocompleteFilePath(namespace))) {
+	set filename = ..GetJSAutocompleteFilePath($NAMESPACE)
+	set namespace = $REPLACE($NAMESPACE,"%","_")
+	if (##class(%File).Exists(filename)) {
 		do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
 		quit $$$OK
 	}
 
 	do ..SendData("Generating autocomplete file for " _ namespace _ " classes, pleace, wait.")
 	
-	set oldNamespace = $NAMESPACE
-	if (##class(%SYS.Namespace).Exists(namespace)) { // _SYS <-> %SYS
-		SET $NAMESPACE = namespace
-	} else {
-		SET $NAMESPACE = "%SYS"
-	}
+	// write empty file to show (if happen) other applications that file generates
+	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))
+	do file.Open("WSN")
+	do file.WriteLine("{}")
+	do file.Close()
 	
+	// get all classes names
 	set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
 	do result.Execute()
-	
 	set data = ""
+	
 	while (result.Next()) { // forming autocomplete for each class
 	
 		set className = result.Data("Name")
-		if ($EXTRACT(className,1) = "%") && (namespace '= "_SYS") {
+		if ($EXTRACT(className,1) = "%") && (namespace '= "%SYS") {
 			continue
 		}
 		set data = data _ "terminalLanguage[""class""][""" _ className _ """]={"
@@ -332,15 +337,13 @@ rstr(len,timeout)
 		set data = data _ "}};"
 		
 	}
-		
-	set $NAMESPACE = oldNamespace
 	
 	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))
 	do file.Open("WSN")
 	do file.WriteLine(data)
 	do file.Close()
 	
-	do ..SendData("Autocomplete file for " _ namespace _ " classes created.")
+	do ..SendData("Autocomplete file for " _ $NAMESPACE _ " classes created.")
 	do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
 	
 	quit $$$OK
@@ -448,20 +451,18 @@ The heart of terminal application</Description>
  	
     try { xecute value } catch exception {
 	   	set $ZERROR = exception.DisplayString()
-	    //do ..Write(exception.DisplayString())
 	    }
 	    
-	//do ..Write("OK")
     do ##class(%Device).ReDirectIO($$$NO)
-    //do ..Write("OK")
     use io:(::"-T")
    	
    	if ($ZERROR '= "") {
 		do ..Write($ZERROR)
    	}
-   	//do ..Write("OK")
+   	
    	do ..Write(..ACTIONTERMINATOR) // execute session end
 	
+	if (..ExperimentalAutocompleteOn) do ..GenNLoadJSAutocompleteFile($Znspace)
 	do ..ClientAlertNamespace()
 	
 	quit $$$OK
@@ -565,7 +566,7 @@ New connection established</Description>
 		set ..InitialNamespace = $Znspace
 		set ..InitialZName = $Zname
 		
-		//do ..GenNLoadJSAutocompleteFile($Znspace)
+		if (..ExperimentalAutocompleteOn) do ..GenNLoadJSAutocompleteFile($Znspace)
 		do ..SendData("Terminal remote ready. Welcome.")
 		
 		set ..CurrentNamespace = $Znspace
