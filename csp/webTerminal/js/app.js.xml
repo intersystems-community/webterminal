@@ -89,7 +89,7 @@ function terminalInitialize(authKey) {
     terminalUpdateInputView();
     terminalOutput("Terminal base ready. Type " +
         "<span class=\"warning\">/help</span> to get more information.", 0, "<b>system</b>");
-    terminalServerConnect(document.URL.replace(/\/sys\/.*/,"/sys/%25WebTerminal.Engine.cls").replace(/http:\/\//,"ws://"),authKey);
+    terminalServerConnect(document.URL.replace(/csp\/.*?\/.*/,"csp/sys/%25WebTerminal.Engine.cls").replace(/http:\/\//,"ws://"),authKey);
     removeElement(document.getElementById("startup")); // remove forever any information about authKey on pages
     setInterval(terminalFreeOutputStack,Math.max(terminalOutputUpdateFrequency,5));
     terminalFocusOnInput();
