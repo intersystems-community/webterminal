@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="webTerminal/css/terminal.css" application="/csp/sys/" default="1"><![CDATA[
+.terminalBase {
+    position: relative;
+    margin: 20px;
+    font-family: FreeMono, monospace;
+    font-size: 14px;
+}
+
+.terminalOutputMessage {
+
+}
+
+.terminalInputContainer {
+    position: relative;
+}
+
+.terminalOutputContainer {
+    position: relative;
+    overflow: hidden;
+}
+
+/*.terminalOutputHeader:after {
+    content: ">";
+    margin: 0 6px 0 6px;
+}
+
+.terminalOutputBody {
+    word-wrap: break-word;
+}        */
+
+.terminalInputPreContainer {
+    position: relative;
+}
+
+.terminalInputHiddenPart {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.terminalInputWrapper, .terminalOutputWrapper {
+    margin-left: 100px;
+    position: relative;
+}
+
+.terminalOutputBody {
+    position: relative;
+    overflow: hidden;
+    display: block;
+}
+
+.terminalInputViewPart {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 0;
+}
+
+.terminalInput, .terminalOutput {
+    display: block;
+    margin: 0;
+    width: 100%;
+    padding: 0;
+    outline: none;
+    border: none;
+    line-height: inherit;
+    font: inherit;
+    background: none;
+    color: inherit;
+    overflow: hidden;
+    min-height: 12px;
+    word-wrap: break-word;
+    white-space: pre;
+    resize: none;
+}
+
+.terminalHiddenInput {
+    width: 100%;
+    color: rgba(255,255,255,0);
+}
+
+.terminalInputView {
+
+}
+
+.terminalInputHeader, .terminalOutputHeader { /* global zone (like "dev> ") */
+    float: left;
+    vertical-align: top;
+    width: 100px;
+}
+
+.terminalInputHeader:after, .terminalOutputHeader:after {
+    content: ">";
+    margin: 0 6px 0 6px;
+}
+
+.caret, .caret-blink {
+    position: relative;
+    display: inline-block;
+    width: 0;
+    height: 1pt;
+    vertical-align: bottom;
+}
+
+.caret-blink:after {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 1px;
+    background: #e300ff;
+    content: "";
+}
+
+.terminalAutocompleteOption {
+    opacity: 0.5;
+}]]></CSP>
+</Export>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="webTerminal/css/extra.css" application="/csp/sys/" default="1"><![CDATA[
+.warning {
+    color: #ffa500;
+}
+
+.hint {
+    color: #c7ff34;
+}
+
+.error {
+    color: #ff0000;
+}
+
+.info {
+    color: #fffd7c;
+}
+
+.executed {
+    color: #34ff00;
+}
+
+@-webkit-keyframes blinker {
+    from { opacity: 1.0; }
+    to { opacity: 0.0; }
+}
+
+.tab {
+    display: inline-block;
+    width: 24pt;
+}
+
+.blinking {
+    /*animation-name: blinker;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    -webkit-animation-duration: 1s;*/
+}
+]]></CSP>
+</Export>

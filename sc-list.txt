@@ -1,0 +1,2 @@
+%WebTerminal.Engine.CLS
+<cspapp>/webTerminal

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="webTerminal/css/base.css" application="/csp/sys/" default="1"><![CDATA[
+/*
+  Cache Web Terminal main stylesheet
+*/
+
+html {
+    background: url("../img/back.png") black;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    color: white;
+}
+
+#ruler { visibility: hidden; white-space: nowrap; }
+
+.hidden { visibility: hidden; }
+.center { text-align: center; }
+.bold { font-weight: 900; }
+.noMargin { margin: 0 }
+.noPadding { padding: 0 }
+
+table {
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+tr, td {
+    padding: 0 6px 6px 6px;
+    margin: 0;
+    border: 0;
+    border-spacing: 0;
+}]]></CSP>
+</Export>

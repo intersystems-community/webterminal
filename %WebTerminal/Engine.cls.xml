@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="%WebTerminal.Engine">
+<Description>
+This class represents core of web terminal.
+All operations with opened WebSocket placed here.
+USES GLOBAL ^TerminalAuthKey for client authorization.
+(Why global? Needed static (class-based) r/w variable. Any ideas?)</Description>
+<Super>%CSP.WebSocket,%Library.Routine,%CSP.REST</Super>
+<TimeCreated>63047,60359.445979</TimeCreated>
+
+<Property name="WebSocketID">
+<Description>
+The unique identity of this WebSocket.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="SharedConnection">
+<Description><![CDATA[
+This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
+conection or over a pool of shared connections.  It may be set to one of the following:
+<br><ul>
+<li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
+<li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
+</ul>]]></Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="SessionId">
+<Description>
+The CSP Session ID from which this WebSocket was created.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="GWClientAddress">
+<Description><![CDATA[
+The address through which a WebSocket operating asynchronously (<property>SharedConnection=1</property>) can communicate with the hosting CSP Gateway.]]></Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="lastClientId">
+<Description>
+Last joined client id</Description>
+<Type>%Numeric</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="ACTIONAUTHORIZATION">
+<Description>
+Authorization identifier</Description>
+<Type>%Char</Type>
+<InitialExpression>"?"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONMESSAGE">
+<Description>
+Message identifier</Description>
+<Type>%Char</Type>
+<InitialExpression><![CDATA[">"]]></InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONSQL">
+<Type>%Char</Type>
+<InitialExpression>"@"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONCHANGENAMESPACE">
+<Description>
+Zone change identifier</Description>
+<Type>%Char</Type>
+<InitialExpression>"_"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONEXECUTED">
+<Description>
+When command executed</Description>
+<Type>%Char</Type>
+<InitialExpression>"!"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONTERMINATOR">
+<Description>
+ACTION</Description>
+<Type>%String</Type>
+<InitialExpression>"/END/"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONLOADnEXECUTE">
+<Description>
+Execute file on client</Description>
+<Type>%String</Type>
+<InitialExpression>"js"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="CurrentNamespace">
+<Type>%String</Type>
+<InitialExpression>"USER"</InitialExpression>
+</Property>
+
+<Property name="InitialNamespace">
+<Type>%String</Type>
+<InitialExpression>"USER"</InitialExpression>
+</Property>
+
+<Property name="InitialZName">
+<Type>%String</Type>
+<InitialExpression>"Webterminal.Engine.1"</InitialExpression>
+</Property>
+
+<Property name="TerminalPID">
+<Type>%Numeric</Type>
+</Property>
+
+<Method name="redirects">
+<Description>
+Public point entries, using when redirecting i/o</Description>
+<Internal>1</Internal>
+<Private>1</Private>
+<ProcedureBlock>0</ProcedureBlock>
+<Implementation><![CDATA[
+readFromSocket(len,timeout,sharedConnection)
+	set sc = ""
+	Set $ZTrap="ReadError"
+	If len<1 Set len=32656
+	If (sharedConnection = 1) {
+		Set data=..ReadAsync(.len, .sc, timeout)
+		Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+		Set len=$Length(data1)
+		Quit data1
+	}
+	If ..BytesAvailable Goto ReadData
+	Set ..BytesAvailable=0,..AtEnd=0
+	Read header#5:timeout
+	If $Test=0 {
+		Set len=0
+		Set sc=$$$ERROR($$$CSPWebSocketTimeout,"WebSocket Read Operation timed-out")
+		Set ..AtEnd=1
+		Quit ""
+	}
+	Set type=$Extract(header,5)
+	If type=9 {
+		Set len=0
+		Set sc=$$$ERROR($$$CSPWebSocketClosed,"WebSocket Closed by the Client")
+		Set ..AtEnd=1
+		Quit ""
+	}
+	Set header=$Extract(header, 1, 4)
+	Set size=$ZLA(header)-1 If size<0 Set size=0
+	Set ..BytesAvailable=size
+ReadData
+	If ..BytesAvailable > len {
+		Set size=len
+		Set ..BytesAvailable=..BytesAvailable-len
+	}
+	else {
+		Set size=..BytesAvailable
+		Set ..BytesAvailable=0
+	}
+	If '..BytesAvailable Set ..AtEnd=1
+	If size=0 Set len=0,sc=$$$OK Quit ""
+	Read data#size
+	Set len=size
+	Set sc=$$$OK
+	Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+	Set len=$Length(data1)
+	Quit data1
+ReadError	
+	#; No interrupts during cleanup or error processing
+	$$$SetExternalInterrupts(0)
+	Set $ZTrap="ReadHalt"
+	Hang 5
+	Close 0
+ReadHalt 
+	Halt
+	
+wstr(s)
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	//do ..Write(s)
+	w s,*-3
+	do ##class(%Device).ReDirectIO(rd)
+	quit 
+wchr(c) 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	w $c(s),*-3
+	//do ..Write($c(c))
+	do ##class(%Device).ReDirectIO(rd) 
+	quit
+wnl 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	//do ..Write($c(13,10))
+	w $c(13,10),*-3
+	do ##class(%Device).ReDirectIO(rd)
+	quit 
+wff 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	w $c(12),*-3
+	//do ..Write($c(12))
+	do ##class(%Device).ReDirectIO(rd)
+	quit 
+wtab(s)
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	w $j("",s-$x),*-3
+	//do ..Write($j("",s-$x))
+	do ##class(%Device).ReDirectIO(rd) 
+	quit
+	
+rstr(len = 32656,timeout = 86400)
+	//do ..ClientAlertNamespace()
+	set rd=##class(%Device).ReDirectIO($$$NO)
+	read header#5:timeout
+	read data
+	//set data = $$readFromSocket(len,timeout)
+	//set data = ..Read(len,.status,timeout)
+	do ##class(%Device).ReDirectIO(rd)
+	quit data
+rchr(timeout = 86400)
+	//do ..ClientAlertNamespace()
+	set rd=##class(%Device).ReDirectIO($$$NO)
+	read header#5:timeout
+	read *data
+	//set data = $$readFromSocket(1,timeout)
+	//set data = $ASCII(..Read(1,.status,timeout))
+	do ##class(%Device).ReDirectIO(rd)
+	quit data
+
+	/* этот код нужно менять под Ваши нужды  
+rstr(len,timeout)
+	n rd,vr,rt
+	s vr="rt"
+	s rd=##class(%Device).ReDirectIO($$$NO)
+	s:$d(len) vr=vr_"#"_len s:$d(timeout) vr=vr_":"_timeout
+	r @vr
+	s rd=##class(%Device).ReDirectIO(rd)
+	s rd=$zu(96,4,$t)
+	q rt
+	*/
+]]></Implementation>
+</Method>
+
+<Method name="OnPreServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Debug">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>data:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	set ^debug($I(^debug)) = $ZTIMESTAMP _ ": " _ data
+]]></Implementation>
+</Method>
+
+<Method name="OnPostServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[ 	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetJSAutocompleteFilePath">
+<FormalSpec>filename:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	
+	set data = ##class(%Library.File).ManagerDirectory()
+	set data = ##class(%Library.File).ParentDirectoryName(data)
+	set data = data _ "CSP\" _ ..InitialNamespace _ "\js\autocomplete\" _ filename _ ".js" // UNIX?
+	
+	quit data
+]]></Implementation>
+</Method>
+
+<Method name="GenNLoadJSAutocompleteFile">
+<FormalSpec>namespace:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	if ($FIND(namespace,"%")'=0) set namespace = $REPLACE(namespace,"%","_")
+	if (##class(%File).Exists(..GetJSAutocompleteFilePath(namespace))) {
+		do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
+		quit $$$OK
+	}
+
+	do ..SendData("Generating autocomplete file for " _ namespace _ " classes, pleace, wait.")
+	
+	set oldNamespace = $NAMESPACE
+	if (##class(%SYS.Namespace).Exists(namespace)) { // _SYS <-> %SYS
+		SET $NAMESPACE = namespace
+	} else {
+		SET $NAMESPACE = "%SYS"
+	}
+	
+	set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
+	do result.Execute()
+	
+	set data = ""
+	while (result.Next()) { // forming autocomplete for each class
+	
+		set className = result.Data("Name")
+		if ($EXTRACT(className,1) = "%") && (namespace '= "_SYS") {
+			continue
+		}
+		set data = data _ "terminalLanguage[""class""][""" _ className _ """]={"
+		
+		set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
+ 		set count = cdefs.Properties.Count()
+ 		set data = data _ """properties"":{"
+ 		for i=1:1:count {
+     		set data = data _ """" _cdefs.Properties.GetAt(i).Name _ """:0"
+     		if (i'=count) set data = data _ ","
+ 		}
+ 		set data = data _ "},""methods"":{"
+ 		set count = cdefs.Methods.Count()
+ 		for i=1:1:count {
+     		set data = data _ """" _cdefs.Methods.GetAt(i).Name _ """:0"
+     		if (i'=count) set data = data _ ","
+ 		}
+ 		set data = data _ "},""parameters"":{"
+ 		set count = cdefs.Parameters.Count()
+ 		for i=1:1:count {
+     		set data = data _ """" _cdefs.Parameters.GetAt(i).Name _ """:0"
+     		if (i'=count) set data = data _ ","
+ 		}
+		
+		set data = data _ "}};"
+		
+	}
+		
+	set $NAMESPACE = oldNamespace
+	
+	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))
+	do file.Open("WSN")
+	do file.WriteLine(data)
+	do file.Close()
+	
+	do ..SendData("Autocomplete file for " _ namespace _ " classes created.")
+	do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
+	
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GenerateAuthKey">
+<Description>
+Generating new authorization key</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set temp = ""
+	set length = 64 + $Random(33)
+	for {
+    	set temp = temp _ $Char(65 + $Random(25)) // over googol combinations!
+    	quit:$Length(temp)>length
+	}
+	set ^TerminalAuthKey = temp
+]]></Implementation>
+</Method>
+
+<Method name="GetAuthKey">
+<Description>
+Returns key for client authorization.
+If the key is empty, generates new key value.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	if ($get(^TerminalAuthKey) = "") {
+		Do ..GenerateAuthKey()
+	}
+	quit ^TerminalAuthKey
+]]></Implementation>
+</Method>
+
+<Method name="SendData">
+<Description>
+Function sends data derectly to server with specified action</Description>
+<FormalSpec>query:%String="",action:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	if (action = "") { set action = ..ACTIONMESSAGE }
+	
+	// using CTWPv2
+	do ..Write(action)
+	do ..Write(query)
+	do ..Write(..ACTIONTERMINATOR)
+]]></Implementation>
+</Method>
+
+<Method name="ExecuteSQL">
+<FormalSpec>query:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	USE $Principal:(/SEN=1)
+   	USE $Principal:(::"+Q")
+	do ..Write(..ACTIONMESSAGE)
+	
+  	set tStatement = ##class(%SQL.Statement).%New()
+  	set qStatus = tStatement.%Prepare(query)
+  	if qStatus'=1 {
+	  	write "Wrong sql query. Try to examine:",$System.Status.DisplayError(qStatus)
+	} else {
+		set rset = tStatement.%Execute()
+  		do rset.%Display()
+	}
+	
+	do ..Write(..ACTIONTERMINATOR)
+	use $Principal:(/SEN=0)
+   	use $Principal:(::"-Q")
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ClientAlertNamespace">
+<Implementation><![CDATA[
+	if (..CurrentNamespace '= $Znspace) { // change client namespace
+	    set ..CurrentNamespace = $Znspace
+	 	do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE) 
+	 	//do ..GenNLoadJSAutocompleteFile($Znspace)  
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ExecuteCommand">
+<Description>
+The heart of terminal application</Description>
+<FormalSpec>query:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	if (query = "") quit $$$OK
+	
+	#dim exception as %Exception.AbstractException
+	set value = $Replace(query,$CHAR(10)," ")
+	
+	do ..Write(..ACTIONMESSAGE) // execute session start
+	
+	set $ZERROR = ""
+	set io = $io
+  	use io::("^" _ ..InitialZName)
+  	USE io:(::"+T")
+  	do ..Debug("^" _ ..InitialZName)
+ 	do ##class(%Device).ReDirectIO($$$YES)
+ 	
+    try { xecute value } catch exception {
+	   	set $ZERROR = exception.DisplayString()
+	    //do ..Write(exception.DisplayString())
+	    }
+	    
+	//do ..Write("OK")
+    do ##class(%Device).ReDirectIO($$$NO)
+    //do ..Write("OK")
+    use io:(::"-T")
+   	
+   	if ($ZERROR '= "") {
+		do ..Write($ZERROR)
+   	}
+   	//do ..Write("OK")
+   	do ..Write(..ACTIONTERMINATOR) // execute session end
+	
+	do ..ClientAlertNamespace()
+	
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RequireAuthorization">
+<Description>
+This method holds process and expects only one package from
+the client - it includes authorization key.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set key = ..Read(,.status) // wait for package
+	set realKey = ..GetAuthKey() // remember current auth key
+	do ..GenerateAuthKey() // generate new auth key
+	
+	if (key = realKey) {
+		quit $$$OK	
+	}
+	
+	quit $$$NOTOK
+]]></Implementation>
+</Method>
+
+<Method name="ClientLoop">
+<Description><![CDATA[
+Main method for every new client.
+
+Authorization process description:
+	1.	Client requests cache server page called "WebTerminal.csp";
+	2.	Server return this page with ClassMethod GetAuthKey() value;
+	3.	After client receives page, it performs websocket connection;
+		to same web-resource, but with next URL changes:
+		"http://" -> "ws://", "WebTerminal.csp" -> "Webterminal.Engine.cls";
+	4.	After connection established, client sends his AuthKey to server
+		and removes it locally (because it needed only one time);
+	5.	Server compares again received key with ..GetAuthKey() value and
+		grants permission, if keys are equal.
+	>>	As a result - there is no way to autorize via websocket without
+		accessing WebTerminal.csp.
+
+Method description:
+	First, method requires from client 
+	a key, which will be compared with ..GetAuthKey() (global). If 
+	succeeded, method sets "authorized" flag to true and changes global
+	key with ..GenerateAuthKey() for the next client.]]></Description>
+<FormalSpec>clientID:%Numeric</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	kill // clear vars
+	
+	for {
+		
+		set action = ..Read(,.status)
+    
+    	if $$$ISOK(status) {
+	    		    	
+	    	if (action = ..ACTIONMESSAGE) { // autorized
+	    	
+	    		set data = ..Read(,.status)
+	    		
+		    	do ..ExecuteCommand(data)
+		    	
+	    	} elseif (action = ..ACTIONSQL) { // sql
+		    	
+	    		set data = ..Read(,.status)
+	    	
+		    	do ..ExecuteSQL(data)
+		    		
+	    	} elseif (action = ..ACTIONTERMINATOR) {
+		    	
+		    	// fuu
+		    	
+	    	} else { // something scary
+		    	
+		    	do ..SendData("Unrecognised action: " _ action,..ACTIONMESSAGE)
+		    		
+	    	}
+      		
+    	} else { // $$$ISOK(status)
+	    	 
+	    	do ..Debug($$$CSPWebSocketClosed)
+	    	do ..SendData("Error occured while reading data.",..ACTIONMESSAGE)
+      		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
+    
+    	}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Server">
+<Description>
+New connection established</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set ..lastClientId = ..lastClientId + 1
+	
+	if ($$$ISOK(..RequireAuthorization())) {
+		
+		set ..InitialNamespace = $Znspace
+		set ..InitialZName = $Zname
+		
+		//do ..GenNLoadJSAutocompleteFile($Znspace)
+		do ..SendData("Terminal remote ready. Welcome.")
+		
+		set ..CurrentNamespace = $Znspace
+		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)
+		   
+		do ..ClientLoop(..lastClientId)
+		
+	} else {
+		do ..SendData("Hello, mr. Hacker!")
+		do ..EndServer()	
+	}
+	
+	do ..SendData("Good bye!",..ACTIONMESSAGE)
+  	
+  	quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>
