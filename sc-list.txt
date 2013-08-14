@@ -1,2 +1,12 @@
+<<<<<<< HEAD
 %WebTerminal.Engine.CLS
 <cspapp>/webTerminal
+=======
+<cspapp>
+<cspapp>/WebTerminal.CSP
+<cspapp>/css
+<cspapp>/img
+<cspapp>/js
+WebTerminal.Engine.CLS
+WebTerminal.Terminal.CLS
+>>>>>>> ac790df00d698ec6b2dd27be6aca67184f65441b
