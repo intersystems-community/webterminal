@@ -303,6 +303,12 @@ rstr(len,timeout)
 	if (##class(%File).Exists(filename)) {
 		do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
 		quit $$$OK
+	} elseif ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
+		set result = ##class(%File).CreateDirectory(##class(%File).GetDirectory(filename))
+		if (result '= 1) {
+			do ..SendData("Can't create dir js/autocomplete",..ACTIONMESSAGE)
+			quit $$$OK
+		}
 	}
 
 	do ..SendData("Generating autocomplete file for " _ namespace _ " classes, pleace, wait.")
