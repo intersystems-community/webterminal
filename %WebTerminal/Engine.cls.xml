@@ -186,15 +186,25 @@ ReadError
 ReadHalt 
 	Halt
 	
+PrepareOutput(data)
+	Try { Set data1=$zconvert(data,"O","UTF8") } Catch { Set data1=data }
+	quit data1
+	
+PrepareInput(data)
+	Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+	quit data1
+	
+//////////////////////////////////////////////
+	
 wstr(s)
 	set rd = ##class(%Device).ReDirectIO($$$NO) 
 	//do ..Write(s)
-	w s,*-3
+	w $$PrepareOutput(s),*-3
 	do ##class(%Device).ReDirectIO(rd)
 	quit 
 wchr(c) 
 	set rd = ##class(%Device).ReDirectIO($$$NO) 
-	w $c(s),*-3
+	w $$PrepareOutput($c(s)),*-3
 	//do ..Write($c(c))
 	do ##class(%Device).ReDirectIO(rd) 
 	quit
@@ -212,7 +222,7 @@ wff
 	quit 
 wtab(s)
 	set rd = ##class(%Device).ReDirectIO($$$NO) 
-	w $j("",s-$x),*-3
+	w $$PrepareOutput($j("",s-$x)),*-3
 	//do ..Write($j("",s-$x))
 	do ##class(%Device).ReDirectIO(rd) 
 	quit
@@ -222,6 +232,7 @@ rstr(len = 32656,timeout = 86400)
 	set rd=##class(%Device).ReDirectIO($$$NO)
 	read header#5:timeout
 	read data
+	set data = $$PrepareInput(data)
 	//set data = $$readFromSocket(len,timeout)
 	//set data = ..Read(len,.status,timeout)
 	do ##class(%Device).ReDirectIO(rd)
@@ -231,6 +242,7 @@ rchr(timeout = 86400)
 	set rd=##class(%Device).ReDirectIO($$$NO)
 	read header#5:timeout
 	read *data
+	set data = $$PrepareInput(data)
 	//set data = $$readFromSocket(1,timeout)
 	//set data = $ASCII(..Read(1,.status,timeout))
 	do ##class(%Device).ReDirectIO(rd)
