@@ -6,12 +6,12 @@
 <html>
 
 <head>
-    <title>Remote Cach? terminal</title>
+    <title>Remote Cache terminal</title>
     <meta charset="utf-8">
     <meta name="author" content="ZitRo - InterSystems">
-    <meta name="Description" content="Web-based terminal for Cach? administration.">
-    <meta name="keywords" content="cache,cach?,terminal,web,web-based,remote,control">
-    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <meta name="Description" content="Web-based terminal for Cache administration.">
+    <meta name="keywords" content="cache,cache,terminal,web,web-based,remote,control">
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon"/>
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/terminal.css">
     <link rel="stylesheet" href="css/extra.css">

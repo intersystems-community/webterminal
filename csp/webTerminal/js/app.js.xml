@@ -203,7 +203,7 @@ function terminalInternalCommand_help() {
         "   </tr>" +
         "   <tr>" +
         "       <td class=\"info\">connect</td>" +
-        "       <td>Establish new connection to Cach? server via <b>WebSocket</b></td>" +
+        "       <td>Establish new connection to Cache server via <b>WebSocket</b></td>" +
         "   </tr>" +
         "   <tr>" +
         "       <td class=\"info\">disconnect</td>" +
