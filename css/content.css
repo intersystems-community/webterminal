@@ -1,0 +1,107 @@
+@-webkit-keyframes rainbow {
+    0% {
+        color: rgb(0, 255, 0);
+    }
+
+    33% {
+        color: rgb(0, 0, 255);
+    }
+
+    66% {
+        color: rgb(255, 0, 0);
+    }
+
+    100% {
+        color: rgb(0, 255, 0);
+    }
+}
+
+@-moz-keyframes rainbow {
+    0% {
+        color: rgb(0, 255, 0);
+    }
+
+    33% {
+        color: rgb(0, 0, 255);
+    }
+
+    66% {
+        color: rgb(255, 0, 0);
+    }
+
+    100% {
+        color: rgb(0, 255, 0);
+    }
+}
+
+@-o-keyframes rainbow {
+    0% {
+        color: rgb(0, 255, 0);
+    }
+
+    33% {
+        color: rgb(0, 0, 255);
+    }
+
+    66% {
+        color: rgb(255, 0, 0);
+    }
+
+    100% {
+        color: rgb(0, 255, 0);
+    }
+}
+
+@keyframes rainbow {
+    0% {
+        color: rgb(0, 255, 0);
+    }
+
+    33% {
+        color: rgb(0, 0, 255);
+    }
+
+    66% {
+        color: rgb(255, 0, 0);
+    }
+
+    100% {
+        color: rgb(0, 255, 0);
+    }
+}
+
+.rainbowText {
+    text-shadow: 1px 1px 1px #ffffff;
+    -webkit-animation: rainbow 4s infinite linear;
+    -moz-animation: rainbow 4s infinite linear;
+    -o-animation: rainbow 4s infinite linear;
+    animation: rainbow 4s infinite linear;
+}
+
+.imgFloatLeft {
+    float: left;
+    margin: 5px;
+}
+
+.imgFloatRight {
+    float: right;
+    margin: 5px;
+}
+
+.center {
+    text-align: center;
+}
+
+#showcase .screenShot {
+    width: 60%;
+    box-shadow: 4px 4px 6px black;
+    margin: 15px;
+}
+
+.clearHL {
+    clear: both;
+}
+
+.warn {
+    color: #ff6500
+}

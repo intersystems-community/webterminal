@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="%CSP.WebSocket">
+<Description><![CDATA[
+The <CLASS>%CSP.WebSocket</CLASS> object serves as an event handler for communication between client and
+server using the WebSocket protocol (<B>RFC 6455</B>).  All WebSocket servers derive from %CSP.WebSocket.]]></Description>
+<IncludeCode>%occInclude,%occErrors,%cspInclude</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%RegisteredObject</Super>
+<TimeCreated>62640,50126.742036</TimeCreated>
+<ServerOnly>1</ServerOnly>
+
+<Property name="SharedConnection">
+<Description><![CDATA[
+This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
+conection or over a pool of shared connections.  It may be set to one of the following:
+<br><ul>
+<li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
+<li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
+</ul>]]></Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="WebSocketID">
+<Description>
+The unique identity of this WebSocket.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="SessionId">
+<Description>
+The CSP Session ID from which this WebSocket was created.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="GWClientAddress">
+<Description><![CDATA[
+The address through which a WebSocket operating asynchronously (<property>SharedConnection=1</property>) can communicate with the hosting CSP Gateway.]]></Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="AtEnd">
+<Description><![CDATA[
+The <var>AtEnd</var> property is set to true (1) when, during a read, 
+the WebSocket server has reached the end of the current data frame.]]></Description>
+<Type>%Boolean</Type>
+<InitialExpression>1</InitialExpression>
+</Property>
+
+<Property name="BytesAvailable">
+<Description>
+The amount of client data waiting to be read.</Description>
+<Type>%Integer</Type>
+<InitialExpression>0</InitialExpression>
+<Private>1</Private>
+</Property>
+
+<Method name="OnPreServer">
+<Description><![CDATA[
+Event handler for the <b>PreServer</b> event: this is invoked before
+starting the WebSockets Server.
+Changes to the <property>SharedConnection</property> flag must be made here.]]></Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OnPostServer">
+<Description><![CDATA[
+Event handler for the <b>PostServer</b> event: this is invoked after
+closing the WebSockets Server.]]></Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Server">
+<Description><![CDATA[
+The WebSocket Server.  Use the <Method>Read</Method> and <Method>Write</Method> methods
+to receive data from, and send data to, the client.
+Call the <Method>EndServer</Method> method to gracefully terminate the WebSocket Server.
+A WebSocket operating asynchronously (<property>SharedConnection=1</property>) can exit this method (using <b>Quit</B>) and subsequently open the WebSocket using the <Method>OpenServer</Method> method.]]></Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set status=..EndServer()
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Initialize">
+<Description>
+Internal method to initialize the WebSocket Class.</Description>
+<FormalSpec>WebSocketID:%String="",GWClientAddress:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set $ZT="InitializeError"
+	Set ..WebSocketID = WebSocketID
+	Set ..GWClientAddress = GWClientAddress
+	Do %session.Unlock(0)
+	Quit $$$OK
+InitializeError	
+	#; No interrupts during cleanup or error processing
+	$$$SetExternalInterrupts(0)
+	Set $ZTrap="InitializeHalt"
+	Hang 5
+	Close 0
+InitializeHalt 
+	Halt
+]]></Implementation>
+</Method>
+
+<Method name="InitializeServer">
+<Description>
+Internal method to initialize the WebSocket Server.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set $ZT="InitializeServerError"
+	Set SharedConnection = ..SharedConnection
+	Set ..SharedConnection = 0
+	Set data="CacheSP: p=0;chd=1;ato=3600;"_$Char(13,10)
+	Set data=data_"HTTP/1.1 200 OK"_$Char(13,10)
+	Set data=data_"Content-type: text/html"_$Char(13,10)
+	Set data=data_"Connection: close"_$Char(13,10)
+	Set data=data_"SharedConnection: "_SharedConnection_$Char(13,10)
+	Set data=data_$Char(13,10)
+	Set data=data_"WebSocket Server"_$Char(13,10)
+	Set status=..Write(data)
+	Do $ZU(166,1)
+	Set data="CacheSP: p=0;chd=1;ato=3600;"_$Char(13,10)
+	Set status=..Write(data)
+	Do $ZU(166,1)
+	Set ..SharedConnection = SharedConnection
+	Set status = ..SaveServer()
+	Quit $$$OK
+InitializeServerError	
+	#; No interrupts during cleanup or error processing
+	$$$SetExternalInterrupts(0)
+	Set $ZTrap="InitializeServerHalt"
+	Hang 5
+	Close 0
+InitializeServerHalt 
+	Halt
+]]></Implementation>
+</Method>
+
+<Method name="SaveServer">
+<Description>
+Internal method to save the WebSocket Server.</Description>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If ..WebSocketID = "" {
+		Quit 0
+	}
+	Set ^CacheTemp.cspWebSockets("SERVER", ..WebSocketID, "SessionId")=..SessionId
+	Set ^CacheTemp.cspWebSockets("SERVER", ..WebSocketID, "GWClientAddress")=..GWClientAddress
+	Set ^CacheTemp.cspWebSockets("SERVER", ..WebSocketID, "SharedConnection")=..SharedConnection
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="DeleteServer">
+<Description>
+Internal method to delete the WebSocket Server.</Description>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If ..WebSocketID = "" {
+		Quit 0
+	}
+	Kill ^CacheTemp.cspWebSockets("SERVER", ..WebSocketID)
+	Kill ^CacheTemp.cspWebSockets("READ", ..WebSocketID)
+	Kill ^CacheTemp.cspWebSockets("DATA", ..WebSocketID)
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OpenServer">
+<Description><![CDATA[
+Method to open an existing WebSocket Server.
+Only a WebSocket operating asynchronously (<property>SharedConnection=1</property>) can be accessed using this method.]]></Description>
+<FormalSpec>WebSocketID:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If WebSocketID = "" {
+		Quit 0
+	}
+	Set ..WebSocketID=WebSocketID
+	Set ..SessionId = $Get(^CacheTemp.cspWebSockets("SERVER", ..WebSocketID, "SessionId"))
+	Set ..GWClientAddress = $Get(^CacheTemp.cspWebSockets("SERVER", ..WebSocketID, "GWClientAddress"))
+	Set ..SharedConnection = $Get(^CacheTemp.cspWebSockets("SERVER", ..WebSocketID, "SharedConnection"))
+	
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="EndServer">
+<Description>
+Gracefully terminate the WebSocket Server.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If (..SharedConnection = 1) {
+		Set status=$$CSPGWClientRequest^%SYS.cspServer3(..GWClientAddress,"WSX "_..WebSocketID,-5,.response)
+		Set status=..OnPostServer()
+	}
+	else {
+		Do $ZU(166,1)
+	}
+	Set status=..DeleteServer()
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Read">
+<Description>
+Reads up to len characters from the client.
+If the call is successful the status (sc) will be returned as $$$OK, otherwise an error code of $$$CSPWebSocketTimeout 
+indicates a timeout and $$$CSPWebSocketClosed indicates that the client has terminated the WebSocket.</Description>
+<FormalSpec><![CDATA[&len:%Integer=32656,&sc:%Status,timeout:%Integer=86400]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	Set $ZTrap="ReadError"
+	If len<1 Set len=32656
+	If (..SharedConnection = 1) {
+		Set data=..ReadAsync(.len, .sc, timeout)
+		Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+		Set len=$Length(data1)
+		Quit data1
+	}
+	If ..BytesAvailable Goto ReadData
+	Set ..BytesAvailable=0,..AtEnd=0
+	Read header#5:timeout
+	If $Test=0 {
+		Set len=0
+		Set sc=$$$ERROR($$$CSPWebSocketTimeout,"WebSocket Read Operation timed-out")
+		Set ..AtEnd=1
+		Quit ""
+	}
+	Set type=$Extract(header,5)
+	If type=9 {
+		Set len=0
+		Set sc=$$$ERROR($$$CSPWebSocketClosed,"WebSocket Closed by the Client")
+		Set ..AtEnd=1
+		Quit ""
+	}
+	Set header=$Extract(header, 1, 4)
+	Set size=$ZLA(header)-1 If size<0 Set size=0
+	Set ..BytesAvailable=size
+ReadData
+	If ..BytesAvailable > len {
+		Set size=len
+		Set ..BytesAvailable=..BytesAvailable-len
+	}
+	else {
+		Set size=..BytesAvailable
+		Set ..BytesAvailable=0
+	}
+	If '..BytesAvailable Set ..AtEnd=1
+	If size=0 Set len=0,sc=$$$OK Quit ""
+	Read data#size
+	Set len=size
+	Set sc=$$$OK
+	Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+	Set len=$Length(data1)
+	Quit data1
+ReadError	
+	#; No interrupts during cleanup or error processing
+	$$$SetExternalInterrupts(0)
+	Set $ZTrap="ReadHalt"
+	Hang 5
+	Close 0
+ReadHalt 
+	Halt
+]]></Implementation>
+</Method>
+
+<Method name="ReadAsync">
+<FormalSpec><![CDATA[&len:%Integer=32656,&sc:%Status,timeout:%Integer=86400]]></FormalSpec>
+<Private>1</Private>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	Set $ZTrap="ReadAsyncError"
+	Set ^CacheTemp.cspWebSockets("READ",..WebSocketID)=$Job
+	Set data="",to=0
+ReadAsyncLoop ; Look for data to read
+	Set $ZTrap="ReadAsyncError"
+	Lock +^CacheTemp.cspWebSockets("DATA",..WebSocketID)
+	Set n=$Order(^CacheTemp.cspWebSockets("DATA",..WebSocketID,""))
+	If n'="" {
+		Set data=$Get(^CacheTemp.cspWebSockets("DATA",..WebSocketID,n))
+		If $Data(^CacheTemp.cspWebSockets("DATA",..WebSocketID,n,"close")) {
+			Set data="",len=0
+			Set sc=$$$ERROR($$$CSPWebSocketClosed,"WebSocket Closed by the Client")
+			Set ..AtEnd=1
+			Goto ReadAsyncExit
+		}
+		If $Length(data)>len {
+			Set data = $Extract(data, 1, len)
+			Set ^CacheTemp.cspWebSockets("DATA",..WebSocketID,n)=$Extract(data, len + 1, *)
+		}
+		else {
+			Kill ^CacheTemp.cspWebSockets("DATA",..WebSocketID,n)
+		}
+		Lock -^CacheTemp.cspWebSockets("DATA",..WebSocketID)
+		Set len=$Length(data)
+		Set sc=$$$OK
+		Goto ReadAsyncExit
+	}
+	Lock -^CacheTemp.cspWebSockets("DATA",..WebSocketID)
+	if (to) {
+		Set data="",len=0
+		Set sc=$$$ERROR($$$CSPWebSocketTimeout,"WebSocket Read Operation timed-out")
+		Set ..AtEnd=1
+		Goto ReadAsyncExit
+	}
+ReadAsyncWait ; Wait for next command
+	#; Turn on interrupts while waiting for requests to process
+	$$$SetExternalInterrupts(1)
+	#; Wait on a read so we quickly see Gateway disconnects
+	Hang timeout
+	Set to=1
+	Goto ReadAsyncLoop
+ReadAsyncError ; Error
+	Set $ZTrap=""
+	If $ZError["<EXTERNAL INTERRUPT>" Set to=1 Goto ReadAsyncLoop
+	Set sc=$$$ERROR(CSPWebSocketClosed,"WebSocket Read Operation Error")
+	Set data=""
+ReadAsyncExit ; Error
+	Kill ^CacheTemp.cspWebSockets("READ",..WebSocketID)
+	Quit data
+]]></Implementation>
+</Method>
+
+<Method name="Write">
+<Description>
+Write to the client.</Description>
+<FormalSpec>data:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set $ZTrap="WriteError"
+	Try { Set data1=$zconvert(data,"O","UTF8") } Catch { Set data1=data }
+	If (..SharedConnection = 1) {
+		Set status=$$CSPGWClientRequest^%SYS.cspServer3(..GWClientAddress,"WSW "_..WebSocketID_" "_data1,-5,.response)
+	}
+	else {
+		Write data1,*-3
+	}
+	Quit $$$OK
+WriteError	
+	#; No interrupts during cleanup or error processing
+	$$$SetExternalInterrupts(0)
+	Set $ZTrap="WriteHalt"
+	Hang 5
+	Close 0
+WriteHalt 
+	Halt
+]]></Implementation>
+</Method>
+</Class>
+</Export>
