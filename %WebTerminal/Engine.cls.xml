@@ -304,7 +304,7 @@ rstr(len,timeout)
 		do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
 		quit $$$OK
 	} elseif ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
-		set result = ##class(%File).CreateDirectory(##class(%File).GetDirectory(filename))
+		set result = ##class(%File).CreateDirectoryChain(##class(%File).GetDirectory(filename))
 		if (result '= 1) {
 			do ..SendData("Can't create dir js/autocomplete",..ACTIONMESSAGE)
 			quit $$$OK
@@ -374,12 +374,7 @@ Generating new authorization key</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	set temp = ""
-	set length = 64 + $Random(33)
-	for {
-    	set temp = temp _ $Char(65 + $Random(25)) // over googol combinations!
-    	quit:$Length(temp)>length
-	}
+	set temp = $SYSTEM.Util.CreateGUID()
 	set ^TerminalAuthKey = temp
 ]]></Implementation>
 </Method>
