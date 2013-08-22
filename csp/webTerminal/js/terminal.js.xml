@@ -2,694 +2,1116 @@
 <Export generator="Cache" version="25">
 <CSP name="webTerminal/js/terminal.js" application="/csp/sys/" default="1"><![CDATA[
 /**
- * Basic scripts for web-based Cache terminal.
+ * Main controller object for application.
  *
  * @author ZitRo
  *
- * Required:
- *  parser.js
- *  base.js
+ * Required objects:
+ *  server, parser, log, dom, hid, application
  *
- * Cache terminal protocol over-WebSocket description (CTWPv2):
- *  WebSocket data exchange based on messages transferring between server and client. The rules for exchanging
- *  for CTWPv2 are the next:
+ * Under unit test: unit.js
+ *
+ * Cache terminal protocol over-WebSocket description (CTWPv3):
  *
  *  AUTHORIZATION:
- *      First package: client sends string to server which includes ONLY authorization key. If server accepts
- *      key, it forming ACTION_AUTHORIZATION package (including one character), which means for client that
- *      authorization was successful and execution can be performed. If authorization fails, server closes
- *      connection immediately.
+ *      First package from client includes ONLY authorization key in clear text form. If this key is invalid, server
+ *      closes connection immediately. If server accepts key, main terminal session starts.
+ *
  *  MESSAGING:
- *      Server-client messaging based on less-three-packages rule. Every command (or command stack) transfers
- *      between server and client according to the next rules:
- *          - FIRST PACKAGE (any of the first received after authorization succeeded or ACTION_END) includes
- *          identifier that shows client/server suitable action. It means that next package(s) will be
- *          interpreted as one unit and action.
- *          - SECOND+ PACKAGE(s) (also called intermediate data) includes information to be interpreted by
- *          established rules in first package.
- *          - LAST PACKAGE includes terminator symbol combination - it brings client/server to break current
- *          action and start waiting for FIRST PACKAGE again.
- *      + Note that even second package can include terminator string (last package). In this case package will
- *      be interpreted as null string.
- *      ? If one of the second packages will include terminator string, and than terminator string will come
- *      again, it means that previous terminator was a simple string. *This situation causes special action for
- *      whole "intermediate data".
+ *      Every client-server package (except clear I/O mode) includes one action-identifier byte. This byte tells what to
+ *      perform on received side. The next table of action bytes are in use:
+ *
+ *      BYTE    SERVER received                             CLIENT received
+ *      0       Ignore body                                 Ignore body
+ *      1       Execute body                                Enter clear I/O mode (execution begins)
+ *      2       Execute sql body                            Exit clear I/O mode (with exit body)
+ *      3       Generate autocomplete (body - namespace)    Output message
+ *      4                                                   Change namespace
+ *      5                                                   Load autocomplete
+ *      6                                                   Read string
+ *      7                                                   Read char
+ *
+ *  Clear I/O mode
+ *      In this mode terminal client will listen for data from server and output any data as it is, without any action
+ *      identifiers. The same with terminal: any data sent to server won't include any identifiers.
  *
  */
+var terminal = new function() {
 
-var terminalAutocompleteVariants = []; // currently available variants of autocomplete
+    var webSocket = null, // socket to exchange data with server
+        lastCommandId = -1,// every command has it's own id. It can be used to change logs, etc.
 
-var terminalRedefined = []; // holds user-defined words that are stored in  //  terminalRedefined[i] = "word"
-var terminalDefines = []; // holds redefinition of defined words  //  terminalDefines["word"] = "word"
+        receiveDataHandler = null; // function that handles data from server. If function returns false, terminal won't
+                                   // process received data
 
-var terminalOutputStack = ""; // data which waits for outputting.
+    this.modes = {
+        NORMAL: 0, // executing commands on server
+        CLEAR_IO: 3,// real-time execution (while messaging) mode until /END/ from server
+        SQL: 1, // executing sql queries
+        MACRO: 2, // macro recording (set of commands)
+        DEFAULT: 0, // default terminal mode
+        LAST: 0 // determines last switched mode (for example, sql mode and execute mode both uses clear mode)
+    };
 
-/**
- * Actions are used as server-client communication prefixes and shows what action server/client have to perform.
- * For example, message from server ">test" means, that client must put to log text "test", when message "_USER"
- * meaning is to change current namespace to USER.
- *
- * @type {string}
- */
-var ACTION_NONE = "", // makes terminal to listen for action
-    ACTION_MESSAGE = ">",// stores message. Second separator means for server that message has it's own id
-    ACTION_AUTHORIZATION = "?",// used to authorize client, holds authorization key
-    ACTION_NAMESPACE = "_", // holds namespace to change
-    ACTION_EXECUTED = "!", // holds the id of message that has been just executed
-    ACTION_SQL = "@", // includes sql-query to server
-    ACTION_TERMINATOR = "/END/", // end of operation identifier (start from CTWPv2)
-    ACTION_LOADnEXECUTE = "js"; // client-side execution of loaded script. Value: relative/patch/to/script.js
+    this.clientActions = {
+        NONE: String.fromCharCode(0), // useless action
+        ENTER_CLEAR_IO: String.fromCharCode(1),// enters clear IO. In this mode terminal won't send action id
+        EXIT_CLEAR_IO: String.fromCharCode(2),// exits clear IO
+        OUTPUT: String.fromCharCode(3), // just outputs message body
+        CHANGE_NAMESPACE: String.fromCharCode(4), // changes namespace
+        LOAD_AUTOCOMPLETE: String.fromCharCode(5), // loads autocomplete file. Body holds only namespace
+        READ_STRING: String.fromCharCode(6), // reads string - removes namespace like in common terminal
+        READ_CHARACTER: String.fromCharCode(7) // reads character - removes namespace like in common terminal
+    };
 
-var terminalCurrentAction = ACTION_NONE, // current action shows what to expect from the server and how to handle it
-    terminalActionsRegExp = new RegExp("["+escapeRegExp(ACTION_MESSAGE+ACTION_AUTHORIZATION+ACTION_NAMESPACE+ACTION_EXECUTED+
-    ACTION_SQL+"("+ACTION_TERMINATOR+")"+"("+ACTION_LOADnEXECUTE+")")+"]", "g");
+    this.serverActions = {
+        NONE: String.fromCharCode(0),
+        EXECUTE: String.fromCharCode(1),
+        EXECUTE_SQL: String.fromCharCode(2),
+        GENERATE_AUTOCOMPLETE: String.fromCharCode(3)
+    };
 
-/**
- * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
- *
- * @returns {object} 
- *  Returns required object.
- */
-function terminalGetInputObject() { return document.getElementsByClassName("terminalHiddenInput")[0] }
-function terminalGetInputViewObject() { return document.getElementsByClassName("terminalInputView")[0] }
-function terminalGetOutputObject() { return document.getElementsByClassName("terminalOutputBody")[0] }
-function terminalGetInputWrappersObjects() { return document.getElementsByClassName("terminalInputWrapper") }
-function terminalGetInputHeaderObject() { return document.getElementsByClassName("terminalInputHeader")[0] }
-function terminalGetCaretObject() { return document.getElementsByClassName("caret")[0] ||
-    document.getElementsByClassName("caret-blink")[0] }
-function terminalGetAutocompleteObject() { return document.getElementsByClassName("terminalAutocompleteOption")[0] }
-function terminalGetOutputMessage(id) { return document.getElementById("terminalCommand"+id) }
-function terminalGetOutputMessageOutput(id) {
-    var a = document.getElementById("terminalCommand"+id);
-    if (a) {
-        var b = a.lastChild;
-        if (b) {
-            var c = b.firstChild;
-            if (c) return c;
+    this.mode = this.modes.DEFAULT; // mode changes current terminal submit action and behavior
+
+    var handlers = { // private handling
+
+        globalKeyTrigger: function(event) {
+            var keyCode = event.keyCode;
+        },
+
+        globalKeyDown: function(event) {
+
+            if (!terminal.input.focused() && !hid.keyPressed(hid.keys.CTRL)) {
+                dom.objects.input.focus();
+            }
+
+            if (terminal.input.keyAction(event)) {
+                setTimeout(function(){
+                    terminal.input.keyPress.call(terminal.input,event.keyCode);
+                },1);
+            }
+
+        },
+
+        inputKeyDown: function(event) {
+
+            //if (!hid.keyPressed(hid.keys.CTRL) || event.keyCode != hid.keys.CTRL) terminal.input.update();
+            terminal.input.update();
+
+        },
+
+        inputClick: function(event) {
+            terminal.input.update();
         }
-    }
-    return null;
-}
 
-/**
- * Focuses on terminal input object.
- */
-function terminalFocusOnInput() {
-    terminalGetInputObject().focus();
-    placeCaretAtEnd(terminalGetInputObject());
-}
+    };
 
-/**
- * Function pastes output stack to outputObject. If outputObject isn't assigned, it just clears terminalOutputStack
- *
- * [ @param outputObject ]
- *  Object to insert output to. If not specified, output will be written to current output object.
- * [ @param highlight ]
- *  Highlight code?
- */
-function terminalFreeOutputStack(outputObject,highlight) {
+    this.handlers = { // public handling
 
-    if (terminalOutputStack == "") return;
-    if (typeof outputObject == "undefined") outputObject = terminalCurrentOutputField;
-    if (typeof highlight == "undefined") highlight = 1;
-    if (outputObject && (typeof outputObject.innerHTML != "undefined") ) {
-        outputObject.innerHTML += (highlight)?parserHighlightHTML(htmlEncode(terminalOutputStack)):htmlEncode(terminalOutputStack);
-        scrollToBottom(document.body);
-    } else log("Output cleared without target.");
-    terminalOutputStack = "";
+        serverMessage: function(data) {
 
-}
-
-/**
- * Function by default called every .5-1 second and does input caret blink.
- */
-function terminalCaretTick() {
-    var caret = terminalGetCaretObject();
-    if (caret) (caret.getAttribute("class") == "caret-blink") ?
-        caret.setAttribute("class", "caret") :
-        caret.setAttribute("class", "caret-blink");
-}
-
-/**
- * Sets current command zone to zoneName.
- *
- * @param zoneName
- *  Command zone.
- */
-function terminalSetNamespace(zoneName) {
-
-    var header = terminalGetInputHeaderObject();
-    var wrappers = terminalGetInputWrappersObjects();
-
-    // we need to update terminalInputHeader.width && terminalInputWrappers[].margin-left property
-
-    var l = zoneName.visualLength() + 20; // @const
-    var length = wrappers.length;
-
-    for (var i = 0; i < length; i++) {
-        wrappers[i].style.marginLeft = l + "px";
-    }
-
-    header.style.width = l + "px";
-    header.innerHTML = zoneName;
-
-}
-
-/**
- * Function returns current working command zone.
- *
- * @returns {string}
- *  E.g. Namespace
- */
-function terminalGetNamespace() {
-    return terminalGetInputHeaderObject().innerHTML;
-}
-
-/**
- * Returns data typed to terminal input field.
- *
- * @returns {string}
- *  Value of terminal input
- */
-function terminalGetInputValue() {
-    var input = terminalGetInputObject();
-    return input.value;
-}
-
-/**
- * Sets the value of terminal input object.
- */
-function terminalSetInputValue(value) {
-
-    var input = terminalGetInputObject();
-    input.value = value;
-    placeCaretAtEnd(input);
-
-}
-
-/**
- * Returns data within terminal input (highlighted).
- *
- * @returns {string}
- *  Value of terminal input
- */
-function terminalGetInputViewValue() {
-    var input = terminalGetInputViewObject();
-    return input.innerHTML;
-}
-
-/**
- * Simply check if output object is default terminal output object.
- *
- * @param output
- *  Object to check.
- * @returns {boolean}
- */
-function terminalCheckForDefaultOutput(output) {
-    return output.getAttribute("class") == "terminalOutputBody"
-}
-
-/**
- * Outputs data to terminal output.
- * @param data
- *  Data to output.
- * [ @param highlight ]
- *  Set to positive if it is necessary to highlight output. Default: no highlight.
- * [ @param zone ]
- *  Set output visible zone to any zone you want. If not defined, default zone will be used.
- * [ @param id ]
- *  Insert command identifier.
- */
-function terminalOutput(data, highlight, zone, id) {
-
-    var normalOutput = terminalGetOutputObject(); // indicates normal output. Unusual output will provide only text insertion
-    var output = terminalCurrentOutputField || normalOutput;
-    highlight = (typeof highlight !== "undefined") ? highlight : 0;
-    data = ((highlight)?parserHighlightHTML(data):data);
-
-    if (terminalCheckForDefaultOutput(output)) {
-
-        id = ((typeof id !== "undefined") && (typeof terminalGetOutputMessage(id) !== "undefined"))?" id=\"terminalCommand"+id+"\"":"";
-        zone = (typeof zone !== "undefined") ? zone : terminalGetNamespace();
-
-        var ww = zone.visualLength() + 20; // @const
-
-        output.innerHTML += "<div class=\"terminalOutputContainer\" " + id + ">" +
-            "<div class=\"terminalOutputHeader\" style=\"width: " + ww + "px;\">" + zone + "</div>" +
-            "<div class=\"terminalOutputWrapper\" style=\"margin-left: " + ww + "px;\">" +
-            "<div class=\"terminalOutput\">" + data + "</div>" +
-            "</div>" +
-            "</div>";
-
-    } else {
-
-        output.innerHTML += data;
-
-    }
-
-}
-
-/**
- * Submits data from terminal input to server with all necessary actions. Clears input.
- */
-function terminalSubmit(data) {
-
-    //if (data.trim() != "") {
-
-        data = parserReplaceUserRedefinitions(data);
-
-        if (handleInput) { // scenario script
-
-            try {
-                handleInput.call(this,data);
-            } catch (e) {
-                terminalLog("Error handling function. " + e.message);
-            }
-
-        } else {
-
-            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)), 1, terminalGetNamespace(), lastCommandId+1);
-
-            // increase command stack for history
-            lastCommandId++;
-            if (data.trim() != "") {
-                historyCurrent = commandHistory.length;
-                commandHistory[historyCurrent - 1] = terminalGetInputValue();
-                commandHistory.push("");
-            }
-
-            if (data[0]=="/") { // internal (browser-side) instruction
-
-                terminalInternalExecute(data.substr(1,data.length-1));
-
-            } else {
-
-                if (terminalMode == MODE_EXECUTE || terminalMode == MODE_EXECUTION)
-                    terminalExecute(data);
-                else if (terminalMode == MODE_SQL)
-                    terminalExecute(data,ACTION_SQL);
-
-            }
+            var result = (typeof receiveDataHandler == "function")?receiveDataHandler.call(this,data):1;
+            if (result !== false) terminal.processor.processServerData(data);
 
         }
 
+    };
 
-    //} else terminalOutput(""); // just for geeks :)
+    this.processor = new function() {
 
-    terminalClearInput();
-    terminalUpdateInputView();
-    scrollToBottom(document.body);
+        var CREATE_OUTPUT = false; // output for empty server clear I/O message handler
 
-}
+        /**
+         * Processes data received from server.
+         *
+         * @param data
+         */
+        this.processServerData = function(data) {
 
-/**
- * Function clears all visual logs
- */
-function terminalClearLog() {
-    terminalGetOutputObject().innerHTML = ""
-}
+            var possibleAction = data.charAt(0);
 
-/**
- * Function clears all command history
- */
-function terminalClearHistory() {
-    commandHistory = [""];
-    historyCurrent = 0;
-}
+            if (possibleAction == terminal.clientActions.EXIT_CLEAR_IO && data.substr(1) == "exit") {
+                terminal.output.freeStack(0);
+                terminal.output.setTarget(dom.objects.output);
+                terminal.output.markDownAll();
+                terminal.mode = terminal.modes.LAST;
+                CREATE_OUTPUT = false;
+            } // exit clear IO
 
-/**
- * Function executes every submit time when handleInput flag equals true.
- *
- * @param data
- *  Input data.
- */
-function terminalHandledInput(data) {
-
-    // by flag handleInput
-    handleInput = 0;
-
-}
-
-/**
- * Function called when message received from the server.
- *
- * @param event
- *  Event data.
- */
-function terminalMessageReceived(data) {
-
-    //terminalDebug.log("Server: ",data);
-
-    if (data == ACTION_TERMINATOR) terminalCurrentAction = ACTION_TERMINATOR;
-    if (handleMessageReceive) {
-        try {
-            handleMessageReceive.call(this,data);
-        } catch (e) {
-            terminalLog("Error while handling server output. " + e.message);
-        }
-    }
-
-    switch (terminalCurrentAction) { // CTWPv2
-
-        case ACTION_NONE: { // assign new action
-            if (data.match(terminalActionsRegExp)) {
-                terminalCurrentAction = data;
-            } else {
-                terminalLog("Unrecognised data from server: " + data)
+            if (CREATE_OUTPUT) {
+                var obj = terminal.output.forceWrite("",true);
+                terminal.output.setTarget(obj);
+                CREATE_OUTPUT = false;
             }
-        } break;
 
-        case ACTION_EXECUTED: {
-            terminalMarkOutputMessageAsExecuted(data); // @deprecated
-        } break;
+            data = parser.clearHTML(data);
 
-        case ACTION_NAMESPACE: {
-            namespace = data;
-            terminalSetNamespace(data);
-        } break;
-
-        case ACTION_MESSAGE: {
-
-            if (terminalCheckForDefaultOutput(terminalCurrentOutputField)) { // while first message, create specified output
-                lastCommandId++;
-                terminalOutput("",0,terminalGetNamespace(),lastCommandId);
-                var out = terminalGetOutputMessageOutput(lastCommandId);
-                if (out) { terminalCurrentOutputField = out; }
+            switch (terminal.mode) {
+                case terminal.modes.NORMAL: terminal.processor.performAction(data.charAt(0),data.substr(1)); break;
+                case terminal.modes.CLEAR_IO: {
+                    if (possibleAction == terminal.clientActions.READ_STRING ||
+                        possibleAction == terminal.clientActions.READ_CHARACTER) {
+                        if (possibleAction == terminal.clientActions.READ_CHARACTER) terminal.input.switchCharRead();
+                        terminal.namespace.set("");
+                    }
+                    terminal.processor.write(parser.highlightHTML(data),1);
+                } break;
+                case terminal.modes.SQL: {
+                    if (possibleAction == terminal.clientActions.ENTER_CLEAR_IO) {
+                        terminal.processor.performAction(possibleAction,data.substr(1))
+                    } else if ((possibleAction == terminal.clientActions.EXIT_CLEAR_IO)) {
+                        // upper
+                    } else terminal.processor.write(parser.highlightHTML(data));
+                } break;
+                default: terminal.processor.write("Unknown terminal mode " + terminal.mode + ": data received " + data);
             }
-            terminalOutputStack += data;
 
-        } break;
+        };
 
-        case ACTION_LOADnEXECUTE: {
-            try {
-                var oHead = document.getElementsByTagName('HEAD').item(0);
-                var oScript= document.createElement("script");
-                oScript.type = "text/javascript";
-                oScript.src=data;
-                oHead.appendChild( oScript);
-                //document.write("<script class=\"garbage\" src=\""+data+"\"><\/script>");
-            } catch (e) {
-                log(e)
-            }
-        } break;
+        /**
+         * Performs action under data.
+         *
+         * @param action {string}
+         * @param data {string}
+         */
+        this.performAction = function(action,data) {
 
-        case ACTION_TERMINATOR: {
-            if (terminalMode == MODE_EXECUTION) terminalMode = MODE_EXECUTE;
-            terminalFreeOutputStack();
-            terminalCurrentOutputField = terminalGetOutputObject();
-            terminalMarkOutputMessageAsExecuted(lastCommandId);
-            terminalCurrentAction = ACTION_NONE; // todo: special function for 2nd+ occurrence
-        } break;
-
-    }
-
-    scrollToBottom(document.body);
-
-}
-
-function terminalMarkOutputMessageAsExecuted(messageId) {
-
-    var obj = terminalGetOutputMessage(messageId);
-    if (obj) {
-        var header = obj.firstChild;
-        if (header) {
-            header.innerHTML = "<span class=\"executed\">" + header.innerHTML + "</span>"
-        }
-    } else {
-        log("Message with id="+messageId+" executed, but log of this message does not exists (or just was cleared).")
-    }
-
-}
-
-/**
- * Logs message to terminal.
- *
- * @param message
- */
-function terminalLog(message) {
-    terminalOutput(message,0,"<span class=\"warning\">log</span>")
-}
-
-/**
- * Just sends data to server. Returns 1 if succeeded, else returns 0.
- *
- * @param stringData
- *
- * @returns {number}
- */
-function terminalSendToServer(stringData) {
-    try {
-        //terminalDebug.log("Sending: ",stringData);
-        webSocket.send(stringData);
-    } catch (e) {
-        terminalLog("WebSocket error. Data: " + e.message)
-    }
-}
-
-/**
- * Executes command on server side. Simply sends command to server.
- *
- * @param command
- *  Command to execute.
- * [ @param action ]
- *  Action prefix for server. Default: ACTION_MESSAGE.
- */
-function terminalExecute(command,action) {
-
-    if (typeof action == "undefined") action = ACTION_MESSAGE;
-    var data = parserPrepareSubmitData(command);
-    //if ( (action == ACTION_MESSAGE) || (action == ACTION_SQL) ) data = lastCommandId + ACTION_MESSAGE + data;
-
-    if (webSocket == null) {
-        terminalOutput("No connection established. Please, use <span class=\"hint\">/connect</span> command first.",
-            0,"<span class=\"error\">system</span>");
-    } else try {
-        //webSocket.send(action+data); // CTWPv1
-        if (terminalMode != MODE_EXECUTION) terminalSendToServer(action);
-        terminalSendToServer(data);
-        //terminalSendToServer(ACTION_TERMINATOR); // CTWPv2
-    } catch (e) {
-        terminalOutput("Problems with <b>WebSocket</b>. Exception: " + e,
-            0,"<span class=\"error\">system</span>");
-    }
-
-    if (action == ACTION_MESSAGE) terminalMode = MODE_EXECUTION;
-
-}
-
-function terminalSaveCurrentQueryToHistory() {
-    commandHistory[commandHistory.length-1] = terminalGetInputValue();
-}
-
-/**
- * Clears input of the terminal.
- */
-function terminalClearInput() {
-
-    terminalGetInputObject().value = "";
-    placeCaretAtEnd(terminalGetInputObject());
-
-}
-
-/**
- * Performs suitable actions for terminal input, basing on keyPress event:
- * - Performs submitting while enter pressed;
- * - Prevents and handles <tab> key press;
- *
- * @param event
- *  Key press event.
- */
-function terminalKeyDowned(event) {
-
-    var keyCode = getKeyCode(event);
-
-    if ( keyCode == 9 || (keyCode == 13 && !(keyPressed[16] || keyPressed[17])) || keyCode == 17) {
-        preventDefaultEvent(event);
-    }
-
-    if (keyCode != 13 || ( keyCode == 13 && !(keyPressed[16] || keyPressed[17])))
-        if (terminalPerformKeyAction(keyCode)) { // SHIFT/CTRL + ENTER
-            preventDefaultEvent(event);
-        } else setTimeout("terminalSaveCurrentQueryToHistory()",1);
-
-    // SHIFT == 16
-
-    if (keyCode != 17) setTimeout("terminalUpdateInputView()",1); // CTRL
-
-}
-
-/**
- * Function focuses on terminal input, if focus locates somewhere else and
- * calls terminalKeyDowned(event) function.
- *
- * @param event
- *  Keyboard event.
- */
-function terminalGlobalKeyDown(event) {
-
-    if (document.activeElement != terminalGetInputObject()) {
-        if (keyPressed[17] == 0)
-            terminalFocusOnInput();
-    }
-    terminalKeyDowned(event);
-
-}
-
-/**
- * Function just updates input view: highlights it and do some other stuff.
- */
-function terminalUpdateInputView() {
-
-    terminalGetInputViewObject().innerHTML = parseInput(terminalGetInputValue());
-
-}
-
-/**
- * Just returns value of current autocomplete option.
- *
- * @returns {string}
- *  Part of string autocomplete object holds.
- */
-function terminalGetAutocompleteValue() {
-
-    var obj = terminalGetAutocompleteObject();
-    return (obj)?terminalGetAutocompleteObject().innerHTML:"";
-
-}
-
-/**
- * Sets value directly to autocomplete object.
- * @param value
- *  Value to set.
- */
-function terminalSetAutocompleteValue(value) {
-
-    var obj = terminalGetAutocompleteObject();
-    if (obj) { obj.innerHTML = value } else { log("No autocomplete object found to set value to.") }
-
-}
-
-/**
- * Function returns one of query results from command history.
- *
- * @param increment
- *  Relative value to seek in history stack
- *
- * @returns {string}
- *  Command from history.
- */
-function terminalLoadFromHistory(increment) {
-
-    historyCurrent += increment;
-    if (historyCurrent < 0) historyCurrent = commandHistory.length-1;
-    if (historyCurrent >= commandHistory.length) historyCurrent = 0;
-    return commandHistory[historyCurrent].toString();
-
-}
-
-/**
- * Inserts autocomplete option (if exists) into current cursor position of input.
- */
-function terminalPerformAutocomplete() {
-
-    var input = terminalGetInputObject();
-    var caretPosition = getCaretPosition(input);
-    var autocompleteValue = terminalGetAutocompleteValue();
-    terminalSetInputValue(parserInsertString(terminalGetInputValue(),caretPosition,autocompleteValue));
-    setCaretPosition(input,caretPosition + autocompleteValue.length);
-
-}
-
-/**
- * Performs specified action according to key.
- *
- * @param key
- *  Code of trigger key.
- * @returns {number}
- *  Returns default action preventing. If 0, default key pressed action will be performed.
- */
-function terminalPerformKeyAction(key) {
-
-    var caretPos, nPos;
-
-    switch (key) {
-        case 9: { // TAB
-            if (terminalAutocompleteVariants.length == 0) {
-                var p = getCaretPosition(terminalGetInputObject())-1;
-                var val = terminalGetInputValue();
-                terminalSetInputValue(val.replaceSymbol(p,val.charAt(p)+"\t"));
-                setCaretPosition(terminalGetInputObject(),p+2);
-            }
-            terminalPerformAutocomplete();
-        } break;
-        case 13: terminalSubmit( terminalGetInputValue() ); break; // ENTER
-        case 17: terminalChangeAutocompleteVariant(1); break; // CTRL
-        case 38: {
-            caretPos = getCaretPosition(terminalGetInputObject());
-            nPos = terminalGetInputValue().indexOf("\n");
-            if (caretPos < nPos || nPos == -1) { // if placed on first line of input
-                terminalSetInputValue(terminalLoadFromHistory(-1));
-                //setTimeout("placeCaretAtEnd(terminalGetInputObject())",1);
-                return 1;
-            }
-        } break;
-        case 40: {
-            caretPos = getCaretPosition(terminalGetInputObject());
-            nPos = terminalGetInputValue().lastIndexOf("\n");
-            if (caretPos > nPos || nPos == -1) { // if placed on last line of input
-                terminalSetInputValue(terminalLoadFromHistory(1));
-                //setTimeout("placeCaretAtEnd(terminalGetInputObject())",1);
-                return 1;
-            }
-        } break;
-    }
-
-    return 0;
-
-}
-
-/**
- * Changes variants of autocomplete to one of the next available.
- *
- * @param dir
- *  Direction to list.
- */
-function terminalChangeAutocompleteVariant(dir) {
-
-    var val = terminalGetAutocompleteValue();
-    var ll = terminalAutocompleteVariants.length;
-    if (val != "") {
-        for (var i = 0; i < ll; i++) {
-            if (terminalAutocompleteVariants[i] == val) {
-                var v;
-                if (dir > 0) {
-                    v = (i+1 < ll)?terminalAutocompleteVariants[i+1]:terminalAutocompleteVariants[0];
-                } else {
-                    v = (i-1 < 0)?terminalAutocompleteVariants[ll-2]:terminalAutocompleteVariants[i-1];
+            switch (action) {
+                case terminal.clientActions.OUTPUT: terminal.output.write(parser.prepareForOutputHTML(data,-1,1)); break;
+                case terminal.clientActions.CHANGE_NAMESPACE: terminal.namespace.set(data); break;
+                case terminal.clientActions.ENTER_CLEAR_IO: {
+                    terminal.modes.LAST = terminal.mode;
+                    CREATE_OUTPUT = true;
+                    terminal.mode = terminal.modes.CLEAR_IO;
+                } break;
+                case terminal.clientActions.EXIT_CLEAR_IO: terminal.mode = terminal.modes.LAST; break;
+                case terminal.clientActions.LOAD_AUTOCOMPLETE: {
+                    server.requestAutocompleteFile(data || terminal.namespace.getCorrectFileName());
+                } break;
+                default: {
+                    log.write("Unrecognised action from server.");
+                    terminal.output.write(data);
                 }
-                terminalSetAutocompleteValue(v);
-                return;
             }
+
+        };
+
+        this.internal = {
+
+            sql: function() {
+                if (terminal.mode == terminal.modes.SQL){
+                    terminal.namespace.update();
+                    terminal.mode = terminal.modes.NORMAL;
+                } else {
+                    terminal.namespace.mask("SQL");
+                    terminal.mode = terminal.modes.SQL;
+                }
+                terminal.output.write("<span class=\"info\">SQL mode " +
+                    ((terminal.mode == terminal.modes.SQL)?"enabled":"disabled") + "</span>");
+            },
+
+            help: function() {
+                terminal.output.write(application.helpbox);
+            },
+
+            autocomplete: function() {
+                server.submit(
+                    terminal.serverActions.GENERATE_AUTOCOMPLETE,
+                    terminal.namespace.getCorrectFileName(),
+                    false
+                );
+            },
+
+            clear: function() {
+                dom.clearLogs();
+            },
+
+            connect: function(url) {
+                server.connect(url);
+            },
+
+            disconnect: function() {
+                server.disconnect();
+            },
+
+            reconnect: function() {
+                server.disconnect();
+                server.connect();
+            },
+
+            define: function(definition,redefinition) {
+                if (!definition || !redefinition) {
+                    terminal.output.write("Use /define [definition] [redefinition]");
+                    return;
+                }
+                terminal.definitions.add(definition,redefinition);
+                terminal.output.write("<span class=\"info\">" + definition + "</span> defined as " +
+                    "<span class=\"info\">" + redefinition + "</span>")
+            },
+
+            siege: function(iterations,serverDelay) {
+                if (typeof iterations == "undefined") { iterations = 120 }
+                if (typeof serverDelay == "undefined") { serverDelay = 0.02 }
+                var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(33+$RANDOM(93))\n" +
+                    "  if ($RANDOM(5) = 0) { write \" \" }\n  h "+serverDelay+"\n}";
+
+                terminal.input.set(serverCommand);
+                terminal.input.submit();
+                var startTime = new Date().getTime();
+                var packages = 0;
+
+                receiveDataHandler = function(data) {
+                    packages++;
+                    if (data.charAt(0) == terminal.clientActions.EXIT_CLEAR_IO) {
+                        receiveDataHandler = null;
+                        var timeDifference = new Date().getTime() - startTime;
+                        terminal.output.freeStack(0);
+                        terminal.output.write("<span class=\"info\"><br>Query client execution time: " +
+                            timeDifference + "/" + (serverDelay*iterations*1000) + "ms (current/ideal)" +
+                            "<br>Packages from server: "+packages+"</span>\n");
+                    }
+                    return true;
+                }
+            }
+
+        };
+
+        /**
+         * Executes internal command with given arguments.
+         *
+         * @param command
+         * @param args
+         */
+        this.executeInternal = function(command,args) {
+
+            if (this.internal.hasOwnProperty(command)) {
+                if (!args || !args[0]) args = [];
+                this.internal[command].apply(this,args)
+            } else terminal.output.write("Unknown internal command: " + command);
+
+        };
+
+        /**
+         * Write data to output stack and. This stage will process any escape-sequences received from server.
+         * TODO: process escape-sequences
+         *
+         * @param data {string}
+         */
+        this.write = function(data) {
+            terminal.output.write(data)
+        };
+
+    };
+
+    this.initialize = function() {
+
+        if (!dom.initialize()) {
+            log.write("Unable to init terminal: dom fault.",dom.objects);
+            return;
         }
-    }
 
-}
+        this.output.setTarget(dom.objects.output); // set standard output
 
-/**
- * Checks for autocomplete in current position and guesses variants
- */
-function parserInsertAutocompleteOption(text) {
+        hid.bindKeyDown(document, handlers.globalKeyDown);
+        hid.bindKeyDown(document, function(event){ // 1ms wrapper: to get input value in handler without masturbation
+            setTimeout(function(){handlers.inputKeyDown(event)},1);
+        });
+        hid.bindClick(dom.objects.input, handlers.inputClick);
 
-    var input = terminalGetInputObject();
-    var caretPosition = getCaretPosition(input);
-    var data = terminalGetInputValue();
-    terminalAutocompleteVariants = parserGetCleverAutocompleteVariants(data,caretPosition);// parserGetAutocompleteVariants(data,caretPosition);
-    if (terminalAutocompleteVariants.length > 0) {
-        text = parserInsertString(text,parserGetRealPosition(text,caretPosition),
-            "<span class=\"terminalAutocompleteOption\">"+terminalAutocompleteVariants[0]+"</span>");
-    }
-    return text;
+        this.output.write("Terminal base ready. Type <span class=\"warning\">/help</span> to get more information.");
 
-}
-]]></CSP>
+        // bindEvent( terminalGetInputObject(), "blur", clearKeyStates ); - why?
+        window.onbeforeunload = server.disconnect;
+        server.connect();
+        // TODO: pass auth key
+        dom.remove(document.getElementById("startup")); // TODO: move to dom
+
+        this.input.clear(); // Clear histories caused by "back" page
+        this.input.focus();
+        this.input.update();
+
+    };
+
+    /**
+     * Represents methotd to work with history
+     */
+    this.history = new function() { // TODO: do not save same commands to history
+
+        var history = [""], // history of all submitted commands. Starting with empty string
+            current = 0; // current position in commandHistory
+
+        /**
+         * Gets history record by id.
+         *
+         * @param id
+         * @returns {string}
+         */
+        this.getByID = function(id) {
+            return history[id]
+        };
+
+        /**
+         * Saves text to current history.
+         *
+         * @param text
+         */
+        this.save = function(text) {
+            history[current] = text;
+        };
+
+        /**
+         * Creates new history record for current input.
+         */
+        this.add = function() {
+            current = history.length;
+            history.push("");
+        };
+
+        this.moveToLast = function() {
+            current = history.length - 1;
+        };
+
+        /**
+         * Returns current history record.
+         *
+         * @returns {string}
+         */
+        this.get = function() {
+            return history[current];
+        };
+
+        /**
+         * Returns history record with increment. This method changes current work history field.
+         *
+         * @param increment
+         * @returns {string}
+         */
+        this.load = function(increment) {
+
+            current += increment || 0;
+            if (current < 0) current = history.length-1;
+            if (current >= history.length) current = 0;
+            return history[current];
+
+        }
+
+    };
+
+    this.autocompletion = new function() {
+
+        var variants = [],
+            current = 0;
+
+        /**
+         * Gets updates autocompletion for given arguments. By default method will work with terminal input and will
+         * update current autocomplete.
+         *
+         * [ @param position ]
+         *  Position where to check.
+         * [ @param string ]
+         *  String to check.
+         */
+        this.reset = function(position,string) {
+            if (typeof position == "undefined") position = terminal.input.caretPosition();
+            if (typeof string == "undefined") string = terminal.input.get();
+            variants = parser.getAutocomplete(string,position);
+            return this.get(current = 0);
+        };
+
+        /**
+         * Returns if some variants aviable.
+         *
+         * @returns {boolean}
+         */
+        this.hasVariants = function() {
+            return variants.length != 0;
+        };
+
+        /**
+         * Returns next autocomplete variant.
+         *
+         * @returns {string}
+         */
+        this.next = function() {
+            if (variants.length != 0) {
+                return this.get(current+1);
+            } else return "";
+        };
+
+        /**
+         * Returns previous autocomplete variant.
+         *
+         * @returns {string}
+         */
+        this.previous = function() {
+            if (variants.length != 0) {
+                return this.get(current-1);
+            } else return "";
+        };
+
+        /**
+         * Get variant by it's index in current variants. Note that index can handle any integer
+         *
+         * @param index
+         * @returns {string}
+         */
+        this.get = function(index) {
+            if (variants.length == 0) return "";
+            index = index % variants.length;
+            if (index < 0) index = variants.length + index;
+            current = index;
+            return variants[index];
+        };
+
+        /**
+         * Clears all variants.
+         */
+        this.clear = function() {
+            variants = [];
+            current = 0;
+        };
+
+        /**
+         * Show variant to the user.
+         *
+         * @param text
+         */
+        this.getSuggestion = function() {
+            if (this.hasVariants()) {
+                return this.get(current);
+            } else return "";
+        };
+
+    };
+
+    this.definitions = new function() {
+
+        var definitions = {
+            //"#1" = "##class(My.Class)"
+        };
+
+        this.add = function(definition,redefinition) {
+            definitions[definition] = redefinition;
+        };
+
+        this.remove = function(definition) {
+            if (definitions.hasOwnProperty(definition)) {
+                delete definitions[definition];
+            } else log.write(definition + " not defined and cannot be removed.")
+        };
+
+        /**
+         * Replaces all definitions in string.
+         *
+         * @param string
+         */
+        this.replace = function(string) {
+            for (var def in definitions) {
+                if (!definitions.hasOwnProperty(def)) continue;
+                string = string.replace(def,definitions[def]);
+            }
+            return string;
+        }
+
+    };
+
+    // represents output and anything related to it
+    this.output = new function() {
+
+        var stack = "",
+            target = null,
+            lastID = 0,
+            mark = false;
+
+        var STACK_REFRESH_INTERVAL = 25;
+
+        /**
+         * Writes text to output as standalone message. If oldOutput defined, write will be forced to old output object.
+         *
+         * @param text {string}
+         */
+        this.write = function(text) {
+            if (target == dom.objects.output) {
+                this.forceWrite(text);
+            } else {
+                stack += text;
+            }
+        };
+
+        /**
+         * Sets output target to object.
+         *
+         * @param object
+         * @returns {boolean}
+         */
+        this.setTarget = function(object) {
+            if (object && object.hasOwnProperty("innerHTML")) {
+                target = object;
+                return true;
+            } else return false;
+        };
+
+        /**
+         * Marks down all marked log headers.
+         */
+        this.markDownAll = function() {
+            if (mark == false) dom.performForClassObjects("waiting",function(){
+                this.className = this.className.replace(/waiting/g,"complete")
+            });
+        };
+
+        /**
+         * Writing output to object immediately.
+         *
+         * @param text
+         * [ @param marking ]
+         *  Shows if it needed to mark log as "executing". Mark will still continue until another force write call.
+         * @return {object}
+         *  Object to output to.
+         */
+        this.forceWrite = function(text,marking) {
+
+            if (typeof marking == "undefined") marking = false;
+
+            var div = document.createElement("div");
+            div.id = "terminal-log-"+lastID++;
+            div.className = "terminal-outputContainer animated01";
+            if (marking) {
+                div.style.opacity = "0";
+            }
+
+            var head = document.createElement("div");
+            head.className = "terminal-message-head"+((marking)?" waiting":"");
+            head.innerHTML = terminal.namespace.get();
+
+            var body = document.createElement("div");
+            body.className = "terminal-message-body terminal-output-body";
+            body.innerHTML = text;
+
+            div.appendChild(head);
+            div.appendChild(body);
+            target.appendChild(div);
+            setTimeout(function(){div.style.opacity = "1";},1);
+
+            dom.scrollBottom();
+
+            return body;
+
+        };
+
+        this.freeStack = function(highlight) {
+            if (!stack) return;
+
+            var el = document.createElement("span");
+            el.className = "animated01";
+            el.innerHTML = (highlight)?parser.highlightHTML(stack):stack;
+            el.style.opacity = "0";
+            setTimeout(function(){el.style.opacity = "1";},1);
+            target.appendChild(el);
+
+            dom.scrollBottom();
+            stack = "";
+        };
+
+        setInterval(this.freeStack,STACK_REFRESH_INTERVAL); // refreshing output
+
+    };
+
+    // represents input and anything related to it
+    this.input = new function() {
+
+        var readChar = false;
+
+        /**
+         * Updates main input field view, highlights and redraws area.
+         */
+        this.update = function() { // TODO: rename to update
+            var data = terminal.input.get();
+            var cp = (this.focused())?terminal.input.caretPosition():-1;
+            dom.objects.inputView.innerHTML =
+                parser.prepareForOutputHTML(data,cp,1,1);
+            dom.scrollBottom();
+        };
+
+        /**
+         * Returns true while input element in dom under focus.
+         *
+         * @returns {boolean}
+         */
+        this.focused = function() {
+            return (document.activeElement == dom.objects.input);
+        };
+
+        /**
+         * Sets the caret position to position.
+         *
+         * @param position {number}
+         */
+        this.setCaretPosition = function(position) {
+            var element = dom.objects.input;
+            if(element.createTextRange) {
+                var range = element.createTextRange();
+                range.move('character', position);
+                range.select();
+            } else {
+                if(element.selectionStart) {
+                    element.focus();
+                    element.setSelectionRange(position, position);
+                } else {
+                    element.focus();
+                }
+            }
+        };
+
+        /**
+         * Inserts string to position without problems with caret position.
+         *
+         * @param position {number}
+         * @param string {string}
+         */
+        this.insert = function(position, string) {
+
+            var insert = function(position, to, string) {
+                    return to.splice(position,0,string);
+                },
+                seek = 0;
+
+            if (this.focused()) {
+                var p = this.caretPosition();
+                seek = (position <= p)?string.length:0;
+                this.set(insert(position,this.get(),string));
+                this.setCaretPosition(p+seek);
+            } else this.set(insert(position,this.get(),string));
+
+            this.update();
+
+        };
+
+        /**
+         * Returns input value.
+         *
+         * @returns {string}
+         */
+        this.get = function() {
+            return dom.objects.input.value;
+        };
+
+        /**
+         * Clears input.
+         */
+        this.clear = function() {
+            dom.objects.input.value = "";
+            this.update();
+        };
+
+        /**
+         * Returns current caret position
+         *
+         * @returns {number}
+         */
+        this.caretPosition = function() {
+            return dom.objects.getCaretPosition(dom.objects.input);
+        };
+
+        /**
+         * Clears input and causes it to read one character instead of anything else.
+         */
+        this.switchCharRead = function() {
+            this.clear();
+            readChar = true;
+        };
+
+        /**
+         * Focuses on input field.
+         */
+        this.focus = function() {
+            dom.objects.input.focus();
+        };
+
+        /**
+         * Returns line where caret placed.
+         *
+         * @returns {number}
+         */
+        this.caretLine = function() {
+            var caretPos = this.caretPosition();
+            var data = this.get();
+            var np = data.indexOf("\n");
+            var line = 1;
+            while (np != -1) {
+                if (caretPos <= np) break;
+                line++;
+                np = data.indexOf("\n",np+1);
+            }
+            return line;
+        };
+
+        /**
+         * Returns number of lines in input.
+         *
+         * @returns {number}
+         */
+        this.lines = function() {
+            var arr = this.get().match(/\n/g);
+            if (!arr) return 1;
+            return arr.length + 1;
+        };
+
+        /**
+         * Submits current input data with, maybe, another action.
+         *
+         * [ @param action ]
+         */
+        this.submit = function(action) {
+
+            if (typeof action == "undefined" || !action) {
+                action = terminal.serverActions.EXECUTE;
+                switch (terminal.mode) {
+                    case terminal.modes.NORMAL: action = terminal.serverActions.EXECUTE; break;
+                    case terminal.modes.SQL: action = terminal.serverActions.EXECUTE_SQL; break;
+                    case terminal.modes.CLEAR_IO: action = ""; break;
+                }
+            }
+
+            var data = terminal.input.get();
+
+            if (data.charAt(0) == "/") {
+                var pos = data.indexOf(" ",1); pos = (pos==-1)?data.length:pos;
+                var command = data.substring(1,pos);
+                var arguments = data.substr(pos+1).split(" ");
+                terminal.processor.executeInternal(command,arguments);
+            } else {
+                data = terminal.definitions.replace(data);
+                terminal.output.write(parser.highlightHTML(data));
+                server.submit(action,data);
+            }
+            terminal.history.moveToLast();
+            terminal.history.save(data);
+            terminal.history.add();
+            terminal.input.clear();
+            if (terminal.mode != terminal.modes.SQL) terminal.namespace.update();
+
+        };
+
+        /**
+         * Sets the input value.
+         *
+         * @param value
+         */
+        this.set = function(value) {
+            dom.objects.input.value = value;
+        };
+
+        /**
+         * This function handles keypress moment. Returns false if keyAction was blocked or handled. False will not
+         * call keyPress event.
+         *
+         * @param event
+         */
+        this.keyAction = function(event) {
+
+            var key = event.keyCode || 0;
+
+            if (readChar) {
+                readChar = false;
+                server.submit("",String.fromCharCode(key),true);
+                hid.preventDefault(event);
+                this.clear();
+                return false;
+            }
+
+            if (key == hid.keys.ENTER && !(hid.keyPressed(hid.keys.SHIFT) || hid.keyPressed(hid.keys.CTRL))) {
+                hid.preventDefault(event);
+                setTimeout(this.submit,1);
+                return false;
+            }
+
+            if (key == hid.keys.UP || key == hid.keys.DOWN) {
+                var line = this.caretLine();
+                if ((key == hid.keys.UP && line == 1) ||
+                    (key == hid.keys.DOWN && (line + ((key == hid.keys.DOWN)?1:0))) == this.lines() + 1) {
+                    this.set(terminal.history.load( (key == hid.keys.UP)?-1:1 ));
+                    return false;
+                }
+            }
+
+            if (key == hid.keys.TAB) {
+                var variant = terminal.autocompletion.getSuggestion();
+                if (variant) {
+                    this.insert(this.caretPosition(),variant);
+                    terminal.autocompletion.clear();
+                } else {
+                    this.insert(this.caretPosition(),"\t");
+                }
+                hid.preventDefault(event);
+                return false;
+            }
+
+            if (key == hid.keys.ALT) {
+                hid.preventDefault(event);
+                return true;
+            }
+
+            return true;
+
+        };
+
+        /**
+         * This function handles post-keypress moment, when input text had been updated.
+         *
+         * @param key {number}
+         */
+        this.keyPress = function(key) {
+
+            if (!hid.functional(key) || key == hid.keys.BACKSPACE) terminal.autocompletion.reset();
+
+            if (terminal.autocompletion.hasVariants()) {
+                if (key == hid.keys.CTRL) {
+                    terminal.autocompletion.next();
+                } else if (key == hid.keys.ALT) {
+                    terminal.autocompletion.previous();
+                }
+            }
+
+        }
+
+    };
+
+    this.namespace = new function() {
+
+        var namespace = "system",
+            oldNamespace = "system";
+
+        /**
+         * Set current namespace. Namespace won't change if something unless string will be passed.
+         */
+        this.set = function(string) {
+            if (!string){
+                dom.objects.namespace.style.visibility = "hidden";
+            } else {
+                namespace = (typeof string == "string")?string:namespace;
+                dom.objects.namespace.style.visibility = "visible";
+            }
+            dom.objects.namespace.innerHTML = namespace;
+            oldNamespace = namespace;
+        };
+
+        /**
+         * Creates a mask for terminal namespace. It's just for a view - namespace.get() will return normal namespace.
+         *
+         * @param string
+         */
+        this.mask = function(string) {
+            namespace = string;
+            dom.objects.namespace.innerHTML = namespace;
+        };
+
+        /**
+         * Get current namespace
+         *
+         * @returns {string}
+         */
+        this.get = function() {
+            return oldNamespace; // not masked namespace
+        };
+
+        /**
+         * Returns server correct namespace for filenames.
+         *
+         * @returns {string}
+         */
+        this.getCorrectFileName = function() {
+            return this.get().replace("%","_");
+        };
+
+        /**
+         * Sets namespace to current.
+         */
+        this.update = function() {
+            namespace = oldNamespace;
+            this.set(namespace);
+        }
+
+    };
+
+    this.getNamespace = function() {
+
+        return namespace
+
+    };
+
+    this.setNamespace = function(name) {
+
+        namespace = name
+
+    };
+
+    /**
+     * Terminal language object. This one used in autocomplete.
+     *
+     * Object consists of other objects which determines program language. That's no meter how to call first-level
+     * objects of [tokens] - that's just for perception. Language units must have properties of type number, which
+     * determines importance of language unit usage. Properties beginning with the symbol "!" are the control
+     * properties. They determining extra rules for language unit. Functionality of this properties is the next:
+     *  "!autocomplete": reversed regular expression for autocomplete. Note the follow:
+     *      -   To search unit in any position join ".*" to the end of expression. There's no meter to add this if you
+     *          expecting unit to be placed at the beginning of string, such as system commands.
+     *      -   Insert brackets to regular expression in position which have to match with properties (language units)
+     *      -   Do not forget to write REVERSED regular expression for your expectations.
+     *
+     */
+    this.language = new function() {
+
+        /**
+         * Inserts new class definition.
+         *
+         * @param name
+         * @param classToken
+         */
+        this.addClass = function(name,classToken) { // adds class to tokens
+
+            if (typeof classToken == "object" && classToken.hasOwnProperty("methods") &&
+                classToken.hasOwnProperty("properties") && classToken.hasOwnProperty("parameters")) {
+
+                var merging = !this.tokens.class.hasOwnProperty(name);
+
+                if (merging) {
+                    this.tokens.class[name] = classToken;
+                } else {
+                    this.tokens.class[name].merge(classToken);
+                }
+
+            } else {
+
+                log.write("Trying to add incorrect class to terminal language classes: ",classToken);
+
+            }
+
+        };
+
+        /**
+         * Add a set of classes placed in classTokens objects
+         */
+        this.addClasses = function(classTokens) {
+
+            if (typeof classTokens != "object") {
+                log.write("language.addClasses error: argument is not an object.")
+            }
+            for (var property in classTokens) {
+                if (!classTokens.hasOwnProperty(property)) continue;
+                this.addClass(property,classTokens[property]);
+            }
+
+        };
+
+        /**
+         * TODO: The same as addClasses, but without naming methods/properties/parameters.
+         */
+        this.addCompressedClasses = function(classTokens) {
+
+            this.addClasses(classTokens);
+
+        };
+
+        this.tokens = {
+
+            "client": {
+                "!structure": "/[a-z]",
+                    "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-z]*/)+"),
+                        target: "this"
+                },
+                "/help": 1,
+                "/clear": 1,
+                "/connect": 0,
+                "/disconnect": 0,
+                "/reconnect": 0,
+                "/autocomplete": 0,
+                "/siege": 0,
+                "/define": 0
+            },
+            "commands": {
+                "!structure": "[a-zA-Z]",
+                    "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-zA-Z]+)\\s.*")
+                },
+                "SET": 0,
+                    "set": 0,
+                    "KILL": 0,
+                    "kill": 0,
+                    "WRITE": 0,
+                    "write": 0,
+                    "ZWRITE": 0,
+                    "zwrite": 0,
+                    "FOR": 0,
+                    "for": 0,
+                    "ELSE": 0,
+                    "else": 0,
+                    "QUIT": 0,
+                    "quit": 0,
+                    "READ": 0,
+                    "read": 0,
+                    "WHILE": 0,
+                    "while": 0,
+                    "CLOSE": 0,
+                    "close": 0
+            },
+            "functions": {
+                "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-zA-Z]+)\\$\\s.*")
+                },
+                "CHAR": 0,
+                    "DATA": 0
+            },
+            "variables": {
+                "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-zA-Z]+)\\$\\s.*")
+                },
+                "$DEVICE": 0,
+                    "$ECODE": 0
+            },
+            "staticMethod": {
+                "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-zA-Z]*##)\\s.*")
+                },
+                "!structure": "##[A-Z]",
+                    "##class": 0
+            },
+            "class": {
+                "!autocomplete": {
+                    reversedRegExp: new RegExp("(([a-zA-Z\\.]*[a-zA-Z])?%?)\\(ssalc##\\s.*")
+                },
+                "!child": {
+                    "methods": {
+                        "!structure": ").[A-Za-z]"
+                    },
+                    "properties": {
+                        "!structure": ").[A-Za-z]"
+                    },
+                    "parameters": {
+                        "!structure": ").[A-Za-z]"
+                    }
+                },
+                "EXAMPLE": {
+                    "methods": {
+                        "Method": 0,
+                            "Methodic": 0
+                    },
+                    "properties": {
+                        "Prop": 0,
+                            "Poropop": 0
+                    },
+                    "parameters": {
+                        "Param": 0,
+                            "Pam": 0,
+                            "Papam": 0
+                    }
+                }
+            }
+
+        }; // tokens
+
+    };
+
+};]]></CSP>
 </Export>

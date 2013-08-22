@@ -22,20 +22,85 @@
 }
 
 @-webkit-keyframes blinker {
-    from { opacity: 1.0; }
-    to { opacity: 0.0; }
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
 }
 
-.tab {
+@-o-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@-moz-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes waiting {
+    0% { color: orange; }
+    50% { color: white; }
+    100% { color: orange; }
+}
+
+@-moz-keyframes waiting {
+    0% { color: orange; }
+    50% { color: white; }
+    100% { color: orange; }
+}
+
+@-o-keyframes waiting {
+    0% { color: orange; }
+    50% { color: white; }
+    100% { color: orange; }
+}
+
+@-webkit-keyframes waiting {
+    0% { color: orange; }
+    50% { color: white; }
+    100% { color: orange; }
+}
+
+#caret {
+    position: relative;
     display: inline-block;
-    width: 24pt;
+    width: 0;
+    vertical-align: bottom;
+    overflow: visible;
+
+    animation: blinker infinite 1s;
+    -webkit-animation: blinker infinite 1s;
+    -o-animation: blinker infinite 1s;
+    -moz-animation: blinker infinite 1s;
 }
 
-.blinking {
-    /*animation-name: blinker;
-    -webkit-animation-iteration-count: infinite;
-    -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
-    -webkit-animation-duration: 1s;*/
+#caret:after {
+    content: "_";
 }
-]]></CSP>
+
+.waiting {
+    animation: waiting infinite 1s;
+    -webkit-animation: waiting infinite 1s;
+    -o-animation: waiting infinite 1s;
+    -moz-animation: waiting infinite 1s;
+}
+
+.complete {
+    color: greenyellow;
+}
+
+.animated01 {
+    transition: all 0.1s ease-out;
+    -moz-transition: all 0.1s ease-out;
+    -o-transition: all 0.1s ease-out;
+    -webkit-transition: all 0.1s ease-out;
+}]]></CSP>
 </Export>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="webTerminal/js/application.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Basic application object.
+ */
+var application = new function() {
+
+    var version = "0.6 alpha";
+
+    this.browser = "gc";
+    this.authorizationKey = "";
+
+    this.helpbox =
+        "<div style=\"white-space: normal\">" +
+            "<div class=\"center\">" +
+                "<h3>Caché Web Terminal<span class=\"warning\"> v" + version + "</span></h3>" +
+            "</div>" +
+            "<table>" +
+                "<tr>" +
+                    "<td class=\"hint\">Available client-side commands (type with slash)</td>" +
+                    "<td class=\"hint\">Description</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">help</td>" +
+                    "<td>Shows help</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">connect</td>" +
+                    "<td>Establish new connection to Caché server via <b>WebSocket</b></td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">disconnect</td>" +
+                    "<td>Disconnecting from current server</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">reconnect</td>" +
+                    "<td>Try to refresh server connection.</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">clear</td>" +
+                    "<td>Clears terminal command log. Just a visual feature</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">define {definition} {redefinition}</td>" +
+                    "<td>Every input occurrence of {definition} will be replaced with {redefinition}</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">sql</td>" +
+                    "<td>Enable/disable integrated SQL shell</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">autocomplete</td>" +
+                    "<td>" +
+                        "Loads all classes language for current namespace. This may take a while depending on your " +
+                        "system settings. Normally it takes 20-30 seconds while executed first. Next executions will" +
+                        " only load already generated file." +
+                    "</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">siege {iterations = 120} {serverDelay = 0.02}</td>" +
+                    "<td>" +
+                        "Test server/client connection. Executes cycle with delay on server and measures time/packages transferred." +
+                        "Be careful with serverDelay variable!" +
+                    "</td>" +
+                "</tr>" +
+            "</table>" +
+            "<div class=\"center\">" +
+                "<h3>Controls</h3>" +
+            "</div>" +
+            "<table>" +
+                "<tr>" +
+                    "<td class=\"hint\">Key</td>" +
+                    "<td class=\"hint\">Description</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">TAB</td>" +
+                    "<td>Ends current input with suggested autocomplete option</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">CTRL</td>" +
+                    "<td>While few autocomplete variants is present, changes variant to next available</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">ALT</td>" +
+                    "<td>While few autocomplete variants is present, changes variant to previous available</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">keys UP/DOWN</td>" +
+                    "<td>Affords access to command history. <i>Current query will be saved.</i></td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">SHIFT/CTRL + ENTER</td>" +
+                    "<td>Next line in current command stack.</td>" +
+                "</tr>"+
+            "</table>" +
+        "</div>";
+
+    var detectBrowser = function() {
+        var app = navigator.appName.toLowerCase(), b = "gc";
+        switch (app) {
+            case "microsoft internet explorer": b = "ie"; break;
+            case "google chrome": b = "gc"; break;
+            case "mozilla firefox": b = "mf"; break;
+            case "netscape": b = "ns"; break;
+            default: log.write("unrecognised browser: " + app);
+        }
+        application.browser = b;
+    };
+
+    this.initialize = function() {
+        detectBrowser();
+        terminal.initialize();
+    };
+
+};]]></CSP>
+</Export>

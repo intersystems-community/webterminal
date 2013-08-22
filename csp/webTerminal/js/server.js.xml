@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="webTerminal/js/server.js" application="/csp/sys/" default="1"><![CDATA[
+var server = new function() {
+
+    var socket = null, // webSocket object
+        serverRoot = "%WebTerminal.Engine.cls", // name of Cache class
+        LOG_DATA = false;
+
+    var logData = function(direction,string) {
+        log.write(
+            "DATA " + ((direction)?"to":"from") + " server: (" + ((string)?string.charCodeAt(0):"empty") + ") ",string
+        );
+    };
+
+    /**
+     * Shows if client currently connected to server.
+     *
+     * @returns {boolean|string}
+     *  If connected, returns server ws URL.
+     */
+    this.connected = function() {
+        return (socket == null)?false:socket.url;
+    };
+
+    /**
+     * Disconnect from server.
+     */
+    this.disconnect = function() {
+        if (this.connected()) {
+            terminal.output.write("Disconnecting from current server...");
+            socket.close();
+            socket = null;
+            terminal.namespace.set("system");
+        } else terminal.output.write("Pointless server disconnection: there's no connection established.")
+    };
+
+    /**
+     * Requests autocomplete for namespace.
+     *
+     * @param namespace
+     */
+    this.requestAutocompleteFile = function(namespace) {
+        terminal.output.write("Loading Caché language for " + namespace);
+        ajax.get("js/autocomplete/" + namespace + ".js",function(data,allRight){
+            if (allRight) {
+                terminal.language.addCompressedClasses(parser.convertToObject(data));
+                terminal.output.write("Language for " + namespace + " loaded.");
+            } else {
+                terminal.output.write("Language load fail.");
+            }
+        });
+    };
+
+    /**
+     * Return default webSocket URL to connect on current domain.
+     *
+     * @returns {string}
+     */
+    this.getDefaultServerURL = function() {
+        var part = document.URL.split("/")[2]; // domain[:port]
+        
+        // part = "localhost:57772";
+
+        return "ws://" + part + "/" + serverRoot.replace(/%/,"%25");
+    };
+
+    /**
+     * Connect to server. If url isn't passed, it will be generated from current expecting the same domain.
+     * E.g. "http://localhost:81/..." will become "ws://localhost:81/<serverRoot>"
+     *
+     * [ @param url ]
+     *  WebSocket server core URL starting with "ws://"
+     * @returns {boolean}
+     */
+    this.connect = function(url) {
+
+        if (this.connected()) {
+            terminal.output.write("Connection already established. Disconnect first.");
+            return false;
+        }
+        if (typeof url == "undefined" || typeof url != "string" || !url) { url = this.getDefaultServerURL() }
+        terminal.output.write("Connecting to " + url + "...");
+        socket = new WebSocket(url);
+        socket.onopen = onOpen;
+        socket.onclose = onClose;
+        socket.onmessage = onMessage;
+        socket.onerror = onError;
+        return true;
+
+    };
+
+    /**
+     * Submits clear data to server. Default terminator: true.
+     *
+     * @param action
+     * @param data
+     *  Data will be trimmed and \n'd if terminator true
+     * @param terminator
+     */
+    this.submit = function(action,data,terminator) {
+        if (typeof terminator == "undefined") terminator = true;
+        data = data.trim().replace(/\r\n|\r|\n/g,"\n") + ((terminator)?"\n":"");
+        if (socket) {
+            socket.send((action || "") + data);
+        } else {
+            terminal.output.write("No connection established. Try /connect first.")
+        }
+    };
+
+    this.send = function(data) {
+        if (LOG_DATA) logData(1,data);
+        if (!this.connected()) { log.write("Unable to send data to server: no connection established.") }
+        socket.send(data);
+    };
+
+    var onOpen = function() {
+        terminal.output.write("Connection established. Authorization...");
+        server.send(application.authorizationKey);
+    };
+
+    var onClose = function(a) {
+        terminal.output.write("Connection terminated.");
+    };
+
+    var onMessage = function(event) {
+        if (LOG_DATA) logData(0,event.data);
+        terminal.handlers.serverMessage(event.data);
+    };
+
+    var onError = function(error) {
+        log.write("WebSocket error: ",error)
+    };
+
+};
+
+var ajax = new function() {
+
+    function getXmlHttp() {
+        var xmlhttp;
+        try {
+            xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (e) {
+            try {
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (E) {
+                xmlhttp = false;
+            }
+        }
+        if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+            xmlhttp = new XMLHttpRequest();
+        }
+        return xmlhttp;
+    }
+
+    /**
+     * Gets data from server and handles it with handler.
+     *
+     * @param url
+     * @param handler
+     */
+    this.get = function(url, handler) {
+
+        var req = getXmlHttp();
+
+        req.onreadystatechange = function() {
+
+            if (req.readyState == 4) { //req.statusText
+
+                if(req.status == 200) {
+                    handler.call(null,req.responseText,1);
+                } else {
+                    handler.call(null,null,0);
+                    log.write("Ajax GET error: ",req.statusText,req.responseText);
+                }
+
+            }
+
+        };
+
+        req.open("GET", url, true);
+        req.send(null);
+
+    }
+
+};]]></CSP>
+</Export>

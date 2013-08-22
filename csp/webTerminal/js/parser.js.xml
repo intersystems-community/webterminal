@@ -2,481 +2,231 @@
 <Export generator="Cache" version="25">
 <CSP name="webTerminal/js/parser.js" application="/csp/sys/" default="1"><![CDATA[
 /**
- * Contains functions that take part in text processing.
- *
- * @author ZitRo
+ * Every parser tasks are performed only with strings.
  */
+var parser = new function() {
 
-var tAC = ["/help","/clear","/connect","/disconnect","/define","/siege",
-    "set","write","zwrite","for","while","kill","quit","close","else","read",
-    "select","from","where","join","into",
-    "$$$OK","$$$ISERR","$$$ISOK",
-    "##class("];
+    /**
+     * Converts text with html-tags and entities to normal plaintext string.
+     *
+     * @param string
+     * @returns {string}
+     */
+    this.HTMLtoText = function(string) {
+        var div = document.createElement("div"); // @GC
+        div.innerHTML = string;
+        var text = div.textContent || div.innerText || string.replace(/<br\s?\/?>/g,"\n").replace(/<\/?[^>]+(>|$)/g,"");
+        return text || "";
+    };
 
-/**
- * This is the base of terminal main language dictionary. It holds data about classes, variables and functions.
- * Each value has frequency indicator: for example, number of times used.
- * Each root must have an "+syntaxRegExp" property. It determines how property name must be constructed. This is
- * used to suggest autocomplete, for example.
- *
- * @type {object}
- */
-var terminalLanguage = {
-    "client": {
-        "+syntaxRegExp": new RegExp("^/([a-zA-Z_]+[a-zA-Z0-9_]*)*$"),
-        "/help": 1,
-        "/clear": 0,
-        "/connect": 0,
-        "/siege": 0,
-        "/disconnect": 0,
-        "/define": 0
-    },
-    "commands": {
-        "+syntaxRegExp": new RegExp("^[a-zA-Z]+$"),
-        "SET": 0,
-        "set": 0,
-        "KILL": 0,
-        "kill": 0,
-        "WRITE": 0,
-        "write": 0,
-        "ZWRITE": 0,
-        "zwrite": 0,
-        "FOR": 0,
-        "for": 0,
-        "ELSE": 0,
-        "else": 0,
-        "QUIT": 0,
-        "quit": 0,
-        "READ": 0,
-        "read": 0,
-        "WHILE": 0,
-        "while": 0,
-        "CLOSE": 0,
-        "close": 0
-    },
-    "functions": { // prefix: $
-        "+syntaxRegExp": new RegExp("^\\$[a-zA-Z]+[a-zA-Z0-9]*$"),
-        "$CHAR": 0,
-        "$DATA": 0
-    },
-    "variables": { // prefix: $
-        "+syntaxRegExp": new RegExp("^\\$[a-zA-Z]+[a-zA-Z0-9]*$"),
-        "$DEVICE": 0,
-        "$ECODE": 0
-    },
-    "staticMethod": { // prefix: $
-        "+syntaxRegExp": new RegExp("^##[a-zA-Z0-9]*$"),
-        "##class(": 0
-    },
-    "class": {
-        // WARNING: RegExp must have remembering parentheses at: [1]: class, [2]: classProp
-        "+syntaxRegExp": new RegExp("^##class\\((%?[a-zA-Z]*[a-zA-Z0-9\\.]*)\\)?\\.?%?([a-zA-Z]+[a-zA-Z0-9]*)*$"),
-        "+childRegExp": new RegExp("^##class\\((%?[a-zA-Z]*[a-zA-Z0-9\\.]*)\\)\\.%?([a-zA-Z]+[a-zA-Z0-9]*)*$")
-        /*"EXAMPLE": {
-            "methods": {
-                "method": 0,
-                "methodic": 0
-            },
-            "properties": {
-                "prop": 0,
-                "poropop": 0
-            },
-            "parameters": {
-                "param": 0,
-                "pam": 0,
-                "papam": 0
+    /**
+     * Function clears html tab characters and entities.
+     *
+     * @param string
+     * @returns {string}
+     */
+    this.clearHTML = function(string) {
+        return string.replace("&","&amp;").replace("<","&lt;").replace("<","&gt;")
+    };
+
+    /**
+     * Reverses the string.
+     *
+     * @param string
+     * @returns {string}
+     */
+    this.reverse = function(string) {
+        return string.split("").reverse().join("");
+    };
+
+    /**
+     * Analyzing stringPart, function returns correct name of element to use.
+     * Usage: for example, to form highlighting "class" attribute. "set" -> "-set"
+     * "$function" -> "-f_function", "$$$macro" -> "-m_macro" etc.
+     *
+     * @param stringPart
+     *  Part of string, which name needed to return.
+     */
+    var parserSyntaxGetAttrName = function(stringPart) {
+
+        var result = null;
+        if (stringPart.match(/^[a-zA-Z][a-zA-Z0-9]*$/)) { // simple words
+            result = stringPart.toLowerCase();
+        } else if (stringPart.match(/^[0-9]+$/)) {
+            result = "_digit"
+        } else if (stringPart.match(/^".*"$/)) {
+            result = "_string"
+        } else if (stringPart.match(/^\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_function"
+        } else if (stringPart.match(/^\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_userFunction"
+        } else if (stringPart.match(/^[{}\]\[\(\)]+$/)) {
+            result = "_bracket"
+        } else if (stringPart.match(/^\^[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_global"
+        } else if (stringPart.match(/^##[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_sysMacro"
+        } else if (stringPart.match(/^\.\.[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_classProp"
+        } else if (stringPart.match(/^\$\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_macro"
+        } else if (stringPart.match(/^[\+\-=\*\/<>\\!_'#\?]+$/)) {
+            result = "_symbol"
+        } else { result = "_other" }
+        return (result)?"-"+result:result;
+
+    };
+
+    /**
+     * Function breaks code for parts with span tags and according styles, but skips &*; html-symbol combinations and tag <br>
+     *
+     * @param string
+     *  String to parse.
+     * @returns {string}
+     *  Parsed string.
+     */
+    this.highlightHTML = function(string) {
+        return string.replace(/(((<|&|&#)|\^|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
+            function(part) {
+                return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
+            });
+    };
+
+    /**
+     * Converts position in plaintext string to it's html position. Works only with correct-html strings: tags has
+     * theirs closures and HTML-entities represented as &<anySymbols>;
+     *
+     * @param string
+     * @param position
+     */
+    this.convertPositionForHTML = function(string,position) {
+
+        var i = 0, l = string.length, pos = 0;
+        while (i<l && pos<position) {
+            if (string[i]=="&") {
+                var m = string.substr(i+1,5).match(/(nbsp|lt|gt|amp|#09);/g);
+                if (m) i += m[0].length;
+            } else if (string[i]=="<") {
+                var p = string.indexOf(">",i+1);
+                var inside = string.substring(i+1,p);
+                if (inside == "br" || inside.substr(0,3) == "br/" || inside.substr(0,3) == "br ") {
+                    pos++;
+                }
+                if (p==-1) { i = pos = l-1 } else { i += p-i; pos--; }
             }
-        } */
-    }
-};
-
-/**
- * Function removes any tags in content.
- * @param content {string}
- *  String to parse.
- */
-function parserRemoveTags(content) { return content.replace(/(<([^>]+)>)/ig, "") }
-
-/**
- * Inserts string to text in position pos. If pos is incorrect, += operation will be performed.
- *
- * @param text 
- *  Text to insert into.
- * @param position
- *  Position where to insert.
- * @param string
- *  String to insert.
- */
-function parserInsertString(text,position,string) {
-    try {
-        text = text.substring(0,position) + string + text.substring(position,text.length);
-    } catch (e) { log(e); text += string }
-    return text;
-}
-
-/**
- * Function returns array of string variants, which best fits in current string position.
- * Note that function try to guess paying attention only to the symbols BEFORE position.
- *
- * @param string
- *  String with some text.
- * @param position
- *  Position in string where function will try to guess.
- * @returns {Array}
- *  Array with possible variants.
- */
-function parserGetAutocompleteVariants(string,position) {
-
-
-    var i = Math.min(position-1,string.length-1), s = '', variants = [];
-    if (i<0) return variants;
-    if (i+1<string.length && string[i+1].match(/\w/g)) return []; // leave autocomplete if next letter detected
-    while (i >= 0) { // get the part of string
-        if (string[i].match(/[\w\$%#\.\^/]/g)) s += string[i]; else break;
-        i--;
-    }
-    if (s == '') return [];
-
-    var kk = 0;
-    s = s.reverse();
-    var l = tAC.length;
-    //s = s.toLowerCase();
-    for (i= 0; i < l; i++) {
-        if (tAC[i].indexOf(s) === 0) { // word beginning
-            if (s == tAC[i]) return [];
-            variants.push(tAC[i].substring(s.length,tAC[i].length));
-            kk++;
+            pos++; i++;
         }
-    }
-    return variants;
+        return i;
 
-}
+    };
 
-/**
- * This function searches for ##class(...)... construction in string and returns array of current available variants.
- *
- * @param string
- *  String to search in.\
- * @param position
- *  Position of cursor where autocomplete needed
- * @returns {Array}
- *  Array with available autocomplete variants.
- */
-function parserGetCleverAutocompleteVariants(string,position) {
+    /**
+     * Dummy converting JSON string to object.
+     *
+     * @param json {string}
+     */
+    this.convertToObject = function(json) {
+        log.write(json);
+        if (JSON && JSON.parse) return JSON.parse(json);
+        var a = null;
+        eval("a = " + json);
+        return a;
+    };
 
-    var systemSymbol = "+";
+    /**
+     * Inserts caret <span> object to given HTML string.
+     *
+     * @param string
+     * @param position
+     * @returns {string}
+     */
+    this.insertCaret = function(string,position) {
+        position = this.convertPositionForHTML(string,position);
+        return string.splice(position,0,"<span id=\"caret\"></span>");
+    };
 
-    // constructs object with two properties:
-    // @property "languageRoot": name of root language node
-    // @property "string": commonly selected string
-    // returns null if not fitting at all
-    var mostCommonAutocompleteRoot = function(fullString,limit) {
-        if (typeof limit == "undefined") limit = 30; // characters to limit fit (time regexp will be compared)
+    this.prepareForOutputHTML = function(string,insertCaretPos,highlight,insertSuggestion) {
 
-        // returns best fitting language root variant for string (object with variants)
-        var fitsString = function(string) {
-            var lastFitRoot = null, type = "root"; // root and type of AC
-            for(var key in terminalLanguage){
-                if (!terminalLanguage.hasOwnProperty(key)) continue;
-                if (!terminalLanguage[key].hasOwnProperty("+syntaxRegExp")) continue;
-                if (terminalLanguage[key]["+syntaxRegExp"].test(string)) {
-                    type = key;
-                    lastFitRoot = terminalLanguage[key]; // remember fitting
-                    if (key == "class" && terminalLanguage[key].hasOwnProperty("+childRegExp")) { // check if class method
-                        if (terminalLanguage[key]["+childRegExp"].test(string)) { // fits class
-                            var result = terminalLanguage[key]["+childRegExp"].exec(string);
-                            if (result && result.length > 2 && terminalLanguage[key][result[1]]) { // result[1]: className
-                                var temp = {};
-                                for(var method in terminalLanguage[key][result[1]]["methods"]) {
-                                    temp[method] = terminalLanguage[key][result[1]]["methods"][method];
-                                }
-                                for(var property in terminalLanguage[key][result[1]]["properties"]) {
-                                    temp[property] = terminalLanguage[key][result[1]]["properties"][property];
-                                }
-                                for(var parameter in terminalLanguage[key][result[1]]["parameters"]) {
-                                    temp[parameter] = terminalLanguage[key][result[1]]["parameters"][parameter];
-                                }
-                                type = "classMethod";
-                                lastFitRoot = temp;
-                            }
-                        }
-                    }
+        if (typeof insertCaretPos == "undefined" || application.browser == "ie") insertCaretPos = -1;
+        if (typeof highlight == "undefined") highlight = true;
+        if (typeof insertSuggestion == "undefined") insertSuggestion = "";
+        if (insertSuggestion == 1) { insertSuggestion = terminal.autocompletion.getSuggestion() }
+        if (insertSuggestion) insertSuggestion = "<span class=\"terminal-suggestion\">" + insertSuggestion + "</span>";
+
+        string = string.replace(/[&<>]/g,function(part,index){
+            var r = "";
+            switch (part) {
+                case "&": r = "&amp;"; break;
+                case "<": r = "&lt;"; break;
+                case ">": r = "&gt;"; break;
+            }
+            if (!insertCaretPos || r == "") return r || part;
+            if (index < insertCaretPos) {
+                //insertCaretPos += r.length - part.length; // seek caret
+            }
+            return r;
+        });
+
+        if (highlight) string = this.highlightHTML(string);
+        if (insertCaretPos > -1) {
+            if (insertSuggestion) {
+                var pos = this.convertPositionForHTML(string,insertCaretPos);
+                string = string.splice(pos,0,insertSuggestion);
+            }
+            string = this.insertCaret(string,insertCaretPos);
+        }
+
+        return string;
+
+    };
+
+    /**
+     * Receive all available autocomplete variants as an array.
+     */
+    this.getAutocomplete = function(string,position) {
+
+        // limitations: \s, \n, next-letter
+        var nextChar = string.charAt(position),
+            currentChar = string.charAt(position-1);
+        if (nextChar.match(/[a-zA-Z]/) || currentChar.match(/\s/)) return [];
+
+        // part to parse: reversed+" "
+        var from = (string.lastIndexOf(" ")+1 || string.lastIndexOf("\n")-1 || -1) + 1,
+            part = string.substring(from,position).trim(),
+            variants = [];
+
+        var getEndings = function(object,startPart) {
+            for (var fullPart in object) {
+                if (!object.hasOwnProperty(fullPart) || typeof object != "object") continue;
+                if (fullPart.indexOf(startPart) === 0 && fullPart.length != startPart.length) {
+                    variants.push(fullPart.substr(startPart.length))
                 }
             }
-            if (lastFitRoot) lastFitRoot[systemSymbol+"type"] = type;
-            return lastFitRoot; // OBJECT now - last, then - best.
+        };
+        
+        var parseObject = function(languageObject,pattern) {
+
+            for (var unit in languageObject) {
+
+                if (!languageObject.hasOwnProperty(unit) ||
+                    !languageObject[unit].hasOwnProperty("!autocomplete")) continue;
+
+                var parameters = languageObject[unit]["!autocomplete"],
+                    result = parameters["reversedRegExp"].exec(pattern);
+
+                if (result && result.index === 0 && result[1]) {
+                    getEndings(languageObject[unit],parser.reverse(result[1]))
+                }
+
+            }
+
         };
 
-        var i = fullString.length - 1, fittingString = "", fittingRoot = null;
-
-        while (i > -1 && limit > 0) { // @todo IMPROVE!
-            var string = fullString.substr(i,fullString.length);
-            var bestFitting = fitsString(string);
-            if (bestFitting != null) { fittingString = string; fittingRoot = bestFitting }
-            i--; limit--;
-        }
-
-        return (fittingRoot)?{ languageRoot: fittingRoot, string: fittingString }:null;
-
-    };
-
-    // returns array of full property names in object by it's beginning
-    var partsToComplete = function(object, propertyNameBeginning) {
-        var variants = [];
-
-        var type = "";
-        if (object.hasOwnProperty(systemSymbol+"type")) {
-            type = object[systemSymbol+"type"];
-        }
-
-        switch (type) {
-            case "class": {
-                propertyNameBeginning = terminalLanguage["class"]["+syntaxRegExp"].exec(propertyNameBeginning)[1];
-            } break;
-            case "classMethod": {
-                propertyNameBeginning = terminalLanguage["class"]["+childRegExp"].exec(propertyNameBeginning)[2];
-            } break;
-            default: {
-                // leave
-            }
-        }
-        if (typeof propertyNameBeginning == "undefined") propertyNameBeginning = "";
-
-        for(var key in object){
-            if (!object.hasOwnProperty(key)) continue;
-            if (key.indexOf(propertyNameBeginning) === 0 && key.charAt(0) != systemSymbol) {
-                variants.push(key.substring(propertyNameBeginning.length,key.length));
-            }
-        }
+        parseObject(terminal.language.tokens,this.reverse(string)+" ");
 
         return variants;
+
     };
 
-    position = position.limit(string.length); // limit position up to string length
-    if (string.charAt(position).match(/\w/g)) // check for the next letter
-        return [];
-    else
-        string = string.substring(0,position); // cut letters right
-
-    // now we will examine string using a dictionary patterns
-    var root = mostCommonAutocompleteRoot(string);
-    if (root == null) return [];
-
-    if (root.languageRoot) {
-
-        return partsToComplete(root.languageRoot,root.string);
-    } else {
-        return []
-    }
-
-}
-
-/**
- * Analyzing stringPart, function returns correct name of element to use.
- * Usage: for example, to form highlighting "class" attribute. "set" -> "-set"
- * "$function" -> "-f_function", "$$$macro" -> "-m_macro" etc.
- *
- * @param stringPart
- *  Part of string, which name needed to return.
- */
-function parserSyntaxGetAttrName(stringPart) {
-
-    var result = null;
-    if (stringPart.match(/^[a-zA-Z][a-zA-Z0-9]*$/)) { // simple words
-        result = stringPart.toLowerCase();
-    } else if (stringPart.match(/^[0-9]+$/)) {
-        result = "_digit"
-    } else if (stringPart.match(/^".*"$/)) {
-        result = "_string"
-    } else if (stringPart.match(/^\$[a-zA-Z][a-zA-Z0-9]*$/)) {
-        result = "_function"
-    } else if (stringPart.match(/^\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
-        result = "_userFunction"
-    } else if (stringPart.match(/^[{}\]\[\(\)]+$/)) {
-        result = "_bracket"
-    } else if (stringPart.match(/^\^[a-zA-Z][a-zA-Z0-9]*$/)) {
-        result = "_global"
-    } else if (stringPart.match(/^##[a-zA-Z][a-zA-Z0-9]*$/)) {
-        result = "_sysMacro"
-    } else if (stringPart.match(/^\.\.[a-zA-Z][a-zA-Z0-9]*$/)) {
-        result = "_classProp"
-    } else if (stringPart.match(/^\$\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
-        result = "_macro"
-    } else if (stringPart.match(/^[\+\-=\*\/<>\\!_'#\?]+$/)) {
-        result = "_symbol"
-    } else { result = "_other" }
-    return (result)?"-"+result:result;
-
-}
-
-/**
- * Parses text for tags and unnecessary symbols and returns correct text ready to execute on server side.
- *
- * @param data
- *  not formatted string which must be prepared to execute on server side
- * @returns {string}
- *  formatted string ready-to-execute on server side
- */
-function parserPrepareSubmitData(data) {
-    return parserRemoveTags(data).trim().replace(/\r\n|\r|\n/g,"\n") + "\n"; // adds last terminator character
-}
-
-/**
- * Function inserts color tags to string and returns string with tags.
- *
- * @deprecated
- *
- * @param string
- *  String to highlight.
- * @returns {string}
- *  Highlighted string.
- */
-function parserHighlight(string) {
-
-    return string.replace(/(\w+|\W)/g, function(a) {  // \S+   //  \w+
-
-        if (a.match(/(lt|gt|<|>|&|br|nbsp|amp|;)/g) || // html special characters
-            //a.match(/^[^\s]*<div$/) ||
-            //a.match(/^class="caret-blink"><\/div>[^\s]*$/)) {
-            a.match(/.*(<|>).*/g)) { // any tag symbol
-            return a; // just skip
-        }
-        return "<span class=\"syntax" + parserSyntaxGetAttrName(a) + "\">" + a + "</span>";
-
-    });
-
-}
-
-/**
- * Function breaks code for parts with span tags and according styles, but skips &*; html-symbol combinations and tag <br>
- *
- * @param string
- *  String to parse.
- * @returns {string}
- *  Parsed string.
- */
-function parserHighlightHTML(string) {
-    return string.replace(/(((<|&|&#)|\^|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
-        function(part) {
-            return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
-    });
-}
-
-/**
- * Function returns real position in string, according to visible position pos.
- * In other words, it skips tags and special html symbols like &nbsp;
- *
- * @param string
- *  String
- * @param position
- *  Position to convert.
- * @returns {number}
- *  New real position according to html-string.
- */
-function parserGetRealPosition(string,position) {
-
-    var i = 0, l = string.length, pos = 0;
-    while (i<l && pos<position) {
-        if (string[i]=="&") {
-            var m = string.substr(i+1,5).match(/(nbsp|lt|gt|amp|#09);/g);
-            if (m) i += m[0].length;
-        } else if (string[i]=="<") {
-            var p = string.indexOf(">",i+1);
-            var inside = string.substring(i+1,p);
-            if (inside == "br" || inside.substr(0,3) == "br/" || inside.substr(0,3) == "br ") {
-                pos++;
-            }
-            if (p==-1) { i = pos = l-1 } else { i += p-i; pos--; }
-        }
-        pos++; i++;
-    }
-    return i;
-}
-
-/**
- * Function inserts caret html code to position, missing tags and &nbsp; symbols.
- * With any problems caret will be inserted at the end.
- *
- * @param text
- *  Text insert to.
- * @param position
- *  Position where to insert without tags.
- * @returns {string}
- *  String with caret code inside.
- */
-function parserInsertCaret(text,position) {
-
-    return parserInsertString(text,parserGetRealPosition(text,position),"<div class=\"caret-blink\"></div>");
-
-}
-
-/**
- * Replaces space characters and line endings to make it correctly displayed after insertion to html code.
- *
- * @param text
- *  Text where to replace.
- *
- * @returns {string}
- *  Replaced text.
- */
-function parserFillHTMLSpaces(text) {
-
-    if (text.length>0) {
-        if (text[text.length-1] == " ") text = text.replaceSymbol(text.length - 1,"&nbsp;");
-        if (text[0] == " ") text = text.replaceSymbol(0,"&nbsp;");
-        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;").replace(/>\s/g,">&nbsp;");
-    }
-
-    return text;//.replace(/\t/g,"<span class=\"tab\">&nbsp;</span>");
-
-}
-
-/**
- * Replaces all user-defined symbols/words.
- *
- * @param text
- *  Text where to search.
- * @returns {string}
- *  Replaced string.
- */
-function parserReplaceUserRedefinitions(text) {
-
-    var regex = null, def = null;
-    if (typeof terminalRedefined == "undefined") return text;
-    for (var i = 0; i < terminalRedefined.length; i++) {
-        def = terminalRedefined[i];
-        if (def) {
-            regex = new RegExp(escapeRegExp(def), 'g');
-            text = text.replace(regex,terminalDefines[def]);
-        }
-
-    }
-
-    return text;
-
-}
-
-/**
- * Function parses input text for view. Adds styles, etc.
- *
- * @param text
- *  Text to parse.
- * @return {string}
- *  Parsed stylized string.
- */
-function parseInput(text) {
-
-    var p = getCaretPosition(terminalGetInputObject());
-
-    text = htmlEncode(text);
-    text = parserHighlightHTML(text);
-    //text = parserFillHTMLSpaces(text);
-    //text = parserHighlight(text);
-    text = parserInsertAutocompleteOption(text);
-    if (!ie()) text = parserInsertCaret(text,p); // do not show caret in IE - here's the native caret impossible to hide
-
-    return text;
-
-}
-]]></CSP>
+};]]></CSP>
 </Export>

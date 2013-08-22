@@ -2,42 +2,13 @@
 <Export generator="Cache" version="25">
 <Class name="%WebTerminal.Engine">
 <Description>
-This class represents core of web terminal.
+This class represents the core of web terminal.
 All operations with opened WebSocket placed here.
-USES GLOBAL ^TerminalAuthKey for client authorization.
-(Why global? Needed static (class-based) r/w variable. Any ideas?)</Description>
+CLASS USES GLOBAL ^%WebTerminal.Engine.AuthorizationKey for client
+authorization.
+(Maybe there can be something better then using this global)</Description>
 <Super>%CSP.WebSocket,%Library.Routine,%CSP.REST</Super>
 <TimeCreated>63047,60359.445979</TimeCreated>
-
-<Property name="WebSocketID">
-<Description>
-The unique identity of this WebSocket.</Description>
-<Type>%String</Type>
-</Property>
-
-<Property name="SharedConnection">
-<Description><![CDATA[
-This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
-conection or over a pool of shared connections.  It may be set to one of the following:
-<br><ul>
-<li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
-<li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
-</ul>]]></Description>
-<Type>%Boolean</Type>
-<InitialExpression>0</InitialExpression>
-</Property>
-
-<Property name="SessionId">
-<Description>
-The CSP Session ID from which this WebSocket was created.</Description>
-<Type>%String</Type>
-</Property>
-
-<Property name="GWClientAddress">
-<Description><![CDATA[
-The address through which a WebSocket operating asynchronously (<property>SharedConnection=1</property>) can communicate with the hosting CSP Gateway.]]></Description>
-<Type>%String</Type>
-</Property>
 
 <Property name="lastClientId">
 <Description>
@@ -46,82 +17,67 @@ Last joined client id</Description>
 <InitialExpression>0</InitialExpression>
 </Property>
 
-<Property name="ACTIONAUTHORIZATION">
-<Description>
-Authorization identifier</Description>
+<Property name="ConstServerActionExecute">
 <Type>%Char</Type>
-<InitialExpression>"?"</InitialExpression>
-<ReadOnly>1</ReadOnly>
+<InitialExpression>$c(1)</InitialExpression>
 </Property>
 
-<Property name="ACTIONMESSAGE">
-<Description>
-Message identifier</Description>
+<Property name="ConstServerActionExecuteSQL">
 <Type>%Char</Type>
-<InitialExpression><![CDATA[">"]]></InitialExpression>
-<ReadOnly>1</ReadOnly>
+<InitialExpression>$c(2)</InitialExpression>
 </Property>
 
-<Property name="ACTIONSQL">
+<Property name="ConstServerActionGenerateAutocomplete">
 <Type>%Char</Type>
-<InitialExpression>"@"</InitialExpression>
-<ReadOnly>1</ReadOnly>
+<InitialExpression>$c(3)</InitialExpression>
 </Property>
 
-<Property name="ACTIONCHANGENAMESPACE">
-<Description>
-Zone change identifier</Description>
+<Property name="ConstClientEnterClearIO">
 <Type>%Char</Type>
-<InitialExpression>"_"</InitialExpression>
-<ReadOnly>1</ReadOnly>
+<InitialExpression>$c(1)</InitialExpression>
 </Property>
 
-<Property name="ACTIONEXECUTED">
-<Description>
-When command executed</Description>
+<Property name="ConstClientExitClearIO">
 <Type>%Char</Type>
-<InitialExpression>"!"</InitialExpression>
-<ReadOnly>1</ReadOnly>
+<InitialExpression>$c(2)</InitialExpression>
 </Property>
 
-<Property name="ACTIONTERMINATOR">
-<Description>
-ACTION</Description>
-<Type>%String</Type>
-<InitialExpression>"/END/"</InitialExpression>
-<ReadOnly>1</ReadOnly>
+<Property name="ConstClientOutputMessage">
+<Type>%Char</Type>
+<InitialExpression>$c(3)</InitialExpression>
 </Property>
 
-<Property name="ACTIONLOADnEXECUTE">
-<Description>
-Execute file on client</Description>
-<Type>%String</Type>
-<InitialExpression>"js"</InitialExpression>
-<ReadOnly>1</ReadOnly>
+<Property name="ConstClientChangeNamespace">
+<Type>%Char</Type>
+<InitialExpression>$c(4)</InitialExpression>
+</Property>
+
+<Property name="ConstClientLoadAutocomplete">
+<Type>%Char</Type>
+<InitialExpression>$c(5)</InitialExpression>
+</Property>
+
+<Property name="ConstClientReadString">
+<Type>%Char</Type>
+<InitialExpression>$c(6)</InitialExpression>
+</Property>
+
+<Property name="ConstClientReadChar">
+<Type>%Char</Type>
+<InitialExpression>$c(7)</InitialExpression>
 </Property>
 
 <Property name="CurrentNamespace">
 <Type>%String</Type>
-<InitialExpression>"USER"</InitialExpression>
-</Property>
-
-<Property name="InitialNamespace">
-<Type>%String</Type>
-<InitialExpression>"USER"</InitialExpression>
 </Property>
 
 <Property name="InitialZName">
 <Type>%String</Type>
-<InitialExpression>"Webterminal.Engine.1"</InitialExpression>
-</Property>
-
-<Property name="TerminalPID">
-<Type>%Numeric</Type>
 </Property>
 
 <Property name="ExperimentalAutocompleteOn">
 <Type>%Boolean</Type>
-<InitialExpression>1</InitialExpression>
+<InitialExpression>0</InitialExpression>
 </Property>
 
 <Method name="redirects">
@@ -228,37 +184,23 @@ wtab(s)
 	quit
 	
 rstr(len = 32656,timeout = 86400)
-	//do ..ClientAlertNamespace()
+	do ..ClientAlertNamespace()
 	set rd=##class(%Device).ReDirectIO($$$NO)
+	w ..ConstClientReadString,*-3
 	read header#5:timeout
-	read data
-	set data = $$PrepareInput(data)
-	//set data = $$readFromSocket(len,timeout)
-	//set data = ..Read(len,.status,timeout)
+	read data:timeout
+	set data = $$PrepareInput($EXTRACT(data,1,len))
 	do ##class(%Device).ReDirectIO(rd)
 	quit data
 rchr(timeout = 86400)
-	//do ..ClientAlertNamespace()
+	do ..ClientAlertNamespace()
 	set rd=##class(%Device).ReDirectIO($$$NO)
+	w ..ConstClientReadChar,*-3
 	read header#5:timeout
-	read *data
-	set data = $$PrepareInput(data)
-	//set data = $$readFromSocket(1,timeout)
-	//set data = $ASCII(..Read(1,.status,timeout))
+	read data:timeout
+	set data = $$PrepareInput($ASCII($EXTRACT(data,1,1)))
 	do ##class(%Device).ReDirectIO(rd)
 	quit data
-
-	/* этот код нужно менять под Ваши нужды  
-rstr(len,timeout)
-	n rd,vr,rt
-	s vr="rt"
-	s rd=##class(%Device).ReDirectIO($$$NO)
-	s:$d(len) vr=vr_"#"_len s:$d(timeout) vr=vr_":"_timeout
-	r @vr
-	s rd=##class(%Device).ReDirectIO(rd)
-	s rd=$zu(96,4,$t)
-	q rt
-	*/
 ]]></Implementation>
 </Method>
 
@@ -289,62 +231,115 @@ rstr(len,timeout)
 	
 	set data = ##class(%Library.File).ManagerDirectory()
 	set data = ##class(%Library.File).ParentDirectoryName(data)
-	set data = data _ "CSP\" _ $REPLACE(..InitialNamespace,"%","") _ "\webTerminal\js\autocomplete\" _ $REPLACE(namespace,"%","_") _ ".js" // UNIX?
+	set data = data _ "CSP\sys\webTerminal\js\autocomplete\" _
+		$REPLACE(namespace,"%","_") _ ".js" // UNIX?
 	quit data
 ]]></Implementation>
 </Method>
 
-<Method name="GenNLoadJSAutocompleteFile">
+<Method name="WriteToFile">
+<FormalSpec>filename:%String,data:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set file=##class(%File).%New(filename)
+	do file.Open("WSN")
+	do file.WriteLine(data)
+	do file.Close()
+]]></Implementation>
+</Method>
+
+<Method name="GenerateAutocompleteFile">
 <FormalSpec>namespace:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set filename = ..GetJSAutocompleteFilePath($NAMESPACE)
-	set namespace = $REPLACE($NAMESPACE,"%","_")
+	
+	if ('##class(%SYS.Namespace).Exists($REPLACE(namespace,"_","%"))) {
+		do ..SendData("Wrong namespace name: " _ namespace)
+		quit $$$NOTOK
+	}
+	
+	set namespace = $REPLACE(namespace,"%","_")
+	
 	if (##class(%File).Exists(filename)) {
-		do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
+		
+		do ..SendData(namespace, ..ConstClientLoadAutocomplete)
 		quit $$$OK
+		
 	} elseif ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
+		
+		// try to create missed directory
 		set result = ##class(%File).CreateDirectoryChain(##class(%File).GetDirectory(filename))
+		
 		if (result '= 1) {
-			do ..SendData("Can't create dir js/autocomplete",..ACTIONMESSAGE)
+			do ..SendData("Autocomplete fail: can't create directory js/autocomplete.")
 			quit $$$OK
 		}
+		
+		set filename = ..GetJSAutocompleteFilePath(namespace)
+		
 	}
 
-	do ..SendData("Generating autocomplete file for " _ namespace _ " classes, pleace, wait.")
+	do ..SendData("Generating language file for " _ namespace _ ", pleace, wait.")
 	
-	// write empty file to show (if happen) other applications that file generates
-	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))
-	do file.Open("WSN")
-	do file.WriteLine("{}")
-	do file.Close()
+	// write empty file in case of other terminal applications may require it
+	do ..WriteToFile(filename,"{}")
 	
 	// get all classes names
 	set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
 	do result.Execute()
-	set data = ""
+	
+	/*	
+	The next COULD BE IMPROVED FOR SPEED, I beleive.
+	Generates compressed JSON string of type:
+	{
+		"%ClassName1": {
+			"methods": {
+				"Method1":0,
+				...
+			},
+			"properties": {
+				"Prop1":0,
+				"Prop2":0,
+				...
+			},
+			"parameters": {
+				"Param1":0,
+				...
+			}
+		},
+		"ClassName2": {
+			...
+		}
+	}
+	*/
+	
+	// final data generation
+	set data = "{"
+	set first = ""
 	
 	while (result.Next()) { // forming autocomplete for each class
 	
 		set className = result.Data("Name")
-		if ($EXTRACT(className,1) = "%") && (namespace '= "%SYS") {
-			continue
-		}
-		set data = data _ "terminalLanguage[""class""][""" _ className _ """]={"
+		set data = data _ first _ """" _ className _ """:{"
+		if (first = "") set first = ","
 		
 		set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
- 		set count = cdefs.Properties.Count()
- 		set data = data _ """properties"":{"
- 		for i=1:1:count {
-     		set data = data _ """" _cdefs.Properties.GetAt(i).Name _ """:0"
-     		if (i'=count) set data = data _ ","
- 		}
- 		set data = data _ "},""methods"":{"
+ 		
+ 		set data = data _ """methods"":{"
  		set count = cdefs.Methods.Count()
  		for i=1:1:count {
      		set data = data _ """" _cdefs.Methods.GetAt(i).Name _ """:0"
      		if (i'=count) set data = data _ ","
  		}
+ 		
+ 		set data = data _ "},""properties"":{"
+ 		set count = cdefs.Properties.Count()
+ 		for i=1:1:count {
+     		set data = data _ """" _cdefs.Properties.GetAt(i).Name _ """:0"
+     		if (i'=count) set data = data _ ","
+ 		}
+ 		
  		set data = data _ "},""parameters"":{"
  		set count = cdefs.Parameters.Count()
  		for i=1:1:count {
@@ -352,17 +347,16 @@ rstr(len,timeout)
      		if (i'=count) set data = data _ ","
  		}
 		
-		set data = data _ "}};"
+		set data = data _ "}}"
 		
 	}
 	
-	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))
-	do file.Open("WSN")
-	do file.WriteLine(data)
-	do file.Close()
+	set data = data _ "}"
 	
-	do ..SendData("Autocomplete file for " _ $NAMESPACE _ " classes created.")
-	do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
+	do ..WriteToFile(filename,data)
+	
+	do ..SendData("Language file for " _ namespace _ " classes created.")
+	do ..SendData(namespace,..ConstClientLoadAutocomplete)
 	
 	quit $$$OK
 ]]></Implementation>
@@ -375,7 +369,7 @@ Generating new authorization key</Description>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set temp = $SYSTEM.Util.CreateGUID()
-	set ^TerminalAuthKey = temp
+	set ^%WebTerminal.Engine.AuthorizationKey = temp
 ]]></Implementation>
 </Method>
 
@@ -386,10 +380,10 @@ If the key is empty, generates new key value.</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	if ($get(^TerminalAuthKey) = "") {
+	if ($get(^%WebTerminal.Engine.AuthorizationKey) = "") {
 		Do ..GenerateAuthKey()
 	}
-	quit ^TerminalAuthKey
+	quit ^%WebTerminal.Engine.AuthorizationKey
 ]]></Implementation>
 </Method>
 
@@ -399,12 +393,8 @@ Function sends data derectly to server with specified action</Description>
 <FormalSpec>query:%String="",action:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	if (action = "") { set action = ..ACTIONMESSAGE }
-	
-	// using CTWPv2
-	do ..Write(action)
-	do ..Write(query)
-	do ..Write(..ACTIONTERMINATOR)
+	if (action = "") { set action = ..ConstClientOutputMessage }
+	do ..Write(action _ query) // using CTWPv3
 ]]></Implementation>
 </Method>
 
@@ -412,33 +402,52 @@ Function sends data derectly to server with specified action</Description>
 <FormalSpec>query:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	USE $Principal:(/SEN=1)
-   	USE $Principal:(::"+Q")
-	do ..Write(..ACTIONMESSAGE)
+	set io = $io
+  	use io::("^" _ ..InitialZName)
+  	
+  	do ..StartClearIO()
+ 	do ##class(%Device).ReDirectIO($$$YES)
 	
   	set tStatement = ##class(%SQL.Statement).%New()
   	set qStatus = tStatement.%Prepare(query)
   	if qStatus'=1 {
-	  	write "Wrong sql query. Try to examine:",$System.Status.DisplayError(qStatus)
+	  	write "SQL prepare error: ",$System.Status.DisplayError(qStatus)
 	} else {
 		set rset = tStatement.%Execute()
   		do rset.%Display()
 	}
 	
-	do ..Write(..ACTIONTERMINATOR)
-	use $Principal:(/SEN=0)
-   	use $Principal:(::"-Q")
+	do ##class(%Device).ReDirectIO($$$NO)
+	do ..EndClearIO()
+	
+	use io
+	
 	quit $$$OK
 ]]></Implementation>
 </Method>
 
 <Method name="ClientAlertNamespace">
+<Description>
+Sends to client new namespace if last was changed</Description>
 <Implementation><![CDATA[
 	if (..CurrentNamespace '= $Znspace) { // change client namespace
 	    set ..CurrentNamespace = $Znspace
-	 	do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE) 
-	 	//do ..GenNLoadJSAutocompleteFile($Znspace)  
+	 	do ..SendData(..CurrentNamespace,..ConstClientChangeNamespace) 
     }
+]]></Implementation>
+</Method>
+
+<Method name="StartClearIO">
+<Description>
+Starts clear I/O mode</Description>
+<Implementation><![CDATA[	do ..Write(..ConstClientEnterClearIO)
+]]></Implementation>
+</Method>
+
+<Method name="EndClearIO">
+<Description>
+Ends clear I/O mode</Description>
+<Implementation><![CDATA[	do ..SendData("exit",..ConstClientExitClearIO)
 ]]></Implementation>
 </Method>
 
@@ -453,29 +462,25 @@ The heart of terminal application</Description>
 	#dim exception as %Exception.AbstractException
 	set value = $Replace(query,$CHAR(10)," ")
 	
-	do ..Write(..ACTIONMESSAGE) // execute session start
+	do ..StartClearIO() // execute session start
 	
 	set $ZERROR = ""
 	set io = $io
   	use io::("^" _ ..InitialZName)
   	USE io:(::"+T")
-  	do ..Debug("^" _ ..InitialZName)
+  	
  	do ##class(%Device).ReDirectIO($$$YES)
- 	
     try { xecute value } catch exception {
 	   	set $ZERROR = exception.DisplayString()
-	    }
-	    
-    do ##class(%Device).ReDirectIO($$$NO)
+	}
+	do ##class(%Device).ReDirectIO($$$NO)
+	
     use io:(::"-T")
-   	
    	if ($ZERROR '= "") {
-		do ..Write($ZERROR)
+		do ..SendData($ZERROR)
    	}
    	
-   	do ..Write(..ACTIONTERMINATOR) // execute session end
-	
-	if (..ExperimentalAutocompleteOn) do ..GenNLoadJSAutocompleteFile($Znspace)
+   	do ..EndClearIO() // execute session end
 	do ..ClientAlertNamespace()
 	
 	quit $$$OK
@@ -526,43 +531,42 @@ Method description:
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	
-	kill // clear vars
+	kill // clear junk vars
 	
 	for {
 		
-		set action = ..Read(,.status)
+		set data = ..Read(,.status)
     
-    	if $$$ISOK(status) {
-	    		    	
-	    	if (action = ..ACTIONMESSAGE) { // autorized
-	    	
-	    		set data = ..Read(,.status)
-	    		
-		    	do ..ExecuteCommand(data)
-		    	
-	    	} elseif (action = ..ACTIONSQL) { // sql
-		    	
-	    		set data = ..Read(,.status)
-	    	
-		    	do ..ExecuteSQL(data)
-		    		
-	    	} elseif (action = ..ACTIONTERMINATOR) {
-		    	
-		    	// fuu
-		    	
-	    	} else { // something scary
-		    	
-		    	do ..SendData("Unrecognised action: " _ action,..ACTIONMESSAGE)
-		    		
-	    	}
-      		
-    	} else { // $$$ISOK(status)
-	    	 
+    	if $$$ISERR(status) {
+	    
 	    	do ..Debug($$$CSPWebSocketClosed)
-	    	do ..SendData("Error occured while reading data.",..ACTIONMESSAGE)
+	    	do ..SendData("Error occured while reading data.",
+	    		..ConstClientOutputMessage)
       		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
-    
-    	}
+	    	
+	   	}
+	   	
+	   	set action = $EXTRACT(data, 1, 1)
+	   	set data = $EXTRACT(data, 2, *)
+	    		    	
+	    if (action = ..ConstServerActionExecute) { // autorized
+	    	
+		    do ..ExecuteCommand(data)
+		    	
+	    } elseif (action = ..ConstServerActionExecuteSQL) { // sql
+	    
+		    do ..ExecuteSQL(data)
+		  
+	    } elseif (action = ..ConstServerActionGenerateAutocomplete) {
+		      
+		    do ..GenerateAutocompleteFile(data)
+		    		
+	    } else { // something scary
+		    	
+		    do ..SendData("Unrecognised action: " _ action)
+		    		
+	    }
+      		
 	}
 ]]></Implementation>
 </Method>
@@ -572,27 +576,30 @@ Method description:
 New connection established</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	
 	set ..lastClientId = ..lastClientId + 1
 	
 	if ($$$ISOK(..RequireAuthorization())) {
 		
-		set ..InitialNamespace = $Znspace
 		set ..InitialZName = $Zname
 		
-		if (..ExperimentalAutocompleteOn) do ..GenNLoadJSAutocompleteFile($Znspace)
 		do ..SendData("Terminal remote ready. Welcome.")
 		
+		zn "%SYS"
 		set ..CurrentNamespace = $Znspace
-		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)
+		
+		do ..SendData(..CurrentNamespace,..ConstClientChangeNamespace)
 		   
 		do ..ClientLoop(..lastClientId)
 		
 	} else {
-		do ..SendData("Hello, mr. Hacker!")
-		do ..EndServer()	
+		
+		do ..SendData("Welcome, mr. Hacker!")
+		do ..EndServer()
+			
 	}
 	
-	do ..SendData("Good bye!",..ACTIONMESSAGE)
+	do ..SendData("Terminal session ended. Goodbye.")
   	
   	quit $$$OK
 ]]></Implementation>

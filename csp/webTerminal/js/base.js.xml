@@ -2,277 +2,177 @@
 <Export generator="Cache" version="25">
 <CSP name="webTerminal/js/base.js" application="/csp/sys/" default="1"><![CDATA[
 /**
- * Basic scripts for handling events, logging, etc.
+ * Script includes dom representation object, log object and basic prototypes.
  */
 
-var keyPressed = []; // shows if certain key is pressed on the moment. Usage: keyPressed[keyCode]
-
-String.prototype.replaceSymbol = function (index, string) {
-    return this.substr(0, index) + string + this.substr(index + 1);
+String.prototype.splice = function(position, length, string) {
+    return (this.slice(0,position) + string + this.slice(position + Math.abs(length)));
 };
 
-String.prototype.reverse = function () {
-    return this.split("").reverse().join("")
-};
-
-String.prototype.visualLength = function() {
-    var ruler = document.getElementById("ruler");
-    ruler.innerHTML = this;
-    return ruler.offsetWidth;
-};
-
-Number.prototype.limit = function(value) {
-    return (this.valueOf() > value)?value:this.valueOf();
-};
-
-/*Array.prototype.clean = function(deleteValue) {
-    for (var i = 0; i < this.length; i++) {
-        if (this[i] == deleteValue) {
-            this.splice(i, 1);
-            i--;
+function Clone(source) {
+    for (var i in source) {
+        if (!source.hasOwnProperty(i)) continue;
+        if (typeof source[i] == 'source') {
+            this[i] = new Clone(source[i]);
+        }
+        else{
+            this[i] = source[i];
         }
     }
-    return this;
-}; */
-
-Array.prototype.getOptimized = function() {
-
-    return this.filter(function (e, i, arr) {
-        return arr.lastIndexOf(e) === i;
-    });
-
-};
-
-/**
- * Makes any str searchable by regexp.
- *
- * @param str
- *  String.
- * @returns {XML|string|void}
- */
-function escapeRegExp(str) {
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
 
-/**
- * Analog of console.log() created to prevent Internet Explorer javascript error.
- */
-function log() { ('console' in window)?console.log(arguments):null }
+Object.prototype.merge = function(object) {
 
-/**
- * Places caret at the end of input (editable div).
- *
- * @param input 
- *  Input.
- */
-function placeCaretAtEnd(input) {
+    var combine = function(target,object) {
 
-    setCaretPosition(input, input.value.length)
+        for (var property in object) {
 
-}
+            if (!object.hasOwnProperty(property)) continue;
+            if (typeof object[property] != "object") {
+                target[property] = object[property];
+            } else {
+                target[property] = new Clone(object[property]);
+            }
 
-function addTextareasAutoresize() {
+        }
 
-    var t = document.getElementsByTagName("textarea")[0];
-    var offset = !window.opera?
-        (t.offsetHeight - t.clientHeight):
-        (t.offsetHeight + parseInt(window.getComputedStyle(t, null).getPropertyValue("border-top-width")));
-
-    var resize  = function(t) {
-        t.style.height = "auto";
-        t.style.height = t.scrollHeight  + offset + "px";
     };
 
-    t.addEventListener && t.addEventListener("input", function(event) {
-        resize(t);
-    });
+    combine(this,object);
 
-    t["attachEvent"]  && t.attachEvent("onkeyup", function() {
-        resize(t);
-    });
+};
 
-}
+var log = new function() {
+    this.write = function() {
+        (window.console && console.log)?console.log(arguments):alert(arguments);
+    }
+};
 
 /**
- * Sets the cater position on element (input).
- *
- * @param element
- *  Input where to set position.
- * @param position
- *  Position to set.
+ * This object represents every dom element needed for terminal application and includes methods to work with graphical
+ * part of web terminal. See [objects] property for more information.
  */
-function setCaretPosition(element, position) {
+var dom = new function() {
 
-    if(element != null) {
-        if(element.createTextRange) {
-            var range = element.createTextRange();
-            range.move('character', position);
-            range.select();
+    var isDomElement = function(object) {
+        return (
+            typeof HTMLElement === "object" ? object instanceof HTMLElement : //DOM2
+                object && typeof object === "object" && object !== null && object.nodeType === 1 &&
+                    typeof object.nodeName === "string"
+            );
+    };
+
+    /**
+     * DOM objects to work with.
+     *
+     * @type {object}
+     */
+    this.objects = {
+        namespace: null, // current namespace holder
+        input: null, // input object (hidden input, main user-accessible input)
+        output: null, // terminal output
+        inputView: null, // input view (highlighted syntax)
+
+        getCaretPosition: function(object) {
+            object.focus();
+            if(object.selectionStart) return object.selectionStart;
+            else if(!document.selection) return 0;
+            var c = "\001";
+            var sel	= document.selection.createRange();
+            var dul	= sel.duplicate();
+            dul.moveToElementText(object);
+            sel.text = c;
+            var len = dul.text.indexOf(c);
+            sel.moveStart('character',-1);
+            sel.text = "";
+            return len;
         }
-        else {
-            if(element.selectionStart) {
-                element.focus();
-                element.setSelectionRange(position, position);
-            }
-            else
-                element.focus();
+    };
+
+    /**
+     * Clear all logs before.
+     */
+    this.clearLogs = function() {
+        this.objects.output.innerHTML = "";
+    };
+
+    /**
+     * Scrolls to the bottom of the page.
+     */
+    this.scrollBottom = function() {
+        document.body.scrollTop = document.body.scrollHeight;
+    };
+
+    /**
+     * Returns true while input element in dom under focus.
+     *
+     * @returns {boolean}
+     */
+    this.focused = function(object) {
+        return (document.activeElement == object);
+    };
+
+    this.performForClassObjects = function(className,handler) {
+        var classes = document.getElementsByClassName(className);
+        for (var i = 0; i < classes.length; i++) {
+            handler.call(classes[i])
         }
-    }
+    };
 
-}
+    /**
+     * Gets focused object in dom.
+     *
+     * @returns {DocumentView}
+     */
+    this.getFocusedObject = function() {
+        return document.activeElement;
+    };
 
-/**
- * Simply returns key code of keyPress event.
- *
- * @param event
- *  KeyPress event.
- * @returns {Number}
- *  Code of key.
- */
-function getKeyCode(event) { return (window.event)?event.keyCode:event.which } // returns code of pressed key (key event)
+    // definition of all required objects for terminal application in DOM
+    var defineObjects = function(objects) {
+        var element = function(name) { return document.getElementById(name) };
+        objects.namespace = element("terminal-namespace");
+        objects.input = element("terminal-hiddenInput");
+        objects.output = element("terminal-output");
+        objects.inputView = element("terminal-inputView");
+    };
 
-/**
- * Function clears keyPressed status of keys. Usage: safe onblur
- */
-function clearKeyStates() {
 
-    for (var i = 0; i < 256; i++) keyPressed[i] = 0;
-
-}
-/**
- * Sets global keyPressed[keyCode] variable to 1, if key pressed, and 0, if it had released.
- *
- * @param event
- *  KeyPress event.
- */
-function bodyKeyDown(event) { var c = getKeyCode(event); (c)?keyPressed[c]=1:log("Key unrecognised.") }
-function bodyKeyUp(event) { var c = getKeyCode(event); (c)?keyPressed[c]=0:log("Key unrecognised.") }
-
-/**
- * Binds event to object with callback function handler(event).
- *
- * @param object {object}
- *  Object to bind event on.
- * @param event {string}
- *  Event name.
- * @param handler {function}
- *  Function, that will handle event.
- */
-function bindEvent(object, event, handler) {
-
-    if(object.addEventListener ) {
-        object.addEventListener(event,handler,false);
-    } else if(object.attachEvent ) {
-        var exp = (event.substr(0, 5) == "mouse") ? "" : "on"; // Internet Explorer binding
-        object.attachEvent(exp+event,handler); // IE
-    }
-
-}
-
-/**
- * Scrolling functions.
- *
- * @param object
- *  Just scrollable object.
- * @param value
- *  "Height" to scroll to.
- */
-function scrollTo(object,value) { object.scrollTop = value }
-function scrollToBottom(object) { scrollTo(object,object.scrollHeight) }
-
-/**
- * Function return caret position in editable div.
- *
- * @param input
- * @returns {number}
- *  Position.
- */
-
-function getCaretPosition(input) {
-    input.focus();
-    if(input.selectionStart) return input.selectionStart;
-    else if(!document.selection) return 0;
-    var c = "\001";
-    var sel	= document.selection.createRange();
-    var dul	= sel.duplicate();
-    dul.moveToElementText(input);
-    sel.text = c;
-    var len = dul.text.indexOf(c);
-    sel.moveStart('character',-1);
-    sel.text = "";
-    return len;
-}
-
-function getElementInnerHeight(element) {
-    return element.scrollHeight;
-}
-
-function ie() {
-    return navigator.appName == "Microsoft Internet Explorer"
-}
-
-/**
- * Function prevents browser default action for event.
- *
- * @param event
- */
-function preventDefaultEvent(event) {
-    if (event && event.preventDefault) {
-        event.stopPropagation();
-        event.preventDefault();
-    } else {
-        window.event.cancelBubble = true; // IE
-    }
-}
-
-/**
- * Uses browser inbuilt HTML escape functionality to convert all symbols to html entities.
- *
- * @param string
- *  String to escape.
- *
- * @returns {string}
- *  Escaped string.
- */
-function htmlEncode(string)
-{
-    var el = document.createElement("div");
-    el.innerText = el.textContent = string;
-    string = el.innerHTML;
-    return string;
-}
-
-/**
- * Animates object fading in during timeout.
- *
- * @param object
- *  Object to animate.
- * @param timeout
- * [ @param value ]
- *  Value to reach between 0..1 ( default = 1 )
- * [ @param startTime ]
- *  Function-used value.
- * [ @param initialValue ]
- *  Function-used value.
- */
-function animationFadeIn(object, timeout, value, startTime, initialValue) {
-
-    if (object) {
-        var speed = 20;
-        log("animating",timeout,value);
-        if (timeout > 0) {
-            if (typeof initialValue == "undefined") initialValue = object.opacity;
-            if (typeof startTime == "undefined") startTime = timeout;
-            object.opacity = value + (initialValue - value)*(startTime - timeout)/startTime; // [0 -> 1]
-            setTimeout("animationFadeIn(object,timeout-speed,value)",speed);
-        } else {
-            object.opacity = value;
+    /**
+     * Checks if every object defined in objects.
+     *
+     * @returns {boolean}
+     *  Ready to work with terminal DOM.
+     */
+    this.objectsReady = function() {
+        for (var object in this.objects) {
+            if (!this.objects.hasOwnProperty(object) || typeof this.objects[object] != "object") continue;
+            if (this.objects[object] == null) return false;
         }
-    }
+        return true;
+    };
 
-}
+    /**
+     * Initialize objects data.
+     *
+     * @returns {boolean}
+     */
+    this.initialize = function() {
+        defineObjects.call(this,this.objects);
+        return this.objectsReady();
+    };
 
-function removeElement(element) {
-    element.parentNode.removeChild(element);
-}]]></CSP>
+    /**
+     * Removes element from DOM.
+     *
+     * @param object
+     *  DOM element to remove.
+     * @returns {Node}
+     *  Removed node or null, if object is not in DOM or not DOM object.
+     */
+    this.remove = function(object) {
+        return (isDomElement(object))?object.parentNode.removeChild(object):null;
+    };
+
+};]]></CSP>
 </Export>

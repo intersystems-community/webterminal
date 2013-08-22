@@ -1,123 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <CSP name="webTerminal/css/terminal.css" application="/csp/sys/" default="1"><![CDATA[
-.terminalBase {
+.terminal-base {
     position: relative;
     margin: 20px;
-    font-family: FreeMono, monospace;
-    font-size: 14px;
 }
 
-.terminalOutputMessage {
-
-}
-
-.terminalInputContainer {
+.terminal-output-block {
     position: relative;
+    overflow: hidden;
+    display: block;
 }
 
-.terminalOutputContainer {
+.terminal-inputContainer {
     position: relative;
     overflow: hidden;
 }
 
-/*.terminalOutputHeader:after {
-    content: ">";
-    margin: 0 6px 0 6px;
+.terminal-outputContainer {
+    position: relative;
+    overflow: hidden;
 }
 
-.terminalOutputBody {
+.terminal-message-body {
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal-output-body {
+    white-space: pre;
     word-wrap: break-word;
-}        */
-
-.terminalInputPreContainer {
-    position: relative;
 }
 
-.terminalInputHiddenPart {
+.terminal-message-head {
+    display: inline-block;
+    float: left;
+}
+
+.terminal-message-head:after {
+    content: " >";
+    margin-right: 10px;
+}
+
+.terminal-input-visible {
+    min-height: 1em;
+    white-space: pre;
+    word-wrap: break-word;
+}
+
+/* fix white-space when \n is last */
+.terminal-input-visible:after {
+    content: " ";
+}
+
+/* textarea block */
+.terminal-input-hidden {
     position: absolute;
-    left: 0;
     top: 0;
-    width: 100%;
-    z-index: 100;
-}
-
-.terminalInputWrapper, .terminalOutputWrapper {
-    margin-left: 100px;
-    position: relative;
-}
-
-.terminalOutputBody {
-    position: relative;
-    overflow: hidden;
-    display: block;
-}
-
-.terminalInputViewPart {
-    position: absolute;
     left: 0;
-    top: 0;
-    width: 100%;
-    z-index: 0;
-}
-
-.terminalInput, .terminalOutput {
     display: block;
-    margin: 0;
     width: 100%;
+    height: 100%;
     padding: 0;
-    outline: none;
+    margin: 0;
     border: none;
-    line-height: inherit;
-    font: inherit;
-    background: none;
-    color: inherit;
+    outline: none;
+    text-decoration: none;
     overflow: hidden;
-    min-height: 12px;
+    background: none;
+    font: inherit;
+    color: rgba(0,0,0,0);
+    resize: none;
     word-wrap: break-word;
     white-space: pre;
-    resize: none;
 }
 
-.terminalHiddenInput {
-    width: 100%;
-    color: rgba(255,255,255,0);
-}
-
-.terminalInputView {
-
-}
-
-.terminalInputHeader, .terminalOutputHeader { /* global zone (like "dev> ") */
-    float: left;
-    vertical-align: top;
-    width: 100px;
-}
-
-.terminalInputHeader:after, .terminalOutputHeader:after {
-    content: ">";
-    margin: 0 6px 0 6px;
-}
-
-.caret, .caret-blink {
-    position: relative;
-    display: inline-block;
-    width: 0;
-    height: 1pt;
-    vertical-align: bottom;
-}
-
-.caret-blink:after {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 8px;
-    height: 1px;
-    background: #e300ff;
-    content: "";
-}
-
-.terminalAutocompleteOption {
-    opacity: 0.5;
+.terminal-suggestion {
+    color: gray;
 }]]></CSP>
 </Export>
