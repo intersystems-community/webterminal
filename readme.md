@@ -1,9 +1,15 @@
 # Cache Web Terminal
 Access cache database from the web, local network or even localhost.
-### Installation
-Use [Cache Git](https://github.com/intersystems-ru/cache-tort-git) utility OR download archive, unpack and execute in %SYS namespace next: <code>do $System.OBJ.ImportDir("DIR_TO_ROOT_FOLDER\", "*.xml", "ckbud", .err, 1)</code><br>
+### Ways to install terminal
+<OL>
+<LI>Just download XML to import from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a>.</LI>
+<LI>Use <a href="https://github.com/intersystems-ru/cache-tort-git">Cache Tort Git utility</a></LI>
+<LI>Download archive, unpack and execute in %SYS namespace the next: <code>do $System.OBJ.ImportDir("UNPACK_FOLDER\", "*.xml", "ckbud", .err, 1)</code></LI>
+</OL>
 ### Usage
-Start from http://[host]:[port]/csp/sys/webTerminal/index.csp page. Type "/help" to get more information.
+Start from csp file. (http://[host]:[port]/csp/sys/webTerminal/index.csp) Type "/help" to get more information.
+### Additional information
+Visit [project page](http://intersystems-ru.github.io/webterminal) for extra information.
 ### Description
 <table>
 	<tr>
@@ -16,7 +22,7 @@ Start from http://[host]:[port]/csp/sys/webTerminal/index.csp page. Type "/help"
 	</tr>
 	<tr>
 		<td class="info">Autocompletion</td>
-		<td>While entering words, notice gray font appearing. Hit &lt;TAB&gt; to end your current input with suggested variant. If there are more than one word available, you can choose best fitting variant by pressing &lt;CTRL&gt;. Autocomplete database is not full, you can notice it at the beginning of parser.js file.</td>
+		<td>While entering words, notice gray font appearing. Hit &lt;TAB&gt; to end your current input with suggested variant. If there are more than one word available, you can choose best fitting variant by pressing &lt;CTRL&gt; or &lt;ALT&gt;. Autocomplete database is not full, you can notice it at the beginning of parser.js file.</td>
 	</tr>
 	<tr>
 		<td class="info">Syntax highlighting</td>
