@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="webTerminal/js/hid.js" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/js/hid.js" application="/csp/sys/" default="1"><![CDATA[
 // represents actions for human input device
 var hid = new function() {
 

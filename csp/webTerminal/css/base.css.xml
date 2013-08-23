@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="webTerminal/css/base.css" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/css/base.css" application="/csp/sys/" default="1"><![CDATA[
 html, body {
     padding: 0;
     margin: 0;

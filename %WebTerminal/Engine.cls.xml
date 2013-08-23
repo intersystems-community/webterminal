@@ -254,7 +254,10 @@ rchr(timeout = 86400)
 <Implementation><![CDATA[
 	set filename = ..GetJSAutocompleteFilePath($NAMESPACE)
 	
+	do ..StartClearIO()
+	
 	if ('##class(%SYS.Namespace).Exists($REPLACE(namespace,"_","%"))) {
+		do ..EndClearIO()
 		do ..SendData("Wrong namespace name: " _ namespace)
 		quit $$$NOTOK
 	}
@@ -263,6 +266,7 @@ rchr(timeout = 86400)
 	
 	if (##class(%File).Exists(filename)) {
 		
+		do ..EndClearIO()
 		do ..SendData(namespace, ..ConstClientLoadAutocomplete)
 		quit $$$OK
 		
@@ -272,6 +276,7 @@ rchr(timeout = 86400)
 		set result = ##class(%File).CreateDirectoryChain(##class(%File).GetDirectory(filename))
 		
 		if (result '= 1) {
+			do ..EndClearIO()
 			do ..SendData("Autocomplete fail: can't create directory js/autocomplete.")
 			quit $$$OK
 		}
@@ -294,19 +299,10 @@ rchr(timeout = 86400)
 	Generates compressed JSON string of type:
 	{
 		"%ClassName1": {
-			"methods": {
-				"Method1":0,
-				...
-			},
-			"properties": {
-				"Prop1":0,
-				"Prop2":0,
-				...
-			},
-			"parameters": {
-				"Param1":0,
-				...
-			}
+			"methodName": 0,
+			"propertyName": 0,
+			"parameterName": 0,
+			...
 		},
 		"ClassName2": {
 			...
@@ -326,28 +322,31 @@ rchr(timeout = 86400)
 		
 		set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
  		
- 		set data = data _ """methods"":{"
- 		set count = cdefs.Methods.Count()
- 		for i=1:1:count {
+ 		set countMethods = cdefs.Methods.Count()
+ 		set countParameters = cdefs.Parameters.Count()
+ 		set countProperties = cdefs.Properties.Count()
+ 		set total = countMethods + countParameters + countProperties
+ 		set current = 0
+ 		
+ 		for i=1:1:countMethods {
+	 		set current = current + 1
      		set data = data _ """" _cdefs.Methods.GetAt(i).Name _ """:0"
-     		if (i'=count) set data = data _ ","
+     		if (current'=total) set data = data _ ","
  		}
  		
- 		set data = data _ "},""properties"":{"
- 		set count = cdefs.Properties.Count()
- 		for i=1:1:count {
+ 		for i=1:1:countProperties {
+	 		set current = current + 1
      		set data = data _ """" _cdefs.Properties.GetAt(i).Name _ """:0"
-     		if (i'=count) set data = data _ ","
+     		if (current'=total) set data = data _ ","
  		}
  		
- 		set data = data _ "},""parameters"":{"
- 		set count = cdefs.Parameters.Count()
- 		for i=1:1:count {
+ 		for i=1:1:countParameters {
+	 		set current = current + 1
      		set data = data _ """" _cdefs.Parameters.GetAt(i).Name _ """:0"
-     		if (i'=count) set data = data _ ","
+     		if (current'=total) set data = data _ ","
  		}
 		
-		set data = data _ "}}"
+		set data = data _ "}"
 		
 	}
 	
@@ -355,7 +354,10 @@ rchr(timeout = 86400)
 	
 	do ..WriteToFile(filename,data)
 	
-	do ..SendData("Language file for " _ namespace _ " classes created.")
+	do ..SendData($c(10)_"Language file for " _ namespace _ " classes created.")
+	
+	do ..EndClearIO()
+	
 	do ..SendData(namespace,..ConstClientLoadAutocomplete)
 	
 	quit $$$OK

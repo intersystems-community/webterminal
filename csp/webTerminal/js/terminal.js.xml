@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="webTerminal/js/terminal.js" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/js/terminal.js" application="/csp/sys/" default="1"><![CDATA[
 /**
  * Main controller object for application.
  *
@@ -34,6 +34,7 @@
  *  Clear I/O mode
  *      In this mode terminal client will listen for data from server and output any data as it is, without any action
  *      identifiers. The same with terminal: any data sent to server won't include any identifiers.
+ *
  */
 var terminal = new function() {
 
@@ -309,7 +310,6 @@ var terminal = new function() {
             return;
         }
 
-		console.log("----------------------------------------");
         this.output.setTarget(dom.objects.output); // set standard output
 
         hid.bindKeyDown(document, handlers.globalKeyDown);
@@ -329,7 +329,6 @@ var terminal = new function() {
         this.input.clear(); // Clear histories caused by "back" page
         this.input.focus();
         this.input.update();
-        log.write("TARGET2: ",dom.objects.output);
 
     };
 
@@ -400,8 +399,9 @@ var terminal = new function() {
 
     this.autocompletion = new function() {
 
-        var variants = [],
-            current = 0;
+        var variants = {},
+            current = 0,
+            number = 0;
 
         /**
          * Gets updates autocompletion for given arguments. By default method will work with terminal input and will
@@ -415,7 +415,9 @@ var terminal = new function() {
         this.reset = function(position,string) {
             if (typeof position == "undefined") position = terminal.input.caretPosition();
             if (typeof string == "undefined") string = terminal.input.get();
-            variants = parser.getAutocomplete(string,position);
+            var vars = parser.getAutocomplete(string,position);
+            variants = vars.data;
+            number = vars.length;
             return this.get(current = 0);
         };
 
@@ -425,7 +427,7 @@ var terminal = new function() {
          * @returns {boolean}
          */
         this.hasVariants = function() {
-            return variants.length != 0;
+            return number != 0;
         };
 
         /**
@@ -434,7 +436,7 @@ var terminal = new function() {
          * @returns {string}
          */
         this.next = function() {
-            if (variants.length != 0) {
+            if (this.hasVariants()) {
                 return this.get(current+1);
             } else return "";
         };
@@ -445,7 +447,7 @@ var terminal = new function() {
          * @returns {string}
          */
         this.previous = function() {
-            if (variants.length != 0) {
+            if (this.hasVariants()) {
                 return this.get(current-1);
             } else return "";
         };
@@ -457,25 +459,34 @@ var terminal = new function() {
          * @returns {string}
          */
         this.get = function(index) {
-            if (variants.length == 0) return "";
-            index = index % variants.length;
-            if (index < 0) index = variants.length + index;
+
+            index = index % number;
+
+            var i = 0, name = "";
+            for (var currentName in variants) {
+                if (i === index) {
+                    name = currentName;
+                    break;
+                }
+                i++;
+            }
+
             current = index;
-            return variants[index];
+            return name;
+
         };
 
         /**
          * Clears all variants.
          */
         this.clear = function() {
-            variants = [];
+            variants = {};
             current = 0;
+            number = 0;
         };
 
         /**
          * Show variant to the user.
-         *
-         * @param text
          */
         this.getSuggestion = function() {
             if (this.hasVariants()) {
@@ -546,7 +557,6 @@ var terminal = new function() {
          * @returns {boolean}
          */
         this.setTarget = function(object) {
-            log.write("AKAY!");
             target = object;
             return true;
         };
@@ -625,7 +635,7 @@ var terminal = new function() {
         /**
          * Updates main input field view, highlights and redraws area.
          */
-        this.update = function() { // TODO: rename to update
+        this.update = function() {
             var data = terminal.input.get();
             var cp = (this.focused())?terminal.input.caretPosition():-1;
             dom.objects.inputView.innerHTML =
@@ -838,8 +848,9 @@ var terminal = new function() {
             if (key == hid.keys.TAB) {
                 var variant = terminal.autocompletion.getSuggestion();
                 if (variant) {
-                    this.insert(this.caretPosition(),variant);
                     terminal.autocompletion.clear();
+                    this.insert(this.caretPosition(),variant);
+
                 } else {
                     this.insert(this.caretPosition(),"\t");
                 }
@@ -934,18 +945,6 @@ var terminal = new function() {
 
     };
 
-    this.getNamespace = function() {
-
-        return namespace
-
-    };
-
-    this.setNamespace = function(name) {
-
-        namespace = name
-
-    };
-
     /**
      * Terminal language object. This one used in autocomplete.
      *
@@ -970,8 +969,7 @@ var terminal = new function() {
          */
         this.addClass = function(name,classToken) { // adds class to tokens
 
-            if (typeof classToken == "object" && classToken.hasOwnProperty("methods") &&
-                classToken.hasOwnProperty("properties") && classToken.hasOwnProperty("parameters")) {
+            if (typeof classToken == "object") {
 
                 var merging = !this.tokens.class.hasOwnProperty(name);
 
@@ -1001,15 +999,6 @@ var terminal = new function() {
                 if (!classTokens.hasOwnProperty(property)) continue;
                 this.addClass(property,classTokens[property]);
             }
-
-        };
-
-        /**
-         * TODO: The same as addClasses, but without naming methods/properties/parameters.
-         */
-        this.addCompressedClasses = function(classTokens) {
-
-            this.addClasses(classTokens);
 
         };
 
@@ -1079,33 +1068,16 @@ var terminal = new function() {
             },
             "class": {
                 "!autocomplete": {
-                    reversedRegExp: new RegExp("(([a-zA-Z\\.]*[a-zA-Z])?%?)\\(ssalc##\\s.*")
-                },
-                "!child": {
-                    "methods": {
-                        "!structure": ").[A-Za-z]"
-                    },
-                    "properties": {
-                        "!structure": ").[A-Za-z]"
-                    },
-                    "parameters": {
-                        "!structure": ").[A-Za-z]"
+                    reversedRegExp: new RegExp("(([a-zA-Z\\.]*[a-zA-Z])?%?)\\(ssalc##\\s.*"),
+                    separator: ".",
+                    child: {
+                        reversedRegExp: new RegExp("([a-zA-Z]*)\\.\\)")
                     }
                 },
                 "EXAMPLE": {
-                    "methods": {
-                        "Method": 0,
-                            "Methodic": 0
-                    },
-                    "properties": {
-                        "Prop": 0,
-                            "Poropop": 0
-                    },
-                    "parameters": {
-                        "Param": 0,
-                            "Pam": 0,
-                            "Papam": 0
-                    }
+                    "Method": 0,
+                    "Property": 0,
+                    "Parameter": 0
                 }
             }
 

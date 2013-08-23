@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="webTerminal/js/server.js" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/js/server.js" application="/csp/sys/" default="1"><![CDATA[
 var server = new function() {
 
     var socket = null, // webSocket object
@@ -27,7 +27,7 @@ var server = new function() {
      * Disconnect from server.
      */
     this.disconnect = function() {
-        if (this.connected()) {
+        if (server.connected()) {
             terminal.output.write("Disconnecting from current server...");
             socket.close();
             socket = null;
@@ -44,7 +44,7 @@ var server = new function() {
         terminal.output.write("Loading Caché language for " + namespace);
         ajax.get("js/autocomplete/" + namespace + ".js",function(data,allRight){
             if (allRight) {
-                terminal.language.addCompressedClasses(parser.convertToObject(data));
+                terminal.language.addClasses(parser.convertToObject(data));
                 terminal.output.write("Language for " + namespace + " loaded.");
             } else {
                 terminal.output.write("Language load fail.");
@@ -60,7 +60,7 @@ var server = new function() {
     this.getDefaultServerURL = function() {
         var part = document.URL.split("/")[2]; // domain[:port]
         
-        // part = "localhost:57772";
+        part = "localhost:57772";
 
         return "ws://" + part + "/" + serverRoot.replace(/%/,"%25");
     };
@@ -96,7 +96,7 @@ var server = new function() {
      * @param action
      * @param data
      *  Data will be trimmed and \n'd if terminator true
-     * @param terminator
+     * [ @param terminator ]
      */
     this.submit = function(action,data,terminator) {
         if (typeof terminator == "undefined") terminator = true;
@@ -116,7 +116,7 @@ var server = new function() {
 
     var onOpen = function() {
         terminal.output.write("Connection established. Authorization...");
-        server.send(application.authorizationKey);
+        if (application.authorizationKey) server.send(application.authorizationKey);
     };
 
     var onClose = function(a) {

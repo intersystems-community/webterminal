@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="webTerminal/index.csp" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/index.csp" application="/csp/sys/" default="1"><![CDATA[
 <!DOCTYPE html>
 
 <html>
@@ -54,6 +54,5 @@
         </script>
     </body>
 
-</html>
-]]></CSP>
+</html>]]></CSP>
 </Export>

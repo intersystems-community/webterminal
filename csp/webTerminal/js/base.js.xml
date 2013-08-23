@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="webTerminal/js/base.js" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/js/base.js" application="/csp/sys/" default="1"><![CDATA[
 /**
  * Script includes dom representation object, log object and basic prototypes.
  */

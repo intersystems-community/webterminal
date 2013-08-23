@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="webTerminal/js/parser.js" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/js/parser.js" application="/csp/sys/" default="1"><![CDATA[
 /**
  * Every parser tasks are performed only with strings.
  */
@@ -126,7 +126,6 @@ var parser = new function() {
      * @param json {string}
      */
     this.convertToObject = function(json) {
-        log.write(json);
         if (JSON && JSON.parse) return JSON.parse(json);
         var a = null;
         eval("a = " + json);
@@ -190,46 +189,68 @@ var parser = new function() {
         // limitations: \s, \n, next-letter
         var nextChar = string.charAt(position),
             currentChar = string.charAt(position-1);
-        if (nextChar.match(/[a-zA-Z]/) || currentChar.match(/\s/)) return [];
+        if (nextChar.match(/[a-zA-Z]/) || currentChar.match(/\s/)) return {};
 
         // part to parse: reversed+" "
-        var from = (string.lastIndexOf(" ")+1 || string.lastIndexOf("\n")-1 || -1) + 1,
-            part = string.substring(from,position).trim(),
-            variants = [];
+        var part = string.substring(0,position).trim(),
+            variants = {
+                length: 0,
+                data: {
 
-        var getEndings = function(object,startPart) {
+                }
+            };
+
+        var getEndings = function(object, startPart, separator) {
             for (var fullPart in object) {
                 if (!object.hasOwnProperty(fullPart) || typeof object != "object") continue;
                 if (fullPart.indexOf(startPart) === 0 && fullPart.length != startPart.length) {
-                    variants.push(fullPart.substr(startPart.length))
+                    var part = fullPart.substr(startPart.length);
+                    if (separator) part = part.split(separator)[0];
+                    if (!variants["data"].hasOwnProperty(part)) {
+                        variants["data"][part] = object[fullPart];
+                        variants["length"]++;
+                    }
                 }
             }
         };
         
-        var parseObject = function(languageObject,pattern) {
+        var parseObject = function(languageObject, string) {
 
             for (var unit in languageObject) {
 
                 if (!languageObject.hasOwnProperty(unit) ||
-                    !languageObject[unit].hasOwnProperty("!autocomplete")) continue;
+                    !(languageObject[unit].hasOwnProperty("!autocomplete") || pattern)) continue;
 
-                var parameters = languageObject[unit]["!autocomplete"],
-                    result = parameters["reversedRegExp"].exec(pattern);
+                var parameters = languageObject[unit]["!autocomplete"];
+                if (!parameters) continue;
 
+                if (parameters["child"] && parameters["child"]["reversedRegExp"]) { // scanning for child elements
+                    var combinedRegExp = new RegExp(parameters["child"]["reversedRegExp"].source +
+                        parameters["reversedRegExp"].source);
+                    var childResult = combinedRegExp.exec(string);
+                    if (childResult && childResult.index === 0 && childResult[2]) {
+                        var parentName = parser.reverse(childResult[2]);
+                        if (languageObject[unit].hasOwnProperty(parentName)) {
+                            getEndings(languageObject[unit][parentName], parser.reverse(childResult[1]),
+                                parameters["child"]["separator"])
+                        }
+                    }
+                }
+
+                var result = parameters["reversedRegExp"].exec(string);
                 if (result && result.index === 0 && result[1]) {
-                    getEndings(languageObject[unit],parser.reverse(result[1]))
+                    getEndings(languageObject[unit],parser.reverse(result[1]),parameters["separator"])
                 }
 
             }
 
         };
 
-        parseObject(terminal.language.tokens,this.reverse(string)+" ");
+        parseObject(terminal.language.tokens,this.reverse(part)+" ");
 
         return variants;
 
     };
 
-};
-]]></CSP>
+};]]></CSP>
 </Export>
