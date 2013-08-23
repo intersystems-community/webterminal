@@ -147,7 +147,7 @@ var parser = new function() {
 
     this.prepareForOutputHTML = function(string,insertCaretPos,highlight,insertSuggestion) {
 
-        if (typeof insertCaretPos == "undefined" || application.browser == "ie") insertCaretPos = -1;
+        if (typeof insertCaretPos == "undefined") insertCaretPos = -1;
         if (typeof highlight == "undefined") highlight = true;
         if (typeof insertSuggestion == "undefined") insertSuggestion = "";
         if (insertSuggestion == 1) { insertSuggestion = terminal.autocompletion.getSuggestion() }
@@ -173,7 +173,9 @@ var parser = new function() {
                 var pos = this.convertPositionForHTML(string,insertCaretPos);
                 string = string.splice(pos,0,insertSuggestion);
             }
-            string = this.insertCaret(string,insertCaretPos);
+            if (application.browser != "ie") {
+                string = this.insertCaret(string,insertCaretPos);
+            }
         }
 
         return string;

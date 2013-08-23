@@ -310,6 +310,7 @@ var terminal = new function() {
             return;
         }
 
+		console.log("----------------------------------------");
         this.output.setTarget(dom.objects.output); // set standard output
 
         hid.bindKeyDown(document, handlers.globalKeyDown);
@@ -329,6 +330,7 @@ var terminal = new function() {
         this.input.clear(); // Clear histories caused by "back" page
         this.input.focus();
         this.input.update();
+        log.write("TARGET2: ",dom.objects.output);
 
     };
 
@@ -545,10 +547,9 @@ var terminal = new function() {
          * @returns {boolean}
          */
         this.setTarget = function(object) {
-            if (object && object.hasOwnProperty("innerHTML")) {
-                target = object;
-                return true;
-            } else return false;
+            log.write("AKAY!");
+            target = object;
+            return true;
         };
 
         /**
