@@ -34,7 +34,6 @@
  *  Clear I/O mode
  *      In this mode terminal client will listen for data from server and output any data as it is, without any action
  *      identifiers. The same with terminal: any data sent to server won't include any identifiers.
- *
  */
 var terminal = new function() {
 

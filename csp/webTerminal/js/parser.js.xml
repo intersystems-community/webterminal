@@ -230,5 +230,6 @@ var parser = new function() {
 
     };
 
-};]]></CSP>
+};
+]]></CSP>
 </Export>
