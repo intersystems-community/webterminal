@@ -86,6 +86,7 @@ var parser = new function() {
      *  Parsed string.
      */
     this.highlightHTML = function(string) {
+        if (!settings.highlightOutput()) return string;
         return string.replace(/(((<|&|&#)|\^|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
             function(part) {
                 return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
@@ -219,7 +220,7 @@ var parser = new function() {
             for (var unit in languageObject) {
 
                 if (!languageObject.hasOwnProperty(unit) ||
-                    !(languageObject[unit].hasOwnProperty("!autocomplete") || pattern)) continue;
+                    !(languageObject[unit].hasOwnProperty("!autocomplete"))) continue;
 
                 var parameters = languageObject[unit]["!autocomplete"];
                 if (!parameters) continue;

@@ -18,7 +18,7 @@ var application = new function() {
             "</div>" +
             "<table>" +
                 "<tr>" +
-                    "<td class=\"hint\">Available client-side commands </td>" +
+                    "<td class=\"hint\">Available client-side commands</td>" +
                     "<td class=\"hint\">Description</td>" +
                 "</tr>" +
                 "<tr>" +
@@ -63,6 +63,10 @@ var application = new function() {
                         "Test client/server connection. Executes loops with delay on server and measures time/packages transferred." +
                         "Be careful with serverDelay variable!" +
                     "</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">/settings</td>" +
+                    "<td>Opens panel with different application settings. Use &lt;ESC&gt; to hide panel.</td>" +
                 "</tr>" +
             "</table>" +
             "<div class=\"center\">" +

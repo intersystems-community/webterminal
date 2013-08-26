@@ -56,7 +56,7 @@ var dom = new function() {
 
     var isDomElement = function(object) {
         return (
-            typeof HTMLElement === "object" ? object instanceof HTMLElement : //DOM2
+            typeof HTMLElement === "object" ? object instanceof HTMLElement: //DOM2
                 object && typeof object === "object" && object !== null && object.nodeType === 1 &&
                     typeof object.nodeName === "string"
             );
@@ -72,6 +72,14 @@ var dom = new function() {
         input: null, // input object (hidden input, main user-accessible input)
         output: null, // terminal output
         inputView: null, // input view (highlighted syntax)
+        panel: null,
+        panelTable: null,
+        settingsHighlighting: null,
+        settingsAnimations: null,
+        themeCSS: null,
+        colorThemeBasicCSS: null,
+        colorThemeCacheCSS: null,
+        body: null,
 
         getCaretPosition: function(object) {
             object.focus();
@@ -87,6 +95,31 @@ var dom = new function() {
             sel.text = "";
             return len;
         }
+    };
+
+    /**
+     * Adds class to object.
+     *
+     * @param object
+     * @param className
+     */
+    this.addClass = function(object, className) {
+        if (isDomElement(object)) {
+            object.className += className;
+        } else log.write("Can't add class to non-DOM element.");
+    };
+
+    /**
+     * Removes class from object.
+     *
+     * @param object
+     * @param className
+     */
+    this.removeClass = function(object, className) {
+        if (isDomElement(object)) {
+            var regExp = new RegExp("(?:^|\\s)" + className + "(?!\\S)","g");
+            object.className = object.className.replace(regExp,"");
+        } else log.write("Can't remove class from non-DOM element.");
     };
 
     /**
@@ -135,6 +168,14 @@ var dom = new function() {
         objects.input = element("terminal-hiddenInput");
         objects.output = element("terminal-output");
         objects.inputView = element("terminal-inputView");
+        objects.panel = element("terminal-control-panel");
+        objects.panelTable = element("terminal-control-table");
+        objects.settingsHighlighting = element("settings-highlighting");
+        objects.themeCSS = element("terminal-color-theme");
+        objects.settingsAnimations = element("settings-animations");
+        objects.colorThemeBasicCSS = element("terminal-color-theme-basic");
+        objects.colorThemeCacheCSS = element("terminal-color-theme-cache");
+        objects.body = document.body;
     };
 
 
@@ -147,7 +188,10 @@ var dom = new function() {
     this.objectsReady = function() {
         for (var object in this.objects) {
             if (!this.objects.hasOwnProperty(object) || typeof this.objects[object] != "object") continue;
-            if (this.objects[object] == null) return false;
+            if (this.objects[object] == null) {
+                log.write("DOM object " + object + " not found!");
+                return false;
+            }
         }
         return true;
     };
@@ -173,6 +217,87 @@ var dom = new function() {
     this.remove = function(object) {
         return (isDomElement(object))?object.parentNode.removeChild(object):null;
     };
+
+};
+
+/**
+ * This object represents whole terminal panel functionality.
+ */
+var settings = new function() {
+
+    var animations = false,
+        highlighting = true,
+        colorTheme = "default";
+
+    /**
+     * Updates terminal settings according to dom checked boxes.
+     */
+    this.updateFromView = function() {
+        highlighting = dom.objects.settingsHighlighting.checked;
+        animations = dom.objects.settingsAnimations.checked;
+        colorTheme = "";
+        if (dom.objects.colorThemeCacheCSS.checked) colorTheme = "-cache";
+
+
+        dom.objects.themeCSS.href = "css/syntax" + colorTheme + ".css";
+        if (!animations) {
+            dom.removeClass(dom.objects.body,"noAnimations");
+            dom.addClass(dom.objects.body,"noAnimations");
+        } else dom.removeClass(dom.objects.body,"noAnimations");
+    };
+
+    /**
+     * Returns true if output needs to be highlighted.
+     *
+     * @returns {boolean}
+     */
+    this.highlightOutput = function() {
+        return highlighting;
+    };
+
+    /**
+     * Opens or closes settings panel.
+     */
+    this.switchPanel = function() {
+        dom.objects.panel.style.top = (dom.objects.panel.style.top == "-100%")?"0":"-100%";
+    };
+
+    /**
+     * Closes panel.
+     */
+    this.closePanel = function() {
+        dom.objects.panel.style.top = "-100%";
+    };
+
+    /**
+     * Closes panel.
+     */
+    this.openPanel = function() {
+        dom.objects.panel.style.top = "0";
+    };
+
+    /**
+     * Updates terminal settings view on dom.
+     */
+    this.updateFromModel = function() {
+        dom.objects.settingsHighlighting.checked = highlighting;
+        dom.objects.settingsAnimations.checked = animations;
+        dom.objects.colorThemeBasicCSS.checked = colorTheme === "default";
+        dom.objects.colorThemeCacheCSS.checked = colorTheme === "studio";
+    };
+
+    /**
+     * Initializes settings. Returns true if initialization successful.
+     *
+     * @returns {boolean}
+     */
+    this.initialize = function() {
+        dom.objects.panel.style.top = "-100%";
+        hid.bindClick(dom.objects.panelTable,this.updateFromView);
+        this.updateFromModel();
+        this.updateFromView();
+        return true;
+    }
 
 };]]></CSP>
 </Export>

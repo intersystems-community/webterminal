@@ -3,7 +3,6 @@
 <CSP name="WebTerminal/css/terminal.css" application="/csp/sys/" default="1"><![CDATA[
 .terminal-base {
     position: relative;
-    margin: 20px;
 }
 
 .terminal-output-block {
@@ -77,5 +76,39 @@
 
 .terminal-suggestion {
     color: gray;
-}]]></CSP>
+}
+
+/* control panel */
+
+#terminal-control-panel {
+    position: absolute;
+    left: 0;
+    top: -100%;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background: rgba(40,40,40,0.95);
+
+    transition: top 0.2s ease;
+    -webkit-transition: top 0.2s ease;
+    -o-transition: top 0.2s ease;
+    -moz-transition: top 0.2s ease;
+}
+
+.terminal-control-content {
+    position: relative;
+    margin: 20px;
+}
+
+#terminal-control-table {
+    width: 100%;
+}
+
+#terminal-control-table > tbody > tr > td:first-child {
+    color: #dadada;
+    font-size: 1.3em;
+    font-weight: 900;
+    padding-right: 20px;
+}
+]]></CSP>
 </Export>

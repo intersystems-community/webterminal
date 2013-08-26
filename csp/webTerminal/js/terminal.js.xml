@@ -214,6 +214,10 @@ var terminal = new function() {
                 terminal.output.write(application.helpbox);
             },
 
+            settings: function() {
+                settings.openPanel();
+            },
+
             autocomplete: function() {
                 server.submit(
                     terminal.serverActions.GENERATE_AUTOCOMPLETE,
@@ -305,7 +309,7 @@ var terminal = new function() {
 
     this.initialize = function() {
 
-        if (!dom.initialize()) {
+        if (!dom.initialize() || !settings.initialize()) {
             log.write("Unable to init terminal: dom fault.",dom.objects);
             return;
         }
@@ -440,6 +444,10 @@ var terminal = new function() {
                 return this.get(current+1);
             } else return "";
         };
+
+        this.variants = function() {
+            return variants;
+        }
 
         /**
          * Returns previous autocomplete variant.
@@ -836,6 +844,10 @@ var terminal = new function() {
                 return false;
             }
 
+            if (key == hid.keys.ESC) {
+                settings.closePanel();
+            }
+
             if (key == hid.keys.UP || key == hid.keys.DOWN) {
                 var line = this.caretLine();
                 if ((key == hid.keys.UP && line == 1) ||
@@ -1005,8 +1017,7 @@ var terminal = new function() {
         this.tokens = {
 
             "client": {
-                "!structure": "/[a-z]",
-                    "!autocomplete": {
+                "!autocomplete": {
                     reversedRegExp: new RegExp("([a-z]*/)+"),
                         target: "this"
                 },
@@ -1017,11 +1028,11 @@ var terminal = new function() {
                 "/reconnect": 0,
                 "/autocomplete": 0,
                 "/siege": 0,
+                "/settings": 1,
                 "/define": 0
             },
             "commands": {
-                "!structure": "[a-zA-Z]",
-                    "!autocomplete": {
+                "!autocomplete": {
                     reversedRegExp: new RegExp("([a-zA-Z]+)\\s.*")
                 },
                 "SET": 0,
@@ -1057,14 +1068,13 @@ var terminal = new function() {
                     reversedRegExp: new RegExp("([a-zA-Z]+)\\$\\s.*")
                 },
                 "$DEVICE": 0,
-                    "$ECODE": 0
+                "$ECODE": 0
             },
             "staticMethod": {
                 "!autocomplete": {
                     reversedRegExp: new RegExp("([a-zA-Z]*##)\\s.*")
                 },
-                "!structure": "##[A-Z]",
-                    "##class": 0
+                "##class": 0
             },
             "class": {
                 "!autocomplete": {

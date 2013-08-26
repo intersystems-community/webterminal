@@ -15,7 +15,7 @@
         <link rel="stylesheet" href="css/base.css">
         <link rel="stylesheet" href="css/terminal.css">
         <link rel="stylesheet" href="css/extra.css">
-        <link rel="stylesheet" href="css/syntax.css">
+        <link rel="stylesheet" href="css/syntax.css" id="terminal-color-theme">
         <script type="text/javascript" src="js/base.js"></script>
         <script type="text/javascript" src="js/hid.js"></script>
         <script type="text/javascript" src="js/application.js"></script>
@@ -26,6 +26,45 @@
     </head>
 
     <body>
+        <div id="terminal-control-panel">
+            <div class="terminal-control-content">
+                <h1>Control panel</h1>
+                <table id="terminal-control-table">
+                    <tbody>
+                        <tr>
+                            <td class="center" colspan="2">Application settings</td>
+                        </tr>
+                        <tr>
+                            <td>Highlighting</td>
+                            <td>
+                                <label>
+                                    <input id="settings-highlighting" type="checkbox">
+                                    Use syntax highlighting.
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="hidden">
+                            <td>Animations</td>
+                            <td>
+                                <label>
+                                    <input checked id="settings-animations" type="checkbox">
+                                    Enable CSS3 animations and transitions.
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Color theme</td>
+                            <td>
+                                <label>
+                                    <input id="terminal-color-theme-basic" type="radio" name="terminal-color-scheme" value="basic">Default
+                                    <input id="terminal-color-theme-cache" type="radio" name="terminal-color-scheme" value="cache">Studio
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
         <div class="terminal-base" id="terminal">
             <div class="terminal-output-block" id="terminal-output">
                 <!-- output -->
