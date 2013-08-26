@@ -184,18 +184,16 @@ wtab(s)
 	quit
 	
 rstr(len = 32656,timeout = 86400)
-	do ..ClientAlertNamespace()
 	set rd=##class(%Device).ReDirectIO($$$NO)
-	w ..ConstClientReadString,*-3
+	w $c(6),*-3 // ..ConstClientReadString
 	read header#5:timeout
 	read data:timeout
 	set data = $$PrepareInput($EXTRACT(data,1,len))
 	do ##class(%Device).ReDirectIO(rd)
 	quit data
 rchr(timeout = 86400)
-	do ..ClientAlertNamespace()
 	set rd=##class(%Device).ReDirectIO($$$NO)
-	w ..ConstClientReadChar,*-3
+	w $c(7),*-3 // ..ConstClientReadChar
 	read header#5:timeout
 	read data:timeout
 	set data = $$PrepareInput($ASCII($EXTRACT(data,1,1)))
