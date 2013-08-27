@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="WebTerminal/css/syntax.css" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/css/theme-studio.css" application="/csp/sys/" default="1"><![CDATA[
+body {
+    background: white;
+    color: black;
+}
 
 .syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit, .syntax-kill,
 .syntax-close, .syntax-zw, .syntax-zwrite, .syntax-break, .syntax-catch, .syntax-read
@@ -9,30 +13,36 @@
 .syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
 .syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite, .syntax-d,
 .syntax-zn, .syntax-h, .syntax-read, .syntax-r
-{ color: #29cfe9; font-weight: 900; }
+{ color: #0000ff; font-weight: 900; }
 
 .syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,
 .syntax-catch
-{ color: #ff00fe; }
+{ color: #0000ff; }
 
 .syntax-help, .syntax-clear, .syntax-connect, .syntax-disconnect, .syntax-define, .syntax-siege
 { color: #e2dc00; }
 
 .syntax-select, .syntax-from, .syntax-where, .syntax-join, .syntax-into
-{ color: #f34800; }
+{ color: #000000; }
 
 /* Syntax highlighter styles. Required: parser.js */
-.syntax-_digit { color: #00ff89; } /* 6006 */
-.syntax-_symbol { color: #82fffa; } /* +*-/=,!_'#?\ */
-.syntax-_bracket { color: #82fffa; } /* {}[]() */
-.syntax-_string { color: #26e500; } /* "test" */
-.syntax-_function { color: #9291ff; } /* $LENGTH */
-.syntax-_userFunction { color: #cea3ff; } /* $$MY */
-.syntax-_macro { color: #cb64ff; } /* $$$test */
-.syntax-_sysMacro { color: #ff00fe; } /* ##test */
-.syntax-_classProp { color: #0091ff; } /* ..test */
-.syntax-_global { color: #ff5156; } /* ^test */
-.syntax-_other { color: #82fffa; } /* html-escaped symbols, unrecognised */
+.syntax-_digit { color: #000000; } /* 6006 */
+.syntax-_symbol { color: #000000; } /* +*-/=,!_'#?\ */
+.syntax-_bracket { color: #000000; } /* {}[]() */
+.syntax-_string { color: #008000; } /* "test" */
+.syntax-_function { color: #0000ff; } /* $LENGTH */
+.syntax-_userFunction { color: #0000ff; } /* $$MY */
+.syntax-_macro { color: #0000ff; } /* $$$test */
+.syntax-_sysMacro { color: #0000ff; } /* ##test */
+.syntax-_classProp { color: #0000ff; } /* ..test */
+.syntax-_global { color: #000000; } /* ^test */
+.syntax-_other { color: #000000; } /* html-escaped symbols, unrecognised */
 
+.warning { color: #a56800 }
+.hint { color: #127a00 }
+.error { color: #ff0000 }
+.info { color: #fffd7c }
+.executed { color: #127a00 }
+.complete { color: #127a00 }
 ]]></CSP>
 </Export>

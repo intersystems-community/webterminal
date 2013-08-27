@@ -11,13 +11,14 @@ var parser = new function() {
      *
      * @param string
      * @returns {string}
-     */
+     *
     this.HTMLtoText = function(string) {
         var div = document.createElement("div"); // @GC
         div.innerHTML = string;
         var text = div.textContent || div.innerText || string.replace(/<br\s?\/?>/g,"\n").replace(/<\/?[^>]+(>|$)/g,"");
         return text || "";
     };
+     */
 
     /**
      * Function clears html tab characters and entities.
@@ -126,11 +127,21 @@ var parser = new function() {
      *
      * @param json {string}
      */
-    this.convertToObject = function(json) {
+    this.jsonToObject = function(json) {
         if (JSON && JSON.parse) return JSON.parse(json);
         var a = null;
         eval("a = " + json);
         return a;
+    };
+
+    /**
+     * Dummy converting object to JSON string.
+     *
+     * @param object
+     */
+    this.objectToJson = function(object) {
+        if (typeof object !== "object" || typeof JSON === "undefined") return "";
+        return JSON.stringify(object);
     };
 
     /**
@@ -197,18 +208,40 @@ var parser = new function() {
             variants = {
                 length: 0,
                 data: {
-
+                    /*
+                    "nding": { // name - part variant
+                        origin: {
+                            // origin autocomplete object reference
+                        },
+                        full: "ending", // full variant
+                        part: "nding", // part variant
+                        p: 1 // order priority
+                    }
+                     */
                 }
             };
 
-        var getEndings = function(object, startPart, separator) {
+        var getEndings = function(object, startPart, separator, caseSensitive) {
+            var lowerCase;
+            lowerCase = true;
+            if (!caseSensitive) {
+                if (!startPart) return;
+                if (startPart[startPart.length-1].match(/[A-Z]/)) lowerCase = false;
+                startPart = startPart.toLowerCase();
+            }
             for (var fullPart in object) {
                 if (!object.hasOwnProperty(fullPart) || typeof object != "object") continue;
+
                 if (fullPart.indexOf(startPart) === 0 && fullPart.length != startPart.length) {
                     var part = fullPart.substr(startPart.length);
                     if (separator) part = part.split(separator)[0];
                     if (!variants["data"].hasOwnProperty(part)) {
-                        variants["data"][part] = object[fullPart];
+                        variants["data"][part] = {
+                            origin: object,
+                            full: fullPart,
+                            part: (lowerCase)?part:part.toUpperCase(),
+                            p: object[fullPart]
+                        };
                         variants["length"]++;
                     }
                 }
@@ -224,23 +257,26 @@ var parser = new function() {
 
                 var parameters = languageObject[unit]["!autocomplete"];
                 if (!parameters) continue;
+                if (typeof parameters["caseSensitive"] === "undefined") parameters["caseSensitive"] = true;
 
                 if (parameters["child"] && parameters["child"]["reversedRegExp"]) { // scanning for child elements
-                    var combinedRegExp = new RegExp(parameters["child"]["reversedRegExp"].source +
-                        parameters["reversedRegExp"].source);
+                    var combinedRegExp = new RegExp(parameters["child"]["reversedRegExp"] +
+                        parameters["reversedRegExp"]);
                     var childResult = combinedRegExp.exec(string);
                     if (childResult && childResult.index === 0 && childResult[2]) {
                         var parentName = parser.reverse(childResult[2]);
                         if (languageObject[unit].hasOwnProperty(parentName)) {
                             getEndings(languageObject[unit][parentName], parser.reverse(childResult[1]),
-                                parameters["child"]["separator"])
+                                parameters["child"]["separator"], parameters["caseSensitive"])
                         }
                     }
                 }
 
-                var result = parameters["reversedRegExp"].exec(string);
+                var regExp = new RegExp(parameters["reversedRegExp"]),
+                    result = regExp.exec(string);
                 if (result && result.index === 0 && result[1]) {
-                    getEndings(languageObject[unit],parser.reverse(result[1]),parameters["separator"])
+                    getEndings(languageObject[unit], parser.reverse(result[1]), parameters["separator"],
+                        parameters["caseSensitive"])
                 }
 
             }

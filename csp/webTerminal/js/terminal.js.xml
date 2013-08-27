@@ -24,7 +24,7 @@
  *      BYTE    SERVER received                             CLIENT received
  *      0       Ignore body                                 Ignore body
  *      1       Execute body                                Enter clear I/O mode (execution begins)
- *      2       Execute sql body                            Exit clear I/O mode (with exit body)
+ *      2       Execute sql body                            Exit clear I/O mode (with "exit" body)
  *      3       Generate autocomplete (body - namespace)    Output message
  *      4                                                   Change namespace
  *      5                                                   Load autocomplete
@@ -38,21 +38,27 @@
  */
 var terminal = new function() {
 
-    var webSocket = null, // socket to exchange data with server
-        lastCommandId = -1,// every command has it's own id. It can be used to change logs, etc.
+    var receiveDataHandler = null; // Server data handler. If function returns false, terminal won't process data.
 
-        receiveDataHandler = null; // function that handles data from server. If function returns false, terminal won't
-                                   // process received data
-
+    /**
+     * Current terminal mode. Mode determines it's behavior.
+     *
+     * @type {{number}}
+     */
     this.modes = {
         NORMAL: 0, // executing commands on server
         CLEAR_IO: 3,// real-time execution (while messaging) mode until /END/ from server
         SQL: 1, // executing sql queries
         MACRO: 2, // macro recording (set of commands)
         DEFAULT: 0, // default terminal mode
-        LAST: 0 // determines last switched mode (for example, sql mode and execute mode both uses clear mode)
+        LAST: 0 // determines last switched mode (functional, do not change)
     };
 
+    /**
+     * Actions identifiers for client (browser).
+     *
+     * @type {{string}}
+     */
     this.clientActions = {
         NONE: String.fromCharCode(0), // useless action
         ENTER_CLEAR_IO: String.fromCharCode(1),// enters clear IO. In this mode terminal won't send action id
@@ -64,6 +70,11 @@ var terminal = new function() {
         READ_CHARACTER: String.fromCharCode(7) // reads character - removes namespace like in common terminal
     };
 
+    /**
+     * Action identifiers for server.
+     *
+     * @type {{string}}
+     */
     this.serverActions = {
         NONE: String.fromCharCode(0),
         EXECUTE: String.fromCharCode(1),
@@ -71,13 +82,56 @@ var terminal = new function() {
         GENERATE_AUTOCOMPLETE: String.fromCharCode(3)
     };
 
-    this.mode = this.modes.DEFAULT; // mode changes current terminal submit action and behavior
+    this.mode = this.modes.DEFAULT; // mode changes current terminal submit action, look and behavior
+
+    /**
+     * Saves terminal state (history, autocomplete, etc.) to local storage.
+     */
+    this.saveState = function() {
+
+        storage.delete("history");
+        storage.delete("language");
+        storage.delete("settings");
+        storage.set("history", terminal.history.export());
+        storage.set("language", terminal.language.export());
+        storage.set("settings", settings.export());
+        storage.modifySave();
+        terminal.output.write("Terminal state has been saved.")
+
+    };
+
+    /**
+     * Loads saved terminal state from local storage, including history, autocomplete objects, ets.
+     *
+     * @returns {boolean}
+     */
+    this.loadState = function() {
+
+        if (typeof storage.lastSave() === "undefined") {
+            terminal.output.write("Unable to load terminal state: no saves.");
+            return false;
+        }
+
+        settings.import(storage.get("settings"));
+        terminal.history.import(storage.get("history"));
+        terminal.language.import(storage.get("language"));
+        terminal.output.write("Terminal state has been loaded.");
+
+        return true;
+
+    };
+
+    /**
+     * Returns state to default. This will cause recoil all saved history, autocomplete to default and page reload.
+     */
+    this.resetState = function() {
+
+        storage.clear();
+        location.reload();
+
+    };
 
     var handlers = { // private handling
-
-        globalKeyTrigger: function(event) {
-            var keyCode = event.keyCode;
-        },
 
         globalKeyDown: function(event) {
 
@@ -93,15 +147,25 @@ var terminal = new function() {
 
         },
 
-        inputKeyDown: function(event) {
-
-            //if (!hid.keyPressed(hid.keys.CTRL) || event.keyCode != hid.keys.CTRL) terminal.input.update();
+        inputKeyDown: function() {
             terminal.input.update();
-
         },
 
-        inputClick: function(event) {
+        inputClick: function() {
             terminal.input.update();
+        },
+
+        /**
+         * Executes when terminal application is closed.
+         */
+        end: function() {
+
+            if (settings.get_restoreSession()) {
+                terminal.output.write("Saving terminal state...");
+                terminal.saveState();
+            }
+            server.disconnect();
+
         }
 
     };
@@ -198,7 +262,7 @@ var terminal = new function() {
 
         this.internal = {
 
-            sql: function() {
+            "sql": function() {
                 if (terminal.mode == terminal.modes.SQL){
                     terminal.namespace.update();
                     terminal.mode = terminal.modes.NORMAL;
@@ -210,15 +274,15 @@ var terminal = new function() {
                     ((terminal.mode == terminal.modes.SQL)?"enabled":"disabled") + "</span>");
             },
 
-            help: function() {
+            "help": function() {
                 terminal.output.write(application.helpbox);
             },
 
-            settings: function() {
+            "settings": function() {
                 settings.openPanel();
             },
 
-            autocomplete: function() {
+            "autocomplete": function() {
                 server.submit(
                     terminal.serverActions.GENERATE_AUTOCOMPLETE,
                     terminal.namespace.getCorrectFileName(),
@@ -226,24 +290,36 @@ var terminal = new function() {
                 );
             },
 
-            clear: function() {
+            "clear": function() {
                 dom.clearLogs();
             },
 
-            connect: function(url) {
+            "save": function() {
+                terminal.saveState();
+            },
+
+            "load": function() {
+                terminal.loadState();
+            },
+
+            "reset": function() {
+                terminal.resetState();
+            },
+
+            "connect": function(url) {
                 server.connect(url);
             },
 
-            disconnect: function() {
+            "disconnect": function() {
                 server.disconnect();
             },
 
-            reconnect: function() {
+            "reconnect": function() {
                 server.disconnect();
                 server.connect();
             },
 
-            define: function(definition,redefinition) {
+            "define": function(definition,redefinition) {
                 if (!definition || !redefinition) {
                     terminal.output.write("Use /define [definition] [redefinition]");
                     return;
@@ -253,7 +329,7 @@ var terminal = new function() {
                     "<span class=\"info\">" + redefinition + "</span>")
             },
 
-            siege: function(iterations,serverDelay) {
+            "siege": function(iterations,serverDelay) {
                 if (typeof iterations == "undefined") { iterations = 120 }
                 if (typeof serverDelay == "undefined") { serverDelay = 0.02 }
                 var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(33+$RANDOM(93))\n" +
@@ -312,25 +388,28 @@ var terminal = new function() {
         if (!dom.initialize() || !settings.initialize()) {
             log.write("Unable to init terminal: dom fault.",dom.objects);
             return;
-        }
+        } else storage.initialize();
 
         this.output.setTarget(dom.objects.output); // set standard output
 
         hid.bindKeyDown(document, handlers.globalKeyDown);
-        hid.bindKeyDown(document, function(event){ // 1ms wrapper: to get input value in handler without masturbation
-            setTimeout(function(){handlers.inputKeyDown(event)},1);
+        hid.bindKeyDown(document, function(){ // 1ms wrapper: to get input value in handler without masturbation
+            setTimeout(function(){handlers.inputKeyDown()},1);
         });
         hid.bindClick(dom.objects.input, handlers.inputClick);
 
         this.output.write("Terminal base ready. Type <span class=\"warning\">/help</span> to get more information.");
 
         // bindEvent( terminalGetInputObject(), "blur", clearKeyStates ); - why?
-        window.onbeforeunload = server.disconnect;
+        window.onbeforeunload = handlers.end;
         server.connect();
-        // TODO: pass auth key
-        dom.remove(document.getElementById("startup")); // TODO: move to dom
+        dom.remove(dom.objects.startupScript);
 
         this.input.clear(); // Clear histories caused by "back" page
+        if (settings.get_restoreSession() == 1) {
+            this.loadState();
+        }
+
         this.input.focus();
         this.input.update();
 
@@ -339,7 +418,7 @@ var terminal = new function() {
     /**
      * Represents methotd to work with history
      */
-    this.history = new function() { // TODO: do not save same commands to history
+    this.history = new function() {
 
         var history = [""], // history of all submitted commands. Starting with empty string
             current = 0; // current position in commandHistory
@@ -351,7 +430,34 @@ var terminal = new function() {
          * @returns {string}
          */
         this.getByID = function(id) {
+            if (id < 0 || id > history.length - 1) return "";
             return history[id]
+        };
+
+        /**
+         * Imports history from exported object.
+         */
+        this.import = function(historyObject) {
+            if (!(historyObject && historyObject["!export:history"])) {
+                log.write("Wrong history object to import.");
+                return;
+            }
+            history = historyObject["history"];
+            current = historyObject["current"];
+            terminal.input.set(this.get());
+        };
+
+        /**
+         * Extorts history to object.
+         *
+         * @returns {object}
+         */
+        this.export = function() {
+            return {
+                "!export:history": true,
+                history: history,
+                current: current
+            }
         };
 
         /**
@@ -367,10 +473,14 @@ var terminal = new function() {
          * Creates new history record for current input.
          */
         this.add = function() {
+            if (this.get() == "" || this.get() === this.getByID(current - 1)) return;
             current = history.length;
             history.push("");
         };
 
+        /**
+         * Seeks current history position to last.
+         */
         this.moveToLast = function() {
             current = history.length - 1;
         };
@@ -405,11 +515,46 @@ var terminal = new function() {
 
         var variants = {},
             current = 0,
-            number = 0;
+            number = 0,
+            part = "";
+
+        // sorts variants in decreasing order
+        this.sortVariants = function() {
+
+            var sorted = {}, array = [];
+
+            for (var key in variants) {
+                if (!variants.hasOwnProperty(key)) continue;
+                array.push(variants[key]);
+            }
+
+            array.sort(function(a, b){
+                return (a === b)?0:(a.p > b.p)?-1:1;
+            });
+
+            for (var i = 0; i < array.length; i++) {
+                sorted[array[i].part] = array[i];
+            }
+
+            variants = sorted;
+
+        };
 
         /**
          * Gets updates autocompletion for given arguments. By default method will work with terminal input and will
          * update current autocomplete.
+         *
+         * Variant object: {
+         *   <variant short name>: {
+         *     full: <fullname>,
+         *     origin: {
+         *       <reference to original autocomplete object>
+         *     },
+         *     p: <sort order>
+         *   }
+         * }
+         *
+         * See parser->getAutocomplete.part for more details.
          *
          * [ @param position ]
          *  Position where to check.
@@ -422,7 +567,30 @@ var terminal = new function() {
             var vars = parser.getAutocomplete(string,position);
             variants = vars.data;
             number = vars.length;
-            return this.get(current = 0);
+            this.sortVariants();
+            part = this.get(current = 0);
+            return part;
+        };
+
+        /**
+         * Mark given variant value in tree. (most-used)
+         */
+        this.chooseCurrent = function() {
+
+            var i = 0;
+            for (var currentName in variants) {
+                if (i === current) {
+                    if (!variants.hasOwnProperty(currentName)) continue;
+                    try {
+                        variants[currentName]["origin"][variants[currentName]["full"]]++; // by reference
+                    } catch (e) {
+                        log.write("Can't mark current autocomplete: check given object.",variants[currentName]);
+                    }
+                    break;
+                }
+                i++;
+            }
+
         };
 
         /**
@@ -441,13 +609,13 @@ var terminal = new function() {
          */
         this.next = function() {
             if (this.hasVariants()) {
-                return this.get(current+1);
-            } else return "";
+                part = this.get(current+1);
+                return part;
+            } else {
+                part = "";
+                return part;
+            }
         };
-
-        this.variants = function() {
-            return variants;
-        }
 
         /**
          * Returns previous autocomplete variant.
@@ -456,8 +624,12 @@ var terminal = new function() {
          */
         this.previous = function() {
             if (this.hasVariants()) {
-                return this.get(current-1);
-            } else return "";
+                part = this.get(current-1);
+                return part;
+            } else {
+                part = "";
+                return part;
+            }
         };
 
         /**
@@ -491,6 +663,7 @@ var terminal = new function() {
             variants = {};
             current = 0;
             number = 0;
+            part = "";
         };
 
         /**
@@ -507,7 +680,7 @@ var terminal = new function() {
     this.definitions = new function() {
 
         var definitions = {
-            //"#1" = "##class(My.Class)"
+            // "#1": "##class(My.Class)"
         };
 
         this.add = function(definition,redefinition) {
@@ -682,6 +855,13 @@ var terminal = new function() {
         };
 
         /**
+         * Places caret at end of input.
+         */
+        this.moveCaretToEnd = function() {
+            this.setCaretPosition(this.get().length)
+        };
+
+        /**
          * Inserts string to position without problems with caret position.
          *
          * @param position {number}
@@ -794,18 +974,24 @@ var terminal = new function() {
             var data = terminal.input.get();
 
             if (data.charAt(0) == "/") {
+
                 var pos = data.indexOf(" ",1); pos = (pos==-1)?data.length:pos;
                 var command = data.substring(1,pos);
                 var arguments = data.substr(pos+1).split(" ");
                 terminal.processor.executeInternal(command,arguments);
+
             } else {
+
                 data = terminal.definitions.replace(data);
                 terminal.output.write(parser.highlightHTML(data));
                 server.submit(action,data);
+
+                terminal.history.moveToLast();
+                terminal.history.save(data);
+                terminal.history.add();
+
             }
-            terminal.history.moveToLast();
-            terminal.history.save(data);
-            terminal.history.add();
+            terminal.autocompletion.clear();
             terminal.input.clear();
             if (terminal.mode != terminal.modes.SQL) terminal.namespace.update();
 
@@ -853,6 +1039,8 @@ var terminal = new function() {
                 if ((key == hid.keys.UP && line == 1) ||
                     (key == hid.keys.DOWN && (line + ((key == hid.keys.DOWN)?1:0))) == this.lines() + 1) {
                     this.set(terminal.history.load( (key == hid.keys.UP)?-1:1 ));
+                    hid.preventDefault(event);
+                    terminal.input.moveCaretToEnd();
                     return false;
                 }
             }
@@ -860,9 +1048,9 @@ var terminal = new function() {
             if (key == hid.keys.TAB) {
                 var variant = terminal.autocompletion.getSuggestion();
                 if (variant) {
+                    terminal.autocompletion.chooseCurrent();
                     terminal.autocompletion.clear();
                     this.insert(this.caretPosition(),variant);
-
                 } else {
                     this.insert(this.caretPosition(),"\t");
                 }
@@ -886,7 +1074,9 @@ var terminal = new function() {
          */
         this.keyPress = function(key) {
 
-            if (!hid.functional(key) || key == hid.keys.BACKSPACE) terminal.autocompletion.reset();
+            if (!hid.functional(key) || key == hid.keys.BACKSPACE) {
+                terminal.autocompletion.reset();
+            }
 
             if (terminal.autocompletion.hasVariants()) {
                 if (key == hid.keys.CTRL) {
@@ -1014,74 +1204,348 @@ var terminal = new function() {
 
         };
 
+        this.export = function() {
+            return {
+                "!export:language": true,
+                tokens: this.tokens
+            };
+        };
+
+        this.import = function(languageImportObject) {
+            if (!(typeof languageImportObject === "object" &&
+                languageImportObject.hasOwnProperty("!export:language")) &&
+                languageImportObject.tokens) {
+                log.write("Wrong object to import as language import object: ", languageImportObject);
+                return;
+            }
+            this.tokens = languageImportObject.tokens;
+        };
+
+        /**
+         * Tokens language object. RULES:
+         *  Autocomplete parsing will be performed for any object in {tokens} which has "!autocomplete" property and
+         *  reversedRegExp property inside. There are two optional parameters:
+         *      separator (no default) - brakes autocomplete variants by parts. For example, it can be point symbol "."
+         *      caseSensitive (true) - makes variants case-sensitive. Make sure that non-sensitive variants defined as
+         *          lowercase.
+         *      child (no default) - parse autocomplete for child. In this case properties of current object have to be
+         *          objects with the same structure as parent. {child} also can have reversedRegExp, which will stand as
+         *          a postfix for parent regular expression.
+         *
+         *  reversedRegExp MUST have at least one pair of remembering parentheses - this where parser will search
+         *  matches.
+         */
         this.tokens = {
 
             "client": {
                 "!autocomplete": {
-                    reversedRegExp: new RegExp("([a-z]*/)+"),
-                        target: "this"
+                    reversedRegExp: "([a-z]*/)+"
                 },
-                "/help": 1,
-                "/clear": 1,
+                "/help": 0,
+                "/clear": 0,
                 "/connect": 0,
                 "/disconnect": 0,
+                "/reset": 0,
                 "/reconnect": 0,
                 "/autocomplete": 0,
+                "/save": 0,
+                "/load": 0,
+                "/settings": 0,
                 "/siege": 0,
-                "/settings": 1,
                 "/define": 0
             },
             "commands": {
                 "!autocomplete": {
-                    reversedRegExp: new RegExp("([a-zA-Z]+)\\s.*")
+                    reversedRegExp: "([a-zA-Z]+)\\s.*",
+                    caseSensitive: false
                 },
-                "SET": 0,
-                    "set": 0,
-                    "KILL": 0,
-                    "kill": 0,
-                    "WRITE": 0,
-                    "write": 0,
-                    "ZWRITE": 0,
-                    "zwrite": 0,
-                    "FOR": 0,
-                    "for": 0,
-                    "ELSE": 0,
-                    "else": 0,
-                    "QUIT": 0,
-                    "quit": 0,
-                    "READ": 0,
-                    "read": 0,
-                    "WHILE": 0,
-                    "while": 0,
-                    "CLOSE": 0,
-                    "close": 0
+                "break": 0,
+                "catch": 0,
+                "close": 0,
+                "continue": 0,
+                "do": 0,
+                "d": 0,
+                "else": 0,
+                "elseif": 0,
+                "for": 0,
+                "goto": 0,
+                "halt": 0,
+                "hang": 0,
+                "h": 0,
+                "if": 0,
+                "job": 0,
+                "j": 0,
+                "kill": 0,
+                "k": 0,
+                "lock": 0,
+                "merge": 0,
+                "new": 0,
+                "open": 0,
+                "quit": 0,
+                "q": 0,
+                "read": 0,
+                "r": 0,
+                "return": 0,
+                "set": 0,
+                "s": 0,
+                "tcommit": 0,
+                "throw": 0,
+                "trollback": 0,
+                "try": 0,
+                "tstart": 0,
+                "use": 0,
+                "view": 0,
+                "while": 0,
+                "write": 0,
+                "xecute": 0,
+                "x": 0,
+                "zkill": 0,
+                "znspace": 0,
+                "zn": 0,
+                "ztrap": 0,
+                "zwrite": 0,
+                "zzdump": 0,
+                "zzwrite": 0,
+
+                "print": 0,
+                "zbreak": 0,
+                "zinsert": 0,
+                "zload": 0,
+                "zprint": 0,
+                "zremove": 0,
+                "zsave": 0,
+                "zzprint": 0,
+
+                "mv": 0,
+                "mvcall": 0,
+                "mvcrt": 0,
+                "mvdim": 0,
+                "mvprint": 0,
+                "zquit": 0,
+                "zsync": 0
             },
             "functions": {
                 "!autocomplete": {
-                    reversedRegExp: new RegExp("([a-zA-Z]+)\\$\\s.*")
+                    reversedRegExp: "([a-zA-Z]+)\\$\\s.*",
+                    caseSensitive: false
                 },
-                "CHAR": 0,
-                    "DATA": 0
+                "ascii": 0,
+                "bit": 0,
+                "bitcount": 0,
+                "bitfind": 0,
+                "bitlogic": 0,
+                "case": 0,
+                "char": 0,
+                "classmethod": 0,
+                "classname": 0,
+                "compile": 0,
+                "data": 0,
+                "decimal": 0,
+                "double": 0,
+                "extract": 0,
+                "factor": 0,
+                "find": 0,
+                "fnumber": 0,
+                "get": 0,
+                "increment": 0,
+                "inumber": 0,
+                "isobject": 0,
+                "isvaliddouble": 0,
+                "isvalidnum": 0,
+                "justify": 0,
+                "length": 0,
+                "list": 0,
+                "listbuild": 0,
+                "listdata": 0,
+                "listfind": 0,
+                "listfromstring": 0,
+                "listget": 0,
+                "listlength": 0,
+                "listnext": 0,
+                "listsame": 0,
+                "listtostring": 0,
+                "listvalid": 0,
+                "locate": 0,
+                "match": 0,
+                "method": 0,
+                "name": 0,
+                "nconvert": 0,
+                "next": 0,
+                "normalize": 0,
+                "now": 0,
+                "number": 0,
+                "order": 0,
+                "parameter": 0,
+                "piece": 0,
+                "prefetchoff": 0,
+                "prefetchon": 0,
+                "property": 0,
+                "qlength": 0,
+                "qsubscript": 0,
+                "query": 0,
+                "random": 0,
+                "replace": 0,
+                "reverse": 0,
+                "sconvert": 0,
+                "select": 0,
+                "sortbegin": 0,
+                "sortend": 0,
+                "stack": 0,
+                "text": 0,
+                "translate": 0,
+                "view": 0,
+                "wascii": 0,
+                "wchar": 0,
+                "wextract": 0,
+                "wfind": 0,
+                "wiswide": 0,
+                "wlength": 0,
+                "wreverse": 0,
+                "xecute": 0,
+
+                "zabs": 0,
+                "zarccos": 0,
+                "zarcsin": 0,
+                "zarctan": 0,
+                "zcos": 0,
+                "zcot": 0,
+                "zcsc": 0,
+                "zdate": 0,
+                "zdateh": 0,
+                "zdatetime": 0,
+                "zdatetimeh": 0,
+                "zexp": 0,
+                "zhex": 0,
+                "zln": 0,
+                "zlog": 0,
+                "zpower": 0,
+                "zsec": 0,
+                "zsin": 0,
+                "zsqr": 0,
+                "ztan": 0,
+                "ztime": 0,
+                "ztimeh": 0,
+
+                "zboolean": 0,
+                "zconvert": 0,
+                "zcrc": 0,
+                "zcyc": 0,
+                "zdascii": 0,
+                "zdchar": 0,
+                "zf": 0,
+                "ziswide": 0,
+                "zlascii": 0,
+                "zlchar": 0,
+                "zname": 0,
+                "zposition": 0,
+                "zqascii": 0,
+                "zqchar": 0,
+                "zsearch": 0,
+                "zseek": 0,
+                "zstrip": 0,
+                "zwascii": 0,
+                "zwchar": 0,
+                "zwidth": 0,
+                "zwpack": 0,
+                "zwbpack": 0,
+                "zwunpack": 0,
+                "zwbunpack": 0,
+                "zzenkaku": 0,
+
+                "change": 0,
+                "mv": 0,
+                "mvat": 0,
+                "mvfmt": 0,
+                "mvfmts": 0,
+                "mviconv": 0,
+                "mviconvs": 0,
+                "mvinmat": 0,
+                "mvlover": 0,
+                "mvoconv": 0,
+                "mvoconvs": 0,
+                "mvraise": 0,
+                "mvtrans": 0,
+                "mvv": 0,
+                "mvname": 0,
+
+                "zbitand": 0,
+                "zbitcount": 0,
+                "zbitfind": 0,
+                "zbitget": 0,
+                "zbitlen": 0,
+                "zbitnot": 0,
+                "zbitor": 0,
+                "zbitset": 0,
+                "zbitstr": 0,
+                "zbitxor": 0,
+                "zincrement": 0,
+                "znext": 0,
+                "zorder": 0,
+                "zprevious": 0,
+                "zsort": 0
             },
             "variables": {
                 "!autocomplete": {
-                    reversedRegExp: new RegExp("([a-zA-Z]+)\\$\\s.*")
+                    reversedRegExp: "([a-zA-Z]+)\\$\\s.*",
+                    caseSensitive: false
                 },
-                "$DEVICE": 0,
-                "$ECODE": 0
+                "device": 0,
+                "ecode": 0,
+                "estack": 0,
+                "etrap": 0,
+                "halt": 0,
+                "horolog": 0,
+                "io": 0,
+                "job": 0,
+                "key": 0,
+                "namespace": 0,
+                "principal": 0,
+                "quit": 0,
+                "roles": 0,
+                "stack": 0,
+                "storage": 0,
+                "system": 0,
+                "test": 0,
+                "this": 0,
+                "tlevel": 0,
+                "username": 0,
+                "x": 0,
+                "y": 0,
+                "za": 0,
+                "zb": 0,
+                "zchild": 0,
+                "zeof": 0,
+                "zeos": 0,
+                "zerror": 0,
+                "zhorolog": 0,
+                "zio": 0,
+                "zjob": 0,
+                "zmode": 0,
+                "zname": 0,
+                "znspace": 0,
+                "zorder": 0,
+                "zparent": 0,
+                "zpi": 0,
+                "zpos": 0,
+                "zreference": 0,
+                "zstorage": 0,
+                "ztimestamp": 0,
+                "ztimezone": 0,
+                "ztrap": 0,
+                "zversion": 0
             },
             "staticMethod": {
                 "!autocomplete": {
-                    reversedRegExp: new RegExp("([a-zA-Z]*##)\\s.*")
+                    reversedRegExp: "([a-zA-Z]*##)\\s.*"
                 },
                 "##class": 0
             },
             "class": {
                 "!autocomplete": {
-                    reversedRegExp: new RegExp("(([a-zA-Z\\.]*[a-zA-Z])?%?)\\(ssalc##\\s.*"),
+                    reversedRegExp: "(([a-zA-Z\\.]*[a-zA-Z])?%?)\\(ssalc##\\s.*",
                     separator: ".",
                     child: {
-                        reversedRegExp: new RegExp("([a-zA-Z]*)\\.\\)")
+                        reversedRegExp: "([a-zA-Z]*)\\.\\)"
                     }
                 },
                 "EXAMPLE": {

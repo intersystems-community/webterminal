@@ -81,13 +81,14 @@
 /* control panel */
 
 #terminal-control-panel {
-    position: absolute;
+    position: fixed;
     left: 0;
     top: -100%;
     width: 100%;
     height: 100%;
     z-index: 1000;
     background: rgba(40,40,40,0.95);
+    color: white;
 
     transition: top 0.2s ease;
     -webkit-transition: top 0.2s ease;
@@ -109,6 +110,16 @@
     font-size: 1.3em;
     font-weight: 900;
     padding-right: 20px;
+    white-space: nowrap;
+    padding-bottom: 20px;
 }
-]]></CSP>
+
+#terminal-control-table > tbody > tr:first-child {
+    height: 50px;
+}
+
+#terminal-control-table > tbody > tr > td:last-child {
+    padding: 0;
+    vertical-align: top;
+}]]></CSP>
 </Export>

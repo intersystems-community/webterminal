@@ -6,10 +6,27 @@
  */
 var application = new function() {
 
-    var version = "0.6 alpha";
+    var version = "0.85 alpha";
 
     this.browser = "gc";
     this.authorizationKey = "";
+
+    /**
+     * How to make your own theme for this terminal application? Easier then ever!
+     *
+     * 1. Add theme name to the list below;
+     * 2. Make CSS theme file like theme-default.css;
+     * 3. Place this file to /css/ directory and name it "theme-<name>.css";
+     * 4. Check theme in settings and use it!
+     *
+     * We're waiting for your cool themes ;)
+     *
+     * @type {{number}}
+     */
+    this.themes = { // here you can insert theme name
+        "default": 0,
+        "studio": 0
+    };
 
     this.helpbox =
         "<div style=\"white-space: normal\">" +
@@ -24,6 +41,18 @@ var application = new function() {
                 "<tr>" +
                     "<td class=\"info\">/help</td>" +
                     "<td>Show help</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">/save</td>" +
+                    "<td>Save current command history, settings and dictionary to local storage</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">/load</td>" +
+                    "<td>Load current command history, settings and dictionary from local storage</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">/reset</td>" +
+                    "<td>Reset terminal to default settings</td>" +
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/connect</td>" +
@@ -66,7 +95,7 @@ var application = new function() {
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/settings</td>" +
-                    "<td>Opens panel with different application settings. Use &lt;ESC&gt; to hide panel.</td>" +
+                    "<td>Open panel with different application settings. Use &lt;ESC&gt; to hide panel.</td>" +
                 "</tr>" +
             "</table>" +
             "<div class=\"center\">" +
@@ -97,6 +126,10 @@ var application = new function() {
                     "<td class=\"info\">SHIFT/CTRL + ENTER</td>" +
                     "<td>Next line in current command stack.</td>" +
                 "</tr>"+
+                "<tr>" +
+                    "<td class=\"info\">ESC</td>" +
+                    "<td>Hide settings panel.</i></td>" +
+                "</tr>" +
             "</table>" +
         "</div>";
 

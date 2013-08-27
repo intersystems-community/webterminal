@@ -15,7 +15,7 @@
         <link rel="stylesheet" href="css/base.css">
         <link rel="stylesheet" href="css/terminal.css">
         <link rel="stylesheet" href="css/extra.css">
-        <link rel="stylesheet" href="css/syntax.css" id="terminal-color-theme">
+        <link rel="stylesheet" href="css/theme-default.css" id="terminal-color-theme">
         <script type="text/javascript" src="js/base.js"></script>
         <script type="text/javascript" src="js/hid.js"></script>
         <script type="text/javascript" src="js/application.js"></script>
@@ -23,6 +23,7 @@
         <script type="text/javascript" src="js/terminal.js"></script>
         <script type="text/javascript" src="js/parser.js"></script>
         <script type="text/javascript" src="js/unit.js"></script>
+        <script type="text/javascript" src="js/storage.js"></script>
     </head>
 
     <body>
@@ -35,30 +36,46 @@
                             <td class="center" colspan="2">Application settings</td>
                         </tr>
                         <tr>
-                            <td>Highlighting</td>
                             <td>
-                                <label>
-                                    <input id="settings-highlighting" type="checkbox">
-                                    Use syntax highlighting.
+                                <input id="settings-highlighting" type="checkbox">
+                                <label for="settings-highlighting">
+                                    Highlighting
                                 </label>
+                            </td>
+                            <td>
+                                Use syntax highlighting.
                             </td>
                         </tr>
                         <tr class="hidden">
-                            <td>Animations</td>
                             <td>
-                                <label>
-                                    <input checked id="settings-animations" type="checkbox">
-                                    Enable CSS3 animations and transitions.
+                                <input id="settings-animations" type="checkbox">
+                                <label for="settings-animations">
+                                    Animations
+                                </label>
+                            </td>
+                            <td>
+                                Enable CSS3 animations and transitions.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Color theme
+                            </td>
+                            <td>
+                                <label id="terminal-themes-container">
+
                                 </label>
                             </td>
                         </tr>
                         <tr>
-                            <td>Color theme</td>
                             <td>
-                                <label>
-                                    <input id="terminal-color-theme-basic" type="radio" name="terminal-color-scheme" value="basic">Default
-                                    <input id="terminal-color-theme-cache" type="radio" name="terminal-color-scheme" value="cache">Studio
+                                <input id="settings-autosaving" type="checkbox">
+                                <label for="settings-autosaving">
+                                    AutoSaving
                                 </label>
+                            </td>
+                            <td>
+                                Enables you to continue your work after browser tab closed and opened again.
                             </td>
                         </tr>
                     </tbody>

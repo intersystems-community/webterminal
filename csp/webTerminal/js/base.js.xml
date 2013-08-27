@@ -76,10 +76,11 @@ var dom = new function() {
         panelTable: null,
         settingsHighlighting: null,
         settingsAnimations: null,
+        settingsAutoSaving: null,
         themeCSS: null,
-        colorThemeBasicCSS: null,
-        colorThemeCacheCSS: null,
+        themesContainer: null,
         body: null,
+        startupScript: null,
 
         getCaretPosition: function(object) {
             object.focus();
@@ -94,6 +95,10 @@ var dom = new function() {
             sel.moveStart('character',-1);
             sel.text = "";
             return len;
+        },
+        
+        getThemeSelectorObject: function(themeName) {
+            return dom.element("terminal-color-theme-" + themeName);
         }
     };
 
@@ -133,7 +138,12 @@ var dom = new function() {
      * Scrolls to the bottom of the page.
      */
     this.scrollBottom = function() {
-        document.body.scrollTop = document.body.scrollHeight;
+        try {
+            document.body.scrollTop = document.body.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
+        } catch (e) {
+
+        }
     };
 
     /**
@@ -161,20 +171,30 @@ var dom = new function() {
         return document.activeElement;
     };
 
+    /**
+     * Returns element by ID.
+     *
+     * @param name
+     * @returns {HTMLElement}
+     */
+    this.element = function(name) {
+        return document.getElementById(name)
+    };
+
     // definition of all required objects for terminal application in DOM
     var defineObjects = function(objects) {
-        var element = function(name) { return document.getElementById(name) };
-        objects.namespace = element("terminal-namespace");
-        objects.input = element("terminal-hiddenInput");
-        objects.output = element("terminal-output");
-        objects.inputView = element("terminal-inputView");
-        objects.panel = element("terminal-control-panel");
-        objects.panelTable = element("terminal-control-table");
-        objects.settingsHighlighting = element("settings-highlighting");
-        objects.themeCSS = element("terminal-color-theme");
-        objects.settingsAnimations = element("settings-animations");
-        objects.colorThemeBasicCSS = element("terminal-color-theme-basic");
-        objects.colorThemeCacheCSS = element("terminal-color-theme-cache");
+        objects.namespace = dom.element("terminal-namespace");
+        objects.input = dom.element("terminal-hiddenInput");
+        objects.output = dom.element("terminal-output");
+        objects.inputView = dom.element("terminal-inputView");
+        objects.panel = dom.element("terminal-control-panel");
+        objects.panelTable = dom.element("terminal-control-table");
+        objects.settingsHighlighting = dom.element("settings-highlighting");
+        objects.themeCSS = dom.element("terminal-color-theme");
+        objects.settingsAnimations = dom.element("settings-animations");
+        objects.settingsAutoSaving = dom.element("settings-autosaving");
+        objects.themesContainer = dom.element("terminal-themes-container");
+        objects.startupScript = dom.element("startup");
         objects.body = document.body;
     };
 
@@ -203,6 +223,14 @@ var dom = new function() {
      */
     this.initialize = function() {
         defineObjects.call(this,this.objects);
+
+        for (var theme in application.themes) {
+            if (!application.themes.hasOwnProperty(theme) || !theme) continue;
+            this.objects.themesContainer.innerHTML += "<input id=\"terminal-color-theme-" + theme + "\" " +
+                "type=\"radio\" name=\"terminal-color-scheme\" value=\"" + theme + "\">" + theme[0].toUpperCase() +
+                theme.substr(1)
+        }
+
         return this.objectsReady();
     };
 
@@ -225,9 +253,42 @@ var dom = new function() {
  */
 var settings = new function() {
 
-    var animations = false,
+    var animations = true,
         highlighting = true,
-        colorTheme = "default";
+        colorTheme = "default",
+        restoreSession = 0;
+
+    this.get_restoreSession = function() {
+        return restoreSession == 1;
+    };
+
+    this.get_theme = function() {
+        return colorTheme;
+    };
+
+    this.export = function() {
+        return {
+            "!export:settings": true,
+            animations: animations,
+            highlighting: highlighting,
+            colorTheme: colorTheme,
+            restoreSession: restoreSession
+        };
+    };
+
+    this.import = function(settingImportObject) {
+        if (!(typeof settingImportObject === "object" && settingImportObject.hasOwnProperty("!export:settings") &&
+            settingImportObject.hasOwnProperty("animations") && settingImportObject.hasOwnProperty("highlighting") &&
+            settingImportObject.hasOwnProperty("colorTheme") && settingImportObject.hasOwnProperty("restoreSession"))) {
+            log.write("Wrong settings object to import.");
+            return;
+        }
+        animations = settingImportObject["animations"];
+        highlighting = settingImportObject["highlighting"];
+        colorTheme = settingImportObject["colorTheme"];
+        restoreSession = (settingImportObject["restoreSession"] == 1)?1:0;
+        this.update();
+    };
 
     /**
      * Updates terminal settings according to dom checked boxes.
@@ -235,11 +296,17 @@ var settings = new function() {
     this.updateFromView = function() {
         highlighting = dom.objects.settingsHighlighting.checked;
         animations = dom.objects.settingsAnimations.checked;
-        colorTheme = "";
-        if (dom.objects.colorThemeCacheCSS.checked) colorTheme = "-cache";
+        restoreSession = (dom.objects.settingsAutoSaving.checked)?1:0;
+        storage.set("restoreSession", restoreSession);
+        colorTheme = "default";
+        for (var theme in application.themes) {
+            if (!application.themes.hasOwnProperty(theme)) continue;
+            var obj = dom.objects.getThemeSelectorObject(theme);
+            if (!obj) continue;
+            if (obj.checked) colorTheme = theme;
+        }
 
-
-        dom.objects.themeCSS.href = "css/syntax" + colorTheme + ".css";
+        dom.objects.themeCSS.href = "css/theme-" + colorTheme + ".css";
         if (!animations) {
             dom.removeClass(dom.objects.body,"noAnimations");
             dom.addClass(dom.objects.body,"noAnimations");
@@ -253,13 +320,6 @@ var settings = new function() {
      */
     this.highlightOutput = function() {
         return highlighting;
-    };
-
-    /**
-     * Opens or closes settings panel.
-     */
-    this.switchPanel = function() {
-        dom.objects.panel.style.top = (dom.objects.panel.style.top == "-100%")?"0":"-100%";
     };
 
     /**
@@ -282,8 +342,19 @@ var settings = new function() {
     this.updateFromModel = function() {
         dom.objects.settingsHighlighting.checked = highlighting;
         dom.objects.settingsAnimations.checked = animations;
-        dom.objects.colorThemeBasicCSS.checked = colorTheme === "default";
-        dom.objects.colorThemeCacheCSS.checked = colorTheme === "studio";
+        storage.set("restoreSession", restoreSession);
+        dom.objects.settingsAutoSaving.checked = restoreSession == 1;
+        for (var theme in application.themes) {
+            if (!application.themes.hasOwnProperty(theme)) continue;
+            var obj = dom.objects.getThemeSelectorObject(theme);
+            if (!obj) continue;
+            obj.checked = colorTheme === theme;
+        }
+    };
+
+    this.update = function() {
+        this.updateFromModel();
+        this.updateFromView();
     };
 
     /**
@@ -293,9 +364,9 @@ var settings = new function() {
      */
     this.initialize = function() {
         dom.objects.panel.style.top = "-100%";
+        restoreSession = storage.get("restoreSession") || 0;
         hid.bindClick(dom.objects.panelTable,this.updateFromView);
-        this.updateFromModel();
-        this.updateFromView();
+        this.update();
         return true;
     }
 
