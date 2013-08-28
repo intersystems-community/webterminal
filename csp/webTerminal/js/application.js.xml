@@ -6,7 +6,7 @@
  */
 var application = new function() {
 
-    var version = "0.85 alpha";
+    var version = "0.89 alpha";
 
     this.browser = "gc";
     this.authorizationKey = "";
@@ -25,7 +25,8 @@ var application = new function() {
      */
     this.themes = { // here you can insert theme name
         "default": 0,
-        "studio": 0
+        "studio": 0,
+        "monokai": 0
     };
 
     this.helpbox =
