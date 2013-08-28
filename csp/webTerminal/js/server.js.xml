@@ -115,7 +115,7 @@ var server = new function() {
     };
 
     var onOpen = function() {
-        terminal.output.write("Connection established. Authorization...");
+        //log.write("Connection established. Authorization...");
         if (application.authorizationKey) server.send(application.authorizationKey);
     };
 

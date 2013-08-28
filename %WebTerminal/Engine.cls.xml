@@ -93,9 +93,9 @@ readFromSocket(len,timeout,sharedConnection)
 	If len<1 Set len=32656
 	If (sharedConnection = 1) {
 		Set data=..ReadAsync(.len, .sc, timeout)
-		Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
-		Set len=$Length(data1)
-		Quit data1
+		Try { Set data=$zconvert(data,"I","UTF8") } Catch {  }
+		Set len=$Length(data)
+		Quit data
 	}
 	If ..BytesAvailable Goto ReadData
 	Set ..BytesAvailable=0,..AtEnd=0
@@ -130,9 +130,9 @@ ReadData
 	Read data#size
 	Set len=size
 	Set sc=$$$OK
-	Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
-	Set len=$Length(data1)
-	Quit data1
+	Try { Set data=$zconvert(data,"I","UTF8") } Catch {  }
+	Set len=$Length(data)
+	Quit data
 ReadError	
 	#; No interrupts during cleanup or error processing
 	$$$SetExternalInterrupts(0)
@@ -143,61 +143,64 @@ ReadHalt
 	Halt
 	
 PrepareOutput(data)
-	Try { Set data1=$zconvert(data,"O","UTF8") } Catch { Set data1=data }
-	quit data1
+	Try { Set data=$zconvert(data,"O","UTF8") } Catch {  }
+	quit data
 	
 PrepareInput(data)
-	Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
-	quit data1
+	Try { Set data=$zconvert(data,"I","UTF8") } Catch {  }
+	quit data
 	
 //////////////////////////////////////////////
 	
 wstr(s)
-	set rd = ##class(%Device).ReDirectIO($$$NO) 
-	//do ..Write(s)
+	do ##class(%Device).ReDirectIO($$$NO) 
 	w $$PrepareOutput(s),*-3
-	do ##class(%Device).ReDirectIO(rd)
+	do ##class(%Device).ReDirectIO($$$YES)
 	quit 
 wchr(c) 
-	set rd = ##class(%Device).ReDirectIO($$$NO) 
-	w $$PrepareOutput($c(s)),*-3
-	//do ..Write($c(c))
-	do ##class(%Device).ReDirectIO(rd) 
+	do ##class(%Device).ReDirectIO($$$NO) 
+	w $$PrepareOutput($c(c)),*-3
+	do ##class(%Device).ReDirectIO($$$YES) 
 	quit
 wnl 
-	set rd = ##class(%Device).ReDirectIO($$$NO) 
-	//do ..Write($c(13,10))
+	do ##class(%Device).ReDirectIO($$$NO) 
 	w $c(13,10),*-3
-	do ##class(%Device).ReDirectIO(rd)
+	do ##class(%Device).ReDirectIO($$$YES)
 	quit 
 wff 
-	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	do ##class(%Device).ReDirectIO($$$NO) 
 	w $c(12),*-3
-	//do ..Write($c(12))
-	do ##class(%Device).ReDirectIO(rd)
+	do ##class(%Device).ReDirectIO($$$YES)
 	quit 
 wtab(s)
-	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	do ##class(%Device).ReDirectIO($$$NO) 
 	w $$PrepareOutput($j("",s-$x)),*-3
-	//do ..Write($j("",s-$x))
-	do ##class(%Device).ReDirectIO(rd) 
+	do ##class(%Device).ReDirectIO($$$YES) 
 	quit
 	
 rstr(len = 32656,timeout = 86400)
-	set rd=##class(%Device).ReDirectIO($$$NO)
+	do ##class(%Device).ReDirectIO($$$NO)
 	w $c(6),*-3 // ..ConstClientReadString
-	read header#5:timeout
+	
+	use $io:(::"+T")
+	read data#5:timeout // package header
 	read data:timeout
+	use $io:(::"-T")
+	
 	set data = $$PrepareInput($EXTRACT(data,1,len))
-	do ##class(%Device).ReDirectIO(rd)
+	do ##class(%Device).ReDirectIO($$$YES)
 	quit data
 rchr(timeout = 86400)
-	set rd=##class(%Device).ReDirectIO($$$NO)
+	do ##class(%Device).ReDirectIO($$$NO)
 	w $c(7),*-3 // ..ConstClientReadChar
-	read header#5:timeout
+	
+	use $io:(::"+T")
+	read data#5:timeout // package header
 	read data:timeout
+	use $io:(::"-T")
+	
 	set data = $$PrepareInput($ASCII($EXTRACT(data,1,1)))
-	do ##class(%Device).ReDirectIO(rd)
+	do ##class(%Device).ReDirectIO($$$YES)
 	quit data
 ]]></Implementation>
 </Method>
@@ -451,6 +454,16 @@ Ends clear I/O mode</Description>
 ]]></Implementation>
 </Method>
 
+<Method name="ParseError">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>string:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set string = $REPLACE(string, ">", "<")
+	quit "An error occured: " _ $PIECE(string, "<", 2)
+]]></Implementation>
+</Method>
+
 <Method name="ExecuteCommand">
 <Description>
 The heart of terminal application</Description>
@@ -467,7 +480,6 @@ The heart of terminal application</Description>
 	set $ZERROR = ""
 	set io = $io
   	use io::("^" _ ..InitialZName)
-  	USE io:(::"+T")
   	
  	do ##class(%Device).ReDirectIO($$$YES)
     try { xecute value } catch exception {
@@ -475,13 +487,12 @@ The heart of terminal application</Description>
 	}
 	do ##class(%Device).ReDirectIO($$$NO)
 	
-    use io:(::"-T")
    	if ($ZERROR '= "") {
-		do ..SendData($ZERROR)
+		do ..SendData(..ParseError($ZERROR))
    	}
    	
    	do ..EndClearIO() // execute session end
-	do ..ClientAlertNamespace()
+	do ..ClientAlertNamespace() // check namespace change
 	
 	quit $$$OK
 ]]></Implementation>
