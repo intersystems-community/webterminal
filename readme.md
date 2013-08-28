@@ -1,5 +1,16 @@
 # Cache Web Terminal
 Web-based terminal emulator for InterSystems Cach&eacute; database. Access your database from the web, local network or even localhost.
+### What's new?
+#### v0.85
+
+* Themes support added. Make your own terminal theme! Check first lines in js/application.js file.
+* Storing history, terminal language and settings in local browser with new client-side commands /save /load and /reset
+* Autocomplete priority - now you will get most frequently used variants first
+* Added settings for automatical saving after session ends.
+* Client-side commands won't get to history.
+* Fixes for Firefox
+* Other small fixes
+
 ### Ways to install terminal
 <UL>
 <LI>Just download XML from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import it into %SYS namespace.</LI>
