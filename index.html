@@ -21,6 +21,7 @@
                 <li><a href="#main"><img src="img/icons/terminal.png"/></a></li>
                 <li><a href="#showcase"><img src="img/icons/images.png"/></a></li>
                 <li><a href="#downloads"><img src="img/icons/save.png"/></a></li>
+                <li><a href="#history"><img src="img/icons/history.png"/></a></li>
                 <li><a href="#feedback"><img src="img/icons/feedback.png"/></a></li>
             </ul>
 
@@ -63,6 +64,9 @@
                 </p>
                 <ul>
 		    <li>
+                        <a href="files/WebTerminal-0.89-stable.xml">Caché Web Terminal v0.89 stable (xml)</a>
+                    </li>
+		    <li>
                         <a href="files/WebTerminal-0.85-stable.xml">Caché Web Terminal v0.85 stable (xml)</a>
                     </li>
 		    <li>
@@ -90,6 +94,30 @@
                     <li>Your <b class="warn">Caché version at least 2013.1</b> (WebSockets support)</li>
                     <li>You have write permissions to %CACHELIB</li>
                     <li>Nobody can access your index.csp without Caché security</li>
+                </ul>
+            </div>
+
+            <div class="pageLayout" id="history">
+                <h1 class="center">Project history</h1>
+                <h1>v 0.89</h1>
+                <ul>
+                    <li>Better error handling</li>
+                    <li>Autocompletion for local variables</li>
+                    <li>Autocompletion for globals</li>
+                    <li>Fixed wrong autocomplete priority for classes</li>
+                    <li>A bit speedy generation of autocomplete file (this isn't the limit)</li>
+                    <li>Cleaner theme declaration</li>
+                    <li>New monokai theme</li>
+                </ul>
+                <h1>v 0.85</h1>
+                <ul>
+                    <li>Themes support added. Make your own terminal theme! Check first lines in js/application.js file.</li>
+                    <li>Storing history, terminal language and settings in local browser with new client-side commands /save /load and /reset</li>
+                    <li>Autocomplete priority - now you will get most frequently used variants first</li>
+                    <li>Added settings for automatical saving after session ends.</li>
+                    <li>Client-side commands won't get to history.</li>
+                    <li>Fixes for Firefox</li>
+                    <li>Other small fixes</li>
                 </ul>
             </div>
 
