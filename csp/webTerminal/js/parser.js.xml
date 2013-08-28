@@ -51,12 +51,17 @@ var parser = new function() {
     var parserSyntaxGetAttrName = function(stringPart) {
 
         var result = null;
-        if (stringPart.match(/^[a-zA-Z][a-zA-Z0-9]*$/)) { // simple words
+        stringPart = stringPart.toLowerCase();
+        if (terminal.language.tokens.commands.hasOwnProperty(stringPart)) {
+            result = "_command"
+        } else if (stringPart.match(/^[a-zA-Z][a-zA-Z0-9]*$/)) { // simple words
             result = stringPart.toLowerCase();
         } else if (stringPart.match(/^[0-9]+$/)) {
             result = "_digit"
         } else if (stringPart.match(/^".*"$/)) {
             result = "_string"
+        } else if (stringPart.match(/^\/[a-z]+$/)) {
+            result = "_client"
         } else if (stringPart.match(/^\$[a-zA-Z][a-zA-Z0-9]*$/)) {
             result = "_function"
         } else if (stringPart.match(/^\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
@@ -88,7 +93,7 @@ var parser = new function() {
      */
     this.highlightHTML = function(string) {
         if (!settings.highlightOutput()) return string;
-        return string.replace(/(((<|&|&#)|(\^%?)|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
+        return string.replace(/(((<|&|&#)|(\^%?)|\/|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
             function(part) {
                 return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
             });

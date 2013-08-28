@@ -1,42 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <CSP name="WebTerminal/css/theme-studio.css" application="/csp/sys/" default="1"><![CDATA[
-body {
-    background: white;
-    color: black;
-}
-
-.syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit, .syntax-kill,
-.syntax-close, .syntax-zw, .syntax-zwrite, .syntax-break, .syntax-catch, .syntax-read
-.syntax-continue, .syntax-goto, .syntax-halt, .syntax-hang, .syntax-job, .syntax-kill,
-.syntax-lock, .syntax-merge, .syntax-new, .syntax-open, .syntax-return, .syntax-tcommit,
-.syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
-.syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite, .syntax-d,
-.syntax-zn, .syntax-h, .syntax-read, .syntax-r
-{ color: #0000ff }
-
-.syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,
-.syntax-catch
-{ color: #0000ff; }
-
-.syntax-help, .syntax-clear, .syntax-connect, .syntax-disconnect, .syntax-define, .syntax-siege
-{ color: #e2dc00; }
-
-.syntax-select, .syntax-from, .syntax-where, .syntax-join, .syntax-into
-{ color: #000000; }
-
-/* Syntax highlighter styles. Required: parser.js */
-.syntax-_digit { color: #000000; } /* 6006 */
-.syntax-_symbol { color: #000000; } /* +*-/=,!_'#?\ */
-.syntax-_bracket { color: #000000; } /* {}[]() */
-.syntax-_string { color: #008000; } /* "test" */
-.syntax-_function { color: #0000ff; } /* $LENGTH */
-.syntax-_userFunction { color: #0000ff; } /* $$MY */
-.syntax-_macro { color: #0000ff; } /* $$$test */
-.syntax-_sysMacro { color: #0000ff; } /* ##test */
-.syntax-_classProp { color: #0000ff; } /* ..test */
-.syntax-_global { color: #000000; } /* ^test */
-.syntax-_other { color: #000000; } /* html-escaped symbols, unrecognised */
+.syntax-_digit { color: #000000; }
+.syntax-_symbol { color: #000000; }
+.syntax-_bracket { color: #000000; }
+.syntax-_string { color: #008000; }
+.syntax-_function { color: #0000ff; }
+.syntax-_userFunction { color: #0000ff; }
+.syntax-_macro { color: #0000ff; }
+.syntax-_sysMacro { color: #0000ff; }
+.syntax-_classProp { color: #0000ff; }
+.syntax-_global { color: #000000; }
+.syntax-_command { color: #0000ff }
+.syntax-_client { color: #e2dc00; }
+.syntax-_other { color: #000000; }
 
 .warning { color: #a56800 }
 .hint { color: #127a00 }
@@ -44,5 +21,6 @@ body {
 .info { color: #fffd7c }
 .executed { color: #127a00 }
 .complete { color: #127a00 }
-]]></CSP>
+
+body { background: white; color: black }]]></CSP>
 </Export>

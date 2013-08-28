@@ -1,26 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <CSP name="WebTerminal/css/theme-default.css" application="/csp/sys/" default="1"><![CDATA[
-.syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit, .syntax-kill,
-.syntax-close, .syntax-zw, .syntax-zwrite, .syntax-break, .syntax-catch, .syntax-read
-.syntax-continue, .syntax-goto, .syntax-halt, .syntax-hang, .syntax-job, .syntax-kill,
-.syntax-lock, .syntax-merge, .syntax-new, .syntax-open, .syntax-return, .syntax-tcommit,
-.syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
-.syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite, .syntax-d,
-.syntax-zn, .syntax-h, .syntax-read, .syntax-r
-{ color: #29cfe9 }
-
-.syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,
-.syntax-catch
-{ color: #ff00fe; }
-
-.syntax-help, .syntax-clear, .syntax-connect, .syntax-disconnect, .syntax-define, .syntax-siege
-{ color: #e2dc00; }
-
-.syntax-select, .syntax-from, .syntax-where, .syntax-join, .syntax-into
-{ color: #f34800; }
-
-/* Syntax highlighter styles. Required: parser.js */
 .syntax-_digit { color: #00ff89; } /* 6006 */
 .syntax-_symbol { color: #82fffa; } /* +*-/=,!_'#?\ */
 .syntax-_bracket { color: #82fffa; } /* {}[]() */
@@ -31,7 +11,9 @@
 .syntax-_sysMacro { color: #ff00fe; } /* ##test */
 .syntax-_classProp { color: #0091ff; } /* ..test */
 .syntax-_global { color: #ff5156; } /* ^test */
-.syntax-_other { color: #82fffa; } /* html-escaped symbols, unrecognised */
+.syntax-_command { color: #29cfe9 } /* set WRITE kill */
+.syntax-_client { color: #e2dc00; } /* /help /define /siege */
+.syntax-_other { color: #82fffa; } /* unrecognised */
 
 .warning { color: #ffa500 }
 .hint { color: #84C200 }
