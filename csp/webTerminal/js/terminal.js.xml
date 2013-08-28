@@ -973,6 +973,10 @@ var terminal = new function() {
 
             var data = terminal.input.get();
 
+            if (action == terminal.serverActions.EXECUTE) {
+                terminal.language.parseForTokens(data);
+            }
+
             if (data.charAt(0) == "/") {
 
                 var pos = data.indexOf(" ",1); pos = (pos==-1)?data.length:pos;
@@ -1222,6 +1226,73 @@ var terminal = new function() {
         };
 
         /**
+         * Creates user's language token for name.
+         *
+         * @param name
+         */
+        this.joinUserToken = function(name) {
+            var r = new RegExp("[a-zA-Z][a-zA-Z0-9]*");
+            if (!r.test(name)) {
+                log.write("Wrong user token " + name);
+                return;
+            }
+            if (!this.tokens.user.hasOwnProperty(name)) {
+                this.tokens.user[name] = 0
+            }
+        };
+
+        /**
+         * Creates user's language token for name.
+         *
+         * @param name
+         */
+        this.removeUserToken = function(name) {
+            if (name === "*") {
+                for (var t in this.tokens.user) {
+                    if (!this.tokens.user.hasOwnProperty(t) || t.charAt(0) === "!") continue;
+                    delete this.tokens.user[t];
+                }
+                return;
+            }
+            var r = new RegExp("[a-zA-Z][a-zA-Z0-9]*");
+            if (!r.test(name)) {
+                log.write("Wrong user token " + name);
+                return;
+            }
+            if (this.tokens.user.hasOwnProperty(name)) {
+                delete this.tokens.user[name]
+            }
+        };
+
+        /**
+         * Finds in string required tokens and adds/removes it to/from Cache language.
+         * E.g. "set test = 12" or "s test = 12" will add "test" to tokens.user, and
+         * "kill test" or "k test" will remove "test" token.
+         *
+         * @param string
+         */
+        this.parseForTokens = function(string) {
+            string = " " + string + "  ";
+            var re = new RegExp("[\\s\\{](set|s)\\s([a-zA-Z][a-zA-Z0-9]*)\\s*=","g"),
+                result = re.exec(string);
+            if (result && result[2]) {
+                this.joinUserToken(result[2]);
+            }
+
+            re = new RegExp("[\\s\\{](k|kill)\\s([a-zA-Z][a-zA-Z0-9]*)[\\s\\}]","g");
+            result = re.exec(string);
+            if (result && result[2]) {
+                this.removeUserToken(result[2]);
+            }
+
+            re = new RegExp("[\\s\\{](k|kill)[\\s]+?[^a-zA-Z]","g");
+            result = re.exec(string);
+            if (result && result[1]) {
+                this.removeUserToken("*");
+            }
+        };
+
+        /**
          * Tokens language object. RULES:
          *  Autocomplete parsing will be performed for any object in {tokens} which has "!autocomplete" property and
          *  reversedRegExp property inside. There are two optional parameters:
@@ -1237,6 +1308,11 @@ var terminal = new function() {
          */
         this.tokens = {
 
+            "user": {
+                "!autocomplete": {
+                    reversedRegExp: "([a-zA-Z]+)\\s"
+                }
+            },
             "client": {
                 "!autocomplete": {
                     reversedRegExp: "([a-z]*/)+"
