@@ -582,7 +582,13 @@ var terminal = new function() {
                 if (i === current) {
                     if (!variants.hasOwnProperty(currentName)) continue;
                     try {
-                        variants[currentName]["origin"][variants[currentName]["full"]]++; // by reference
+                        if (typeof variants[currentName]["origin"][variants[currentName]["full"]] === "number") {
+                            variants[currentName]["origin"][variants[currentName]["full"]]++; // by reference
+                        } else {
+                            if (!variants[currentName]["origin"][variants[currentName]["full"]].hasOwnProperty("!p"))
+                                continue;
+                            variants[currentName]["origin"][variants[currentName]["full"]]["!p"]++; // by reference
+                        }
                     } catch (e) {
                         log.write("Can't mark current autocomplete: check given object.",variants[currentName]);
                     }
@@ -1194,7 +1200,35 @@ var terminal = new function() {
         };
 
         /**
+         * Inserts new global definition.
+         *
+         * @param name
+         * @param globalToken
+         */
+        this.addGlobal = function(name,globalToken) { // adds class to tokens
+
+            if (typeof name === "string") {
+
+                var merging = !this.tokens.global.hasOwnProperty(name);
+
+                if (merging) {
+                    this.tokens.global[name] = globalToken;
+                } else {
+                    this.tokens.global[name].merge(globalToken);
+                }
+
+            } else {
+
+                log.write("Trying to add incorrect global to terminal language classes: ", globalToken);
+
+            }
+
+        };
+
+        /**
          * Add a set of classes placed in classTokens objects
+         *
+         * @param classTokens
          */
         this.addClasses = function(classTokens) {
 
@@ -1204,6 +1238,23 @@ var terminal = new function() {
             for (var property in classTokens) {
                 if (!classTokens.hasOwnProperty(property)) continue;
                 this.addClass(property,classTokens[property]);
+            }
+
+        };
+
+        /**
+         * Add a set of globals in globalTokens objects
+         *
+         * @param globalsTokens
+         */
+        this.addGlobals = function(globalsTokens) {
+
+            if (typeof globalsTokens != "object") {
+                log.write("language.addClasses error: argument is not an object.")
+            }
+            for (var property in globalsTokens) {
+                if (!globalsTokens.hasOwnProperty(property)) continue;
+                this.addGlobal(property,globalsTokens[property]);
             }
 
         };
@@ -1619,15 +1670,24 @@ var terminal = new function() {
             "class": {
                 "!autocomplete": {
                     reversedRegExp: "(([a-zA-Z\\.]*[a-zA-Z])?%?)\\(ssalc##\\s.*",
+
                     separator: ".",
                     child: {
-                        reversedRegExp: "([a-zA-Z]*)\\.\\)"
+                        reversedRegExp: "([a-zA-Z]*%?)\\.\\)"
                     }
                 },
                 "EXAMPLE": {
                     "Method": 0,
                     "Property": 0,
                     "Parameter": 0
+                },
+                "EXXXXXS": {
+                    "Porn": 0
+                }
+            },
+            "global": {
+                "!autocomplete": {
+                    reversedRegExp: "(([a-zA-Z0-9\\.]*[a-zA-Z]+)?%?)\\^.*"
                 }
             }
 

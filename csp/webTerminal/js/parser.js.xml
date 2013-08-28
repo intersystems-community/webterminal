@@ -63,7 +63,7 @@ var parser = new function() {
             result = "_userFunction"
         } else if (stringPart.match(/^[{}\]\[\(\)]+$/)) {
             result = "_bracket"
-        } else if (stringPart.match(/^\^[a-zA-Z][a-zA-Z0-9]*$/)) {
+        } else if (stringPart.match(/^\^%?[a-zA-Z][a-zA-Z0-9]*$/)) {
             result = "_global"
         } else if (stringPart.match(/^##[a-zA-Z][a-zA-Z0-9]*$/)) {
             result = "_sysMacro"
@@ -88,7 +88,7 @@ var parser = new function() {
      */
     this.highlightHTML = function(string) {
         if (!settings.highlightOutput()) return string;
-        return string.replace(/(((<|&|&#)|\^|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
+        return string.replace(/(((<|&|&#)|(\^%?)|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
             function(part) {
                 return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
             });
@@ -233,14 +233,20 @@ var parser = new function() {
                 if (!object.hasOwnProperty(fullPart) || typeof object != "object") continue;
 
                 if (fullPart.indexOf(startPart) === 0 && fullPart.length != startPart.length) {
+                    if (fullPart.charAt(0) === "!") continue;
                     var part = fullPart.substr(startPart.length);
                     if (separator) part = part.split(separator)[0];
                     if (!variants["data"].hasOwnProperty(part)) {
+                        var freq = object[fullPart];
+                        if (typeof freq !== "number") {
+                            if (!freq.hasOwnProperty("!p")) freq["!p"] = 0;
+                            freq = freq["!p"];
+                        }
                         variants["data"][part] = {
                             origin: object,
                             full: fullPart,
                             part: (lowerCase)?part:part.toUpperCase(),
-                            p: object[fullPart]
+                            p: freq
                         };
                         variants["length"]++;
                     }

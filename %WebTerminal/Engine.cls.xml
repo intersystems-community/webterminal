@@ -249,6 +249,22 @@ rchr(timeout = 86400)
 ]]></Implementation>
 </Method>
 
+<Method name="getGlobalsJSON">
+<FormalSpec>namespace:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+
+	set out = "{"
+ 	set rset=##class(%ResultSet).%New("%SYS.GlobalQuery:NameSpaceList")
+ 	set sc=rset.Execute($ZNSPACE,"*",0)
+  	while (rset.Next()) {
+		set out = out _ """" _ $Piece(rset.GetData(1),"(",1) _ """:0,"
+  	}
+  	set out = $EXTRACT(out,1,$LENGTH(out)-1) _ "}"
+	q out
+]]></Implementation>
+</Method>
+
 <Method name="GenerateAutocompleteFile">
 <FormalSpec>namespace:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
@@ -289,7 +305,7 @@ rchr(timeout = 86400)
 	do ..SendData("Generating language file for " _ namespace _ ", pleace, wait.")
 	
 	// write empty file in case of other terminal applications may require it
-	do ..WriteToFile(filename,"{}")
+	//do ..WriteToFile(filename,"{}")
 	
 	// get all classes names
 	set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
@@ -311,14 +327,17 @@ rchr(timeout = 86400)
 	}
 	*/
 	
+	set file=##class(%File).%New(filename)
+	do file.Open("WSN")
+	
 	// final data generation
-	set data = "{"
+	do file.Write("{""class"":{")
 	set first = ""
 	
 	while (result.Next()) { // forming autocomplete for each class
 	
 		set className = result.Data("Name")
-		set data = data _ first _ """" _ className _ """:{"
+		do file.Write(first _ """" _ className _ """:{")
 		if (first = "") set first = ","
 		
 		set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
@@ -331,29 +350,30 @@ rchr(timeout = 86400)
  		
  		for i=1:1:countMethods {
 	 		set current = current + 1
-     		set data = data _ """" _cdefs.Methods.GetAt(i).Name _ """:0"
-     		if (current'=total) set data = data _ ","
+     		do file.Write("""" _cdefs.Methods.GetAt(i).Name _ """:0")
+     		if (current'=total) do file.Write(",")
  		}
  		
  		for i=1:1:countProperties {
 	 		set current = current + 1
-     		set data = data _ """" _cdefs.Properties.GetAt(i).Name _ """:0"
-     		if (current'=total) set data = data _ ","
+     		do file.Write("""" _cdefs.Properties.GetAt(i).Name _ """:0")
+     		if (current'=total) do file.Write(",")
  		}
  		
  		for i=1:1:countParameters {
 	 		set current = current + 1
-     		set data = data _ """" _cdefs.Parameters.GetAt(i).Name _ """:0"
-     		if (current'=total) set data = data _ ","
+     		do file.Write("""" _cdefs.Parameters.GetAt(i).Name _ """:0")
+     		if (current'=total) do file.Write(",")
  		}
 		
-		set data = data _ "}"
+		do file.Write("}")
 		
 	}
 	
-	set data = data _ "}"
+	do file.Write("},""global"":" _ ..getGlobalsJSON() _"}")
 	
-	do ..WriteToFile(filename,data)
+	do file.Close()
+	//do ..WriteToFile(filename,data)
 	
 	do ..SendData($c(10)_"Language file for " _ namespace _ " classes created.")
 	
@@ -563,7 +583,7 @@ Method description:
 	    		    	
 	    if (action = ..ConstServerActionExecute) { // autorized
 	    	
-		    do ..ExecuteCommand(data)
+			do ..ExecuteCommand(data)
 		    	
 	    } elseif (action = ..ConstServerActionExecuteSQL) { // sql
 	    

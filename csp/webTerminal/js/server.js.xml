@@ -44,8 +44,14 @@ var server = new function() {
         terminal.output.write("Loading Caché language for " + namespace);
         ajax.get("js/autocomplete/" + namespace + ".js",function(data,allRight){
             if (allRight) {
-                terminal.language.addClasses(parser.jsonToObject(data));
-                terminal.output.write("Language for " + namespace + " loaded.");
+                var obj = parser.jsonToObject(data);
+                if (!obj.hasOwnProperty("class") || !obj.hasOwnProperty("global")) {
+                    terminal.output.write("Wrong language file for " + namespace + ".");
+                } else {
+                    terminal.language.addClasses(obj.class);
+                    terminal.language.addGlobals(obj.global);
+                    terminal.output.write("Language for " + namespace + " merged.");
+                }
             } else {
                 terminal.output.write("Language load fail.");
             }

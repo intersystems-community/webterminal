@@ -13,7 +13,7 @@ body {
 .syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
 .syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite, .syntax-d,
 .syntax-zn, .syntax-h, .syntax-read, .syntax-r
-{ color: #0000ff; font-weight: 900; }
+{ color: #0000ff }
 
 .syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,
 .syntax-catch
