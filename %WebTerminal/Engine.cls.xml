@@ -459,8 +459,9 @@ Ends clear I/O mode</Description>
 <FormalSpec>string:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	set string = $REPLACE(string, ">", "<")
-	quit "An error occured: " _ $PIECE(string, "<", 2)
+	set string = $REPLACE($REPLACE(string, ">", "<"), ".Engine.", "<")
+	quit "An error occured: " _ $PIECE(string, "<", 2) _
+		$EXTRACT($PIECE(string, "<", 4), 2, *)
 ]]></Implementation>
 </Method>
 
