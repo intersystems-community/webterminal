@@ -1,6 +1,24 @@
 # Cache Web Terminal
-Web-based terminal emulator for InterSystems Cach&eacute; database. Access your database from the web, local network or even localhost.
+Web-based terminal application for InterSystems Cach&eacute; database. Access your database from the web, local network or even localhost.
+
+### Ways to install terminal
+<UL>
+<LI>Just download XML from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import it into %SYS namespace.</LI>
+<LI>Use <a href="https://github.com/intersystems-ru/cache-tort-git">Cache Tort Git utility</a></LI>
+<LI>Download an archive, unpack it and execute the following in %SYS namespace: <code>do $System.OBJ.ImportDir("UNPACK_FOLDER\", "*.xml", "ckbud", .err, 1)</code></LI>
+</UL>
+
 ### What's new?
+#### v0.89
+
+* Better error handling
+* Autocompletion for local variables
+* Autocompletion for globals
+* Fixed wrong autocomplete priority for classes
+* A bit speedy generation of autocomplete file (this isn't the limit)
+* Cleaner theme declaration
+* New monokai theme
+
 #### v0.85
 
 * Themes support added. Make your own terminal theme! Check first lines in js/application.js file.
@@ -11,12 +29,6 @@ Web-based terminal emulator for InterSystems Cach&eacute; database. Access your 
 * Fixes for Firefox
 * Other small fixes
 
-### Ways to install terminal
-<UL>
-<LI>Just download XML from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import it into %SYS namespace.</LI>
-<LI>Use <a href="https://github.com/intersystems-ru/cache-tort-git">Cache Tort Git utility</a></LI>
-<LI>Download an archive, unpack it and execute the following in %SYS namespace: <code>do $System.OBJ.ImportDir("UNPACK_FOLDER\", "*.xml", "ckbud", .err, 1)</code></LI>
-</UL>
 ### Usage
 Point your browser to the following csp file: (http://[host]:[port]/csp/sys/webTerminal/index.csp) Type "/help" to get more information.
 ### Additional information
