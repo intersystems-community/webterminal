@@ -12,7 +12,7 @@
 .syntax-_classProp { color: #0091ff }
 .syntax-_global { color: #D25252 }
 .syntax-_command { color: #66CCB3 }
-.syntax-_client { color: #D25252 }
+.syntax-_client { color: #D9E577 }
 .syntax-_other { color: #BFA4A4 }
 
 .syntax-_comment { color: #75715e }

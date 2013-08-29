@@ -26,11 +26,13 @@
  *      1       Execute body                                Enter clear I/O mode (execution begins)
  *      2       Execute sql body                            Exit clear I/O mode (with "exit" body)
  *      3       Generate autocomplete (body - namespace)    Output message
- *      4                                                   Change namespace
- *      5                                                   Load autocomplete
- *      6                                                   Read string
+ *      4       Set watch                                   Change namespace
+ *      5       Check watch                                 Load autocomplete
+ *      6       Remove watch                                Read string
  *      7                                                   Read char
  *      8                                                   Authorization status (body: 1/0)
+ *      9                                                   Start watching (body: name)
+ *      10                                                  Stop watching (body: name)
  *
  *  Clear I/O mode
  *      In this mode terminal client will listen for data from server and output any data as it is, without any action
@@ -69,7 +71,9 @@ var terminal = new function() {
         LOAD_AUTOCOMPLETE: String.fromCharCode(5), // loads autocomplete file. Body holds only namespace
         READ_STRING: String.fromCharCode(6), // reads string - removes namespace like in common terminal
         READ_CHARACTER: String.fromCharCode(7), // reads character - removes namespace like in common terminal
-        AUTHORIZATION_STATUS: String.fromCharCode(8)
+        AUTHORIZATION_STATUS: String.fromCharCode(8), // alerts client about authorization success. Holds 1/0
+        START_WATCH: String.fromCharCode(9),
+        STOP_WATCH: String.fromCharCode(10)
     };
 
     /**
@@ -81,7 +85,10 @@ var terminal = new function() {
         NONE: String.fromCharCode(0),
         EXECUTE: String.fromCharCode(1),
         EXECUTE_SQL: String.fromCharCode(2),
-        GENERATE_AUTOCOMPLETE: String.fromCharCode(3)
+        GENERATE_AUTOCOMPLETE: String.fromCharCode(3),
+        START_WATCH: String.fromCharCode(4),
+        CHECK_WATCH: String.fromCharCode(5),
+        STOP_WATCH: String.fromCharCode(6)
     };
 
     this.mode = this.modes.DEFAULT; // mode changes current terminal submit action, look and behavior
@@ -259,6 +266,12 @@ var terminal = new function() {
                     }
                     terminal.ready = true; // TERMINAL READY
                 } break;
+                case terminal.clientActions.START_WATCH: {
+                    terminal.watches.start(data);
+                } break;
+                case terminal.clientActions.STOP_WATCH: {
+                    terminal.watches.stop(data);
+                } break;
                 default: {
                     log.write("Unrecognised action from server.");
                     terminal.output.write(data);
@@ -358,6 +371,22 @@ var terminal = new function() {
                             "<br>Packages from server: "+packages+"</span>\n");
                     }
                     return true;
+                }
+            },
+
+            "watch": function(type, name) {
+                if (!type || !name) {
+                    terminal.output.write("Wrong watch. Use /watch {file|global|stop|remove} {name}");
+                    return;
+                }
+                if (type == "file") {
+                    server.submit(terminal.serverActions.START_WATCH, name)
+                } else if (type == "global") {
+                    terminal.output.write("Coming soon!")
+                } else if (type == "stop" || type == "remove") {
+                    server.submit(terminal.serverActions.STOP_WATCH, name);
+                } else {
+                    terminal.output.write("Unrecognised type.")
                 }
             }
 
@@ -721,6 +750,50 @@ var terminal = new function() {
 
     };
 
+    this.watches = new function() {
+
+        var watches = {
+
+            },
+            intervalID = -1,
+            interval = 1000,
+            check = function() {
+                var s = "{";
+                for(var prop in watches) {
+                    if (!watches.hasOwnProperty(prop)) continue;
+                    s += prop + ","
+                }
+                s[s.length-1] = "}";
+                server.submit(terminal.serverActions.CHECK_WATCH,s)
+            };
+
+        this.start = function(name) {
+            var type = (name.charAt(0) === "^")?"global":"file";
+            watches[name] = {
+                type: type
+            };
+            if (intervalID === -1) intervalID = setInterval(check, interval);
+            terminal.output.write("Starting to watch " + name);
+        };
+
+        this.stop = function(name) {
+            delete watches[name];
+            terminal.output.write("Stopping to watch " + name);
+
+            for(var prop in watches) {
+                if (!watches.hasOwnProperty(prop)) continue;
+                var props = true; break;
+            }
+
+            if (props) {
+                clearInterval(intervalID);
+                intervalID = -1;
+            }
+
+        };
+
+    };
+
     // represents output and anything related to it
     this.output = new function() {
 
@@ -990,17 +1063,18 @@ var terminal = new function() {
                 terminal.language.parseForTokens(data);
             }
 
-            if (data.charAt(0) == "/") {
+            if (data.charAt(0) === "/") {
 
                 var pos = data.indexOf(" ",1); pos = (pos==-1)?data.length:pos;
                 var command = data.substring(1,pos);
-                var arguments = data.substr(pos+1).split(" ");
+                var arguments = data.substr(pos+1).match(/"[^"]*"|[^\s]+/g);
+                for (var i = 0; i < (arguments)?arguments.length:0; i++) arguments[i] = arguments[i].replace(/"/g,"");
                 terminal.processor.executeInternal(command,arguments);
 
             } else {
 
                 data = terminal.definitions.replace(data);
-                terminal.output.write(parser.highlightHTML(data));
+                terminal.output.write(parser.prepareForOutputHTML(data));
                 server.submit(action,data);
 
                 terminal.history.moveToLast();
@@ -1386,7 +1460,8 @@ var terminal = new function() {
                 "/load": 0,
                 "/settings": 0,
                 "/siege": 0,
-                "/define": 0
+                "/define": 0,
+                "/watch": 0
             },
             "commands": {
                 "!autocomplete": {

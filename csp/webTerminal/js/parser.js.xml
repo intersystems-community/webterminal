@@ -161,6 +161,15 @@ var parser = new function() {
         return string.splice(position,0,"<span id=\"caret\"></span>");
     };
 
+    /**
+     * Returns parsed string by given rules.
+     *
+     * @param string
+     * [ @param insertCaretPos ]
+     * [ @param highlight ]
+     * [ @param insertSuggestion ]
+     * @returns {string}
+     */
     this.prepareForOutputHTML = function(string,insertCaretPos,highlight,insertSuggestion) {
 
         if (typeof insertCaretPos == "undefined") insertCaretPos = -1;
@@ -176,7 +185,9 @@ var parser = new function() {
                 case "<": r = "&lt;"; break;
                 case ">": r = "&gt;"; break;
             }
-            if (!insertCaretPos || r == "") return r || part;
+            if (!insertCaretPos || r == "") {
+                return r || part;
+            }
             if (index < insertCaretPos) {
                 //insertCaretPos += r.length - part.length; // seek caret
             }

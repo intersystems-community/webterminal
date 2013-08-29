@@ -5,8 +5,7 @@
 This class represents the core of web terminal.
 All operations with opened WebSocket placed here.
 CLASS USES GLOBAL ^%WebTerminal.Engine.AuthorizationKey for client
-authorization.
-(Maybe there can be something better then using this global)</Description>
+authorization.</Description>
 <Super>%CSP.WebSocket,%Library.Routine,%CSP.REST</Super>
 <TimeCreated>63047,60359.445979</TimeCreated>
 
@@ -30,6 +29,21 @@ Last joined client id</Description>
 <Property name="ConstServerActionGenerateAutocomplete">
 <Type>%Char</Type>
 <InitialExpression>$c(3)</InitialExpression>
+</Property>
+
+<Property name="ConstServerActionAddWatch">
+<Type>%Char</Type>
+<InitialExpression>$c(4)</InitialExpression>
+</Property>
+
+<Property name="ConstServerActionCheckWatch">
+<Type>%Char</Type>
+<InitialExpression>$c(5)</InitialExpression>
+</Property>
+
+<Property name="ConstServerActionRemoveWatch">
+<Type>%Char</Type>
+<InitialExpression>$c(6)</InitialExpression>
 </Property>
 
 <Property name="ConstClientEnterClearIO">
@@ -70,6 +84,16 @@ Last joined client id</Description>
 <Property name="ConstClientAuthorizationStatus">
 <Type>%Char</Type>
 <InitialExpression>$c(8)</InitialExpression>
+</Property>
+
+<Property name="ConstClientStartWatch">
+<Type>%Char</Type>
+<InitialExpression>$c(9)</InitialExpression>
+</Property>
+
+<Property name="ConstClientStopWatch">
+<Type>%Char</Type>
+<InitialExpression>$c(10)</InitialExpression>
 </Property>
 
 <Property name="CurrentNamespace">
@@ -212,7 +236,9 @@ rchr(timeout = 86400)
 
 <Method name="OnPreServer">
 <ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[	quit $$$OK
+<Implementation><![CDATA[
+	kill ^CacheTemp.WebTerminal.Watching
+	quit $$$OK
 ]]></Implementation>
 </Method>
 
@@ -226,11 +252,14 @@ rchr(timeout = 86400)
 
 <Method name="OnPostServer">
 <ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[ 	quit $$$OK
+<Implementation><![CDATA[
+	kill ^CacheTemp.WebTerminal.Watching
+ 	quit $$$OK
 ]]></Implementation>
 </Method>
 
 <Method name="GetJSAutocompleteFilePath">
+<ClassMethod>1</ClassMethod>
 <FormalSpec>namespace:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
@@ -244,6 +273,7 @@ rchr(timeout = 86400)
 </Method>
 
 <Method name="WriteToFile">
+<ClassMethod>1</ClassMethod>
 <FormalSpec>filename:%String,data:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
@@ -255,6 +285,7 @@ rchr(timeout = 86400)
 </Method>
 
 <Method name="getGlobalsJSON">
+<ClassMethod>1</ClassMethod>
 <FormalSpec>namespace:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
@@ -542,6 +573,42 @@ the client - it includes authorization key.</Description>
 ]]></Implementation>
 </Method>
 
+<Method name="FileWatcher">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<Implementation><![CDATA[
+	set ^test = "JOB START "
+	// ^CacheTemp.WebTerminal.Watching(0)
+	set file=##class(%File).%New(^CacheTemp.WebTerminal.Watching(0,0))
+	set size = file.Size
+	set dateModified = file.DateModified
+	set ^test = "JOB START with size " _ size _ " and date " _ dateModified
+	
+	while ($get(^CacheTemp.WebTerminal.Watching(0,0))'="") {
+		set temp = file.DateModified
+		if (dateModified '= temp) {
+			set dateModified = temp
+			set newSize = file.Size
+			set size2 = newSize
+			set ^test = $get(^CacheTemp.WebTerminal.Watching(0,0))'=""
+			do file.Open("r")
+			do file.MoveTo(size + 1)
+			set ^CacheTemp.WebTerminal.Watching(0,2) = 
+				^CacheTemp.WebTerminal.Watching(0,2) _
+				file.Read(newSize - size)
+			set ^CacheTemp.WebTerminal.Watching(0,1) =
+				^CacheTemp.WebTerminal.Watching(0,1) + 1 
+			do file.Close()
+			set size = size2
+		}
+		hang 1
+	}
+	
+	set ^test = "JOB END"
+	q $$$OK
+]]></Implementation>
+</Method>
+
 <Method name="ClientLoop">
 <Description><![CDATA[
 Main method for every new client.
@@ -583,12 +650,42 @@ Method description:
 	   	}
 	   	
 	   	set action = $EXTRACT(data, 1, 1)
-	   	set data = $EXTRACT(data, 2, *)
+	   	set data = $REPLACE($EXTRACT(data, 2, *),$c(10)," ")
 	    		    	
 	    if (action = ..ConstServerActionExecute) { // autorized
 	    	
 			do ..ExecuteCommand(data)
 		    	
+	    } elseif (action = ..ConstServerActionCheckWatch) {
+	    
+		    if ($get(^CacheTemp.WebTerminal.Watching(0,2)) '= "") {
+			    do ..SendData("Modified " _ ^CacheTemp.WebTerminal.Watching(0,0) _ $c(10) _ ^CacheTemp.WebTerminal.Watching(0,2))
+			    set ^CacheTemp.WebTerminal.Watching(0,2) = ""
+		    }
+		  
+	    } elseif (action = ..ConstServerActionRemoveWatch) {
+	    
+		    kill ^CacheTemp.WebTerminal.Watching
+		    do ..SendData(data, ..ConstClientStopWatch)
+		  
+	    } elseif (action = ..ConstServerActionAddWatch) {
+	    
+		    if (##class(%File).Exists(data)) {
+			    
+			    if ($get(^CacheTemp.WebTerminal.Watching(0,0)) = "") {
+				    set ^CacheTemp.WebTerminal.Watching(0,0) = data
+			    	set ^CacheTemp.WebTerminal.Watching(0,1) = 0
+			    	set ^CacheTemp.WebTerminal.Watching(0,2) = ""
+			    	j ..FileWatcher() // !!!
+			    }
+			    do ..SendData(data, ..ConstClientStartWatch)
+			    
+		    } else {
+			    
+				do ..SendData("Can't watch " _ data _ ": no such file.")  
+				  
+		    }
+		  
 	    } elseif (action = ..ConstServerActionExecuteSQL) { // sql
 	    
 		    do ..ExecuteSQL(data)

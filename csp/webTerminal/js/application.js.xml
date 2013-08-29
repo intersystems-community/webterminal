@@ -6,7 +6,7 @@
  */
 var application = new function() {
 
-    var version = "0.89 alpha";
+    var version = "0.9 alpha";
 
     this.browser = "gc";
     this.authorizationKey = "";
@@ -76,6 +76,10 @@ var application = new function() {
                     "<td>Every occurrence of {definition} in input will be replaced with {redefinition}</td>" +
                 "</tr>" +
                 "<tr>" +
+                    "<td class=\"info\">/watch {file|stop} {fileName|*}</td>" +
+                    "<td>Experimental: watch for file changes.</td>" +
+                "</tr>" +
+                "<tr>" +
                     "<td class=\"info\">/sql</td>" +
                     "<td>Open/close integrated SQL shell</td>" +
                 "</tr>" +
@@ -121,7 +125,7 @@ var application = new function() {
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">UP/DOWN</td>" +
-                    "<td>Access to command history. <i>Current command line will be saved.</i></td>" +
+                    "<td>Access to command history. <i>Current command won't be saved.</i></td>" +
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">SHIFT/CTRL + ENTER</td>" +
