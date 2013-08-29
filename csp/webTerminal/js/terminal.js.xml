@@ -1684,14 +1684,6 @@ var terminal = new function() {
                     child: {
                         reversedRegExp: "([a-zA-Z]*%?)\\.\\)"
                     }
-                },
-                "EXAMPLE": {
-                    "Method": 0,
-                    "Property": 0,
-                    "Parameter": 0
-                },
-                "EXXXXXS": {
-                    "Porn": 0
                 }
             },
             "global": {
