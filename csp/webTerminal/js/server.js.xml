@@ -86,7 +86,6 @@ var server = new function() {
             return false;
         }
         if (typeof url == "undefined" || typeof url != "string" || !url) { url = this.getDefaultServerURL() }
-        terminal.output.write("Connecting to " + url + "...");
         socket = new WebSocket(url);
         socket.onopen = onOpen;
         socket.onclose = onClose;
@@ -121,7 +120,6 @@ var server = new function() {
     };
 
     var onOpen = function() {
-        //log.write("Connection established. Authorization...");
         if (application.authorizationKey) server.send(application.authorizationKey);
     };
 

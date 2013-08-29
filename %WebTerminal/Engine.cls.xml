@@ -67,6 +67,11 @@ Last joined client id</Description>
 <InitialExpression>$c(7)</InitialExpression>
 </Property>
 
+<Property name="ConstClientAuthorizationStatus">
+<Type>%Char</Type>
+<InitialExpression>$c(8)</InitialExpression>
+</Property>
+
 <Property name="CurrentNamespace">
 <Type>%String</Type>
 </Property>
@@ -559,7 +564,6 @@ Method description:
 	a key, which will be compared with ..GetAuthKey() (global). If 
 	succeeded, method sets "authorized" flag to true and changes global
 	key with ..GenerateAuthKey() for the next client.]]></Description>
-<FormalSpec>clientID:%Numeric</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	
@@ -595,7 +599,7 @@ Method description:
 		    		
 	    } else { // something scary
 		    	
-		    do ..SendData("Unrecognised action: " _ action)
+		    do ..SendData("Client request unrecognised: " _ action)
 		    		
 	    }
       		
@@ -608,30 +612,23 @@ Method description:
 New connection established</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	
-	set ..lastClientId = ..lastClientId + 1
-	
 	if ($$$ISOK(..RequireAuthorization())) {
 		
 		set ..InitialZName = $Zname
-		
-		do ..SendData("Terminal remote ready. Welcome.")
-		
 		zn "%SYS"
 		set ..CurrentNamespace = $Znspace
 		
-		do ..SendData(..CurrentNamespace,..ConstClientChangeNamespace)
+		do ..SendData("1", ..ConstClientAuthorizationStatus)
+		do ..SendData(..CurrentNamespace, ..ConstClientChangeNamespace)
 		   
-		do ..ClientLoop(..lastClientId)
+		do ..ClientLoop()
 		
 	} else {
 		
-		do ..SendData("Welcome, mr. Hacker!")
+		do ..SendData("0", ..ConstClientAuthorizationStatus)
 		do ..EndServer()
 			
 	}
-	
-	do ..SendData("Terminal session ended. Goodbye.")
   	
   	quit $$$OK
 ]]></Implementation>

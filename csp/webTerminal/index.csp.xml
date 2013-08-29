@@ -43,7 +43,18 @@
                                 </label>
                             </td>
                             <td>
-                                Use syntax highlighting.
+                                Use syntax highlighting
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input id="settings-cleanStartup" type="checkbox">
+                                <label for="settings-highlighting">
+                                    Clean startup
+                                </label>
+                            </td>
+                            <td>
+                                Do not show additional information during terminal startup
                             </td>
                         </tr>
                         <tr class="hidden">
@@ -54,17 +65,7 @@
                                 </label>
                             </td>
                             <td>
-                                Enable CSS3 animations and transitions.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                Color theme
-                            </td>
-                            <td>
-                                <label id="terminal-themes-container">
-
-                                </label>
+                                Enable CSS3 animations and transitions
                             </td>
                         </tr>
                         <tr>
@@ -75,7 +76,17 @@
                                 </label>
                             </td>
                             <td>
-                                Enables you to continue your work after browser tab closed and opened again.
+                                Saves your history and autocompletion automatically after browser tab closed
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Color theme
+                            </td>
+                            <td>
+                                <label id="terminal-themes-container">
+
+                                </label>
                             </td>
                         </tr>
                     </tbody>
@@ -104,8 +115,9 @@
             try {
                 application.authorizationKey = "#(##Class(%WebTerminal.Engine).GetAuthKey())#";
                 application.initialize();
-            } catch (exception) {
-                alert("Unable to initialize terminal: ", exception);
+            } catch (e) {
+                alert("Unable to initialize terminal.");
+                console.log(e)
             }
         </script>
     </body>

@@ -77,6 +77,7 @@ var dom = new function() {
         settingsHighlighting: null,
         settingsAnimations: null,
         settingsAutoSaving: null,
+        settingsCleanStartup: null,
         themeCSS: null,
         themesContainer: null,
         body: null,
@@ -193,6 +194,7 @@ var dom = new function() {
         objects.themeCSS = dom.element("terminal-color-theme");
         objects.settingsAnimations = dom.element("settings-animations");
         objects.settingsAutoSaving = dom.element("settings-autosaving");
+        objects.settingsCleanStartup = dom.element("settings-cleanStartup");
         objects.themesContainer = dom.element("terminal-themes-container");
         objects.startupScript = dom.element("startup");
         objects.body = document.body;
@@ -256,11 +258,11 @@ var settings = new function() {
     var animations = true,
         highlighting = true,
         colorTheme = "default",
-        restoreSession = 0;
+        restoreSession = 0,
+        cleanStartup = 0;
 
-    this.get_restoreSession = function() {
-        return restoreSession == 1;
-    };
+    this.get_restoreSession = function() { return restoreSession == 1 };
+    this.get_cleanStartup = function() { return cleanStartup == 1 && !terminal.ready };
 
     this.get_theme = function() {
         return colorTheme;
@@ -272,14 +274,16 @@ var settings = new function() {
             animations: animations,
             highlighting: highlighting,
             colorTheme: colorTheme,
-            restoreSession: restoreSession
+            restoreSession: restoreSession,
+            cleanStartup: cleanStartup
         };
     };
 
     this.import = function(settingImportObject) {
         if (!(typeof settingImportObject === "object" && settingImportObject.hasOwnProperty("!export:settings") &&
             settingImportObject.hasOwnProperty("animations") && settingImportObject.hasOwnProperty("highlighting") &&
-            settingImportObject.hasOwnProperty("colorTheme") && settingImportObject.hasOwnProperty("restoreSession"))) {
+            settingImportObject.hasOwnProperty("colorTheme") && settingImportObject.hasOwnProperty("restoreSession") &&
+            settingImportObject.hasOwnProperty("cleanStartup"))) {
             log.write("Wrong settings object to import.");
             return;
         }
@@ -287,6 +291,16 @@ var settings = new function() {
         highlighting = settingImportObject["highlighting"];
         colorTheme = settingImportObject["colorTheme"];
         restoreSession = (settingImportObject["restoreSession"] == 1)?1:0;
+        cleanStartup = settingImportObject["cleanStartup"];
+        this.update();
+    };
+
+    this.reset = function() {
+        animations = true;
+        highlighting = true;
+        colorTheme = "default";
+        restoreSession = 0;
+        cleanStartup = 0;
         this.update();
     };
 
@@ -294,10 +308,12 @@ var settings = new function() {
      * Updates terminal settings according to dom checked boxes.
      */
     this.updateFromView = function() {
+
         highlighting = dom.objects.settingsHighlighting.checked;
         animations = dom.objects.settingsAnimations.checked;
         restoreSession = (dom.objects.settingsAutoSaving.checked)?1:0;
-        storage.set("restoreSession", restoreSession);
+        cleanStartup = (dom.objects.settingsCleanStartup.checked)?1:0;
+
         colorTheme = "default";
         for (var theme in application.themes) {
             if (!application.themes.hasOwnProperty(theme)) continue;
@@ -311,6 +327,9 @@ var settings = new function() {
             dom.removeClass(dom.objects.body,"noAnimations");
             dom.addClass(dom.objects.body,"noAnimations");
         } else dom.removeClass(dom.objects.body,"noAnimations");
+
+        storage.set("settings", settings.export());
+
     };
 
     /**
@@ -342,8 +361,8 @@ var settings = new function() {
     this.updateFromModel = function() {
         dom.objects.settingsHighlighting.checked = highlighting;
         dom.objects.settingsAnimations.checked = animations;
-        storage.set("restoreSession", restoreSession);
         dom.objects.settingsAutoSaving.checked = restoreSession == 1;
+        dom.objects.settingsCleanStartup.checked = cleanStartup == 1;
         for (var theme in application.themes) {
             if (!application.themes.hasOwnProperty(theme)) continue;
             var obj = dom.objects.getThemeSelectorObject(theme);
@@ -364,7 +383,9 @@ var settings = new function() {
      */
     this.initialize = function() {
         dom.objects.panel.style.top = "-100%";
-        restoreSession = storage.get("restoreSession") || 0;
+        var settings = storage.get("settings");
+        if (settings) this.import(settings);
+        if (restoreSession) terminal.loadState();
         hid.bindClick(dom.objects.panelTable,this.updateFromView);
         this.update();
         return true;

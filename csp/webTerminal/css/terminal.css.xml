@@ -121,5 +121,9 @@
 #terminal-control-table > tbody > tr > td:last-child {
     padding: 0;
     vertical-align: top;
+}
+
+#terminal-themes-container > input {
+    margin-left: 20px;
 }]]></CSP>
 </Export>

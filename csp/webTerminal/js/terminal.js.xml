@@ -30,6 +30,7 @@
  *      5                                                   Load autocomplete
  *      6                                                   Read string
  *      7                                                   Read char
+ *      8                                                   Authorization status (body: 1/0)
  *
  *  Clear I/O mode
  *      In this mode terminal client will listen for data from server and output any data as it is, without any action
@@ -67,7 +68,8 @@ var terminal = new function() {
         CHANGE_NAMESPACE: String.fromCharCode(4), // changes namespace
         LOAD_AUTOCOMPLETE: String.fromCharCode(5), // loads autocomplete file. Body holds only namespace
         READ_STRING: String.fromCharCode(6), // reads string - removes namespace like in common terminal
-        READ_CHARACTER: String.fromCharCode(7) // reads character - removes namespace like in common terminal
+        READ_CHARACTER: String.fromCharCode(7), // reads character - removes namespace like in common terminal
+        AUTHORIZATION_STATUS: String.fromCharCode(8)
     };
 
     /**
@@ -83,15 +85,13 @@ var terminal = new function() {
     };
 
     this.mode = this.modes.DEFAULT; // mode changes current terminal submit action, look and behavior
+    this.ready = false;
 
     /**
      * Saves terminal state (history, autocomplete, etc.) to local storage.
      */
     this.saveState = function() {
 
-        storage.delete("history");
-        storage.delete("language");
-        storage.delete("settings");
         storage.set("history", terminal.history.export());
         storage.set("language", terminal.language.export());
         storage.set("settings", settings.export());
@@ -115,7 +115,7 @@ var terminal = new function() {
         settings.import(storage.get("settings"));
         terminal.history.import(storage.get("history"));
         terminal.language.import(storage.get("language"));
-        terminal.output.write("Terminal state has been loaded.");
+        if (!settings.get_cleanStartup()) terminal.output.write("Terminal state has been loaded.");
 
         return true;
 
@@ -127,6 +127,7 @@ var terminal = new function() {
     this.resetState = function() {
 
         storage.clear();
+        settings.reset();
         location.reload();
 
     };
@@ -251,6 +252,12 @@ var terminal = new function() {
                 case terminal.clientActions.EXIT_CLEAR_IO: terminal.mode = terminal.modes.LAST; break;
                 case terminal.clientActions.LOAD_AUTOCOMPLETE: {
                     server.requestAutocompleteFile(data || terminal.namespace.getCorrectFileName());
+                } break;
+                case terminal.clientActions.AUTHORIZATION_STATUS: {
+                    if (!settings.get_cleanStartup()) {
+                        terminal.output.write((data == "1")?"Authorisation succeeded.":"Authorisation failed.");
+                    }
+                    terminal.ready = true; // TERMINAL READY
                 } break;
                 default: {
                     log.write("Unrecognised action from server.");
@@ -397,19 +404,19 @@ var terminal = new function() {
             setTimeout(function(){handlers.inputKeyDown()},1);
         });
         hid.bindClick(dom.objects.input, handlers.inputClick);
-
-        this.output.write("Terminal base ready. Type <span class=\"warning\">/help</span> to get more information.");
-
-        // bindEvent( terminalGetInputObject(), "blur", clearKeyStates ); - why?
         window.onbeforeunload = handlers.end;
-        server.connect();
+
+        var serverURL = server.getDefaultServerURL();
+        if (!settings.get_cleanStartup()) {
+            this.output.write("Terminal base ready. Type <span class=\"warning\">/help</span>" +
+                " to get more information.");
+            this.output.write("Connecting to " + serverURL + "...");
+        }
+
+        server.connect(serverURL);
         dom.remove(dom.objects.startupScript);
 
         this.input.clear(); // Clear histories caused by "back" page
-        if (settings.get_restoreSession() == 1) {
-            this.loadState();
-        }
-
         this.input.focus();
         this.input.update();
 
