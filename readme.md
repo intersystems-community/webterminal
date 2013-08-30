@@ -9,6 +9,13 @@ Web-based terminal application for InterSystems Cach&eacute; database. Access yo
 </UL>
 
 ### What's new?
+#### v0.9.1
+
+* Added file watching. Type /watch {fullFilePath} to start watching for file changes. Type that again to stop
+* Security improvement - server waits for authorization up to 3 seconds and then brakes connection
+* Persistent settings (theme, options) saving
+* Clean start option
+
 #### v0.89
 
 * Better error handling
