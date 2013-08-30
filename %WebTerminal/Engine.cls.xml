@@ -6,7 +6,7 @@ This class represents the core of web terminal.
 All operations with opened WebSocket placed here.
 CLASS USES GLOBAL ^%WebTerminal.Engine.AuthorizationKey for client
 authorization.</Description>
-<Super>%CSP.WebSocket,%Library.Routine,%CSP.REST</Super>
+<Super>%CSP.WebSocket,%Library.Routine</Super>
 <TimeCreated>63047,60359.445979</TimeCreated>
 
 <Property name="lastClientId">

@@ -66,7 +66,7 @@ var server = new function() {
     this.getDefaultServerURL = function() {
         var part = document.URL.split("/")[2]; // domain[:port]
         
-        part = "localhost:57772";
+        //part = "localhost:57772";
 
         return "ws://" + part + "/" + serverRoot.replace(/%/,"%25");
     };
