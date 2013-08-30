@@ -26,13 +26,12 @@
  *      1       Execute body                                Enter clear I/O mode (execution begins)
  *      2       Execute sql body                            Exit clear I/O mode (with "exit" body)
  *      3       Generate autocomplete (body - namespace)    Output message
- *      4       Set watch                                   Change namespace
- *      5       Check watch                                 Load autocomplete
- *      6       Remove watch                                Read string
+ *      4       Watch (body: name)                          Change namespace
+ *      5       Check watches                               Load autocomplete
+ *      6                                                   Read string
  *      7                                                   Read char
  *      8                                                   Authorization status (body: 1/0)
- *      9                                                   Start watching (body: name)
- *      10                                                  Stop watching (body: name)
+ *      9                                                   Watch (body: name)
  *
  *  Clear I/O mode
  *      In this mode terminal client will listen for data from server and output any data as it is, without any action
@@ -72,8 +71,7 @@ var terminal = new function() {
         READ_STRING: String.fromCharCode(6), // reads string - removes namespace like in common terminal
         READ_CHARACTER: String.fromCharCode(7), // reads character - removes namespace like in common terminal
         AUTHORIZATION_STATUS: String.fromCharCode(8), // alerts client about authorization success. Holds 1/0
-        START_WATCH: String.fromCharCode(9),
-        STOP_WATCH: String.fromCharCode(10)
+        WATCH: String.fromCharCode(9)
     };
 
     /**
@@ -86,9 +84,8 @@ var terminal = new function() {
         EXECUTE: String.fromCharCode(1),
         EXECUTE_SQL: String.fromCharCode(2),
         GENERATE_AUTOCOMPLETE: String.fromCharCode(3),
-        START_WATCH: String.fromCharCode(4),
-        CHECK_WATCH: String.fromCharCode(5),
-        STOP_WATCH: String.fromCharCode(6)
+        WATCH: String.fromCharCode(4),
+        CHECK_WATCH: String.fromCharCode(5)
     };
 
     this.mode = this.modes.DEFAULT; // mode changes current terminal submit action, look and behavior
@@ -266,11 +263,8 @@ var terminal = new function() {
                     }
                     terminal.ready = true; // TERMINAL READY
                 } break;
-                case terminal.clientActions.START_WATCH: {
-                    terminal.watches.start(data);
-                } break;
-                case terminal.clientActions.STOP_WATCH: {
-                    terminal.watches.stop(data);
+                case terminal.clientActions.WATCH: {
+                    terminal.watches.watch(data.trim());
                 } break;
                 default: {
                     log.write("Unrecognised action from server.");
@@ -374,20 +368,12 @@ var terminal = new function() {
                 }
             },
 
-            "watch": function(type, name) {
-                if (!type || !name) {
-                    terminal.output.write("Wrong watch. Use /watch {file|global|stop|remove} {name}");
+            "watch": function(name) {
+                if (!name) {
+                    terminal.output.write("Enter watch name. Use /watch {name}");
                     return;
                 }
-                if (type == "file") {
-                    server.submit(terminal.serverActions.START_WATCH, name)
-                } else if (type == "global") {
-                    terminal.output.write("Coming soon!")
-                } else if (type == "stop" || type == "remove") {
-                    server.submit(terminal.serverActions.STOP_WATCH, name);
-                } else {
-                    terminal.output.write("Unrecognised type.")
-                }
+                server.submit(terminal.serverActions.WATCH, name);
             }
 
         };
@@ -758,38 +744,46 @@ var terminal = new function() {
             intervalID = -1,
             interval = 1000,
             check = function() {
-                var s = "{";
+                try {
+                    server.submit(terminal.serverActions.CHECK_WATCH)
+                } catch (e) {
+                    clearInterval(intervalID);
+                    intervalID = -1;
+                    terminal.output.write("Watches stopped.")
+                }
+            };
+
+        this.getWatches = function() { return watches };
+
+        /**
+         * Server handler for watch start/stop.
+         *
+         * @param name
+         */
+        this.watch = function(name) {
+            if (name == "unreal") {
+                terminal.output.write("Unable to watch " + name);
+                return;
+            }
+            var type = (name.charAt(0) === "^")?"global":"file";
+            if (watches.hasOwnProperty(name)) {
                 for(var prop in watches) {
                     if (!watches.hasOwnProperty(prop)) continue;
-                    s += prop + ","
+                    var props = true; break;
                 }
-                s[s.length-1] = "}";
-                server.submit(terminal.serverActions.CHECK_WATCH,s)
-            };
-
-        this.start = function(name) {
-            var type = (name.charAt(0) === "^")?"global":"file";
-            watches[name] = {
-                type: type
-            };
-            if (intervalID === -1) intervalID = setInterval(check, interval);
-            terminal.output.write("Starting to watch " + name);
-        };
-
-        this.stop = function(name) {
-            delete watches[name];
-            terminal.output.write("Stopping to watch " + name);
-
-            for(var prop in watches) {
-                if (!watches.hasOwnProperty(prop)) continue;
-                var props = true; break;
+                if (props) {
+                    clearInterval(intervalID);
+                    intervalID = -1;
+                }
+                delete watches[name];
+                terminal.output.write("Stopping to watch " + name);
+            } else {
+                watches[name] = {
+                    type: type
+                };
+                if (intervalID === -1) intervalID = setInterval(check, interval);
+                terminal.output.write("Starting to watch " + name);
             }
-
-            if (props) {
-                clearInterval(intervalID);
-                intervalID = -1;
-            }
-
         };
 
     };
@@ -1515,6 +1509,7 @@ var terminal = new function() {
                 "zn": 0,
                 "ztrap": 0,
                 "zwrite": 0,
+                "zw": 0,
                 "zzdump": 0,
                 "zzwrite": 0,
 

@@ -7,6 +7,7 @@
 var application = new function() {
 
     var version = "0.9 alpha";
+    this.debug = false; // remove for release
 
     this.browser = "gc";
     this.authorizationKey = "";
@@ -23,7 +24,7 @@ var application = new function() {
      *
      * @type {{number}}
      */
-    this.themes = { // here you can insert theme name
+    this.themes = { // here you can insert theme name, but do not forget to add appropriate theme file.
         "default": 0,
         "studio": 0,
         "monokai": 0
@@ -76,7 +77,7 @@ var application = new function() {
                     "<td>Every occurrence of {definition} in input will be replaced with {redefinition}</td>" +
                 "</tr>" +
                 "<tr>" +
-                    "<td class=\"info\">/watch {file|stop} {fileName|*}</td>" +
+                    "<td class=\"info\">/watch {fileFullPath}</td>" +
                     "<td>Experimental: watch for file changes.</td>" +
                 "</tr>" +
                 "<tr>" +

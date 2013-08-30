@@ -31,19 +31,14 @@ Last joined client id</Description>
 <InitialExpression>$c(3)</InitialExpression>
 </Property>
 
-<Property name="ConstServerActionAddWatch">
+<Property name="ConstServerActionWatch">
 <Type>%Char</Type>
 <InitialExpression>$c(4)</InitialExpression>
 </Property>
 
-<Property name="ConstServerActionCheckWatch">
+<Property name="ConstServerActionCheckWatches">
 <Type>%Char</Type>
 <InitialExpression>$c(5)</InitialExpression>
-</Property>
-
-<Property name="ConstServerActionRemoveWatch">
-<Type>%Char</Type>
-<InitialExpression>$c(6)</InitialExpression>
 </Property>
 
 <Property name="ConstClientEnterClearIO">
@@ -86,14 +81,9 @@ Last joined client id</Description>
 <InitialExpression>$c(8)</InitialExpression>
 </Property>
 
-<Property name="ConstClientStartWatch">
+<Property name="ConstClientWatch">
 <Type>%Char</Type>
 <InitialExpression>$c(9)</InitialExpression>
-</Property>
-
-<Property name="ConstClientStopWatch">
-<Type>%Char</Type>
-<InitialExpression>$c(10)</InitialExpression>
 </Property>
 
 <Property name="CurrentNamespace">
@@ -104,9 +94,17 @@ Last joined client id</Description>
 <Type>%String</Type>
 </Property>
 
-<Property name="ExperimentalAutocompleteOn">
-<Type>%Boolean</Type>
-<InitialExpression>0</InitialExpression>
+<Property name="Watches">
+<Description>
+Property is used to store watching files/globals. </Description>
+<Type>%List</Type>
+</Property>
+
+<Property name="WatchesCaret">
+<Description>
+Watch position in file on global</Description>
+<Type>%Numeric</Type>
+<MultiDimensional>1</MultiDimensional>
 </Property>
 
 <Method name="redirects">
@@ -236,9 +234,146 @@ rchr(timeout = 86400)
 
 <Method name="OnPreServer">
 <ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="AddWatch">
+<Description>
+Chechs for correct watch source and sets watch target to ..Watches
+Returns status of this operation</Description>
+<FormalSpec>name</FormalSpec>
+<ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	kill ^CacheTemp.WebTerminal.Watching
-	quit $$$OK
+	set s = $CHAR(0)
+	set watches = s _ $LISTTOSTRING(..Watches, s) _ s
+	if ($FIND(watches, s_name_s) '= 0) q 0 // if watch already defined
+	
+	if ($EXTRACT(name,1,1) = "^") { // watching global
+		s g = 0
+		try {
+			if (($data(@name))=1) s g=1
+		} catch {  }
+		set $ZERROR = ""
+		if (g=1) {
+			set ..Watches = ..Watches _ $LISTBUILD(name)
+			set ..WatchesCaret(name,0) = 0 // current watch cursor position
+			set ..WatchesCaret(name,1) = "?"
+			do ..SendData(name, ..ConstClientWatch)
+			q 1
+		}
+	} else { // watch file
+		if (##class(%File).Exists(name)) {
+			set ..Watches = ..Watches _ $LISTBUILD(name)
+			set file = ##class(%File).%New(name)
+			set ..WatchesCaret(name,0) = file.Size // current watch cursor position
+			set ..WatchesCaret(name,1) = file.DateModified
+			do ..SendData(name, ..ConstClientWatch)
+			q 1
+		}
+	}
+	
+	q 0 // what do you want?
+]]></Implementation>
+</Method>
+
+<Method name="RemoveWatch">
+<Description>
+Removes watch from watches list
+Returns success status</Description>
+<FormalSpec>name</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// absurdly, but working
+	set s = $CHAR(0)
+	set watches = s _ $LISTTOSTRING(..Watches,s) _ s
+	set newWatches = $REPLACE(watches, s_name_s, s)
+	set ..Watches = $LISTFROMSTRING($EXTRACT(newWatches, 2, *-1), s)
+	if (watches '= newWatches) {
+		k ..WatchesCaret(name) // really removed
+		do ..SendData(name, ..ConstClientWatch)
+	}
+	quit watches '= newWatches
+]]></Implementation>
+</Method>
+
+<Method name="ListWatches">
+<Description>
+Returns a list current watches</Description>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set no=0
+	set s = "Watching: " _ $CHAR(10)
+    while $LISTNEXT(..Watches, no, value) {
+    	set s = s_"(pos: "_..WatchesCaret(value,0)_
+    	"; mod: "_..WatchesCaret(value,1)_") "_value_$CHAR(10)
+    }
+    q s
+]]></Implementation>
+</Method>
+
+<Method name="GetWatchFileModified">
+<FormalSpec>watch</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set file=##class(%File).%New(watch)
+	set size = file.Size
+	set modDate = file.DateModified
+	set output = ""
+	if (size < 0) { // file had been deleted
+		
+		set output = "deleted"
+		do ..RemoveWatch(watch)
+		q output
+		
+	}
+	if (size > ..WatchesCaret(watch, 0)) {
+		
+		set output = "updated" _ $CHAR(10)
+		set stream=##class(%Stream.FileBinary).%New()
+		set sc=stream.LinkToFile(watch)
+		do stream.MoveTo(..WatchesCaret(watch, 0) + 1)
+		set readed = stream.Read(size - ..WatchesCaret(watch, 0))
+		try {
+			set output=output_$zconvert(readed,"I","UTF-8")
+		} catch {
+			set output=output_readed
+		}
+		set ..WatchesCaret(watch, 0) = size
+		set ..WatchesCaret(watch, 1) = file.DateModified
+		
+	} elseif ((size < ..WatchesCaret(watch, 0)) || (file.DateModified '= ..WatchesCaret(watch, 1))) {
+		
+		set output = "modified" _ $CHAR(10)
+		set output = output _ "Bytes changed: " _ (size - ..WatchesCaret(watch, 0))
+		set ..WatchesCaret(watch, 0) = size
+		set ..WatchesCaret(watch, 1) = file.DateModified
+		
+	} // else file not changed
+	q output
+]]></Implementation>
+</Method>
+
+<Method name="CheckWatches">
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set no = 0
+	set data = ""
+	set overal = ""
+	set watchList = ..Watches // do not remove or simplify: ..Watches can be modified
+    while $LISTNEXT(watchList, no, value) {
+    	if ($EXTRACT(value, 1, 1) = "^") {
+	    	
+    	} else {
+	    	set data = ..GetWatchFileModified(value)
+    	}
+    	if (data '= "") {
+	    	set overal = $ZDATETIME($NOW(),1,1) _ " " _
+	    	value _ ": " _ data _ $CHAR(10)	
+    	}
+    	set data = ""
+    }
+    q overal
 ]]></Implementation>
 </Method>
 
@@ -426,9 +561,7 @@ rchr(timeout = 86400)
 Generating new authorization key</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
-	set temp = $SYSTEM.Util.CreateGUID()
-	set ^%WebTerminal.Engine.AuthorizationKey = temp
+<Implementation><![CDATA[	set ^CacheTemp.WebTerminal.AuthKey = $SYSTEM.Util.CreateGUID()
 ]]></Implementation>
 </Method>
 
@@ -439,10 +572,10 @@ If the key is empty, generates new key value.</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	if ($get(^%WebTerminal.Engine.AuthorizationKey) = "") {
+	if ($get(^CacheTemp.WebTerminal.AuthKey) = "") {
 		Do ..GenerateAuthKey()
 	}
-	quit ^%WebTerminal.Engine.AuthorizationKey
+	quit ^CacheTemp.WebTerminal.AuthKey
 ]]></Implementation>
 </Method>
 
@@ -561,7 +694,7 @@ This method holds process and expects only one package from
 the client - it includes authorization key.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set key = ..Read(,.status) // wait for package
+	set key = ..Read(,.status,3) // wait for package
 	set realKey = ..GetAuthKey() // remember current auth key
 	do ..GenerateAuthKey() // generate new auth key
 	
@@ -570,42 +703,6 @@ the client - it includes authorization key.</Description>
 	}
 	
 	quit $$$NOTOK
-]]></Implementation>
-</Method>
-
-<Method name="FileWatcher">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>filename:%String</FormalSpec>
-<Implementation><![CDATA[
-	set ^test = "JOB START "
-	// ^CacheTemp.WebTerminal.Watching(0)
-	set file=##class(%File).%New(^CacheTemp.WebTerminal.Watching(0,0))
-	set size = file.Size
-	set dateModified = file.DateModified
-	set ^test = "JOB START with size " _ size _ " and date " _ dateModified
-	
-	while ($get(^CacheTemp.WebTerminal.Watching(0,0))'="") {
-		set temp = file.DateModified
-		if (dateModified '= temp) {
-			set dateModified = temp
-			set newSize = file.Size
-			set size2 = newSize
-			set ^test = $get(^CacheTemp.WebTerminal.Watching(0,0))'=""
-			do file.Open("r")
-			do file.MoveTo(size + 1)
-			set ^CacheTemp.WebTerminal.Watching(0,2) = 
-				^CacheTemp.WebTerminal.Watching(0,2) _
-				file.Read(newSize - size)
-			set ^CacheTemp.WebTerminal.Watching(0,1) =
-				^CacheTemp.WebTerminal.Watching(0,1) + 1 
-			do file.Close()
-			set size = size2
-		}
-		hang 1
-	}
-	
-	set ^test = "JOB END"
-	q $$$OK
 ]]></Implementation>
 </Method>
 
@@ -650,40 +747,30 @@ Method description:
 	   	}
 	   	
 	   	set action = $EXTRACT(data, 1, 1)
-	   	set data = $REPLACE($EXTRACT(data, 2, *),$c(10)," ")
+	   	set data = $REPLACE($EXTRACT(data, 2, *), $CHAR(10), " ")
+	   	if ($EXTRACT(data, $LENGTH(data), 1) = " ") {
+		 	set data = $EXTRACT(data, 1, *-1)
+	   	}
 	    		    	
 	    if (action = ..ConstServerActionExecute) { // autorized
 	    	
 			do ..ExecuteCommand(data)
 		    	
-	    } elseif (action = ..ConstServerActionCheckWatch) {
+	    } elseif (action = ..ConstServerActionCheckWatches) {
 	    
-		    if ($get(^CacheTemp.WebTerminal.Watching(0,2)) '= "") {
-			    do ..SendData("Modified " _ ^CacheTemp.WebTerminal.Watching(0,0) _ $c(10) _ ^CacheTemp.WebTerminal.Watching(0,2))
-			    set ^CacheTemp.WebTerminal.Watching(0,2) = ""
+		    set changes = ..CheckWatches()
+		    if (changes '= "") {
+				do ..SendData(changes)   
 		    }
 		  
-	    } elseif (action = ..ConstServerActionRemoveWatch) {
+	    } elseif (action = ..ConstServerActionWatch) { // add/remove
 	    
-		    kill ^CacheTemp.WebTerminal.Watching
-		    do ..SendData(data, ..ConstClientStopWatch)
-		  
-	    } elseif (action = ..ConstServerActionAddWatch) {
-	    
-		    if (##class(%File).Exists(data)) {
-			    
-			    if ($get(^CacheTemp.WebTerminal.Watching(0,0)) = "") {
-				    set ^CacheTemp.WebTerminal.Watching(0,0) = data
-			    	set ^CacheTemp.WebTerminal.Watching(0,1) = 0
-			    	set ^CacheTemp.WebTerminal.Watching(0,2) = ""
-			    	j ..FileWatcher() // !!!
+		    set result = ..AddWatch(data)
+		    if ('$$$ISOK(result)) {
+			    set result = ..RemoveWatch(data)
+			    if ('$$$ISOK(result)) {
+				 	do ..SendData("unreal", ..ConstClientWatch)
 			    }
-			    do ..SendData(data, ..ConstClientStartWatch)
-			    
-		    } else {
-			    
-				do ..SendData("Can't watch " _ data _ ": no such file.")  
-				  
 		    }
 		  
 	    } elseif (action = ..ConstServerActionExecuteSQL) { // sql
