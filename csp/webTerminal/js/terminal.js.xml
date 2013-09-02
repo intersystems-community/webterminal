@@ -1763,7 +1763,8 @@ var terminal = new function() {
             },
             "global": {
                 "!autocomplete": {
-                    reversedRegExp: "(([a-zA-Z0-9\\.]*[a-zA-Z]+)?%?)\\^.*"
+                    reversedRegExp: "(([a-zA-Z0-9\\.]*[a-zA-Z]+)?%?)\\^.*",
+                    separator: "."
                 }
             }
 
