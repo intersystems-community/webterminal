@@ -14,6 +14,7 @@
 .syntax-_command { color: #29cfe9 } /* set WRITE kill */
 .syntax-_client { color: #e2dc00; } /* /help /define /siege */
 .syntax-_other { color: #82fffa; } /* unrecognised */
+.syntax-_comment { color: #808080 } /*  */
 
 .warning { color: #ffa500 }
 .hint { color: #84C200 }

@@ -252,12 +252,12 @@ Returns status of this operation</Description>
 	if ($EXTRACT(name,1,1) = "^") { // watching global
 		s g = 0
 		try {
-			if (($data(@name))=1) s g=1
+			if (($data(@name))'=0) s g = 1
 		} catch {  }
 		set $ZERROR = ""
-		if (g=1) {
+		if (g = 1) {
 			set ..Watches = ..Watches _ $LISTBUILD(name)
-			set ..WatchesCaret(name,0) = 0 // current watch cursor position
+			set ..WatchesCaret(name,0) = $QUERY(@name@(""),-1) // last
 			set ..WatchesCaret(name,1) = "?"
 			do ..SendData(name, ..ConstClientWatch)
 			q 1
@@ -312,6 +312,29 @@ Returns a list current watches</Description>
 ]]></Implementation>
 </Method>
 
+<Method name="GetWatchGlobalModified">
+<Description>
+Return null string if global hadn't been updated
+This method watches only for tail of global and detects if global still alive</Description>
+<FormalSpec>watch</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set data = ""
+	if ($get(@watch)="") {
+		do ..RemoveWatch(watch)
+		q "removed"
+	}
+	for {
+    	set query = $QUERY(@..WatchesCaret(watch,0))
+        quit:query=""
+        if (data="") set data = "modified"
+        set ..WatchesCaret(watch,0) = query
+        set data = data _ $CHAR(10) _ @query
+  	}
+  	q data
+]]></Implementation>
+</Method>
+
 <Method name="GetWatchFileModified">
 <FormalSpec>watch</FormalSpec>
 <ReturnType>%String</ReturnType>
@@ -321,10 +344,9 @@ Returns a list current watches</Description>
 	set modDate = file.DateModified
 	set output = ""
 	if (size < 0) { // file had been deleted
-		
-		set output = "deleted"
+		 
 		do ..RemoveWatch(watch)
-		q output
+		q "removed"
 		
 	}
 	if (size > ..WatchesCaret(watch, 0)) {
@@ -334,11 +356,7 @@ Returns a list current watches</Description>
 		set sc=stream.LinkToFile(watch)
 		do stream.MoveTo(..WatchesCaret(watch, 0) + 1)
 		set readed = stream.Read(size - ..WatchesCaret(watch, 0))
-		try {
-			set output=output_$zconvert(readed,"I","UTF-8")
-		} catch {
-			set output=output_readed
-		}
+		set output=output_readed
 		set ..WatchesCaret(watch, 0) = size
 		set ..WatchesCaret(watch, 1) = file.DateModified
 		
@@ -363,7 +381,7 @@ Returns a list current watches</Description>
 	set watchList = ..Watches // do not remove or simplify: ..Watches can be modified
     while $LISTNEXT(watchList, no, value) {
     	if ($EXTRACT(value, 1, 1) = "^") {
-	    	
+  			set data = ..GetWatchGlobalModified(value)
     	} else {
 	    	set data = ..GetWatchFileModified(value)
     	}
@@ -738,7 +756,7 @@ Method description:
 		set data = ..Read(,.status)
     
     	if $$$ISERR(status) {
-	    
+	   
 	    	do ..Debug($$$CSPWebSocketClosed)
 	    	do ..SendData("Error occured while reading data.",
 	    		..ConstClientOutputMessage)
@@ -747,11 +765,11 @@ Method description:
 	   	}
 	   	
 	   	set action = $EXTRACT(data, 1, 1)
-	   	set data = $REPLACE($EXTRACT(data, 2, *), $CHAR(10), " ")
-	   	if ($EXTRACT(data, $LENGTH(data), 1) = " ") {
+	   	set data = $REPLACE($EXTRACT(data, 2, *), $CHAR(10), " ") // terminator
+	   	if ($EXTRACT(data, *) = " ") { // terminator
 		 	set data = $EXTRACT(data, 1, *-1)
 	   	}
-	    		    	
+	   	   	
 	    if (action = ..ConstServerActionExecute) { // autorized
 	    	
 			do ..ExecuteCommand(data)

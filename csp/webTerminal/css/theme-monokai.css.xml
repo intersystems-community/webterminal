@@ -14,7 +14,6 @@
 .syntax-_command { color: #66CCB3 }
 .syntax-_client { color: #D9E577 }
 .syntax-_other { color: #BFA4A4 }
-
 .syntax-_comment { color: #75715e }
 
 .warning { color: #EFB571 }

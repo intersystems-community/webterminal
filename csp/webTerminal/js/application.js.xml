@@ -6,7 +6,7 @@
  */
 var application = new function() {
 
-    var version = "0.9.1 alpha";
+    var version = "0.9.4 alpha";
     this.debug = false; // remove for release
 
     this.browser = "gc";
@@ -35,6 +35,17 @@ var application = new function() {
             "<div class=\"center\">" +
                 "<h3>Caché Web Terminal<span class=\"warning\"> v" + version + "</span></h3>" +
             "</div>" +
+            "<div class=\"center\">" +
+                "<span class=\"syntax-_comment\">Global client command syntax</span><br>" +
+                "<span class=\"syntax-_client\">/{command} {argument1} \"{argument2}\" ...</span><br>" +
+            "</div>" +
+            "<div>" +
+                "Examples:<br>" +
+                "<span class=\"syntax-_client\">/define</span> &1 <span class=\"syntax-_string\">\"##class(%File)\"" +
+                "</span> <span class=\"syntax-_comment\"> To use something like &1.Exists(\"Name\")</span><br>" +
+                "<span class=\"syntax-_client\">/tail</span> <span class=\"syntax-_global\">^MyGlobal</span> " +
+                "<span class=\"syntax-_comment\">To watch for global changes.</span><br>&nbsp;" +
+            "</div>" +
             "<table>" +
                 "<tr>" +
                     "<td class=\"hint\">Available client-side commands</td>" +
@@ -58,7 +69,7 @@ var application = new function() {
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/connect</td>" +
-                    "<td>Establish new connection to Caché server via <b>WebSocket</b></td>" +
+                    "<td>Establish new connection to Cach? server via <b>WebSocket</b></td>" +
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/disconnect</td>" +
@@ -77,8 +88,8 @@ var application = new function() {
                     "<td>Every occurrence of {definition} in input will be replaced with {redefinition}</td>" +
                 "</tr>" +
                 "<tr>" +
-                    "<td class=\"info\">/watch {fileFullPath}</td>" +
-                    "<td>Experimental: watch for file changes.</td>" +
+                    "<td class=\"info\">/tail {fileFullPath|globalName}</td>" +
+                    "<td>Experimental: watch for file/global changes. Execute command again to stop watching.</td>" +
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/sql</td>" +

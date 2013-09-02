@@ -12,13 +12,14 @@
 .syntax-_classProp { color: #0000ff; }
 .syntax-_global { color: #000000; }
 .syntax-_command { color: #0000ff }
-.syntax-_client { color: #e2dc00; }
+.syntax-_client { color: #404fff; }
 .syntax-_other { color: #000000; }
+.syntax-_comment { color: #008000 }
 
 .warning { color: #a56800 }
 .hint { color: #127a00 }
 .error { color: #ff0000 }
-.info { color: #fffd7c }
+.info { color: #00008B }
 .executed { color: #127a00 }
 .complete { color: #127a00 }
 

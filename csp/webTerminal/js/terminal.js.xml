@@ -368,7 +368,7 @@ var terminal = new function() {
                 }
             },
 
-            "watch": function(name) {
+            "tail": function(name) {
                 if (!name) {
                     terminal.output.write("Enter watch name. Use /watch {name}");
                     return;
@@ -1057,25 +1057,30 @@ var terminal = new function() {
                 terminal.language.parseForTokens(data);
             }
 
+            terminal.output.write(parser.prepareForOutputHTML(data));
+
             if (data.charAt(0) === "/") {
 
                 var pos = data.indexOf(" ",1); pos = (pos==-1)?data.length:pos;
                 var command = data.substring(1,pos);
                 var arguments = data.substr(pos+1).match(/"[^"]*"|[^\s]+/g);
-                for (var i = 0; i < (arguments)?arguments.length:0; i++) arguments[i] = arguments[i].replace(/"/g,"");
+                if (!arguments) arguments = [];
+                for (var i = 0; i < arguments.length; i++) {
+                    arguments[i] = arguments[i].replace(/"/g,"");
+                }
                 terminal.processor.executeInternal(command,arguments);
 
             } else {
 
                 data = terminal.definitions.replace(data);
-                terminal.output.write(parser.prepareForOutputHTML(data));
                 server.submit(action,data);
 
-                terminal.history.moveToLast();
-                terminal.history.save(data);
-                terminal.history.add();
-
             }
+
+            terminal.history.moveToLast();
+            terminal.history.save(data);
+            terminal.history.add();
+
             terminal.autocompletion.clear();
             terminal.input.clear();
             if (terminal.mode != terminal.modes.SQL) terminal.namespace.update();
@@ -1455,7 +1460,7 @@ var terminal = new function() {
                 "/settings": 0,
                 "/siege": 0,
                 "/define": 0,
-                "/watch": 0
+                "/tail": 0
             },
             "commands": {
                 "!autocomplete": {
