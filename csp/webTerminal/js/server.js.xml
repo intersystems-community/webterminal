@@ -27,6 +27,7 @@ var server = new function() {
      * Disconnect from server.
      */
     this.disconnect = function() {
+        terminal.watches.stopAll();
         if (server.connected()) {
             terminal.output.write("Disconnecting from current server...");
             socket.close();

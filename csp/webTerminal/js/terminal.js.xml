@@ -322,6 +322,7 @@ var terminal = new function() {
 
             "connect": function(url) {
                 server.connect(url);
+                terminal.output.write("Just reload the page to connect to server again.");
             },
 
             "disconnect": function() {
@@ -792,6 +793,13 @@ var terminal = new function() {
                 };
                 if (intervalID === -1) intervalID = setInterval(check, interval);
                 terminal.output.write("Starting to watch " + name);
+            }
+        };
+
+        this.stopAll = function() {
+            for (var watch in watches) {
+                if (!watches.hasOwnProperty(watch)) continue;
+                this.watch(watch);
             }
         };
 
