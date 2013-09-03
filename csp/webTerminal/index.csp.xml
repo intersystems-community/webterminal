@@ -29,6 +29,7 @@
     <body>
         <div id="terminal-control-panel">
             <div class="terminal-control-content">
+                <span id="terminal-control-closeButton" class="info">Close</span>
                 <h1>Control panel</h1>
                 <table id="terminal-control-table">
                     <tbody>
@@ -48,8 +49,19 @@
                         </tr>
                         <tr>
                             <td>
+                                <input id="settings-parse-output" type="checkbox">
+                                <label for="settings-parse-output">
+                                    Parse output
+                                </label>
+                            </td>
+                            <td>
+                                Highlighting terminal output data
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
                                 <input id="settings-cleanStartup" type="checkbox">
-                                <label for="settings-highlighting">
+                                <label for="settings-cleanStartup">
                                     Clean startup
                                 </label>
                             </td>
@@ -57,7 +69,7 @@
                                 Do not show additional information during terminal startup
                             </td>
                         </tr>
-                        <tr class="hidden">
+                        <tr>
                             <td>
                                 <input id="settings-animations" type="checkbox">
                                 <label for="settings-animations">
@@ -65,7 +77,7 @@
                                 </label>
                             </td>
                             <td>
-                                Enable CSS3 animations and transitions
+                                Animate output and some of terminal elements
                             </td>
                         </tr>
                         <tr>

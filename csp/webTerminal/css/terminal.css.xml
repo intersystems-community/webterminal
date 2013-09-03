@@ -82,18 +82,18 @@
 
 #terminal-control-panel {
     position: fixed;
-    left: 0;
-    top: -100%;
+    left: -100%;
+    top: 0;
     width: 100%;
     height: 100%;
     z-index: 1000;
     background: rgba(40,40,40,0.95);
     color: white;
 
-    transition: top 0.2s ease;
-    -webkit-transition: top 0.2s ease;
-    -o-transition: top 0.2s ease;
-    -moz-transition: top 0.2s ease;
+    transition: left 0.2s ease;
+    -webkit-transition: left 0.2s ease;
+    -o-transition: left 0.2s ease;
+    -moz-transition: left 0.2s ease;
 }
 
 .terminal-control-content {
@@ -125,5 +125,10 @@
 
 #terminal-themes-container > input {
     margin-left: 20px;
+}
+
+#terminal-control-closeButton {
+    float: right;
+    cursor: pointer;
 }]]></CSP>
 </Export>

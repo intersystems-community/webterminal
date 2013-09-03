@@ -320,7 +320,7 @@ This method watches only for tail of global and detects if global still alive</D
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set data = ""
-	if ($get(@watch)="") {
+	if ($data(@watch)=0) {
 		do ..RemoveWatch(watch)
 		q "removed"
 	}
@@ -392,14 +392,6 @@ This method watches only for tail of global and detects if global still alive</D
     	set data = ""
     }
     q overal
-]]></Implementation>
-</Method>
-
-<Method name="Debug">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>data:%String</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[	set ^debug($I(^debug)) = $ZTIMESTAMP _ ": " _ data
 ]]></Implementation>
 </Method>
 
@@ -757,9 +749,10 @@ Method description:
     
     	if $$$ISERR(status) {
 	   
-	    	do ..Debug($$$CSPWebSocketClosed)
-	    	do ..SendData("Error occured while reading data.",
+	    	try {
+		    	do ..SendData("Error occured while reading data.",
 	    		..ConstClientOutputMessage)
+	    	} catch e { }
       		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
 	    	
 	   	}

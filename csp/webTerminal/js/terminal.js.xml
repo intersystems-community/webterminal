@@ -223,16 +223,16 @@ var terminal = new function() {
                         if (possibleAction == terminal.clientActions.READ_CHARACTER) terminal.input.switchCharRead();
                         terminal.namespace.set("");
                     }
-                    terminal.processor.write(parser.highlightHTML(data),1);
+                    terminal.processor.write((settings.get_parseOutput())?parser.highlightHTML(data):data, true);
                 } break;
                 case terminal.modes.SQL: {
                     if (possibleAction == terminal.clientActions.ENTER_CLEAR_IO) {
                         terminal.processor.performAction(possibleAction,data.substr(1))
                     } else if ((possibleAction == terminal.clientActions.EXIT_CLEAR_IO)) {
                         // upper
-                    } else terminal.processor.write(parser.highlightHTML(data));
+                    } else terminal.processor.write((settings.get_parseOutput())?parser.highlightHTML(data):data);
                 } break;
-                default: terminal.processor.write("Unknown terminal mode " + terminal.mode + ": data received " + data);
+                default: terminal.processor.write("Unknown terminal mode " + terminal.mode + ": data received:\n" + data);
             }
 
         };
@@ -400,7 +400,7 @@ var terminal = new function() {
          * @param data {string}
          */
         this.write = function(data) {
-            terminal.output.write(data)
+            terminal.output.write(data);
         };
 
     };
@@ -794,16 +794,24 @@ var terminal = new function() {
         var stack = "",
             target = null,
             lastID = 0,
-            mark = false;
+            mark = false,
+            escapeCharactersProcessing = false;
 
         var STACK_REFRESH_INTERVAL = 25;
 
         /**
          * Writes text to output as standalone message. If oldOutput defined, write will be forced to old output object.
+         * Optional processEscape parameter will turn on escape characters processing for current output. This option
+         * will be automatically turned off in case of any call of forceWrite function (turning once for current stack).
+         * Also escape characters processing are unavailable for forceWrite call. To process escape-characters, set
+         * html-container as a field of output, then perform forceWrite once with empty body, and then use write with
+         * processEscape flag.
          *
          * @param text {string}
+         * [ @param processEscape {boolean} ]
          */
-        this.write = function(text) {
+        this.write = function(text, processEscape) {
+            escapeCharactersProcessing = (processEscape)?true:false;
             if (target == dom.objects.output) {
                 this.forceWrite(text);
             } else {
@@ -843,6 +851,7 @@ var terminal = new function() {
         this.forceWrite = function(text,marking) {
 
             if (typeof marking == "undefined") marking = false;
+            escapeCharactersProcessing = false;
 
             var div = document.createElement("div");
             div.id = "terminal-log-"+lastID++;
@@ -873,12 +882,16 @@ var terminal = new function() {
         this.freeStack = function(highlight) {
             if (!stack) return;
 
-            var el = document.createElement("span");
-            el.className = "animated01";
-            el.innerHTML = (highlight)?parser.highlightHTML(stack):stack;
-            el.style.opacity = "0";
-            setTimeout(function(){el.style.opacity = "1";},1);
-            target.appendChild(el);
+            if (settings.get_animations()) {
+                var el = document.createElement("span");
+                el.className = "animated01";
+                el.innerHTML = (highlight)?parser.highlightHTML(stack):stack;
+                el.style.opacity = "0";
+                setTimeout(function(){ el.style.opacity = "1" }, 1);
+                target.appendChild(el);
+            } else {
+                target.innerHTML += stack;
+            }
 
             dom.scrollBottom();
             stack = "";

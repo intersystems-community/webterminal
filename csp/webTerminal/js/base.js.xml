@@ -73,11 +73,14 @@ var dom = new function() {
         output: null, // terminal output
         inputView: null, // input view (highlighted syntax)
         panel: null,
+        terminal: null,
         panelTable: null,
+        closePanelButton: null,
         settingsHighlighting: null,
         settingsAnimations: null,
         settingsAutoSaving: null,
         settingsCleanStartup: null,
+        settingsParseOutput: null,
         themeCSS: null,
         themesContainer: null,
         body: null,
@@ -140,6 +143,8 @@ var dom = new function() {
      */
     this.scrollBottom = function() {
         try {
+            var h = document.body.scrollHeight;
+            if (dom.objects.terminal.scrollHeight + 40 < h) return;
             document.body.scrollTop = document.body.scrollHeight;
             window.scrollTo(0, document.body.scrollHeight);
         } catch (e) {
@@ -188,14 +193,17 @@ var dom = new function() {
         objects.input = dom.element("terminal-hiddenInput");
         objects.output = dom.element("terminal-output");
         objects.inputView = dom.element("terminal-inputView");
+        objects.terminal = dom.element("terminal");
         objects.panel = dom.element("terminal-control-panel");
         objects.panelTable = dom.element("terminal-control-table");
+        objects.closePanelButton = dom.element("terminal-control-closeButton");
         objects.settingsHighlighting = dom.element("settings-highlighting");
         objects.themeCSS = dom.element("terminal-color-theme");
         objects.settingsAnimations = dom.element("settings-animations");
         objects.settingsAutoSaving = dom.element("settings-autosaving");
         objects.settingsCleanStartup = dom.element("settings-cleanStartup");
         objects.themesContainer = dom.element("terminal-themes-container");
+        objects.settingsParseOutput = dom.element("settings-parse-output");
         objects.startupScript = dom.element("startup");
         objects.body = document.body;
     };
@@ -259,10 +267,13 @@ var settings = new function() {
         highlighting = true,
         colorTheme = "default",
         restoreSession = 0,
+        parseOutput = 0,
         cleanStartup = 0;
 
     this.get_restoreSession = function() { return restoreSession == 1 };
     this.get_cleanStartup = function() { return cleanStartup == 1 && !terminal.ready };
+    this.get_parseOutput = function() { return parseOutput };
+    this.get_animations = function() { return animations };
 
     this.get_theme = function() {
         return colorTheme;
@@ -275,7 +286,8 @@ var settings = new function() {
             highlighting: highlighting,
             colorTheme: colorTheme,
             restoreSession: restoreSession,
-            cleanStartup: cleanStartup
+            cleanStartup: cleanStartup,
+            parseOutput: parseOutput
         };
     };
 
@@ -283,13 +295,14 @@ var settings = new function() {
         if (!(typeof settingImportObject === "object" && settingImportObject.hasOwnProperty("!export:settings") &&
             settingImportObject.hasOwnProperty("animations") && settingImportObject.hasOwnProperty("highlighting") &&
             settingImportObject.hasOwnProperty("colorTheme") && settingImportObject.hasOwnProperty("restoreSession") &&
-            settingImportObject.hasOwnProperty("cleanStartup"))) {
-            log.write("Wrong settings object to import.");
+            settingImportObject.hasOwnProperty("cleanStartup") && settingImportObject.hasOwnProperty("cleanStartup"))) {
+            log.write("Wrong settings object to import. Use /reset to restore settings.");
             return;
         }
         animations = settingImportObject["animations"];
         highlighting = settingImportObject["highlighting"];
         colorTheme = settingImportObject["colorTheme"];
+        parseOutput = settingImportObject["parseOutput"];
         restoreSession = (settingImportObject["restoreSession"] == 1)?1:0;
         cleanStartup = settingImportObject["cleanStartup"];
         this.update();
@@ -300,6 +313,7 @@ var settings = new function() {
         highlighting = true;
         colorTheme = "default";
         restoreSession = 0;
+        parseOutput = 0;
         cleanStartup = 0;
         this.update();
     };
@@ -313,6 +327,7 @@ var settings = new function() {
         animations = dom.objects.settingsAnimations.checked;
         restoreSession = (dom.objects.settingsAutoSaving.checked)?1:0;
         cleanStartup = (dom.objects.settingsCleanStartup.checked)?1:0;
+        parseOutput =(dom.objects.settingsParseOutput.checked)?1:0;
 
         colorTheme = "default";
         for (var theme in application.themes) {
@@ -345,14 +360,14 @@ var settings = new function() {
      * Closes panel.
      */
     this.closePanel = function() {
-        dom.objects.panel.style.top = "-100%";
+        dom.objects.panel.style.left = "-100%";
     };
 
     /**
      * Closes panel.
      */
     this.openPanel = function() {
-        dom.objects.panel.style.top = "0";
+        dom.objects.panel.style.left = "0";
     };
 
     /**
@@ -361,6 +376,7 @@ var settings = new function() {
     this.updateFromModel = function() {
         dom.objects.settingsHighlighting.checked = highlighting;
         dom.objects.settingsAnimations.checked = animations;
+        dom.objects.settingsParseOutput.checked = parseOutput;
         dom.objects.settingsAutoSaving.checked = restoreSession == 1;
         dom.objects.settingsCleanStartup.checked = cleanStartup == 1;
         for (var theme in application.themes) {
@@ -382,12 +398,13 @@ var settings = new function() {
      * @returns {boolean}
      */
     this.initialize = function() {
-        dom.objects.panel.style.top = "-100%";
-        var settings = storage.get("settings");
-        if (settings) this.import(settings);
+        dom.objects.panel.style.left = "-100%";
+        var sets = storage.get("settings");
+        if (sets) this.import(sets);
         if (restoreSession) terminal.loadState();
         hid.bindClick(dom.objects.panelTable,this.updateFromView);
         this.update();
+        hid.bindClick(dom.objects.closePanelButton, function() { settings.closePanel() });
         return true;
     }
 
