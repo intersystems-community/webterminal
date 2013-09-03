@@ -320,7 +320,7 @@ This method watches only for tail of global and detects if global still alive</D
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set data = ""
-	if ($get(@watch)="") {
+	if ($data(@watch)=0) {
 		do ..RemoveWatch(watch)
 		q "removed"
 	}
@@ -392,14 +392,6 @@ This method watches only for tail of global and detects if global still alive</D
     	set data = ""
     }
     q overal
-]]></Implementation>
-</Method>
-
-<Method name="Debug">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>data:%String</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[	set ^debug($I(^debug)) = $ZTIMESTAMP _ ": " _ data
 ]]></Implementation>
 </Method>
 
@@ -757,9 +749,10 @@ Method description:
     
     	if $$$ISERR(status) {
 	   
-	    	do ..Debug($$$CSPWebSocketClosed)
-	    	do ..SendData("Error occured while reading data.",
+	    	try {
+		    	do ..SendData("Error occured while reading data.",
 	    		..ConstClientOutputMessage)
+	    	} catch e { }
       		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
 	    	
 	   	}
@@ -1054,18 +1047,18 @@ terminal-base tr, td {
 
 #terminal-control-panel {
     position: fixed;
-    left: 0;
-    top: -100%;
+    left: -100%;
+    top: 0;
     width: 100%;
     height: 100%;
     z-index: 1000;
     background: rgba(40,40,40,0.95);
     color: white;
 
-    transition: top 0.2s ease;
-    -webkit-transition: top 0.2s ease;
-    -o-transition: top 0.2s ease;
-    -moz-transition: top 0.2s ease;
+    transition: left 0.2s ease;
+    -webkit-transition: left 0.2s ease;
+    -o-transition: left 0.2s ease;
+    -moz-transition: left 0.2s ease;
 }
 
 .terminal-control-content {
@@ -1097,6 +1090,11 @@ terminal-base tr, td {
 
 #terminal-themes-container > input {
     margin-left: 20px;
+}
+
+#terminal-control-closeButton {
+    float: right;
+    cursor: pointer;
 }]]></CSP>
 
 
@@ -1243,6 +1241,7 @@ AAAAAElFTkSuQmCC
     <body>
         <div id="terminal-control-panel">
             <div class="terminal-control-content">
+                <span id="terminal-control-closeButton" class="info">Close</span>
                 <h1>Control panel</h1>
                 <table id="terminal-control-table">
                     <tbody>
@@ -1262,8 +1261,19 @@ AAAAAElFTkSuQmCC
                         </tr>
                         <tr>
                             <td>
+                                <input id="settings-parse-output" type="checkbox">
+                                <label for="settings-parse-output">
+                                    Parse output
+                                </label>
+                            </td>
+                            <td>
+                                Highlighting terminal output data
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
                                 <input id="settings-cleanStartup" type="checkbox">
-                                <label for="settings-highlighting">
+                                <label for="settings-cleanStartup">
                                     Clean startup
                                 </label>
                             </td>
@@ -1271,7 +1281,7 @@ AAAAAElFTkSuQmCC
                                 Do not show additional information during terminal startup
                             </td>
                         </tr>
-                        <tr class="hidden">
+                        <tr>
                             <td>
                                 <input id="settings-animations" type="checkbox">
                                 <label for="settings-animations">
@@ -1279,7 +1289,7 @@ AAAAAElFTkSuQmCC
                                 </label>
                             </td>
                             <td>
-                                Enable CSS3 animations and transitions
+                                Animate output and some of terminal elements
                             </td>
                         </tr>
                         <tr>
@@ -1368,6 +1378,8 @@ var application = new function() {
         "studio": 0,
         "monokai": 0
     };
+
+    this.version = function() { return version };
 
     this.helpbox =
         "<div style=\"white-space: normal\">" +
@@ -1582,11 +1594,14 @@ var dom = new function() {
         output: null, // terminal output
         inputView: null, // input view (highlighted syntax)
         panel: null,
+        terminal: null,
         panelTable: null,
+        closePanelButton: null,
         settingsHighlighting: null,
         settingsAnimations: null,
         settingsAutoSaving: null,
         settingsCleanStartup: null,
+        settingsParseOutput: null,
         themeCSS: null,
         themesContainer: null,
         body: null,
@@ -1649,6 +1664,8 @@ var dom = new function() {
      */
     this.scrollBottom = function() {
         try {
+            var h = document.body.scrollHeight;
+            if (dom.objects.terminal.scrollHeight + 40 < h) return;
             document.body.scrollTop = document.body.scrollHeight;
             window.scrollTo(0, document.body.scrollHeight);
         } catch (e) {
@@ -1697,14 +1714,17 @@ var dom = new function() {
         objects.input = dom.element("terminal-hiddenInput");
         objects.output = dom.element("terminal-output");
         objects.inputView = dom.element("terminal-inputView");
+        objects.terminal = dom.element("terminal");
         objects.panel = dom.element("terminal-control-panel");
         objects.panelTable = dom.element("terminal-control-table");
+        objects.closePanelButton = dom.element("terminal-control-closeButton");
         objects.settingsHighlighting = dom.element("settings-highlighting");
         objects.themeCSS = dom.element("terminal-color-theme");
         objects.settingsAnimations = dom.element("settings-animations");
         objects.settingsAutoSaving = dom.element("settings-autosaving");
         objects.settingsCleanStartup = dom.element("settings-cleanStartup");
         objects.themesContainer = dom.element("terminal-themes-container");
+        objects.settingsParseOutput = dom.element("settings-parse-output");
         objects.startupScript = dom.element("startup");
         objects.body = document.body;
     };
@@ -1768,10 +1788,13 @@ var settings = new function() {
         highlighting = true,
         colorTheme = "default",
         restoreSession = 0,
+        parseOutput = 0,
         cleanStartup = 0;
 
     this.get_restoreSession = function() { return restoreSession == 1 };
     this.get_cleanStartup = function() { return cleanStartup == 1 && !terminal.ready };
+    this.get_parseOutput = function() { return parseOutput };
+    this.get_animations = function() { return animations };
 
     this.get_theme = function() {
         return colorTheme;
@@ -1784,7 +1807,8 @@ var settings = new function() {
             highlighting: highlighting,
             colorTheme: colorTheme,
             restoreSession: restoreSession,
-            cleanStartup: cleanStartup
+            cleanStartup: cleanStartup,
+            parseOutput: parseOutput
         };
     };
 
@@ -1792,13 +1816,14 @@ var settings = new function() {
         if (!(typeof settingImportObject === "object" && settingImportObject.hasOwnProperty("!export:settings") &&
             settingImportObject.hasOwnProperty("animations") && settingImportObject.hasOwnProperty("highlighting") &&
             settingImportObject.hasOwnProperty("colorTheme") && settingImportObject.hasOwnProperty("restoreSession") &&
-            settingImportObject.hasOwnProperty("cleanStartup"))) {
-            log.write("Wrong settings object to import.");
+            settingImportObject.hasOwnProperty("cleanStartup") && settingImportObject.hasOwnProperty("cleanStartup"))) {
+            log.write("Wrong settings object to import. Use /reset to restore settings.");
             return;
         }
         animations = settingImportObject["animations"];
         highlighting = settingImportObject["highlighting"];
         colorTheme = settingImportObject["colorTheme"];
+        parseOutput = settingImportObject["parseOutput"];
         restoreSession = (settingImportObject["restoreSession"] == 1)?1:0;
         cleanStartup = settingImportObject["cleanStartup"];
         this.update();
@@ -1809,6 +1834,7 @@ var settings = new function() {
         highlighting = true;
         colorTheme = "default";
         restoreSession = 0;
+        parseOutput = 0;
         cleanStartup = 0;
         this.update();
     };
@@ -1822,6 +1848,7 @@ var settings = new function() {
         animations = dom.objects.settingsAnimations.checked;
         restoreSession = (dom.objects.settingsAutoSaving.checked)?1:0;
         cleanStartup = (dom.objects.settingsCleanStartup.checked)?1:0;
+        parseOutput =(dom.objects.settingsParseOutput.checked)?1:0;
 
         colorTheme = "default";
         for (var theme in application.themes) {
@@ -1854,14 +1881,14 @@ var settings = new function() {
      * Closes panel.
      */
     this.closePanel = function() {
-        dom.objects.panel.style.top = "-100%";
+        dom.objects.panel.style.left = "-100%";
     };
 
     /**
      * Closes panel.
      */
     this.openPanel = function() {
-        dom.objects.panel.style.top = "0";
+        dom.objects.panel.style.left = "0";
     };
 
     /**
@@ -1870,6 +1897,7 @@ var settings = new function() {
     this.updateFromModel = function() {
         dom.objects.settingsHighlighting.checked = highlighting;
         dom.objects.settingsAnimations.checked = animations;
+        dom.objects.settingsParseOutput.checked = parseOutput;
         dom.objects.settingsAutoSaving.checked = restoreSession == 1;
         dom.objects.settingsCleanStartup.checked = cleanStartup == 1;
         for (var theme in application.themes) {
@@ -1891,12 +1919,13 @@ var settings = new function() {
      * @returns {boolean}
      */
     this.initialize = function() {
-        dom.objects.panel.style.top = "-100%";
-        var settings = storage.get("settings");
-        if (settings) this.import(settings);
+        dom.objects.panel.style.left = "-100%";
+        var sets = storage.get("settings");
+        if (sets) this.import(sets);
         if (restoreSession) terminal.loadState();
         hid.bindClick(dom.objects.panelTable,this.updateFromView);
         this.update();
+        hid.bindClick(dom.objects.closePanelButton, function() { settings.closePanel() });
         return true;
     }
 
@@ -2411,6 +2440,7 @@ var server = new function() {
      * Disconnect from server.
      */
     this.disconnect = function() {
+        terminal.watches.stopAll();
         if (server.connected()) {
             terminal.output.write("Disconnecting from current server...");
             socket.close();
@@ -2449,8 +2479,8 @@ var server = new function() {
      */
     this.getDefaultServerURL = function() {
         var part = document.URL.split("/")[2]; // domain[:port]
-        
-        if (application.debug) part = "localhost:57772";
+
+        if (application.debug) part = "172.27.25.133:57772";
 
         return "ws://" + part + "/" + serverRoot.replace(/%/,"%25");
     };
@@ -2906,16 +2936,16 @@ var terminal = new function() {
                         if (possibleAction == terminal.clientActions.READ_CHARACTER) terminal.input.switchCharRead();
                         terminal.namespace.set("");
                     }
-                    terminal.processor.write(parser.highlightHTML(data),1);
+                    terminal.processor.write((settings.get_parseOutput())?parser.highlightHTML(data):data, true);
                 } break;
                 case terminal.modes.SQL: {
                     if (possibleAction == terminal.clientActions.ENTER_CLEAR_IO) {
                         terminal.processor.performAction(possibleAction,data.substr(1))
                     } else if ((possibleAction == terminal.clientActions.EXIT_CLEAR_IO)) {
                         // upper
-                    } else terminal.processor.write(parser.highlightHTML(data));
+                    } else terminal.processor.write((settings.get_parseOutput())?parser.highlightHTML(data):data);
                 } break;
-                default: terminal.processor.write("Unknown terminal mode " + terminal.mode + ": data received " + data);
+                default: terminal.processor.write("Unknown terminal mode " + terminal.mode + ": data received:\n" + data);
             }
 
         };
@@ -3005,6 +3035,7 @@ var terminal = new function() {
 
             "connect": function(url) {
                 server.connect(url);
+                terminal.output.write("Just reload the page to connect to server again.");
             },
 
             "disconnect": function() {
@@ -3026,10 +3057,19 @@ var terminal = new function() {
                     "<span class=\"info\">" + redefinition + "</span>")
             },
 
+            "about": function() {
+                server.submit(terminal.serverActions.EXECUTE, 'for i=0:0.2:$zpi*2 { for u=1:1:($zsin(i)*15 + 15) { w ' +
+                    '" " } w "# " if (i=1.4) { w "CachéWebTerminal v' + application.version() + '" } elseif (i=1.6) {' +
+                    ' w "for InterSystems Caché" } elseif (i=1.8) { w "by ZitRo" } elseif (i=4.4) { w "In developing ' +
+                    'since Summer, 2013" } elseif (i=4.6) { w "Project page: http://intersystems-ru.github.io/webterm' +
+                    'inal" } elseif (i=4.8) { w "Use at your own risk!" } elseif (i=5) { w "But believe me, all right' +
+                    ' :)" } w ! h 0.04}');
+            },
+
             "siege": function(iterations,serverDelay) {
                 if (typeof iterations == "undefined") { iterations = 120 }
                 if (typeof serverDelay == "undefined") { serverDelay = 0.02 }
-                var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(33+$RANDOM(93))\n" +
+                var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(65+$RANDOM(26))\n" +
                     "  if ($RANDOM(5) = 0) { write \" \" }\n  h "+serverDelay+"\n}";
 
                 terminal.input.set(serverCommand);
@@ -3083,7 +3123,7 @@ var terminal = new function() {
          * @param data {string}
          */
         this.write = function(data) {
-            terminal.output.write(data)
+            terminal.output.write(data);
         };
 
     };
@@ -3469,6 +3509,13 @@ var terminal = new function() {
             }
         };
 
+        this.stopAll = function() {
+            for (var watch in watches) {
+                if (!watches.hasOwnProperty(watch)) continue;
+                this.watch(watch);
+            }
+        };
+
     };
 
     // represents output and anything related to it
@@ -3477,16 +3524,24 @@ var terminal = new function() {
         var stack = "",
             target = null,
             lastID = 0,
-            mark = false;
+            mark = false,
+            escapeCharactersProcessing = false;
 
         var STACK_REFRESH_INTERVAL = 25;
 
         /**
          * Writes text to output as standalone message. If oldOutput defined, write will be forced to old output object.
+         * Optional processEscape parameter will turn on escape characters processing for current output. This option
+         * will be automatically turned off in case of any call of forceWrite function (turning once for current stack).
+         * Also escape characters processing are unavailable for forceWrite call. To process escape-characters, set
+         * html-container as a field of output, then perform forceWrite once with empty body, and then use write with
+         * processEscape flag.
          *
          * @param text {string}
+         * [ @param processEscape {boolean} ]
          */
-        this.write = function(text) {
+        this.write = function(text, processEscape) {
+            escapeCharactersProcessing = (processEscape)?true:false;
             if (target == dom.objects.output) {
                 this.forceWrite(text);
             } else {
@@ -3526,6 +3581,7 @@ var terminal = new function() {
         this.forceWrite = function(text,marking) {
 
             if (typeof marking == "undefined") marking = false;
+            escapeCharactersProcessing = false;
 
             var div = document.createElement("div");
             div.id = "terminal-log-"+lastID++;
@@ -3556,12 +3612,16 @@ var terminal = new function() {
         this.freeStack = function(highlight) {
             if (!stack) return;
 
-            var el = document.createElement("span");
-            el.className = "animated01";
-            el.innerHTML = (highlight)?parser.highlightHTML(stack):stack;
-            el.style.opacity = "0";
-            setTimeout(function(){el.style.opacity = "1";},1);
-            target.appendChild(el);
+            if (settings.get_animations()) {
+                var el = document.createElement("span");
+                el.className = "animated01";
+                el.innerHTML = (highlight)?parser.highlightHTML(stack):stack;
+                el.style.opacity = "0";
+                setTimeout(function(){ el.style.opacity = "1" }, 1);
+                target.appendChild(el);
+            } else {
+                target.innerHTML += stack;
+            }
 
             dom.scrollBottom();
             stack = "";
