@@ -343,10 +343,19 @@ var terminal = new function() {
                     "<span class=\"info\">" + redefinition + "</span>")
             },
 
+            "about": function() {
+                server.submit(terminal.serverActions.EXECUTE, 'for i=0:0.2:$zpi*2 { for u=1:1:($zsin(i)*15 + 15) { w ' +
+                    '" " } w "# " if (i=1.4) { w "CachéWebTerminal v' + application.version() + '" } elseif (i=1.6) {' +
+                    ' w "for InterSystems Caché" } elseif (i=1.8) { w "by ZitRo" } elseif (i=4.4) { w "In developing ' +
+                    'since Summer, 2013" } elseif (i=4.6) { w "Project page: http://intersystems-ru.github.io/webterm' +
+                    'inal" } elseif (i=4.8) { w "Use at your own risk!" } elseif (i=5) { w "But believe me, all right' +
+                    ' :)" } w ! h 0.04}');
+            },
+
             "siege": function(iterations,serverDelay) {
                 if (typeof iterations == "undefined") { iterations = 120 }
                 if (typeof serverDelay == "undefined") { serverDelay = 0.02 }
-                var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(33+$RANDOM(93))\n" +
+                var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(65+$RANDOM(26))\n" +
                     "  if ($RANDOM(5) = 0) { write \" \" }\n  h "+serverDelay+"\n}";
 
                 terminal.input.set(serverCommand);

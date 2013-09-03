@@ -30,6 +30,8 @@ var application = new function() {
         "monokai": 0
     };
 
+    this.version = function() { return version };
+
     this.helpbox =
         "<div style=\"white-space: normal\">" +
             "<div class=\"center\">" +
