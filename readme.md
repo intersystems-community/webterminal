@@ -16,6 +16,9 @@ Web-based terminal application for InterSystems Cach&eacute; database. Access yo
 * Lots of fixes with client-side commands
 * Highlighting comments
 * Other small fixes including theme and autocompletion fixes
+* Highlight output option
+* iPad, Android optimization
+* Testing and debugging
 
 #### v0.9.1
 
