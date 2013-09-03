@@ -9,6 +9,14 @@ Web-based terminal application for InterSystems Cach&eacute; database. Access yo
 </UL>
 
 ### What's new?
+
+#### v0.9.5
+
+* Added globals watching. Use /tail {filePath|globalName}
+* Lots of fixes with client-side commands
+* Highlighting comments
+* Other small fixes including theme and autocompletion fixes
+
 #### v0.9.1
 
 * Added file watching. Type /watch {fullFilePath} to start watching for file changes. Type that again to stop
@@ -53,11 +61,19 @@ Visit [project page](http://intersystems-ru.github.io/webterminal) for extra inf
 	</tr>
 	<tr>
 		<td class="info">Autocompletion</td>
-		<td>While entering commands, notice hints appearing in gray font. Hit &lt;TAB&gt; to extend your current input with suggested variant. If there is more than one hint available, you can choose best variant by pressing &lt;CTRL&gt; or &lt;ALT&gt;. Autocompletion database is still work in progress, you can find it at the end of terminal.js file.</td>
+		<td>While entering commands, notice hints appearing in gray font. Hit &lt;TAB&gt; to extend your current input with suggested variant. If there is more than one hint available, you can choose best variant by pressing &lt;CTRL&gt; or &lt;ALT&gt;.</td>
+	</tr>
+	<tr>
+		<td class="info">File/Globals watching</td>
+		<td>Monitor any changes in globals or files using /tail command</td>
 	</tr>
 	<tr>
 		<td class="info">Syntax highlighting</td>
 		<td>Browser can divide code into logical blocks and style them according to syntax.css style definitions.</td>
+	</tr>
+	<tr>
+		<td class="info">Appearance</td>
+		<td>Change the look of web-terminal as you wish, and even make you own theme!</td>
 	</tr>
 	<tr>
 		<td class="info">History</td>
