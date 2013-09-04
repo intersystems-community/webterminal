@@ -2,7 +2,6 @@
 <Export generator="Cache" version="25">
 <CSP name="WebTerminal/index.csp" application="/csp/sys/" default="1"><![CDATA[
 <!DOCTYPE html>
-
 <html>
 
     <head>

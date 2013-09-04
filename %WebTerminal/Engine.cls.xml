@@ -9,6 +9,18 @@ authorization.</Description>
 <Super>%CSP.WebSocket,%Library.Routine</Super>
 <TimeCreated>63047,60359.445979</TimeCreated>
 
+<Property name="SharedConnection">
+<Description><![CDATA[
+This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
+conection or over a pool of shared connections.  It may be set to one of the following:
+<br><ul>
+<li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
+<li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
+</ul>]]></Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
 <Property name="lastClientId">
 <Description>
 Last joined client id</Description>
@@ -114,61 +126,6 @@ Public point entries, using when redirecting i/o</Description>
 <Private>1</Private>
 <ProcedureBlock>0</ProcedureBlock>
 <Implementation><![CDATA[
-readFromSocket(len,timeout,sharedConnection)
-	set sc = ""
-	Set $ZTrap="ReadError"
-	If len<1 Set len=32656
-	If (sharedConnection = 1) {
-		Set data=..ReadAsync(.len, .sc, timeout)
-		Try { Set data=$zconvert(data,"I","UTF8") } Catch {  }
-		Set len=$Length(data)
-		Quit data
-	}
-	If ..BytesAvailable Goto ReadData
-	Set ..BytesAvailable=0,..AtEnd=0
-	Read header#5:timeout
-	If $Test=0 {
-		Set len=0
-		Set sc=$$$ERROR($$$CSPWebSocketTimeout,"WebSocket Read Operation timed-out")
-		Set ..AtEnd=1
-		Quit ""
-	}
-	Set type=$Extract(header,5)
-	If type=9 {
-		Set len=0
-		Set sc=$$$ERROR($$$CSPWebSocketClosed,"WebSocket Closed by the Client")
-		Set ..AtEnd=1
-		Quit ""
-	}
-	Set header=$Extract(header, 1, 4)
-	Set size=$ZLA(header)-1 If size<0 Set size=0
-	Set ..BytesAvailable=size
-ReadData
-	If ..BytesAvailable > len {
-		Set size=len
-		Set ..BytesAvailable=..BytesAvailable-len
-	}
-	else {
-		Set size=..BytesAvailable
-		Set ..BytesAvailable=0
-	}
-	If '..BytesAvailable Set ..AtEnd=1
-	If size=0 Set len=0,sc=$$$OK Quit ""
-	Read data#size
-	Set len=size
-	Set sc=$$$OK
-	Try { Set data=$zconvert(data,"I","UTF8") } Catch {  }
-	Set len=$Length(data)
-	Quit data
-ReadError	
-	#; No interrupts during cleanup or error processing
-	$$$SetExternalInterrupts(0)
-	Set $ZTrap="ReadHalt"
-	Hang 5
-	Close 0
-ReadHalt 
-	Halt
-	
 PrepareOutput(data)
 	Try { Set data=$zconvert(data,"O","UTF8") } Catch {  }
 	quit data

@@ -6,7 +6,7 @@
  */
 var application = new function() {
 
-    var version = "0.9.5 alpha";
+    var version = "0.9.6 beta";
     this.debug = false; // remove for release
 
     this.browser = "gc";
