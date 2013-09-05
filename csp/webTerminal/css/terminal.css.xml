@@ -5,6 +5,13 @@
     position: relative;
 }
 
+terminal-base tr, td {
+    padding: 0 6px 6px 6px;
+    margin: 0;
+    border: 0;
+    border-spacing: 0;
+}
+
 .terminal-output-block {
     position: relative;
     overflow: hidden;

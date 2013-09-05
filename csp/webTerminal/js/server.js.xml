@@ -126,7 +126,7 @@ var server = new function() {
     };
 
     var onClose = function(a) {
-        terminal.output.write("Connection terminated.");
+        terminal.output.write("Connection terminated: code " + a.code + " " + a.reason);
     };
 
     var onMessage = function(event) {
@@ -164,10 +164,13 @@ var ajax = new function() {
      *
      * @param url
      * @param handler
+     * [ @param caching ]
      */
-    this.get = function(url, handler) {
+    this.get = function(url, handler, caching) {
 
+        if (typeof caching === "undefined") caching = false;
         var req = getXmlHttp();
+        caching = "cache=" + ((caching)?1:new Date().getTime());
 
         req.onreadystatechange = function() {
 
@@ -184,7 +187,9 @@ var ajax = new function() {
 
         };
 
-        req.open("GET", url, true);
+        var s = (url.indexOf("?") === -1)?"?":"&";
+
+        req.open("GET", url + s + caching, true);
         req.send(null);
 
     }

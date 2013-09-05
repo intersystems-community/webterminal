@@ -53,6 +53,16 @@ Last joined client id</Description>
 <InitialExpression>$c(5)</InitialExpression>
 </Property>
 
+<Property name="ConstServerActionReset">
+<Type>%Char</Type>
+<InitialExpression>$c(6)</InitialExpression>
+</Property>
+
+<Property name="ConstServerActionEcho">
+<Type>%Char</Type>
+<InitialExpression>$c(7)</InitialExpression>
+</Property>
+
 <Property name="ConstClientEnterClearIO">
 <Type>%Char</Type>
 <InitialExpression>$c(1)</InitialExpression>
@@ -404,7 +414,10 @@ This method watches only for tail of global and detects if global still alive</D
 </Method>
 
 <Method name="GenerateAutocompleteFile">
-<FormalSpec>namespace:%String</FormalSpec>
+<Description>
+Generates autocomplete file for namespace. Second parameter deсides if
+it will be regenerated again </Description>
+<FormalSpec>namespace:%String,newFile:%Boolean</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set filename = ..GetJSAutocompleteFilePath($NAMESPACE)
@@ -419,7 +432,7 @@ This method watches only for tail of global and detects if global still alive</D
 	
 	set namespace = $REPLACE(namespace,"%","_")
 	
-	if (##class(%File).Exists(filename)) {
+	if (##class(%File).Exists(filename)) && (newFile = 0) {
 		
 		do ..EndClearIO()
 		do ..SendData(namespace, ..ConstClientLoadAutocomplete)
@@ -546,6 +559,21 @@ If the key is empty, generates new key value.</Description>
 ]]></Implementation>
 </Method>
 
+<Method name="Reset">
+<Description>
+Backs terminal to default state</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// delete autocompletion files
+	set dir = ##class(%File).GetDirectory(..GetJSAutocompleteFilePath("TEST"))
+	if (##class(%File).DirectoryExists(dir)) {
+		do ##class(%File).RemoveDirectoryTree(dir)
+	}
+	quit $$$OK
+]]></Implementation>
+</Method>
+
 <Method name="SendData">
 <Description>
 Function sends data derectly to server with specified action</Description>
@@ -561,9 +589,6 @@ Function sends data derectly to server with specified action</Description>
 <FormalSpec>query:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set io = $io
-  	use io::("^" _ ..InitialZName)
-  	
   	do ..StartClearIO()
  	do ##class(%Device).ReDirectIO($$$YES)
 	
@@ -578,8 +603,6 @@ Function sends data derectly to server with specified action</Description>
 	
 	do ##class(%Device).ReDirectIO($$$NO)
 	do ..EndClearIO()
-	
-	use io
 	
 	quit $$$OK
 ]]></Implementation>
@@ -599,14 +622,18 @@ Sends to client new namespace if last was changed</Description>
 <Method name="StartClearIO">
 <Description>
 Starts clear I/O mode</Description>
-<Implementation><![CDATA[	do ..Write(..ConstClientEnterClearIO)
+<Implementation><![CDATA[
+	do ##class(%Device).ReDirectIO($$$YES)
+	do ..Write(..ConstClientEnterClearIO)
 ]]></Implementation>
 </Method>
 
 <Method name="EndClearIO">
 <Description>
 Ends clear I/O mode</Description>
-<Implementation><![CDATA[	do ..SendData("exit",..ConstClientExitClearIO)
+<Implementation><![CDATA[
+	do ##class(%Device).ReDirectIO($$$NO)
+	do ..SendData("exit",..ConstClientExitClearIO)
 ]]></Implementation>
 </Method>
 
@@ -635,14 +662,10 @@ The heart of terminal application</Description>
 	do ..StartClearIO() // execute session start
 	
 	set $ZERROR = ""
-	set io = $io
-  	use io::("^" _ ..InitialZName)
   	
- 	do ##class(%Device).ReDirectIO($$$YES)
     try { xecute value } catch exception {
 	   	set $ZERROR = exception.DisplayString()
 	}
-	do ##class(%Device).ReDirectIO($$$NO)
 	
    	if ($ZERROR '= "") {
 		do ..SendData(..ParseError($ZERROR))
@@ -715,8 +738,8 @@ Method description:
 	   	}
 	   	
 	   	set action = $EXTRACT(data, 1, 1)
-	   	set data = $REPLACE($EXTRACT(data, 2, *), $CHAR(10), " ") // terminator
-	   	if ($EXTRACT(data, *) = " ") { // terminator
+	   	set data = $EXTRACT(data, 2, *)
+	   	if ($EXTRACT(data, *-1, 1) = $c(10)) { // terminator
 		 	set data = $EXTRACT(data, 1, *-1)
 	   	}
 	   	   	
@@ -746,8 +769,22 @@ Method description:
 		    do ..ExecuteSQL(data)
 		  
 	    } elseif (action = ..ConstServerActionGenerateAutocomplete) {
+		    
+		    do ..GenerateAutocompleteFile(..CurrentNamespace, data)
+		    		
+	    } elseif (action = ..ConstServerActionReset) {
 		      
-		    do ..GenerateAutocompleteFile(data)
+		    if ($$$ISOK(..Reset())) {
+			    do ..SendData("Terminal state reseted.")
+		    } else {
+			    do ..SendData("Error while reseting terminal state.")
+		    }
+		    		
+	    } elseif (action = ..ConstServerActionEcho) {
+		      
+		    do ..StartClearIO()
+		    do ..SendData(data)
+		    do ..EndClearIO()
 		    		
 	    } else { // something scary
 		    	
@@ -773,6 +810,7 @@ New connection established</Description>
 		do ..SendData("1", ..ConstClientAuthorizationStatus)
 		do ..SendData(..CurrentNamespace, ..ConstClientChangeNamespace)
 		   
+		use $io::("^" _ ..InitialZName)
 		do ..ClientLoop()
 		
 	} else {

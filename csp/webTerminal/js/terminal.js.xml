@@ -25,11 +25,11 @@
  *      0       Ignore body                                 Ignore body
  *      1       Execute body                                Enter clear I/O mode (execution begins)
  *      2       Execute sql body                            Exit clear I/O mode (with "exit" body)
- *      3       Generate autocomplete (body - namespace)    Output message
+ *      3       Generate autocomplete (body - flag)         Output message
  *      4       Watch (body: name)                          Change namespace
  *      5       Check watches                               Load autocomplete
- *      6                                                   Read string
- *      7                                                   Read char
+ *      6       RESET to default                            Read string
+ *      7       ECHO (body)                                 Read char
  *      8                                                   Authorization status (body: 1/0)
  *      9                                                   Watch (body: name)
  *
@@ -85,7 +85,9 @@ var terminal = new function() {
         EXECUTE_SQL: String.fromCharCode(2),
         GENERATE_AUTOCOMPLETE: String.fromCharCode(3),
         WATCH: String.fromCharCode(4),
-        CHECK_WATCH: String.fromCharCode(5)
+        CHECK_WATCH: String.fromCharCode(5),
+        RESET: String.fromCharCode(6),
+        ECHO: String.fromCharCode(7)
     };
 
     this.mode = this.modes.DEFAULT; // mode changes current terminal submit action, look and behavior
@@ -98,6 +100,7 @@ var terminal = new function() {
 
         storage.set("history", terminal.history.export());
         storage.set("language", terminal.language.export());
+        storage.set("favourites", terminal.favourites.export());
         storage.set("settings", settings.export());
         storage.modifySave();
         terminal.output.write("Terminal state has been saved.")
@@ -119,6 +122,8 @@ var terminal = new function() {
         settings.import(storage.get("settings"));
         terminal.history.import(storage.get("history"));
         terminal.language.import(storage.get("language"));
+        var favs = storage.get("favourites");
+        if (favs) terminal.favourites.import(favs);
         if (!settings.get_cleanStartup()) terminal.output.write("Terminal state has been loaded.");
 
         return true;
@@ -130,9 +135,48 @@ var terminal = new function() {
      */
     this.resetState = function() {
 
+        server.submit(terminal.serverActions.RESET);
         storage.clear();
         settings.reset();
         location.reload();
+
+    };
+
+    this.favourites = new function() {
+
+        var commands = {};
+
+        this.add = function(index, query) {
+            commands[index] = query + "";
+        };
+
+        /**
+         * Returns favourite command.
+         *
+         * @param index
+         * @returns {string}
+         */
+        this.get = function(index) {
+            index = Math.max(0, Math.min(index, 9));
+            return commands[index];
+        };
+
+        this.export = function() {
+            return {
+                "!export:favourites": true,
+                commands: commands
+            };
+        };
+
+        this.import = function(favouritesImportObject) {
+            if (!(typeof favouritesImportObject === "object" &&
+                favouritesImportObject.hasOwnProperty("!export:favourites")) &&
+                favouritesImportObject.commands) {
+                log.write("Wrong object to import as favourites import object: ", favouritesImportObject);
+                return;
+            }
+            commands = favouritesImportObject.commands;
+        };
 
     };
 
@@ -289,17 +333,17 @@ var terminal = new function() {
             },
 
             "help": function() {
-                terminal.output.write(application.helpbox);
+                terminal.output.write(application.HELPBOX);
             },
 
             "settings": function() {
                 settings.openPanel();
             },
 
-            "autocomplete": function() {
+            "autocomplete": function(regenerate) {
                 server.submit(
                     terminal.serverActions.GENERATE_AUTOCOMPLETE,
-                    terminal.namespace.getCorrectFileName(),
+                    ((regenerate==="new")?"1":"0"),
                     false
                 );
             },
@@ -334,7 +378,7 @@ var terminal = new function() {
                 server.connect();
             },
 
-            "define": function(definition,redefinition) {
+            "define": function(redefinition, definition) {
                 if (!definition || !redefinition) {
                     terminal.output.write("Use /define [definition] [redefinition]");
                     return;
@@ -380,10 +424,47 @@ var terminal = new function() {
 
             "tail": function(name) {
                 if (!name) {
-                    terminal.output.write("Enter watch name. Use /watch {name}");
+                    if (!terminal.watches.stopAll()) {
+                        terminal.output.write("Please, enter watch name. Use /help for more information.")
+                    }
                     return;
                 }
                 server.submit(terminal.serverActions.WATCH, name);
+            },
+
+            "favourite": function(code, slot) {
+                var d = code * 1;
+                if (!isNaN(d)) {
+                    terminal.input.set(terminal.favourites.get(d));
+                    terminal.input.moveCaretToEnd();
+                    return;
+                }
+                if (!code) { terminal.output.write("Enter command to favourite."); return;}
+                slot = slot * 1;
+                if (slot && slot > -1 && slot < 10) {
+                    terminal.favourites.add(slot, code);
+                    terminal.output.write("Command saved to slot " + slot + ".");
+                } else terminal.output.write("Choose correct slot: 0-9 available.")
+            },
+
+            "watch": function(name) {
+                terminal.processor.executeInternal("tail",[name]);
+            },
+
+            "tip": function(flag) {
+                terminal.output.write(application.getTips(!!(flag === "all")));
+            },
+
+            "echo": function() {
+                if (arguments.length == 0) {
+                    arguments[0] = "I'm alive!";
+                    arguments.length = 1;
+                }
+                var s = "";
+                for (var i = 0; i < arguments.length; i++) {
+                    s += ((i !== 0)?"\n":"") + arguments[i];
+                }
+                server.submit(terminal.serverActions.ECHO, s);
             }
 
         };
@@ -433,7 +514,7 @@ var terminal = new function() {
 
         var serverURL = server.getDefaultServerURL();
         if (!settings.get_cleanStartup()) {
-            this.output.write("Terminal base ready. Type <span class=\"warning\">/help</span>" +
+            this.output.write("Terminal base ready. Type " + parser.highlightHTML("/help or /tip") +
                 " to get more information.");
             this.output.write("Connecting to " + serverURL + "...");
         }
@@ -723,6 +804,7 @@ var terminal = new function() {
 
         this.add = function(definition,redefinition) {
             definitions[definition] = redefinition;
+            terminal.language.tokens["definitions"][definition] = 0;
         };
 
         this.remove = function(definition) {
@@ -796,11 +878,19 @@ var terminal = new function() {
             }
         };
 
+        /**
+         * Stops all watches. Returns true if at least one watch had been stopped.
+         *
+         * @returns {boolean}
+         */
         this.stopAll = function() {
+            var stop = false;
             for (var watch in watches) {
                 if (!watches.hasOwnProperty(watch)) continue;
+                stop = true;
                 this.watch(watch);
             }
+            return stop;
         };
 
     };
@@ -1066,6 +1156,31 @@ var terminal = new function() {
         };
 
         /**
+         * Searches for client-side command in string and tries to execute it.
+         *
+         * @param query
+         * @returns {boolean}
+         */
+        var tryClientCommand = function(query) {
+            var arr = query.match(/("[^"]*")|[^\s"]+/g);
+            if (!arr) return false;
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i].match(/\/[a-z]+/)) {
+                    var command = arr[i].substr(1);
+                    arr.splice(0, i + 1);
+                    var fish = query.substring(0,query.indexOf("/" + command) - 1); // mm, fish
+                    for (var u = 0; u < arr.length; u++) {
+                        arr[u] = arr[u].replace(/"/g,"");
+                    }
+                    if (fish !== "") arr.splice(0, 0, fish);
+                    terminal.processor.executeInternal(command, arr);
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        /**
          * Submits current input data with, maybe, another action.
          *
          * [ @param action ]
@@ -1087,32 +1202,20 @@ var terminal = new function() {
                 terminal.language.parseForTokens(data);
             }
 
-            terminal.output.write(parser.prepareForOutputHTML(data));
-
-            if (data.charAt(0) === "/") {
-
-                var pos = data.indexOf(" ",1); pos = (pos==-1)?data.length:pos;
-                var command = data.substring(1,pos);
-                var arguments = data.substr(pos+1).match(/"[^"]*"|[^\s]+/g);
-                if (!arguments) arguments = [];
-                for (var i = 0; i < arguments.length; i++) {
-                    arguments[i] = arguments[i].replace(/"/g,"");
-                }
-                terminal.processor.executeInternal(command,arguments);
-
-            } else {
-
-                data = terminal.definitions.replace(data);
-                server.submit(action,data);
-
-            }
-
             terminal.history.moveToLast();
             terminal.history.save(data);
             terminal.history.add();
+            terminal.input.clear();
+
+            if (!tryClientCommand(data)) {
+
+                data = terminal.definitions.replace(data);
+                server.submit(action,data);
+                terminal.output.write(parser.prepareForOutputHTML(data));
+
+            }
 
             terminal.autocompletion.clear();
-            terminal.input.clear();
             if (terminal.mode != terminal.modes.SQL) terminal.namespace.update();
 
         };
@@ -1319,9 +1422,7 @@ var terminal = new function() {
 
             if (typeof name === "string") {
 
-                var merging = !this.tokens.global.hasOwnProperty(name);
-
-                if (merging) {
+                if (!this.tokens.global.hasOwnProperty(name)) {
                     this.tokens.global[name] = globalToken;
                 } else {
                     this.tokens.global[name].merge(globalToken);
@@ -1360,7 +1461,7 @@ var terminal = new function() {
         this.addGlobals = function(globalsTokens) {
 
             if (typeof globalsTokens != "object") {
-                log.write("language.addClasses error: argument is not an object.")
+                log.write("language.addGlobals error: argument is not an object.")
             }
             for (var property in globalsTokens) {
                 if (!globalsTokens.hasOwnProperty(property)) continue;
@@ -1433,24 +1534,32 @@ var terminal = new function() {
          * @param string
          */
         this.parseForTokens = function(string) {
-            string = " " + string + "  ";
-            var re = new RegExp("[\\s\\{](set|s)\\s([a-zA-Z][a-zA-Z0-9]*)\\s*=","g"),
-                result = re.exec(string);
-            if (result && result[2]) {
-                this.joinUserToken(result[2]);
-            }
 
-            re = new RegExp("[\\s\\{](k|kill)\\s([a-zA-Z][a-zA-Z0-9]*)[\\s\\}]","g");
+            string = " " + string + "  "; // keep two spaces
+            var re = new RegExp("[\\s\\{](set|s)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))\\s*=","ig"),
             result = re.exec(string);
             if (result && result[2]) {
-                this.removeUserToken(result[2]);
+                if (result[2].charAt(0) === "^") {
+                    this.tokens.global[result[2].substr(1)] = 0;
+                } else {
+                    this.joinUserToken(result[2]);
+                }
             }
 
-            re = new RegExp("[\\s\\{](k|kill)[\\s]+?[^a-zA-Z]","g");
+            re = new RegExp("[\\s\\{](k|kill)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))[\\s\\}]","ig");
+            result = re.exec(string);
+            if (result && result[2]) {
+                if (result[2].charAt(0) === "^" && this.tokens.global.hasOwnProperty(result[2].substr(1))) {
+                    delete this.tokens.global[result[2].substr(1)];
+                } else this.removeUserToken(result[2]);
+            }
+
+            re = new RegExp("[\\s\\{](k|kill)[\\s]+?[^a-zA-Z]","ig");
             result = re.exec(string);
             if (result && result[1]) {
                 this.removeUserToken("*");
             }
+
         };
 
         /**
@@ -1474,11 +1583,16 @@ var terminal = new function() {
                     reversedRegExp: "([a-zA-Z]+)\\s"
                 }
             },
+            "definitions": {
+                "!autocomplete": {
+                    reversedRegExp: "([^\\s]+)\\s.*"
+                }
+            },
             "client": {
                 "!autocomplete": {
                     reversedRegExp: "([a-z]*/)+"
                 },
-                "/help": 0,
+                "/help": 1,
                 "/clear": 0,
                 "/connect": 0,
                 "/disconnect": 0,
@@ -1490,7 +1604,11 @@ var terminal = new function() {
                 "/settings": 0,
                 "/siege": 0,
                 "/define": 0,
-                "/tail": 0
+                "/tail": 0,
+                "/favourite": 0,
+                "/watch": 0,
+                "/tip": 1,
+                "/echo": 0
             },
             "commands": {
                 "!autocomplete": {

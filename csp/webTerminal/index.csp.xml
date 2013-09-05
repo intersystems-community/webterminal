@@ -2,6 +2,7 @@
 <Export generator="Cache" version="25">
 <CSP name="WebTerminal/index.csp" application="/csp/sys/" default="1"><![CDATA[
 <!DOCTYPE html>
+
 <html>
 
     <head>
@@ -16,11 +17,11 @@
         <link rel="stylesheet" href="css/extra.css">
         <link rel="stylesheet" href="css/theme-default.css" id="terminal-color-theme">
         <script type="text/javascript" src="js/base.js"></script>
+        <script type="text/javascript" src="js/parser.js"></script>
         <script type="text/javascript" src="js/hid.js"></script>
         <script type="text/javascript" src="js/application.js"></script>
         <script type="text/javascript" src="js/server.js"></script>
         <script type="text/javascript" src="js/terminal.js"></script>
-        <script type="text/javascript" src="js/parser.js"></script>
         <script type="text/javascript" src="js/unit.js"></script>
         <script type="text/javascript" src="js/storage.js"></script>
     </head>

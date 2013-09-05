@@ -49,6 +49,13 @@
     100% { color: orange; }
 }
 
+.hidden { display: none; }
+.center { text-align: center; }
+.bold { font-weight: 900; }
+.noMargin { margin: 0 }
+.noPadding { padding: 0 }
+.normalWrap { white-space: normal; text-wrap: normal }
+
 #caret {
     position: relative;
     display: inline-block;
@@ -78,5 +85,13 @@
     -moz-transition: all 0.1s ease-out;
     -o-transition: all 0.1s ease-out;
     -webkit-transition: all 0.1s ease-out;
+}
+
+.noAnimations {
+    transition: none !important;
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -o-transition: none !important;
+    -ms-transition: none !important;
 }]]></CSP>
 </Export>

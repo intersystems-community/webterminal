@@ -6,7 +6,7 @@
  */
 var application = new function() {
 
-    var version = "0.9.6 beta";
+    var version = "0.9.6.8 beta";
     this.debug = false; // remove for release
 
     this.browser = "gc";
@@ -32,8 +32,8 @@ var application = new function() {
 
     this.version = function() { return version };
 
-    this.helpbox =
-        "<div style=\"white-space: normal\">" +
+    this.HELPBOX =
+        "<div class=\"normalWrap\">" +
             "<div class=\"center\">" +
                 "<h3>Caché Web Terminal<span class=\"warning\"> v" + version + "</span></h3>" +
             "</div>" +
@@ -58,6 +58,15 @@ var application = new function() {
                     "<td>Show help</td>" +
                 "</tr>" +
                 "<tr>" +
+                    "<td class=\"info\">/tip [all]</td>" +
+                    "<td>Show tips and detail usage information. If \"all\" isn't present, it will be a tutorial for " +
+                    "you.</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">/echo [*]</td>" +
+                    "<td>Get back given arguments from server</td>" +
+                "</tr>" +
+                "<tr>" +
                     "<td class=\"info\">/save</td>" +
                     "<td>Save current command history, settings and dictionary to local storage</td>" +
                 "</tr>" +
@@ -67,11 +76,12 @@ var application = new function() {
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/reset</td>" +
-                    "<td>Reset terminal to default settings</td>" +
+                    "<td>Reset whole terminal application to default settings, including server autocomplete files," +
+                    " client data, settings, etc.</td>" +
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/connect</td>" +
-                    "<td>Establish new connection to Cach? server via <b>WebSocket</b></td>" +
+                    "<td>Establish new connection to Caché server via <b>WebSocket</b></td>" +
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/disconnect</td>" +
@@ -86,23 +96,28 @@ var application = new function() {
                     "<td>Clear terminal command log</td>" +
                 "</tr>" +
                 "<tr>" +
-                    "<td class=\"info\">/define {definition} {redefinition}</td>" +
+                    "<td class=\"info\">/define {redefinition} {definition}</td>" +
                     "<td>Every occurrence of {definition} in input will be replaced with {redefinition}</td>" +
                 "</tr>" +
                 "<tr>" +
-                    "<td class=\"info\">/tail {fileFullPath|globalName}</td>" +
-                    "<td>Experimental: watch for file/global changes. Execute command again to stop watching.</td>" +
+                    "<td class=\"info\">{code} /favourite {slot}</td>" +
+                    "<td>Add code to favorites. You can load code anytime by calling /favourite {slot}</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">{/tail|/watch} {fileFullPath|globalName}</td>" +
+                    "<td>Watch for file/global changes. Execute command again to stop watching. This command without " +
+                    "arguments will stop watching for everything defined before</td>" +
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">/sql</td>" +
                     "<td>Open/close integrated SQL shell</td>" +
                 "</tr>" +
                 "<tr>" +
-                    "<td class=\"info\">/autocomplete</td>" +
+                    "<td class=\"info\">/autocomplete [new]</td>" +
                     "<td>" +
                         "Load all class definitions for current namespace. This may take a while depending on your " +
                         "system settings. Normally it takes 20-30 seconds for first execution. Next executions will" +
-                        " only load already generated file." +
+                        " only load already generated file. If new parameter given, file will be regenerated." +
                     "</td>" +
                 "</tr>" +
                 "<tr>" +
@@ -151,6 +166,99 @@ var application = new function() {
                 "</tr>" +
             "</table>" +
         "</div>";
+
+    var tips = 8, currentTip = 0; // number of tips
+    var getTip = function(no, all) {
+        var s;
+        switch (no){
+            case 0: s = "<h1 class=\"center\">WebTerminal usage tips</h1>" +
+                "<h3>This guide will show you detail description about application functionality.</h3>" +
+                "<p>Note that you can call <span class=\"syntax-_client\">/help</span> command for list of available " +
+                "commands any time you want. Client-side commands (that beginning with slash) are server-independent, " +
+                "so you can relax by reading, for example, help information while heavy server command in progress.</p>" +
+                "<p>Start by typing something like \"" + parser.highlightHTML("set test = 12") + "\". While entering " +
+                "first letter, you can notice that there's " +
+                "an autocompletion variant (darker highlighted) for command \"set\". You can press [TAB] key to perform " +
+                "autocompletion. Also you can list available variants by pressing [CTRL] or [ALT], depending on direction" +
+                "you need. After normal command execution try to execute \"" + parser.highlightHTML("write test") +
+                "\". You will notice available autocompletion variants for command \"write\" and for your variable \"test\". " +
+                "Autocompletion both working for local variables and globals you've just defined." +
+                "</p>"; break;
+            case 1: s = "<p>As you may have noticed, there's a set of " + parser.highlightHTML("/this") + " commands you can " +
+                "execute. This is client-side command. Every client-side command can have a list of arguments. Here's the " +
+                "rules of passing arguments in examples: </p><ul><li>" + parser.highlightHTML("/command argument1 argument2 ...") + "</li>" +
+                "<li>" + parser.highlightHTML("/command \"argument1 with spaces\" argument_2 \"\" it_was_argument_4 ...") +
+                "</li><li>" + parser.highlightHTML("argument №1 /command") + "</li>" +
+                "<li>" + parser.highlightHTML("a r g u \"m\" e n t 1 /command \"a r g u m e n t 2\" argument3 ...") + "</li></ul>" +
+                "<p>You can play with arguments by using " + parser.highlightHTML("/echo") + " command. Try to pass something " +
+                "scary withing this command and see the result.</p>"; break;
+            case 2: s = "<p>Let's explore a little more about autocompletion. For example, you wishes to autocomplete " +
+                "your current classes in namespace. Because of large base of variants available, this implemented by " +
+                parser.highlightHTML("/autocomplete") + "</span> command. By calling this command you will cause " +
+                "client to request server for namespace autocomplete data. In case of first execution file will be " +
+                "automatically generated. This may take a while depending on number of classes present. Normally it takes " +
+                "15-20 seconds to perform this operation. After autocomplete file generate, it will be loaded immediately " +
+                "and you will get <span class=\"syntax-_string\">\"Language for [namespace] merged.\"</span> message. " +
+                "Calling this command again and again will cause loading already generated autocomplete file. If you " +
+                "wish to regenerate this file, then execute this command with \"new\" argument: \"" +
+                parser.highlightHTML("/autocomplete new") + "\". </p>"; break;
+            case 3: s = "<p>Terminal application has different settings you can change. Simply call " +
+                 parser.highlightHTML("/settings") + " command and you will get a panel with list of options. To close " +
+                "panel press [ESC] or click \"Close\" at upper right corner.</p><p>One important thing to know about " +
+                "settings - they're automatically saving and storing in your local browser (localStorage). So you can " +
+                "continue your work with terminal with same settings after web page closed and opened again. But make " +
+                "sure that this works only for one domain. None of settings are storing on server.</p>"; break;
+            case 4: s = "<p>Another thing storing in localStorage is terminal language and command history. Terminal " +
+                "language - it's a special object which includes all keywords and autocomplete data with the rules of " +
+                "autocompletion. After " + parser.highlightHTML("/save") + " command call, your settings, language and " +
+                "history will be saved. Anytime you want it is possible to restore this settings - just call " +
+                parser.highlightHTML("/load") + " command. " + parser.highlightHTML("/reset") + " command will " +
+                "bring terminal to initial state.</p>"; break;
+            case 5: s = "<p>There are more features you can obtain with client-side commands.</p><p>First, you can use " +
+                parser.highlightHTML("/sql") + " command to enter and exit simple sql-mode. Easiest then ever.</p><p>" +
+                "Next, it is easy to define " +
+                "any big command by using " + parser.highlightHTML("/define") + " command. Try to execute something like </p><p>" +
+                parser.highlightHTML("##class(%Library.File).Exists( /define ?f(") + "</p><p> and sure how it works by " +
+                "executing </p><p>" + parser.highlightHTML("write ?f(\"C:\")") + "</p><p>Do not forget about autocomplete! " +
+                "If you didn't, use " + parser.highlightHTML("/autocomplete") + " option to load classes and examine how it " +
+                "helps. Autocompletion have to help you enter \"%Library.File\" class and it's method \"Exists\".</p>" +
+                "<p>Another cool thing is watching " +
+                "(or tailing). You can call " + parser.highlightHTML("/watch or /tail") + " command with one argument - " +
+                "file path or global name. Let's imagine that you have file " + parser.highlightHTML("C:\\temp\\log.txt") + " or global " +
+                parser.highlightHTML("^myLog") + ". Then you can call " + parser.highlightHTML("/tail ^myLog") + " or " +
+                parser.highlightHTML("/watch C:\\temp\\log.txt") + " and look for their's changes.</p>"; break;
+            case 6: s = "<p>And finally try to use " + parser.highlightHTML("/favourite") + " command: write a piece of " +
+                "code or whole program, test it and then join " + parser.highlightHTML("/favourite 1") + " to the end " +
+                "of command line. This will remember you command to slot 1. Then simply call " + parser.highlightHTML("/favourite 1") +
+                " (with one argument) and use use saved code again.</p><p>And that's the end of out tutorial! Do not forget " +
+                "to " + parser.highlightHTML("/save") + " your history and favourites, or just use \"autosave\" option " +
+                "available in settings.</p>"; break;
+            default: s = "<p>Enjoy!</p>";
+        }
+        if (!all) {
+            if (no === 0) s += "<p>To continue, type <span class=\"syntax-_client\">/tip</span> command again.</p>";
+            else if (no === 1) s += "<p>Type <span class=\"syntax-_client\">/tip</span> command again, or just use " +
+                "arrow [UP] key if you typed <span class=\"syntax-_client\">/tip</span> command before.</p>";
+            else if (no === 2) s += "<p>Continue typing <span class=\"syntax-_client\">/tip</span> if you want more " +
+                "information.</p>";
+        }
+        return s;
+    };
+
+    this.getTips = function(all) {
+        var s = "<div class=\"normalWrap\">";
+
+        if (all) {
+            for (var i = 0; i < tips; i++) {
+                s += getTip(i, all);
+            }
+        } else {
+            s += getTip(currentTip++, all);
+            currentTip = currentTip % tips;
+        }
+
+        return s + "</div>";
+    };
 
     var detectBrowser = function() {
         var app = navigator.appName.toLowerCase(), b = "gc";

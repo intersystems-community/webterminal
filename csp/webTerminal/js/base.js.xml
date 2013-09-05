@@ -44,7 +44,7 @@ Object.prototype.merge = function(object) {
 
 var log = new function() {
     this.write = function() {
-        (window.console && console.log)?console.log(arguments):alert(arguments);
+        (window.console && console.log)?console.log.apply(console, arguments):alert(arguments.join(", "));
     }
 };
 
