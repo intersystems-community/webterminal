@@ -10,6 +10,23 @@ Web-based terminal application for InterSystems Cach&eacute; database. Access yo
 
 ### What's new?
 
+#### v0.9.6.8
+
+* Added /tip command with detail tutorial of terminal functionality.
+* Client-side commands parsing dialect changed and improved: check it in helpbox by typing "/tip" or "/tip all".
+* It is possible now to define favorite commands/scenaries/programs.
+* Fixed autocompletion for globals
+* Added autocompletion for defines
+* Fixed browser's autocomplete files caching
+* "/autocomplete new" will regenerate file except of loading same file again
+* /reset will reset autocomplete files on server
+* Added /echo command
+* Added /favourite command. Can be used as "<big code> /favorite {slot}" and then "/favorite {slot}"
+* added /watch with same function as /tail
+* /tail command without arguments will stop all watches
+* Fixed Cache 2013.1
+* Tested on Android 4.1, iOS 6
+
 #### v0.9.5
 
 * Added globals watching. Use /tail {filePath|globalName}
