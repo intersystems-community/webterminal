@@ -80,6 +80,9 @@
                 </p>
                 <ul>
                     <li>
+                        <a href="files/WebTerminal-0.9.6.8-dev.xml">Caché Web Terminal v0.9.6.8 dev (xml)</a>
+                    </li>
+                    <li>
                         <a href="files/WebTerminal-0.9.6-stable.xml">Caché Web Terminal v0.9.6 stable (xml) (2013.1 fix)</a>
                     </li>
                     <li>
@@ -121,12 +124,29 @@
                 <ul>
                     <li>Your <b class="warn">Caché version at least 2013.1</b> (WebSockets support)</li>
                     <li>You have write permissions to %CACHELIB</li>
-                    <li>Nobody can access your index.csp without Caché security</li>
+                    <li class="warn">Nobody can access your index.csp without Caché security</li>
                 </ul>
             </div>
 
             <div class="pageLayout" id="history">
                 <h1 class="center">Project history</h1>
+                <h1>v 0.9.6.8</h1>
+                <ul>
+                    <li>Added /tip command with detail tutorial of terminal functionality.</li>
+                    <li>Client-side commands parsing dialect changed and improved: check it in helpbox by typing "/tip" or "/tip all".</li>
+                    <li>It is possible now to define favorite commands/scenaries/programs.</li>
+                    <li>Fixed autocompletion for globals</li>
+                    <li>Added autocompletion for defines</li>
+                    <li>Fixed browser's autocomplete files caching</li>
+                    <li>"/autocomplete new" will regenerate file except of loading same file again</li>
+                    <li>/reset will reset autocomplete files on server</li>
+                    <li>Added /echo command</li>
+                    <li>Added /favourite command. Can be used as " /favorite {slot}" and then "/favorite {slot}"</li>
+                    <li>added /watch with same function as /tail</li>
+                    <li>/tail command without arguments will stop all watches</li>
+                    <li>Fixed Cache 2013.1</li>
+                    <li>Tested on Android 4.1, iOS 6</li>
+                </ul>
                 <h1>v 0.9.6</h1>
                 <ul>
                     <li>Fixes for Caché 2013.1</li>
