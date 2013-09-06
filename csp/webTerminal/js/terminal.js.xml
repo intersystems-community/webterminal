@@ -100,7 +100,7 @@ var terminal = new function() {
 
         storage.set("history", terminal.history.export());
         storage.set("language", terminal.language.export());
-        storage.set("favourites", terminal.favourites.export());
+        storage.set("favorites", terminal.favorites.export());
         storage.set("definitions", terminal.definitions.export());
         storage.set("settings", settings.export());
         storage.modifySave();
@@ -123,8 +123,8 @@ var terminal = new function() {
         settings.import(storage.get("settings"));
         terminal.history.import(storage.get("history"));
         terminal.language.import(storage.get("language"));
-        var favs = storage.get("favourites");
-        if (favs) terminal.favourites.import(favs);
+        var favs = storage.get("favorites");
+        if (favs) terminal.favorites.import(favs);
         var defs = storage.get("definitions");
         if (defs) terminal.definitions.import(defs);
         if (!settings.get_cleanStartup()) terminal.output.write("Terminal state has been loaded.");
@@ -145,7 +145,7 @@ var terminal = new function() {
 
     };
 
-    this.favourites = new function() {
+    this.favorites = new function() {
 
         var commands = {};
 
@@ -154,7 +154,7 @@ var terminal = new function() {
         };
 
         /**
-         * Returns favourite command.
+         * Returns favorite command.
          *
          * @param index
          * @returns {string}
@@ -166,19 +166,19 @@ var terminal = new function() {
 
         this.export = function() {
             return {
-                "!export:favourites": true,
+                "!export:favorites": true,
                 commands: commands
             };
         };
 
-        this.import = function(favouritesImportObject) {
-            if (!(typeof favouritesImportObject === "object" &&
-                favouritesImportObject.hasOwnProperty("!export:favourites")) &&
-                favouritesImportObject.commands) {
-                log.write("Wrong object to import as favourites import object: ", favouritesImportObject);
+        this.import = function(favoritesImportObject) {
+            if (!(typeof favoritesImportObject === "object" &&
+                favoritesImportObject.hasOwnProperty("!export:favorites")) &&
+                favoritesImportObject.commands) {
+                log.write("Wrong object to import as favorites import object: ", favoritesImportObject);
                 return;
             }
-            commands = favouritesImportObject.commands;
+            commands = favoritesImportObject.commands;
         };
 
     };
@@ -435,17 +435,17 @@ var terminal = new function() {
                 server.submit(terminal.serverActions.WATCH, name);
             },
 
-            "favourite": function(code, slot) {
+            "favorite": function(code, slot) {
                 var d = code * 1;
                 if (!isNaN(d)) {
-                    terminal.input.set(terminal.favourites.get(d));
+                    terminal.input.set(terminal.favorites.get(d));
                     terminal.input.moveCaretToEnd();
                     return;
                 }
-                if (!code) { terminal.output.write("Enter command to favourite."); return;}
+                if (!code) { terminal.output.write("Enter command to favorite."); return;}
                 slot = slot * 1;
                 if (slot && slot > -1 && slot < 10) {
-                    terminal.favourites.add(slot, code);
+                    terminal.favorites.add(slot, code);
                     terminal.output.write("Command saved to slot " + slot + ".");
                 } else terminal.output.write("Choose correct slot: 0-9 available.")
             },
@@ -1625,7 +1625,7 @@ var terminal = new function() {
                 "/siege": 0,
                 "/define": 0,
                 "/tail": 0,
-                "/favourite": 0,
+                "/favorite": 0,
                 "/watch": 0,
                 "/tip": 1,
                 "/echo": 0

@@ -100,8 +100,8 @@ var application = new function() {
                     "<td>Every occurrence of {definition} in input will be replaced with {redefinition}</td>" +
                 "</tr>" +
                 "<tr>" +
-                    "<td class=\"info\">{code} /favourite {slot}</td>" +
-                    "<td>Add code to favorites. You can load code anytime by calling /favourite {slot}</td>" +
+                    "<td class=\"info\">{code} /favorite {slot}</td>" +
+                    "<td>Add code to favorites. You can load code anytime by calling /favorite {slot}</td>" +
                 "</tr>" +
                 "<tr>" +
                     "<td class=\"info\">{/tail|/watch} {fileFullPath|globalName}</td>" +
@@ -227,11 +227,11 @@ var application = new function() {
                 "file path or global name. Let's imagine that you have file " + parser.highlightHTML("C:\\temp\\log.txt") + " or global " +
                 parser.highlightHTML("^myLog") + ". Then you can call " + parser.highlightHTML("/tail ^myLog") + " or " +
                 parser.highlightHTML("/watch C:\\temp\\log.txt") + " and look for their's changes.</p>"; break;
-            case 6: s = "<p>And finally try to use " + parser.highlightHTML("/favourite") + " command: write a piece of " +
-                "code or whole program, test it and then join " + parser.highlightHTML("/favourite 1") + " to the end " +
-                "of command line. This will remember you command to slot 1. Then simply call " + parser.highlightHTML("/favourite 1") +
+            case 6: s = "<p>And finally try to use " + parser.highlightHTML("/favorite") + " command: write a piece of " +
+                "code or whole program, test it and then join " + parser.highlightHTML("/favorite 1") + " to the end " +
+                "of command line. This will remember you command to slot 1. Then simply call " + parser.highlightHTML("/favorite 1") +
                 " (with one argument) and use use saved code again.</p><p>And that's the end of out tutorial! Do not forget " +
-                "to " + parser.highlightHTML("/save") + " your history and favourites, or just use \"autosave\" option " +
+                "to " + parser.highlightHTML("/save") + " your history and favorites, or just use \"autosave\" option " +
                 "available in settings.</p>"; break;
             default: s = "<p>Enjoy!</p>";
         }
