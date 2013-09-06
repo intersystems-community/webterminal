@@ -739,7 +739,8 @@ Method description:
 	   	
 	   	set action = $EXTRACT(data, 1, 1)
 	   	set data = $EXTRACT(data, 2, *)
-	   	if ($EXTRACT(data, *-1, 1) = $c(10)) { // terminator
+	   	
+	   	if ($EXTRACT(data, *) = $c(10)) { // terminator
 		 	set data = $EXTRACT(data, 1, *-1)
 	   	}
 	   	   	
@@ -812,7 +813,6 @@ New connection established</Description>
 		   
 		use $io::("^" _ ..InitialZName)
 		do ..ClientLoop()
-		
 	} else {
 		
 		do ..SendData("0", ..ConstClientAuthorizationStatus)

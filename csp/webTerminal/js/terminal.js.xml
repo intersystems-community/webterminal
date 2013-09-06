@@ -101,6 +101,7 @@ var terminal = new function() {
         storage.set("history", terminal.history.export());
         storage.set("language", terminal.language.export());
         storage.set("favourites", terminal.favourites.export());
+        storage.set("definitions", terminal.definitions.export());
         storage.set("settings", settings.export());
         storage.modifySave();
         terminal.output.write("Terminal state has been saved.")
@@ -124,6 +125,8 @@ var terminal = new function() {
         terminal.language.import(storage.get("language"));
         var favs = storage.get("favourites");
         if (favs) terminal.favourites.import(favs);
+        var defs = storage.get("definitions");
+        if (defs) terminal.definitions.import(defs);
         if (!settings.get_cleanStartup()) terminal.output.write("Terminal state has been loaded.");
 
         return true;
@@ -824,7 +827,24 @@ var terminal = new function() {
                 string = string.replace(def,definitions[def]);
             }
             return string;
-        }
+        };
+
+        this.export = function() {
+            return {
+                "!export:definitions": true,
+                definitions: definitions
+            };
+        };
+
+        this.import = function(languageImportObject) {
+            if (!(typeof languageImportObject === "object" &&
+                languageImportObject.hasOwnProperty("!export:definitions")) &&
+                languageImportObject.definitions) {
+                log.write("Wrong object to import as definitions import object: ", languageImportObject);
+                return;
+            }
+            definitions = languageImportObject.definitions;
+        };
 
     };
 
