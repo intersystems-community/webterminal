@@ -416,17 +416,32 @@ This method watches only for tail of global and detects if global still alive</D
 <Method name="GenerateAutocompleteFile">
 <Description>
 Generates autocomplete file for namespace. Second parameter deсides if
-it will be regenerated again </Description>
+it will be regenerated again. But if namespace equals to "%" - generates
+autocomplete file for system classes. Make sure that autocomplete for
+system classes generates one time and forever. </Description>
 <FormalSpec>namespace:%String,newFile:%Boolean</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
+	
 	set filename = ..GetJSAutocompleteFilePath($NAMESPACE)
+	
+	set system = 0
+	if (namespace = "%") {
+		set namespace = "%SYS"
+		set filename = ..GetJSAutocompleteFilePath("_")
+		set system = 1
+	}
+	
+	if (system) && (##class(%File).Exists(filename)) {
+		do ..SendData("_", ..ConstClientLoadAutocomplete)
+		quit $$$OK
+	}
 	
 	do ..StartClearIO()
 	
-	if ('##class(%SYS.Namespace).Exists($REPLACE(namespace,"_","%"))) {
+	if ('##class(%SYS.Namespace).Exists(namespace)) {
 		do ..EndClearIO()
-		do ..SendData("Wrong namespace name: " _ namespace)
+		do ..SendData("Wrong namespace: " _ namespace)
 		quit $$$NOTOK
 	}
 	
@@ -449,15 +464,12 @@ it will be regenerated again </Description>
 			quit $$$OK
 		}
 		
-		set filename = ..GetJSAutocompleteFilePath(namespace)
-		
 	}
 
-	do ..SendData("Generating language file for " _ namespace _ ", pleace, wait.")
-	
-	// write empty file in case of other terminal applications may require it
-	//do ..WriteToFile(filename,"{}")
-	
+	set thisName = $REPLACE(namespace,"_","%")
+	if (system) { set thisName = "SYSTEM" }
+	do ..SendData("Generating language file for " _ thisName _ ", pleace, wait. ")
+		
 	// get all classes names
 	set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
 	do result.Execute()
@@ -466,14 +478,20 @@ it will be regenerated again </Description>
 	The next COULD BE IMPROVED FOR SPEED, I beleive.
 	Generates compressed JSON string of type:
 	{
-		"%ClassName1": {
-			"methodName": 0,
-			"propertyName": 0,
-			"parameterName": 0,
-			...
+		"class": {
+			"%ClassName1": {
+				"methodName": 0,
+				"propertyName": 0,
+				"parameterName": 0,
+				...
+			},
+			"ClassName2": {
+				...
+			}
 		},
-		"ClassName2": {
-			...
+		"global": {
+			"^%g1": 0,
+			"^g2": 0
 		}
 	}
 	*/
@@ -488,6 +506,9 @@ it will be regenerated again </Description>
 	while (result.Next()) { // forming autocomplete for each class
 	
 		set className = result.Data("Name")
+		if (($EXTRACT(className,1)="%")'=system) {
+			continue
+		}
 		do file.Write(first _ """" _ className _ """:{")
 		if (first = "") set first = ","
 		
@@ -501,19 +522,19 @@ it will be regenerated again </Description>
  		
  		for i=1:1:countMethods {
 	 		set current = current + 1
-     		do file.Write("""" _cdefs.Methods.GetAt(i).Name _ """:0")
+     		do file.Write("""" _ cdefs.Methods.GetAt(i).Name _ """:0")
      		if (current'=total) do file.Write(",")
  		}
  		
  		for i=1:1:countProperties {
 	 		set current = current + 1
-     		do file.Write("""" _cdefs.Properties.GetAt(i).Name _ """:0")
+     		do file.Write("""" _ cdefs.Properties.GetAt(i).Name _ """:0")
      		if (current'=total) do file.Write(",")
  		}
  		
  		for i=1:1:countParameters {
 	 		set current = current + 1
-     		do file.Write("""" _cdefs.Parameters.GetAt(i).Name _ """:0")
+     		do file.Write("""" _ cdefs.Parameters.GetAt(i).Name _ """:0")
      		if (current'=total) do file.Write(",")
  		}
 		
@@ -521,16 +542,19 @@ it will be regenerated again </Description>
 		
 	}
 	
-	do file.Write("},""global"":" _ ..getGlobalsJSON() _"}")
-	
+	do file.Write("}")
+	if ('system) {
+		do file.Write(",""global"":" _ ..getGlobalsJSON())	
+	}
+	do file.Write("}")
 	do file.Close()
-	//do ..WriteToFile(filename,data)
 	
-	do ..SendData($c(10)_"Language file for " _ namespace _ " classes created.")
+	do ..SendData($c(10)_"Language file for " _ thisName _ " generated.")
 	
 	do ..EndClearIO()
-	
-	do ..SendData(namespace,..ConstClientLoadAutocomplete)
+	if (system) {
+		do ..SendData("_",..ConstClientLoadAutocomplete)
+	} else { do ..SendData(namespace,..ConstClientLoadAutocomplete) }
 	
 	quit $$$OK
 ]]></Implementation>
@@ -759,10 +783,10 @@ Method description:
 	    
 		    set result = ..AddWatch(data)
 		    if ('$$$ISOK(result)) {
-			    set result = ..RemoveWatch(data)
-			    if ('$$$ISOK(result)) {
-				 	do ..SendData("unreal", ..ConstClientWatch)
-			    }
+				set result = ..RemoveWatch(data)
+				if ('$$$ISOK(result)) {
+					do ..SendData("unreal", ..ConstClientWatch)
+				}
 		    }
 		  
 	    } elseif (action = ..ConstServerActionExecuteSQL) { // sql
@@ -771,6 +795,7 @@ Method description:
 		  
 	    } elseif (action = ..ConstServerActionGenerateAutocomplete) {
 		    
+		    do ..GenerateAutocompleteFile("%", data)
 		    do ..GenerateAutocompleteFile(..CurrentNamespace, data)
 		    		
 	    } elseif (action = ..ConstServerActionReset) {

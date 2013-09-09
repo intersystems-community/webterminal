@@ -42,19 +42,20 @@ var server = new function() {
      * @param namespace
      */
     this.requestAutocompleteFile = function(namespace) {
-        terminal.output.write("Loading Caché language for " + namespace);
+        terminal.output.write("Loading Caché language for " + namespace.replace(/_/g,"%"));
         ajax.get("js/autocomplete/" + namespace + ".js",function(data,allRight){
+            namespace = namespace.replace(/_/g,"%");
             if (allRight) {
                 var obj = parser.jsonToObject(data);
-                if (!obj.hasOwnProperty("class") || !obj.hasOwnProperty("global")) {
+                if (!obj.hasOwnProperty("class")) {
                     terminal.output.write("Wrong language file for " + namespace + ".");
                 } else {
-                    terminal.language.addClasses(obj.class);
-                    terminal.language.addGlobals(obj.global);
+                    if (obj.hasOwnProperty("class")) terminal.language.addClasses(obj.class);
+                    if (obj.hasOwnProperty("global")) terminal.language.addGlobals(obj.global);
                     terminal.output.write("Language for " + namespace + " merged.");
                 }
             } else {
-                terminal.output.write("Language load fail.");
+                terminal.output.write("Language load for " + namespace + " fail.");
             }
         });
     };

@@ -149,6 +149,12 @@ var terminal = new function() {
 
         var commands = {};
 
+        /**
+         * Add new favorite record.
+         *
+         * @param index
+         * @param query
+         */
         this.add = function(index, query) {
             commands[index] = query + "";
         };
@@ -964,6 +970,10 @@ var terminal = new function() {
             if (mark == false) dom.performForClassObjects("waiting",function(){
                 this.className = this.className.replace(/waiting/g,"complete")
             });
+        };
+
+        this.processEscapeBlock = function() {
+
         };
 
         /**

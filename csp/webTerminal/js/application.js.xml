@@ -6,7 +6,7 @@
  */
 var application = new function() {
 
-    var version = "0.9.6.8 beta";
+    var version = "0.9.6.9 beta";
     this.debug = false; // remove for release
 
     this.browser = "gc";
@@ -17,7 +17,7 @@ var application = new function() {
      *
      * 1. Add theme name to the list below;
      * 2. Make CSS theme file like theme-default.css;
-     * 3. Place this file to /css/ directory and name it "theme-<name>.css";
+     * 3. Place this file to /css/ directory and name it "theme-<name_of_your_theme>.css";
      * 4. Check theme in settings and use it!
      *
      * We're waiting for your cool themes ;)
@@ -39,14 +39,22 @@ var application = new function() {
             "</div>" +
             "<div class=\"center\">" +
                 "<span class=\"syntax-_comment\">Global client command syntax</span><br>" +
-                "<span class=\"syntax-_client\">/{command} {argument1} \"{argument2}\" ...</span><br>" +
+                "a r <span class=\"syntax-_string\">\"g u\"</span> m e n t №0 <span class=\"syntax-_client\">/{command}</span>" +
+                " argument1 <span class=\"syntax-_string\">\"argument2\"</span> ...<br>" +
             "</div>" +
             "<div>" +
-                "Examples:<br>" +
+                "Some examples:<br>" +
                 "<span class=\"syntax-_client\">/define</span> &1 <span class=\"syntax-_string\">\"##class(%File)\"" +
                 "</span> <span class=\"syntax-_comment\"> To use something like &1.Exists(\"Name\")</span><br>" +
                 "<span class=\"syntax-_client\">/tail</span> <span class=\"syntax-_global\">^MyGlobal</span> " +
-                "<span class=\"syntax-_comment\">To watch for global changes.</span><br>&nbsp;" +
+                "<span class=\"syntax-_comment\">To watch for global changes.</span><br>" +
+                "<span class=\"syntax-_command\">do</span> <span class=\"syntax-_sysMacro\">##class</span><span class=\"" +
+                "syntax-_bracket\">(</span><span class=\"syntax-mysuperapplication\">MySuperApplication</span><span cla" +
+                "ss=\"syntax-_other\">.MySuperClass</span><span class=\"syntax-_bracket\">)</span><span class=\"syntax-" +
+                "_other\">.MySuperMethod</span><span class=\"syntax-_bracket\">(</span><span class=\"syntax-mysuperargu" +
+                "ments\">MySuperArguments</span><span class=\"syntax-_bracket\">)</span> <span class=\"syntax-_client\"" +
+                ">/favorite</span> <span class=\"syntax-_other\">1</span> " +
+                "<span class=\"syntax-_comment\">To save code before command into favorite slot 1.</span><br>&nbsp;" +
             "</div>" +
             "<table>" +
                 "<tr>" +
@@ -116,8 +124,10 @@ var application = new function() {
                     "<td class=\"info\">/autocomplete [new]</td>" +
                     "<td>" +
                         "Load all class definitions for current namespace. This may take a while depending on your " +
-                        "system settings. Normally it takes 20-30 seconds for first execution. Next executions will" +
-                        " only load already generated file. If new parameter given, file will be regenerated." +
+                        "system settings. Normally it takes 20-30 seconds for first execution. Next executions will " +
+                        "load already generated files or generate only namespace-specific language while new parameter given." +
+                        "To regenerate system language file (one which generates only first time) you have " +
+                        "to /reset whole terminal application." +
                     "</td>" +
                 "</tr>" +
                 "<tr>" +
