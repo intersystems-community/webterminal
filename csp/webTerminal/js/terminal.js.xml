@@ -71,7 +71,7 @@ var terminal = new function() {
         READ_STRING: String.fromCharCode(6), // reads string - removes namespace like in common terminal
         READ_CHARACTER: String.fromCharCode(7), // reads character - removes namespace like in common terminal
         AUTHORIZATION_STATUS: String.fromCharCode(8), // alerts client about authorization success. Holds 1/0
-        WATCH: String.fromCharCode(9)
+        WATCH: String.fromCharCode(9) // start watching
     };
 
     /**
@@ -400,7 +400,7 @@ var terminal = new function() {
             "about": function() {
                 server.submit(terminal.serverActions.EXECUTE, 'for i=0:0.2:$zpi*2 { for u=1:1:($zsin(i)*15 + 15) { w ' +
                     '" " } w "# " if (i=1.4) { w "CacheWebTerminal v' + application.version() + '" } elseif (i=1.6) {' +
-                    ' w "for InterSystems Cache" } elseif (i=1.8) { w "by ZitRo" } elseif (i=4.4) { w "In developing ' +
+                    ' w "for InterSystems Cache" } elseif (i=1.8) { w "by ZitRo" } elseif (i=4.4) { w "In development ' +
                     'since Summer, 2013" } elseif (i=4.6) { w "Project page: http://intersystems-ru.github.io/webterm' +
                     'inal" } elseif (i=4.8) { w "Use at your own risk!" } elseif (i=5) { w "But believe me, all right' +
                     ' :)" } w ! h 0.04}');
@@ -1195,7 +1195,7 @@ var terminal = new function() {
             var arr = query.match(/("[^"]*")|[^\s"]+/g);
             if (!arr) return false;
             for (var i = 0; i < arr.length; i++) {
-                if (arr[i].match(/\/[a-z]+/)) {
+                if (/^\/[a-z]+$/.test(arr[i])) {
                     var command = arr[i].substr(1);
                     arr.splice(0, i + 1);
                     var fish = query.substring(0,query.indexOf("/" + command) - 1); // mm, fish

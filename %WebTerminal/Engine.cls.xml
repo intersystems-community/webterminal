@@ -656,6 +656,7 @@ Starts clear I/O mode</Description>
 <Description>
 Ends clear I/O mode</Description>
 <Implementation><![CDATA[
+	write *-3
 	do ##class(%Device).ReDirectIO($$$NO)
 	do ..SendData("exit",..ConstClientExitClearIO)
 ]]></Implementation>
