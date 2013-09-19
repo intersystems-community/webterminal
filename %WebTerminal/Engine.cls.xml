@@ -647,8 +647,10 @@ Sends to client new namespace if last was changed</Description>
 <Description>
 Starts clear I/O mode</Description>
 <Implementation><![CDATA[
+	write *-3
 	do ##class(%Device).ReDirectIO($$$YES)
 	do ..Write(..ConstClientEnterClearIO)
+	write *-3
 ]]></Implementation>
 </Method>
 
@@ -659,6 +661,7 @@ Ends clear I/O mode</Description>
 	write *-3
 	do ##class(%Device).ReDirectIO($$$NO)
 	do ..SendData("exit",..ConstClientExitClearIO)
+	write *-3
 ]]></Implementation>
 </Method>
 

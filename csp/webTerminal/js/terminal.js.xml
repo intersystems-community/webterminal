@@ -260,12 +260,6 @@ var terminal = new function() {
                 CREATE_OUTPUT = false;
             } // exit clear IO
 
-            if (CREATE_OUTPUT) {
-                var obj = terminal.output.forceWrite("",true);
-                terminal.output.setTarget(obj);
-                CREATE_OUTPUT = false;
-            }
-
             data = parser.clearHTML(data);
 
             switch (terminal.mode) {
@@ -286,6 +280,12 @@ var terminal = new function() {
                     } else terminal.processor.write((settings.get_parseOutput())?parser.highlightHTML(data):data);
                 } break;
                 default: terminal.processor.write("Unknown terminal mode " + terminal.mode + ": data received:\n" + data);
+            }
+
+            if (CREATE_OUTPUT) {
+                var obj = terminal.output.forceWrite("",true);
+                terminal.output.setTarget(obj);
+                CREATE_OUTPUT = false;
             }
 
         };
