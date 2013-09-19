@@ -10,6 +10,12 @@ Web-based terminal application for InterSystems Cach&eacute; database. Access yo
 
 ### What's new?
 
+#### v0.9.7
+
+* New autocomplete rules: faster, better
+* Wrong internal commands parsing (e.g. inside strings) fixed
+* Huge data output crashes fixed
+
 #### v0.9.6.8
 
 * Added /tip command with detail tutorial of terminal functionality.
