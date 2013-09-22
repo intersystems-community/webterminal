@@ -862,6 +862,8 @@ var terminal = new function() {
             intervalID = -1,
             interval = 1000,
             check = function() {
+	            if (terminal.mode === terminal.modes.CLEAR_IO ||
+	            terminal.mode === terminal.modes.SQL) return;
                 try {
                     server.submit(terminal.serverActions.CHECK_WATCH)
                 } catch (e) {
@@ -1272,6 +1274,7 @@ var terminal = new function() {
             if (readChar) {
                 readChar = false;
                 server.submit("",String.fromCharCode(key),true);
+                terminal.output.write(String.fromCharCode(key));
                 hid.preventDefault(event);
                 this.clear();
                 return false;
