@@ -32,7 +32,7 @@ var server = new function() {
             terminal.output.write("Disconnecting from current server...");
             socket.close();
             socket = null;
-            terminal.namespace.set("system");
+            terminal.namespace.set(lang.get(4));
         } else terminal.output.write("Pointless server disconnection: there's no connection established.")
     };
 

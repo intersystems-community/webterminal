@@ -3,6 +3,7 @@
 <cspapp>/WebTerminal/favicon.ico
 <cspapp>/WebTerminal/img
 <cspapp>/WebTerminal/index.csp
+<cspapp>/WebTerminal/js
 <cspapp>/WebTerminal/js/application.js
 <cspapp>/WebTerminal/js/base.js
 <cspapp>/WebTerminal/js/hid.js

@@ -16,14 +16,15 @@
         <link rel="stylesheet" href="css/terminal.css">
         <link rel="stylesheet" href="css/extra.css">
         <link rel="stylesheet" href="css/theme-default.css" id="terminal-color-theme">
-        <script type="text/javascript" src="js/base.js"></script>
-        <script type="text/javascript" src="js/parser.js"></script>
-        <script type="text/javascript" src="js/hid.js"></script>
-        <script type="text/javascript" src="js/application.js"></script>
-        <script type="text/javascript" src="js/server.js"></script>
-        <script type="text/javascript" src="js/terminal.js"></script>
-        <script type="text/javascript" src="js/unit.js"></script>
-        <script type="text/javascript" src="js/storage.js"></script>
+        <script type="text/javascript" src="js/storage.js"></script> <!-- first loading storage independent module -->
+        <script type="text/javascript" src="js/parser.js"></script> <!-- parser is independent module -->
+        <script type="text/javascript" src="js/hid.js"></script> <!-- hid is independent module -->
+        <script type="text/javascript" src="js/language.js"></script> <!-- language module reads setting from storage -->
+        <script type="text/javascript" src="js/base.js"></script> <!-- dom/settings uses storage, parser and language -->
+        <script type="text/javascript" src="js/application.js"></script> <!-- application module uses language, settings, storage -->
+        <script type="text/javascript" src="js/server.js"></script> <!-- server uses parser -->
+        <script type="text/javascript" src="js/terminal.js"></script> <!-- terminal uses almost all modules above -->
+        <script type="text/javascript" src="js/unit.js"></script> <!-- unit-test module, not necessary -->
     </head>
 
     <body>
@@ -89,6 +90,16 @@
                             </td>
                             <td>
                                 Saves your history, favorites, definitions and autocompletion automatically after browser tab closed and loads it later.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Language
+                            </td>
+                            <td>
+                                <label id="terminal-languages-container">
+
+                                </label>
                             </td>
                         </tr>
                         <tr>

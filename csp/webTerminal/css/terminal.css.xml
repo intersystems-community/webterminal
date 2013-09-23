@@ -130,10 +130,6 @@ terminal-base tr, td {
     vertical-align: top;
 }
 
-#terminal-themes-container > input {
-    margin-left: 20px;
-}
-
 #terminal-control-closeButton {
     float: right;
     cursor: pointer;

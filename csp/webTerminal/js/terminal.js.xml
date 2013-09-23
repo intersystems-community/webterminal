@@ -104,7 +104,7 @@ var terminal = new function() {
         storage.set("definitions", terminal.definitions.export());
         storage.set("settings", settings.export());
         storage.modifySave();
-        terminal.output.write("Terminal state has been saved.")
+        terminal.output.write(lang.get(6))
 
     };
 
@@ -116,7 +116,7 @@ var terminal = new function() {
     this.loadState = function() {
 
         if (typeof storage.lastSave() === "undefined") {
-            terminal.output.write("Unable to load terminal state: no saves.");
+            terminal.output.write(lang.get(7));
             return false;
         }
 
@@ -127,7 +127,7 @@ var terminal = new function() {
         if (favs) terminal.favorites.import(favs);
         var defs = storage.get("definitions");
         if (defs) terminal.definitions.import(defs);
-        if (!settings.get_cleanStartup()) terminal.output.write("Terminal state has been loaded.");
+        if (!settings.get_cleanStartup()) terminal.output.write(lang.get(2));
 
         return true;
 
@@ -219,7 +219,7 @@ var terminal = new function() {
         end: function() {
 
             if (settings.get_restoreSession()) {
-                terminal.output.write("Saving terminal state...");
+                terminal.output.write(lang.get(8));
                 terminal.saveState();
             }
             server.disconnect();
@@ -262,6 +262,12 @@ var terminal = new function() {
 
             data = parser.clearHTML(data);
 
+            if (CREATE_OUTPUT) { // wait for next message
+                var obj = terminal.output.forceWrite("",true);
+                terminal.output.setTarget(obj);
+                CREATE_OUTPUT = false;
+            }
+
             switch (terminal.mode) {
                 case terminal.modes.NORMAL: terminal.processor.performAction(data.charAt(0),data.substr(1)); break;
                 case terminal.modes.CLEAR_IO: {
@@ -279,13 +285,7 @@ var terminal = new function() {
                         // upper
                     } else terminal.processor.write((settings.get_parseOutput())?parser.highlightHTML(data):data);
                 } break;
-                default: terminal.processor.write("Unknown terminal mode " + terminal.mode + ": data received:\n" + data);
-            }
-
-            if (CREATE_OUTPUT) {
-                var obj = terminal.output.forceWrite("",true);
-                terminal.output.setTarget(obj);
-                CREATE_OUTPUT = false;
+                default: terminal.processor.write(lang.get(9) + " " + terminal.mode + ": " + lang.get(10) + ":\n" + data);
             }
 
         };
@@ -312,7 +312,7 @@ var terminal = new function() {
                 } break;
                 case terminal.clientActions.AUTHORIZATION_STATUS: {
                     if (!settings.get_cleanStartup()) {
-                        terminal.output.write((data == "1")?"Authorisation succeeded.":"Authorisation failed.");
+                        terminal.output.write((data == "1")?lang.get(3):lang.get(5));
                     }
                     terminal.ready = true; // TERMINAL READY
                 } break;
@@ -329,7 +329,7 @@ var terminal = new function() {
 
         this.internal = {
 
-            "sql": function() {
+            sql: function() {
                 if (terminal.mode == terminal.modes.SQL){
                     terminal.namespace.update();
                     terminal.mode = terminal.modes.NORMAL;
@@ -337,19 +337,19 @@ var terminal = new function() {
                     terminal.namespace.mask("SQL");
                     terminal.mode = terminal.modes.SQL;
                 }
-                terminal.output.write("<span class=\"info\">SQL mode " +
-                    ((terminal.mode == terminal.modes.SQL)?"enabled":"disabled") + "</span>");
+                terminal.output.write("<span class=\"info\">" + lang.get(11) + " " +
+                    lang.get((terminal.mode == terminal.modes.SQL)?12:13) + "</span>");
             },
 
-            "help": function() {
+            help: function() {
                 terminal.output.write(application.HELPBOX);
             },
 
-            "settings": function() {
+            settings: function() {
                 settings.openPanel();
             },
 
-            "autocomplete": function(regenerate) {
+            autocomplete: function(regenerate) {
                 server.submit(
                     terminal.serverActions.GENERATE_AUTOCOMPLETE,
                     ((regenerate==="new")?"1":"0"),
@@ -357,56 +357,55 @@ var terminal = new function() {
                 );
             },
 
-            "clear": function() {
+            clear: function() {
                 dom.clearLogs();
             },
 
-            "save": function() {
+            save: function() {
                 terminal.saveState();
             },
 
-            "load": function() {
+            load: function() {
                 terminal.loadState();
             },
 
-            "reset": function() {
+            reset: function() {
                 terminal.resetState();
             },
 
-            "connect": function(url) {
+            connect: function(url) {
                 server.connect(url);
-                terminal.output.write("Just reload the page to connect to server again.");
+                terminal.output.write(lang.get(15));
             },
 
-            "disconnect": function() {
+            disconnect: function() {
                 server.disconnect();
             },
 
-            "reconnect": function() {
+            reconnect: function() {
                 server.disconnect();
                 server.connect();
             },
 
-            "define": function(redefinition, definition) {
+            define: function(redefinition, definition) {
                 if (!definition || !redefinition) {
-                    terminal.output.write("Use /define [definition] [redefinition]");
+                    terminal.output.write(lang.get(16) + " /define [definition] [redefinition]");
                     return;
                 }
                 terminal.definitions.add(definition,redefinition);
-                terminal.output.write("<span class=\"info\">" + definition + "</span> defined as " +
+                terminal.output.write("<span class=\"info\">" + definition + "</span> " + lang.get(17) + " " +
                     "<span class=\"info\">" + redefinition + "</span>")
             },
 
-            "about": function() {
+            about: function() {
                 server.submit(terminal.serverActions.EXECUTE, 'for i=0:0.2:$zpi*2 { for u=1:1:($zsin(i)*15 + 15) { w ' +
                     '" " } w "# " if (i=1.4) { w "CacheWebTerminal v' + application.version() + '" } elseif (i=1.6) {' +
-                    ' w "for InterSystems Cache" } elseif (i=1.8) { w "by ZitRo" } elseif (i=4.4) { w "In development ' +
-                    'since Summer, 2013" } elseif (i=4.6) { w "Project page: http://intersystems-ru.github.io/webterm' +
-                    'inal" } elseif (i=4.8) { w "Use at your own risk!" } elseif (i=5) { w "But believe me, all right' +
-                    ' :)" } w ! h 0.04}');
+                    ' w "'+lang.get(18)+' InterSystems Cache" } elseif (i=1.8) { w "by ZitRo" } elseif (i=4.4) { w "' +
+                    lang.get(19) + '" } elseif (i=4.6) { w "'+lang.get(20)+': http://intersystems-ru.github.io/webterm' +
+                    'inal" } elseif (i=4.8) { w "'+lang.get(21)+'" } elseif (i=5) { w "'+lang.get(22)+'..." } w ! h 0.04}');
             },
 
-            "siege": function(iterations,serverDelay) {
+            siege: function(iterations,serverDelay) {
                 if (typeof iterations == "undefined") { iterations = 120 }
                 if (typeof serverDelay == "undefined") { serverDelay = 0.02 }
                 var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(65+$RANDOM(26))\n" +
@@ -423,50 +422,48 @@ var terminal = new function() {
                         receiveDataHandler = null;
                         var timeDifference = new Date().getTime() - startTime;
                         terminal.output.freeStack(0);
-                        terminal.output.write("<span class=\"info\"><br>Query client execution time: " +
-                            timeDifference + "/" + (serverDelay*iterations*1000) + "ms (current/ideal)" +
-                            "<br>Packages from server: "+packages+"</span>\n");
+                        terminal.output.write("<span class=\"info\"><br>"+lang.get(23)+": " +
+                            timeDifference + "/" + (serverDelay*iterations*1000) + "ms ("+lang.get(25)+")" +
+                            "<br>"+lang.get(24)+": "+packages+"</span>\n");
                     }
                     return true;
                 }
             },
 
-            "tail": function(name) {
+            tail: function(name) {
                 if (!name) {
                     if (!terminal.watches.stopAll()) {
-                        terminal.output.write("Please, enter watch name. Use /help for more information.")
+                        terminal.output.write(lang.get(26))
                     }
                     return;
                 }
                 server.submit(terminal.serverActions.WATCH, name);
             },
 
-            "favorite": function(code, slot) {
-                var d = code * 1;
-                if (!isNaN(d)) {
-                    terminal.input.set(terminal.favorites.get(d));
+            favorite: function(code, slot) {
+                if (!isNaN(code)) {
+                    terminal.input.set(terminal.favorites.get(code));
                     terminal.input.moveCaretToEnd();
                     return;
                 }
-                if (!code) { terminal.output.write("Enter command to favorite."); return;}
-                slot = slot * 1;
+                if (!code) { terminal.output.write(lang.get(27)); return;}
                 if (slot && slot > -1 && slot < 10) {
                     terminal.favorites.add(slot, code);
-                    terminal.output.write("Command saved to slot " + slot + ".");
-                } else terminal.output.write("Choose correct slot: 0-9 available.")
+                    terminal.output.write(lang.get(28) + " " + slot + ".");
+                } else terminal.output.write(lang.get(29))
             },
 
-            "watch": function(name) {
+            watch: function(name) {
                 terminal.processor.executeInternal("tail",[name]);
             },
 
-            "tip": function(flag) {
+            tip: function(flag) {
                 terminal.output.write(application.getTips(!!(flag === "all")));
             },
 
-            "echo": function() {
+            echo: function() {
                 if (arguments.length == 0) {
-                    arguments[0] = "I'm alive!";
+                    arguments[0] = lang.get(30);
                     arguments.length = 1;
                 }
                 var s = "";
@@ -489,7 +486,7 @@ var terminal = new function() {
             if (this.internal.hasOwnProperty(command)) {
                 if (!args || !args[0]) args = [];
                 this.internal[command].apply(this,args)
-            } else terminal.output.write("Unknown internal command: " + command);
+            } else terminal.output.write(lang.get(31) + ": " + command);
 
         };
 
@@ -510,7 +507,10 @@ var terminal = new function() {
         if (!dom.initialize() || !settings.initialize()) {
             log.write("Unable to init terminal: dom fault.",dom.objects);
             return;
-        } else storage.initialize();
+        }
+
+        storage.initialize();
+        lang.setLanguage(settings.get_language());
 
         this.output.setTarget(dom.objects.output); // set standard output
 
@@ -523,9 +523,8 @@ var terminal = new function() {
 
         var serverURL = server.getDefaultServerURL();
         if (!settings.get_cleanStartup()) {
-            this.output.write("Terminal base ready. Type " + parser.highlightHTML("/help or /tip") +
-                " to get more information.");
-            this.output.write("Connecting to " + serverURL + "...");
+            this.output.write(lang.get(0));
+            this.output.write(lang.get(1) + " " + serverURL + "...");
         }
 
         server.connect(serverURL);
@@ -538,7 +537,7 @@ var terminal = new function() {
     };
 
     /**
-     * Represents methotd to work with history
+     * Represents method to work with history
      */
     this.history = new function() {
 
@@ -862,14 +861,14 @@ var terminal = new function() {
             intervalID = -1,
             interval = 1000,
             check = function() {
-	            if (terminal.mode === terminal.modes.CLEAR_IO ||
-	            terminal.mode === terminal.modes.SQL) return;
+                if (terminal.mode === terminal.modes.CLEAR_IO ||
+                    terminal.mode === terminal.modes.SQL) return;
                 try {
                     server.submit(terminal.serverActions.CHECK_WATCH)
                 } catch (e) {
                     clearInterval(intervalID);
                     intervalID = -1;
-                    terminal.output.write("Watches stopped.")
+                    terminal.output.write(lang.get(32))
                 }
             };
 
@@ -881,8 +880,8 @@ var terminal = new function() {
          * @param name
          */
         this.watch = function(name) {
-            if (name == "unreal") {
-                terminal.output.write("Unable to watch " + name);
+            if (name.charAt(0) == "!") {
+                terminal.output.write(lang.get(33) + " " + name.substr(1));
                 return;
             }
             var type = (name.charAt(0) === "^")?"global":"file";
@@ -896,13 +895,13 @@ var terminal = new function() {
                     intervalID = -1;
                 }
                 delete watches[name];
-                terminal.output.write("Stopping to watch " + name);
+                terminal.output.write(lang.get(34) + " " + name);
             } else {
                 watches[name] = {
                     type: type
                 };
                 if (intervalID === -1) intervalID = setInterval(check, interval);
-                terminal.output.write("Starting to watch " + name);
+                terminal.output.write(lang.get(35) + " " + name);
             }
         };
 
@@ -1001,7 +1000,7 @@ var terminal = new function() {
 
             var head = document.createElement("div");
             head.className = "terminal-message-head"+((marking)?" waiting":"");
-            head.innerHTML = terminal.namespace.get();
+            head.innerHTML = terminal.namespace.getMask();
 
             var body = document.createElement("div");
             body.className = "terminal-message-body terminal-output-body";
@@ -1074,7 +1073,7 @@ var terminal = new function() {
             var element = dom.objects.input;
             if(element.createTextRange) {
                 var range = element.createTextRange();
-                range.move('character', position);
+                range.move("character", position);
                 range.select();
             } else {
                 if(element.selectionStart) {
@@ -1348,8 +1347,8 @@ var terminal = new function() {
 
     this.namespace = new function() {
 
-        var namespace = "system",
-            oldNamespace = "system";
+        var namespace = lang.get(4),
+            oldNamespace = namespace;
 
         /**
          * Set current namespace. Namespace won't change if something unless string will be passed.
@@ -1376,12 +1375,21 @@ var terminal = new function() {
         };
 
         /**
-         * Get current namespace
+         * Get current real namespace
          *
          * @returns {string}
          */
         this.get = function() {
             return oldNamespace; // not masked namespace
+        };
+
+        /**
+         * Get current visible namespace.
+         *
+         * @returns {string}
+         */
+        this.getMask = function() {
+            return namespace;
         };
 
         /**
@@ -1415,7 +1423,6 @@ var terminal = new function() {
      *          expecting unit to be placed at the beginning of string, such as system commands.
      *      -   Insert brackets to regular expression in position which have to match with properties (language units)
      *      -   Do not forget to write REVERSED regular expression for your expectations.
-     *
      */
     this.language = new function() {
 
@@ -1570,7 +1577,7 @@ var terminal = new function() {
 
             string = " " + string + "  "; // keep two spaces
             var re = new RegExp("[\\s\\{](set|s)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))\\s*=","ig"),
-            result = re.exec(string);
+                result = re.exec(string);
             if (result && result[2]) {
                 if (result[2].charAt(0) === "^") {
                     this.tokens.global[result[2].substr(1)] = 0;

@@ -52,7 +52,7 @@ var parser = new function() {
 
         var result = null;
         stringPart = stringPart.toLowerCase();
-        if (terminal.language.tokens.commands.hasOwnProperty(stringPart)) {
+        if (typeof terminal !== "undefined" && terminal.language.tokens.commands.hasOwnProperty(stringPart)) {
             result = "_command"
         } else if (stringPart.match(/^[a-zA-Z][a-zA-Z0-9]*$/)) { // simple words
             result = stringPart.toLowerCase();
@@ -94,7 +94,7 @@ var parser = new function() {
      *  Parsed string.
      */
     this.highlightHTML = function(string) {
-        if (!settings.highlightOutput()) return string;
+        if (typeof settings !== "undefined" && !settings.highlightOutput()) return string;
         return string.replace(/(\/\*.*?(?=\*\/)\*\/)|([0-9]+\.?[0-9]+?)|(((<|&|&#)|(\^%?)|\/|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
             function(part) {
                 return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";

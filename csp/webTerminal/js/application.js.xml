@@ -6,7 +6,7 @@
  */
 var application = new function() {
 
-    var version = "0.9.7.1 beta";
+    var version = "0.9.7.8 beta";
     this.debug = false; // remove for release
     this.debugUrlPart = "127.0.0.1:57772"; // in-debug mode
 

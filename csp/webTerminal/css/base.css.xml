@@ -31,6 +31,14 @@ tr, td {
     border-spacing: 0;
 }
 
+input {
+    margin-left: 20px;
+}
+
+input:first-child {
+    margin-left: 0;
+}
+
 p {
     text-indent: 40px;
 }]]></CSP>

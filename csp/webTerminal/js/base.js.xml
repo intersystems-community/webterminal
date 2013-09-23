@@ -83,6 +83,7 @@ var dom = new function() {
         settingsParseOutput: null,
         themeCSS: null,
         themesContainer: null,
+        languagesContainer: null,
         body: null,
         startupScript: null,
 
@@ -96,13 +97,17 @@ var dom = new function() {
             dul.moveToElementText(object);
             sel.text = c;
             var len = dul.text.indexOf(c);
-            sel.moveStart('character',-1);
+            sel.moveStart("character", -1);
             sel.text = "";
             return len;
         },
         
         getThemeSelectorObject: function(themeName) {
             return dom.element("terminal-color-theme-" + themeName);
+        },
+
+        getLanguageSelectorObject: function(langName) {
+            return dom.element("terminal-language-unit-" + langName);
         }
     };
 
@@ -204,6 +209,7 @@ var dom = new function() {
         objects.settingsCleanStartup = dom.element("settings-cleanStartup");
         objects.themesContainer = dom.element("terminal-themes-container");
         objects.settingsParseOutput = dom.element("settings-parse-output");
+        objects.languagesContainer = dom.element("terminal-languages-container");
         objects.startupScript = dom.element("startup");
         objects.body = document.body;
     };
@@ -238,7 +244,13 @@ var dom = new function() {
             if (!application.themes.hasOwnProperty(theme) || !theme) continue;
             this.objects.themesContainer.innerHTML += "<input id=\"terminal-color-theme-" + theme + "\" " +
                 "type=\"radio\" name=\"terminal-color-scheme\" value=\"" + theme + "\">" + theme[0].toUpperCase() +
-                theme.substr(1)
+                theme.substr(1);
+        }
+
+        for (var l in lang.availableLanguages) {
+            if (!lang.availableLanguages.hasOwnProperty(l) || !l) continue;
+            this.objects.languagesContainer.innerHTML += "<input id=\"terminal-language-unit-" + l + "\" " +
+                "type=\"radio\" name=\"terminal-language-unit\" value=\"" + l + "\">" + l.toUpperCase();
         }
 
         return this.objectsReady();
@@ -268,16 +280,15 @@ var settings = new function() {
         colorTheme = "default",
         restoreSession = 0,
         parseOutput = 0,
-        cleanStartup = 0;
+        cleanStartup = 0,
+        language = "en";
 
     this.get_restoreSession = function() { return restoreSession == 1 };
     this.get_cleanStartup = function() { return cleanStartup == 1 && !terminal.ready };
     this.get_parseOutput = function() { return parseOutput };
     this.get_animations = function() { return animations };
-
-    this.get_theme = function() {
-        return colorTheme;
-    };
+    this.get_language = function() { return language };
+    this.get_theme = function() { return colorTheme };
 
     this.export = function() {
         return {
@@ -287,7 +298,8 @@ var settings = new function() {
             colorTheme: colorTheme,
             restoreSession: restoreSession,
             cleanStartup: cleanStartup,
-            parseOutput: parseOutput
+            parseOutput: parseOutput,
+            language: language
         };
     };
 
@@ -295,7 +307,8 @@ var settings = new function() {
         if (!(typeof settingImportObject === "object" && settingImportObject.hasOwnProperty("!export:settings") &&
             settingImportObject.hasOwnProperty("animations") && settingImportObject.hasOwnProperty("highlighting") &&
             settingImportObject.hasOwnProperty("colorTheme") && settingImportObject.hasOwnProperty("restoreSession") &&
-            settingImportObject.hasOwnProperty("cleanStartup") && settingImportObject.hasOwnProperty("cleanStartup"))) {
+            settingImportObject.hasOwnProperty("cleanStartup") && settingImportObject.hasOwnProperty("parseOutput") &&
+            settingImportObject.hasOwnProperty("language"))) {
             log.write("Wrong settings object to import. Use /reset to restore settings.");
             return;
         }
@@ -305,6 +318,7 @@ var settings = new function() {
         parseOutput = settingImportObject["parseOutput"];
         restoreSession = (settingImportObject["restoreSession"] == 1)?1:0;
         cleanStartup = settingImportObject["cleanStartup"];
+        language = settingImportObject["language"];
         this.update();
     };
 
@@ -315,6 +329,7 @@ var settings = new function() {
         restoreSession = 0;
         parseOutput = 0;
         cleanStartup = 0;
+        language = "en";
         this.update();
     };
 
@@ -335,6 +350,14 @@ var settings = new function() {
             var obj = dom.objects.getThemeSelectorObject(theme);
             if (!obj) continue;
             if (obj.checked) colorTheme = theme;
+        }
+
+        language = "en";
+        for (var l in lang.availableLanguages) {
+            if (!lang.availableLanguages.hasOwnProperty(l)) continue;
+            var obj2 = dom.objects.getLanguageSelectorObject(l);
+            if (!obj2) continue;
+            if (obj2.checked) language = l;
         }
 
         dom.objects.themeCSS.href = "css/theme-" + colorTheme + ".css";
@@ -384,6 +407,12 @@ var settings = new function() {
             var obj = dom.objects.getThemeSelectorObject(theme);
             if (!obj) continue;
             obj.checked = colorTheme === theme;
+        }
+        for (var l in lang.availableLanguages) {
+            if (!lang.availableLanguages.hasOwnProperty(l)) continue;
+            var obj2 = dom.objects.getLanguageSelectorObject(l);
+            if (!obj2) continue;
+            obj2.checked = language === l;
         }
     };
 

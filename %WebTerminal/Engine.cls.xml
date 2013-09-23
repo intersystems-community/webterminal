@@ -4,7 +4,7 @@
 <Description>
 This class represents the core of web terminal.
 All operations with opened WebSocket placed here.
-CLASS USES GLOBAL ^%WebTerminal.Engine.AuthorizationKey for client
+CLASS USES GLOBAL ^|"%SYS"|%WebTerminal.AuthKey for client
 authorization.</Description>
 <Super>%CSP.WebSocket,%Library.Routine</Super>
 <TimeCreated>63047,60359.445979</TimeCreated>
@@ -565,7 +565,7 @@ system classes generates one time and forever. </Description>
 Generating new authorization key</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
-<Implementation><![CDATA[	set ^CacheTemp.WebTerminal.AuthKey = $SYSTEM.Util.CreateGUID()
+<Implementation><![CDATA[	set ^|"%SYS"|%WebTerminal.AuthKey = $SYSTEM.Util.CreateGUID()
 ]]></Implementation>
 </Method>
 
@@ -576,10 +576,10 @@ If the key is empty, generates new key value.</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	if ($get(^CacheTemp.WebTerminal.AuthKey) = "") {
+	if ($get(^|"%SYS"|%WebTerminal.AuthKey) = "") {
 		Do ..GenerateAuthKey()
 	}
-	quit ^CacheTemp.WebTerminal.AuthKey
+	quit ^|"%SYS"|%WebTerminal.AuthKey
 ]]></Implementation>
 </Method>
 
@@ -789,7 +789,7 @@ Method description:
 		    if ('$$$ISOK(result)) {
 				set result = ..RemoveWatch(data)
 				if ('$$$ISOK(result)) {
-					do ..SendData("unreal", ..ConstClientWatch)
+					do ..SendData("!" _ data, ..ConstClientWatch)
 				}
 		    }
 		  
@@ -813,7 +813,7 @@ Method description:
 	    } elseif (action = ..ConstServerActionEcho) {
 		      
 		    do ..StartClearIO()
-		    do ..SendData(data)
+		    write data
 		    do ..EndClearIO()
 		    		
 	    } else { // something scary

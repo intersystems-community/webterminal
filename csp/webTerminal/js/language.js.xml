@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="WebTerminal/js/language.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * This global object holds language constants for whole terminal application.
+ *
+ * Required objects:
+ *  parser
+ */
+var lang = new function() {
+
+    /**
+     * List of available languages in settings. To add language translation perform the next:
+     *
+     * 1. Add language sign to the list below;
+     * 2. Fill language.js -> languageBase variable according to examples there;
+     * 3. Use it!
+     *
+     * Do not forget to check that all language units are filled. In case of nonexistent language unit you will receive
+     * warning text instead of expected phrase.
+     */
+    this.availableLanguages = {
+        "en": 0,
+        "ru": 0
+    };
+    var currentLanguage = "en", languages = this.availableLanguages;
+
+    var c = {
+            0: parser.highlightHTML("/help"),
+            1: parser.highlightHTML("/tip")
+        };
+
+    /**
+     * Global language object. May include some dynamic data, but it will be performed once at the beginning, for
+     * example, to highlight some pieces
+     */
+    var languageBase = {
+        0: {
+            en: "Terminal base ready. Type " + c[0] + " or " + c[1] + " to get more information.",
+            ru: "Приложение терминала готово. Введите " + c[0] + " или " + c[1] + " чтобы получить дополнительную информацию."
+        },
+        1: {
+            en: "Connecting to",
+            ru: "Подключение к"
+        },
+        2: {
+            en: "Terminal state has been loaded.",
+            ru: "Состояние терминала загружено."
+        },
+        3: {
+            en: "Authorisation succeeded.",
+            ru: "Авторизация успешна."
+        },
+        4: {
+            en: "system",
+            ru: "система"
+        },
+        5: {
+            en: "Authorisation failed.",
+            ru: "Авторизация не удалась."
+        },
+        6: {
+            en: "Terminal state has been saved.",
+            ru: "Состояние терминала сохранено."
+        },
+        7: {
+            en: "Unable to load terminal state: no saves.",
+            ru: "Невозможно загрузить состояние терминала: нет сохранений."
+        },
+        8: {
+            en: "Saving terminal state...",
+            ru: "Сохранение состояния терминала..."
+        },
+        9: {
+            en: "Unknown terminal mode",
+            ru: "Неизвестный режим терминала"
+        },
+        10: {
+            en: "Data received",
+            ru: "Полученные данные"
+        },
+        11: {
+            en: "SQL mode",
+            ru: "режим SQL"
+        },
+        12: {
+            en: "enabled",
+            ru: "активирован"
+        },
+        13: {
+            en: "disabled",
+            ru: "деактивирован"
+        },
+        15: {
+            en: "Reload the page to connect to server again.",
+            ru: "Перезагрузите страницу, чтобы вновь присоединиться к серверу."
+        },
+        16: {
+            en: "Use",
+            ru: "Используйте"
+        },
+        17: {
+            en: "defined as",
+            ru: "определено как"
+        },
+        18: {
+            en: "for",
+            ru: "для"
+        },
+        19: {
+            en: "In development since summer, 2013",
+            ru: "В разработке с лета, 2013"
+        },
+        20: {
+            en: "Project page",
+            ru: "Страница проекта"
+        },
+        21: {
+            en: "Use at your own risk!",
+            ru: "Используйте на свой страх и риск!"
+        },
+        22: {
+            en: "For the time being",
+            ru: "Пока что"
+        },
+        23: {
+            en: "Query client execution time",
+            ru: "Время выполнения команды"
+        },
+        24: {
+            en: "Packages",
+            ru: "Пакетов"
+        },
+        25: {
+            en: "current/ideal",
+            ru: "текущее/идеальное"
+        },
+        26: {
+            en: "Please, enter watch name. Use " + c[0] + " for more information.",
+            ru: "Введите цель слежения. Введите " + c[0] + " чтобы получить больше информации."
+        },
+        27: {
+            en: "Enter command or index.",
+            ru: "Введите команду или индекс."
+        },
+        28: {
+            en: "Command saved to slot",
+            ru: "Комманда сохранена в слот"
+        },
+        29: {
+            en: "Choose correct slot: slots 0-9 are available",
+            ru: "Выберите существующий слот: слоты 0-9 доступны"
+        },
+        30: {
+            en: "I'm alive!",
+            ru: "Я жив!"
+        },
+        31: {
+            en: "Unknown internal command",
+            ru: "Неизвестная внутренняя команда"
+        },
+        32: {
+            en: "Watches stopped.",
+            ru: "Слежение остановлено."
+        },
+        33: {
+            en: "Unable to watch",
+            ru: "Невозможно следить за"
+        },
+        34: {
+            en: "Stopping to watch",
+            ru: "Прекращаем слежение за"
+        },
+        35: {
+            en: "Starting to watch",
+            ru: "Начинаем слежение за"
+        },
+        36: {
+            en: "",
+            ru: ""
+        },
+        37: {
+            en: "",
+            ru: ""
+        },
+        38: {
+            en: "",
+            ru: ""
+        },
+        39: {
+            en: "",
+            ru: ""
+        },
+        40: {
+            en: "",
+            ru: ""
+        },
+        41: {
+            en: "",
+            ru: ""
+        }
+    };
+
+    this.setLanguage = function(lang) {
+        if (languages.hasOwnProperty(lang)) {
+            currentLanguage = lang
+        } else log.write("No available translations for \"" + lang + "\". Use " + function(){
+            var s = "";
+            for (var p in languages) { if (languages.hasOwnProperty(p)) s += "|\"" + p + "\"" }
+            return s.substr(1);
+        }() + ".")
+    };
+
+    /**
+     * Returns language constant according to current language.
+     */
+    this.get = function(languageConstID) {
+        return languageBase[languageConstID][currentLanguage] || "[[No translation, id=" + languageConstID + "]]";
+    };
+
+    this.setLanguage((storage.get("settings") || {}).language || "en");
+
+};]]></CSP>
+</Export>
