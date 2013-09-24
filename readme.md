@@ -10,6 +10,12 @@ Web-based terminal application for InterSystems Cach&eacute; database. Access yo
 
 ### What's new?
 
+#### v 0.9.9
+* Russian translation
+* Fixes in autocomplete, read, /tail, /sql
+* Authorization from another namespace
+* Other small fixes and improvements
+
 #### v0.9.7
 
 * New autocomplete rules: faster, better
