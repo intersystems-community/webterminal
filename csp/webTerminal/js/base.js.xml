@@ -422,6 +422,17 @@ var settings = new function() {
     };
 
     /**
+     * Applies language to the document.
+     */
+    function translateDocument() {
+        var i = 0, e;
+        while (e = dom.element("lang-field-" + i)) {
+            e.innerHTML = lang.get(62 + i);
+            i++;
+        }
+    }
+
+    /**
      * Initializes settings. Returns true if initialization successful.
      *
      * @returns {boolean}
@@ -434,6 +445,16 @@ var settings = new function() {
         hid.bindClick(dom.objects.panelTable,this.updateFromView);
         this.update();
         hid.bindClick(dom.objects.closePanelButton, function() { settings.closePanel() });
+        hid.bindClick(dom.objects.languagesContainer,function(){
+            var ih = this.hasAttribute("duck");
+            if (!ih) {
+                this.setAttribute("duck", "quack!");
+                var s = document.createElement("span");
+                s.innerHTML = " " + lang.get(61);
+                this.appendChild(s);
+            }
+        });
+        translateDocument();
         return true;
     }
 

@@ -9,6 +9,26 @@ authorization.</Description>
 <Super>%CSP.WebSocket,%Library.Routine</Super>
 <TimeCreated>63047,60359.445979</TimeCreated>
 
+<UDLText name="T">
+<Content><![CDATA[
+// USER CONSTANTS START
+
+]]></Content>
+</UDLText>
+
+<Parameter name="authorizationTimeout">
+<Description>
+How long to wait for authorization key when connection established</Description>
+<Default>5</Default>
+</Parameter>
+
+<UDLText name="T">
+<Content><![CDATA[
+// USER CONSTANTS END
+
+]]></Content>
+</UDLText>
+
 <Property name="SharedConnection">
 <Description><![CDATA[
 This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
@@ -712,12 +732,12 @@ This method holds process and expects only one package from
 the client - it includes authorization key.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set key = ..Read(,.status,3) // wait for package
+	set key = ..Read(,.status,..#authorizationTimeout) // wait for package
 	set realKey = ..GetAuthKey() // remember current auth key
 	do ..GenerateAuthKey() // generate new auth key
 	
 	if (key = realKey) {
-		quit $$$OK	
+		quit $$$OK
 	}
 	
 	quit $$$NOTOK
@@ -842,6 +862,7 @@ New connection established</Description>
 		   
 		use $io::("^" _ ..InitialZName)
 		do ..ClientLoop()
+		
 	} else {
 		
 		do ..SendData("0", ..ConstClientAuthorizationStatus)

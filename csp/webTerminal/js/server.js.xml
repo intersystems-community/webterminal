@@ -29,11 +29,11 @@ var server = new function() {
     this.disconnect = function() {
         terminal.watches.stopAll();
         if (server.connected()) {
-            terminal.output.write("Disconnecting from current server...");
+            terminal.output.write(lang.get(36));
             socket.close();
             socket = null;
             terminal.namespace.set(lang.get(4));
-        } else terminal.output.write("Pointless server disconnection: there's no connection established.")
+        } else terminal.output.write(lang.get(37))
     };
 
     /**
@@ -42,20 +42,20 @@ var server = new function() {
      * @param namespace
      */
     this.requestAutocompleteFile = function(namespace) {
-        terminal.output.write("Loading Caché language for " + namespace.replace(/_/g,"%"));
+        terminal.output.write(lang.get(38) + " " + namespace.replace(/_/g,"%"));
         ajax.get("js/autocomplete/" + namespace + ".js",function(data,allRight){
             namespace = namespace.replace(/_/g,"%");
             if (allRight) {
                 var obj = parser.jsonToObject(data);
                 if (!obj.hasOwnProperty("class")) {
-                    terminal.output.write("Wrong language file for " + namespace + ".");
+                    terminal.output.write(lang.get(39) + " " + namespace + ".");
                 } else {
                     if (obj.hasOwnProperty("class")) terminal.language.addClasses(obj.class);
                     if (obj.hasOwnProperty("global")) terminal.language.addGlobals(obj.global);
-                    terminal.output.write("Language for " + namespace + " merged.");
+                    terminal.output.write(lang.get(40) + " " + namespace + " " + lang.get(41));
                 }
             } else {
-                terminal.output.write("Language load for " + namespace + " fail.");
+                terminal.output.write(lang.get(40) + namespace + " " + lang.get(42));
             }
         });
     };
@@ -84,7 +84,7 @@ var server = new function() {
     this.connect = function(url) {
 
         if (this.connected()) {
-            terminal.output.write("Connection already established. Disconnect first.");
+            terminal.output.write(lang.get(43));
             return false;
         }
         if (typeof url == "undefined" || typeof url != "string" || !url) { url = this.getDefaultServerURL() }
@@ -112,7 +112,7 @@ var server = new function() {
         if (socket) {
             socket.send((action || "") + data);
         } else {
-            terminal.output.write("No connection established. Try /connect first.")
+            terminal.output.write(lang.get(44))
         }
     };
 
@@ -127,7 +127,7 @@ var server = new function() {
     };
 
     var onClose = function(a) {
-        terminal.output.write("Connection terminated: code " + a.code + " " + a.reason);
+        terminal.output.write(lang.get(45) + " " + a.code + " " + a.reason);
     };
 
     var onMessage = function(event) {
@@ -136,7 +136,7 @@ var server = new function() {
     };
 
     var onError = function(error) {
-        log.write("WebSocket error: ",error)
+        terminal.output.write(lang.get(46) + " ",error)
     };
 
 };

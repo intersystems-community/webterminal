@@ -2,9 +2,8 @@
 <Export generator="Cache" version="25">
 <CSP name="WebTerminal/js/unit.js" application="/csp/sys/" default="1"><![CDATA[
 /**
- * Provides unit tests for terminal application. Use unit.fullTest() to run unit tests.
+ * Provides unit tests for terminal application. Use unit.run() to run unit tests.
  */
-
 var unit = new function() {
 
     var wrongs = 0,

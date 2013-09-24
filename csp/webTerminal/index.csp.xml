@@ -6,7 +6,7 @@
 <html>
 
     <head>
-        <title>Remote Caché terminal</title>
+        <title id="lang-field-15">Caché WEB Terminal</title>
         <meta charset="utf-8">
         <meta name="author" content="ZitRo - InterSystems">
         <meta name="Description" content="Web-based terminal for Cache administration.">
@@ -30,71 +30,71 @@
     <body>
         <div id="terminal-control-panel">
             <div class="terminal-control-content">
-                <span id="terminal-control-closeButton" class="info">Close</span>
-                <h1>Control panel</h1>
+                <span id="terminal-control-closeButton" class="info"><span id="lang-field-0"></span></span>
+                <h1 id="lang-field-1"></h1>
                 <table id="terminal-control-table">
                     <tbody>
                         <tr>
-                            <td class="center" colspan="2">Application settings</td>
+                            <td class="center" colspan="2" id="lang-field-2"></td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-highlighting" type="checkbox">
-                                <label for="settings-highlighting">
-                                    Highlighting
+                                <label for="settings-highlighting" id="lang-field-3">
+
                                 </label>
                             </td>
-                            <td>
-                                Use syntax highlighting
+                            <td id="lang-field-4">
+
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-parse-output" type="checkbox">
-                                <label for="settings-parse-output">
-                                    Parse output
+                                <label for="settings-parse-output" id="lang-field-5">
+
                                 </label>
                             </td>
-                            <td>
-                                Highlighting terminal output data
+                            <td id="lang-field-6">
+
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-cleanStartup" type="checkbox">
-                                <label for="settings-cleanStartup">
-                                    Clean startup
+                                <label for="settings-cleanStartup" id="lang-field-7">
+
                                 </label>
                             </td>
-                            <td>
-                                Do not show additional information during terminal startup
+                            <td id="lang-field-8">
+
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-animations" type="checkbox">
-                                <label for="settings-animations">
-                                    Animations
+                                <label for="settings-animations" id="lang-field-9">
+
                                 </label>
                             </td>
-                            <td>
-                                Animate output and some of terminal elements
+                            <td id="lang-field-10">
+
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-autosaving" type="checkbox">
-                                <label for="settings-autosaving">
-                                    AutoSaving
+                                <label for="settings-autosaving" id="lang-field-11">
+
                                 </label>
                             </td>
-                            <td>
-                                Saves your history, favorites, definitions and autocompletion automatically after browser tab closed and loads it later.
+                            <td id="lang-field-12">
+
                             </td>
                         </tr>
                         <tr>
-                            <td>
-                                Language
+                            <td id="lang-field-13">
+
                             </td>
                             <td>
                                 <label id="terminal-languages-container">
@@ -103,8 +103,8 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>
-                                Color theme
+                            <td id="lang-field-14">
+
                             </td>
                             <td>
                                 <label id="terminal-themes-container">
@@ -139,7 +139,7 @@
                 application.authorizationKey = "#(##Class(%WebTerminal.Engine).GetAuthKey())#";
                 application.initialize();
             } catch (e) {
-                alert("Unable to initialize terminal.");
+                alert("Unable to initialize terminal: check console output.");
                 console.log(e)
             }
         </script>

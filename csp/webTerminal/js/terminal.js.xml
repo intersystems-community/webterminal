@@ -509,6 +509,7 @@ var terminal = new function() {
             return;
         }
 
+        lang.initialize();
         storage.initialize();
         lang.setLanguage(settings.get_language());
 
@@ -767,6 +768,7 @@ var terminal = new function() {
          */
         this.get = function(index) {
 
+            if (index < 0) index += number
             index = index % number;
 
             var i = 0, name = "";
@@ -1955,7 +1957,6 @@ var terminal = new function() {
                     separator: "."
                 }
             }
-
         }; // tokens
 
     };

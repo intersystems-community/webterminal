@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="webTerminal/js/storage.js" application="/csp/sys/" default="1"><![CDATA[
+<CSP name="WebTerminal/js/storage.js" application="/csp/sys/" default="1"><![CDATA[
 /**
  * Local data storage object for saving/loading settings.
  *
@@ -63,8 +63,7 @@ var storage = new function() {
         try {
             localStorage[key] = data;
         } catch (e) {
-            terminal.output.write("Can't save data to storage: no more space available." +
-                "Expand storage place and try again.")
+            terminal.output.write(lang.get(47))
         }
     };
 
@@ -101,7 +100,7 @@ var storage = new function() {
      */
     this.initialize = function() {
         if (!this.available()) {
-            terminal.output.write("Local HTML5 storage is not available. Saving will be disabled.")
+            terminal.output.write(lang.get(48))
         }
     }
 
