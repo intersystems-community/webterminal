@@ -854,7 +854,6 @@ New connection established</Description>
 	if ($$$ISOK(..RequireAuthorization())) {
 		
 		set ..InitialZName = $Zname
-		zn "%SYS"
 		set ..CurrentNamespace = $Znspace
 		
 		do ..SendData("1", ..ConstClientAuthorizationStatus)
