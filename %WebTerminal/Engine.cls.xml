@@ -9,7 +9,7 @@ All operations with opened WebSocket placed here.</Description>
 
 <UDLText name="T">
 <Content><![CDATA[
-// USER CONSTANTS START
+// USER CONSTANTS BEGIN
 
 ]]></Content>
 </UDLText>
@@ -18,6 +18,20 @@ All operations with opened WebSocket placed here.</Description>
 <Description>
 How long to wait for authorization key when connection established</Description>
 <Default>5</Default>
+</Parameter>
+
+<Parameter name="authorizeUsers">
+<Description>
+Use user privileges and require authorization for them</Description>
+<Default>1</Default>
+</Parameter>
+
+<Parameter name="allowUnknownUser">
+<Description>
+Allow accessing terminal for unregistered users (unknownUser).
+Anyway, changing this constant to 1 can make a big hole in security,
+so change it at your own risk!</Description>
+<Default>0</Default>
 </Parameter>
 
 <UDLText name="T">
@@ -757,7 +771,17 @@ the client - it includes authorization key.</Description>
 	    		ZNSPACE $LISTGET(lb, 7) // namespace
 	    		
 	    		set user = $LISTGET($LISTGET(lb, 16), 1) // user
-	    		set loginStatus = ##class(%SYSTEM.Security).Login($LISTGET($LISTGET(lb, 16), 1))
+	    		if (user = "UnknownUser") && (..#allowUnknownUser '= 1) {
+		    		set ok = 0
+		    		do ..SendData("!UnknownUser disallowed.", ..ConstClientAuthorizationStatus)
+		    		QUIT
+	    		}
+	    		
+	    		if (..#authorizeUsers = 1) {
+		    		set loginStatus = ##class(%SYSTEM.Security).Login($LISTGET($LISTGET(lb, 16), 1))
+	    		} else {
+		    		set loginStatus = 1
+	    		}
 	    		if ($$$ISOK(loginStatus)) {
 					do ..SendData(user,..ConstClientLoginInfo)
 	    		} else {
@@ -765,7 +789,7 @@ the client - it includes authorization key.</Description>
 	    		}
 	    		
 	    		set ok = loginStatus
-	    		BREAK
+	    		QUIT
 	    		
     		}
     	}

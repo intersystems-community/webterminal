@@ -313,7 +313,9 @@ var terminal = new function() {
                     server.requestAutocompleteFile(data || terminal.namespace.getCorrectFileName());
                 } break;
                 case terminal.clientActions.AUTHORIZATION_STATUS: {
-                    if (!settings.get_cleanStartup()) {
+                    if (data.charAt(0) === "!") {
+	                	terminal.output.write(data.substr(1))
+                    } else if (!settings.get_cleanStartup()) {
                         terminal.output.write((data == "1")?lang.get(3):lang.get(5));
                     }
                     terminal.ready = true; // TERMINAL READY
