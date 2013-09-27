@@ -8,6 +8,11 @@ Web-based terminal application for InterSystems Cach&eacute; database. Access yo
 <LI>Download an archive, unpack it and execute the following in %SYS namespace: <code>do $System.OBJ.ImportDir("UNPACK_FOLDER\", "*.xml", "ckbud", .err, 1)</code></LI>
 </UL>
 
+### What i'm working on
+
+* Escape sequences processing part one - dom preparation
+* Escape sequences processing part two - basic dynamic text engine
+
 ### What's new?
 
 #### v 0.9.9
