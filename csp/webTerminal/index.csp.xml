@@ -136,7 +136,7 @@
         </div>
         <script type="text/javascript" id="startup">
             try {
-                application.authorizationKey = "#(##Class(%WebTerminal.Engine).GetAuthKey())#";
+                application.authorizationKey = "#(%session.CSPSessionCookie)#";
                 application.initialize();
             } catch (e) {
                 alert("Unable to initialize terminal: check console output.");

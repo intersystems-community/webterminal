@@ -3,9 +3,7 @@
 <Class name="%WebTerminal.Engine">
 <Description>
 This class represents the core of web terminal.
-All operations with opened WebSocket placed here.
-CLASS USES GLOBAL ^|"%SYS"|%WebTerminal.AuthKey for client
-authorization.</Description>
+All operations with opened WebSocket placed here.</Description>
 <Super>%CSP.WebSocket,%Library.Routine</Super>
 <TimeCreated>63047,60359.445979</TimeCreated>
 
@@ -83,6 +81,10 @@ Last joined client id</Description>
 <InitialExpression>$c(7)</InitialExpression>
 </Property>
 
+<Parameter name="ConstServerActionExecuteStack">
+<Expression>$c(8)</Expression>
+</Parameter>
+
 <Property name="ConstClientEnterClearIO">
 <Type>%Char</Type>
 <InitialExpression>$c(1)</InitialExpression>
@@ -126,6 +128,11 @@ Last joined client id</Description>
 <Property name="ConstClientWatch">
 <Type>%Char</Type>
 <InitialExpression>$c(9)</InitialExpression>
+</Property>
+
+<Property name="ConstClientLoginInfo">
+<Type>%Char</Type>
+<InitialExpression>$c(10)</InitialExpression>
 </Property>
 
 <Property name="CurrentNamespace">
@@ -686,12 +693,14 @@ Ends clear I/O mode</Description>
 </Method>
 
 <Method name="ParseError">
+<Description>
+This method transforms error </Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>string:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set string = $REPLACE($REPLACE(string, ">", "<"), ".Engine.", "<")
-	quit "An error occured: " _ $PIECE(string, "<", 2) _
+	quit "ERROR: " _ $PIECE(string, "<", 2) _
 		$EXTRACT($PIECE(string, "<", 4), 2, *)
 ]]></Implementation>
 </Method>
@@ -732,15 +741,38 @@ This method holds process and expects only one package from
 the client - it includes authorization key.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set key = ..Read(,.status,..#authorizationTimeout) // wait for package
-	set realKey = ..GetAuthKey() // remember current auth key
-	do ..GenerateAuthKey() // generate new auth key
+	set authKey = ..Read(,.status,..#authorizationTimeout) // wait for package
+	set ok = $$$NOTOK
 	
-	if (key = realKey) {
-		quit $$$OK
-	}
+	/*
+	 * Find given CSPSessionCookie in session list. If found, grant access
+	 */
+	SET key = $ORDER(^%cspSession(""))
+   	WHILE (key '= "") {
+	   	set lb = $GET(^%cspSession(key))
+    	if (lb '= "") {
+    		if ($LISTGET(lb, 8) = authKey) {
+	    		
+	    		// setup privileges
+	    		ZNSPACE $LISTGET(lb, 7) // namespace
+	    		
+	    		set user = $LISTGET($LISTGET(lb, 16), 1) // user
+	    		set loginStatus = ##class(%SYSTEM.Security).Login($LISTGET($LISTGET(lb, 16), 1))
+	    		if ($$$ISOK(loginStatus)) {
+					do ..SendData(user,..ConstClientLoginInfo)
+	    		} else {
+		    		do ..SendData("!",..ConstClientLoginInfo)
+	    		}
+	    		
+	    		set ok = loginStatus
+	    		BREAK
+	    		
+    		}
+    	}
+    	SET key = $ORDER(^%cspSession(key))
+ 	}
 	
-	quit $$$NOTOK
+	quit ok
 ]]></Implementation>
 </Method>
 
@@ -859,7 +891,7 @@ New connection established</Description>
 		do ..SendData("1", ..ConstClientAuthorizationStatus)
 		do ..SendData(..CurrentNamespace, ..ConstClientChangeNamespace)
 		   
-		use $io::("^" _ ..InitialZName)
+		use $io::("^" _ ..InitialZName) // switch to routine
 		do ..ClientLoop()
 		
 	} else {
