@@ -31,7 +31,7 @@ Use user privileges and require authorization for them</Description>
 Allow accessing terminal for unregistered users (unknownUser).
 Anyway, changing this constant to 1 can make a big hole in security,
 so change it at your own risk!</Description>
-<Default>0</Default>
+<Default>1</Default>
 </Parameter>
 
 <UDLText name="T">
@@ -771,18 +771,9 @@ the client - it includes authorization key.</Description>
 	    		ZNSPACE $LISTGET(lb, 7) // namespace
 	    		
 	    		set user = $LISTGET($LISTGET(lb, 16), 1) // user
-	    		if (user = "UnknownUser") && (..#allowUnknownUser '= 1) {
-		    		set ok = 0
-		    		do ..SendData("!UnknownUser disallowed.", ..ConstClientAuthorizationStatus)
-		    		QUIT
-	    		}
+	    		set loginStatus = ##class(%SYSTEM.Security).Login($LISTGET($LISTGET(lb, 16), 1)) // login user
 	    		
-	    		if (..#authorizeUsers = 1) {
-		    		set loginStatus = ##class(%SYSTEM.Security).Login($LISTGET($LISTGET(lb, 16), 1))
-	    		} else {
-		    		set loginStatus = 1
-	    		}
-	    		if ($$$ISOK(loginStatus)) {
+	    		if ($$$ISOK(loginStatus)) { // alert client
 					do ..SendData(user,..ConstClientLoginInfo)
 	    		} else {
 		    		do ..SendData("!",..ConstClientLoginInfo)
