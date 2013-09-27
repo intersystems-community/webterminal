@@ -8,12 +8,17 @@ Web-based terminal application for InterSystems Cach&eacute; database. Access yo
 <LI>Download an archive, unpack it and execute the following in %SYS namespace: <code>do $System.OBJ.ImportDir("UNPACK_FOLDER\", "*.xml", "ckbud", .err, 1)</code></LI>
 </UL>
 
-### What i'm working on
+### About security and authorization
 
-* Escape sequences processing part one - dom preparation
-* Escape sequences processing part two - basic dynamic text engine
+Terminal application is protected by using unique long identifier of CSP-session cookie now (v 0.9.9.5 and higher).
+This means that logged user will have all roles and privileges that it has on server.
+Unauthorized users will become "UnknownUser", so be patient.
 
 ### What's new?
+
+#### v 0.9.9.5 (dev)
+* Cache user privileges
+* Authorization via CSP-sessions
 
 #### v 0.9.9
 * Russian translation
