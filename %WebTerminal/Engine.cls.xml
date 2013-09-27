@@ -20,20 +20,6 @@ How long to wait for authorization key when connection established</Description>
 <Default>5</Default>
 </Parameter>
 
-<Parameter name="authorizeUsers">
-<Description>
-Use user privileges and require authorization for them</Description>
-<Default>1</Default>
-</Parameter>
-
-<Parameter name="allowUnknownUser">
-<Description>
-Allow accessing terminal for unregistered users (unknownUser).
-Anyway, changing this constant to 1 can make a big hole in security,
-so change it at your own risk!</Description>
-<Default>1</Default>
-</Parameter>
-
 <UDLText name="T">
 <Content><![CDATA[
 // USER CONSTANTS END
