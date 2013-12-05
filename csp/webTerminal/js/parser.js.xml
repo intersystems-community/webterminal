@@ -27,7 +27,7 @@ var parser = new function() {
      * @returns {string}
      */
     this.clearHTML = function(string) {
-        return string.replace("&","&amp;").replace("<","&lt;").replace("<","&gt;")
+        return string.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
     };
 
     /**
