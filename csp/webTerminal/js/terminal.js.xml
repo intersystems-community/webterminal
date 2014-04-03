@@ -508,7 +508,14 @@ var terminal = new function() {
          * @param data {string}
          */
         this.write = function(data) {
-            terminal.output.write(data);
+	        
+	        // @todo: split to process escape sequence method
+	        //console.log(">" + data + "<");
+	        if (data === String.fromCharCode(12)) { // clearing #
+	        	//dom.clearLogs(); // partly wrong: check todo
+	        	terminal.output.clear();
+	        	//terminal.output.setTarget(dom.objects.output);
+	        } else terminal.output.write(data);
         };
 
     };
@@ -976,6 +983,22 @@ var terminal = new function() {
         this.setTarget = function(object) {
             target = object;
             return true;
+        };
+        
+        /**
+         * Clears output field.
+         */
+        this.clear = function() {
+	        
+	        // @todo: fix this potentialy wrong code
+	        dom.clearLogs();
+	        stack = "";
+	        
+	        var t = document.createElement("DIV"); // @wrong
+	        t.className = "terminal-message-body terminal-output-body"; // @absolute
+	        dom.objects.output.appendChild(t); // @fix
+	        target = t; // @todo: fix this
+	        
         };
 
         /**

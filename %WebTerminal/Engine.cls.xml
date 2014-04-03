@@ -405,8 +405,28 @@ This method watches only for tail of global and detects if global still alive</D
 	
 	set data = ##class(%Library.File).ManagerDirectory()
 	set data = ##class(%Library.File).ParentDirectoryName(data)
-	set data = data _ "CSP\sys\webTerminal\js\autocomplete\" _
-		$REPLACE(namespace,"%","_") _ ".js" // UNIX?
+	
+	set dataTest = ##class(%Library.File).SubDirectoryName(data, "CSP")
+	if (##class(%Library.File).DirectoryExists(dataTest)) {
+		set data = ##class(%Library.File).SubDirectoryName(data, "CSP")
+	} else {
+		set data = ##class(%Library.File).SubDirectoryName(data, "csp")
+	}
+	
+	set data = ##class(%Library.File).SubDirectoryName(data,
+		$ZCONVERT($REPLACE($namespace,"%",""),"l")
+	)
+	set data = ##class(%Library.File).SubDirectoryName(data, "WebTerminal")
+	set data = ##class(%Library.File).SubDirectoryName(data, "js")
+	set data = ##class(%Library.File).SubDirectoryName(data, "autocomplete")
+	set data = ##class(%Library.File).SubDirectoryName(data, 
+		$REPLACE(namespace,"%","_") _ ".js"
+	)
+	
+	//set data = data _ "CSP\sys\webTerminal\js\autocomplete\" _
+	//	$REPLACE(namespace,"%","_") _ ".js" // UNIX?
+	//set data = data _ $REPLACE(namespace,"%","_") _ ".js"
+	
 	quit data
 ]]></Implementation>
 </Method>
