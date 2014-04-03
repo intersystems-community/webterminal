@@ -16,6 +16,10 @@ Unauthorized users will become "UnknownUser", so be patient.
 
 ### What's new?
 
+#### v 0.9.9.8 (dev)
+* autocomplete on unix fix
+* "w #" command support
+
 #### v 0.9.9.5-7 (dev)
 * Cache user privileges
 * Authorization via CSP-sessions
