@@ -96,6 +96,7 @@ terminal-base tr, td {
     z-index: 1000;
     background: rgba(40,40,40,0.95);
     color: white;
+    overflow: auto;
 
     transition: left 0.2s ease;
     -webkit-transition: left 0.2s ease;

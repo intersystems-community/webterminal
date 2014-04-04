@@ -242,15 +242,15 @@ var dom = new function() {
 
         for (var theme in application.themes) {
             if (!application.themes.hasOwnProperty(theme) || !theme) continue;
-            this.objects.themesContainer.innerHTML += "<input id=\"terminal-color-theme-" + theme + "\" " +
+            this.objects.themesContainer.innerHTML += "<label><input id=\"terminal-color-theme-" + theme + "\" " +
                 "type=\"radio\" name=\"terminal-color-scheme\" value=\"" + theme + "\">" + theme[0].toUpperCase() +
-                theme.substr(1);
+                theme.substr(1) + " </label>";
         }
 
         for (var l in lang.availableLanguages) {
             if (!lang.availableLanguages.hasOwnProperty(l) || !l) continue;
-            this.objects.languagesContainer.innerHTML += "<input id=\"terminal-language-unit-" + l + "\" " +
-                "type=\"radio\" name=\"terminal-language-unit\" value=\"" + l + "\">" + l.toUpperCase();
+            this.objects.languagesContainer.innerHTML += "<label><input id=\"terminal-language-unit-" + l + "\" " +
+                "type=\"radio\" name=\"terminal-language-unit\" value=\"" + l + "\">" + l.toUpperCase() + " </label>";
         }
 
         return this.objectsReady();
@@ -281,6 +281,7 @@ var settings = new function() {
         restoreSession = 0,
         parseOutput = 0,
         cleanStartup = 0,
+        fontAntialiasing = 0,
         language = "en";
 
     this.get_restoreSession = function() { return restoreSession == 1 };
@@ -299,7 +300,8 @@ var settings = new function() {
             restoreSession: restoreSession,
             cleanStartup: cleanStartup,
             parseOutput: parseOutput,
-            language: language
+            language: language,
+            fontAntialiasing: fontAntialiasing
         };
     };
 
@@ -308,7 +310,7 @@ var settings = new function() {
             settingImportObject.hasOwnProperty("animations") && settingImportObject.hasOwnProperty("highlighting") &&
             settingImportObject.hasOwnProperty("colorTheme") && settingImportObject.hasOwnProperty("restoreSession") &&
             settingImportObject.hasOwnProperty("cleanStartup") && settingImportObject.hasOwnProperty("parseOutput") &&
-            settingImportObject.hasOwnProperty("language"))) {
+            settingImportObject.hasOwnProperty("language") && settingImportObject.hasOwnProperty("fontAntialiasing"))) {
             log.write("Wrong settings object to import. Use /reset to restore settings.");
             return;
         }
@@ -319,6 +321,7 @@ var settings = new function() {
         restoreSession = (settingImportObject["restoreSession"] == 1)?1:0;
         cleanStartup = settingImportObject["cleanStartup"];
         language = settingImportObject["language"];
+        fontAntialiasing = settingImportObject["fontAntialiasing"];
         this.update();
     };
 
@@ -329,9 +332,40 @@ var settings = new function() {
         restoreSession = 0;
         parseOutput = 0;
         cleanStartup = 0;
+        fontAntialiasing = 0;
         language = "en";
         this.update();
     };
+    
+    var applyDomSettings = function() {
+	    
+	    dom.objects.themeCSS.href = "css/theme-" + colorTheme + ".css";
+        if (!animations) {
+            dom.removeClass(dom.objects.body,"noAnimations");
+            dom.addClass(dom.objects.body,"noAnimations");
+        } else dom.removeClass(dom.objects.body,"noAnimations");
+        
+        var p = ["-webkit-font-smoothing", "font-smoothing", "-moz-osx-font-smoothing"];
+        
+        switch (parseInt(fontAntialiasing)) {
+	    	case 0: {
+		    	document.body.style[p[0]] = "none";
+		    	document.body.style[p[1]] = "none";
+		    	document.body.style[p[2]] = "none";
+	    	} break;
+	    	case 1: {
+		    	document.body.style[p[0]] = "antialiased";
+		    	document.body.style[p[1]] = "antialiased";
+		    	document.body.style[p[2]] = "grayscale";
+	    	} break;
+	    	case 2: {
+		    	document.body.style[p[0]] = "subpixel-antialiased";
+		    	document.body.style[p[1]] = "subpixel-antialiased";
+		    	document.body.style[p[2]] = "auto";
+	    	} break;
+        }
+	    
+    }
 
     /**
      * Updates terminal settings according to dom checked boxes.
@@ -359,13 +393,18 @@ var settings = new function() {
             if (!obj2) continue;
             if (obj2.checked) language = l;
         }
+        
+        fontAntialiasing = 0;
+        var els = document.getElementsByName("settings-fontSmoothing");
+        for (var ee in els) {
+	     	if (!els.hasOwnProperty(ee)) continue;
+			if (els[ee].checked) {
+				fontAntialiasing = parseInt(els[ee].value);
+			}
+        }
 
-        dom.objects.themeCSS.href = "css/theme-" + colorTheme + ".css";
-        if (!animations) {
-            dom.removeClass(dom.objects.body,"noAnimations");
-            dom.addClass(dom.objects.body,"noAnimations");
-        } else dom.removeClass(dom.objects.body,"noAnimations");
-
+        applyDomSettings();
+        
         storage.set("settings", settings.export());
 
     };
@@ -402,17 +441,25 @@ var settings = new function() {
         dom.objects.settingsParseOutput.checked = parseOutput;
         dom.objects.settingsAutoSaving.checked = restoreSession == 1;
         dom.objects.settingsCleanStartup.checked = cleanStartup == 1;
+        
         for (var theme in application.themes) {
             if (!application.themes.hasOwnProperty(theme)) continue;
             var obj = dom.objects.getThemeSelectorObject(theme);
             if (!obj) continue;
             obj.checked = colorTheme === theme;
         }
+        
         for (var l in lang.availableLanguages) {
             if (!lang.availableLanguages.hasOwnProperty(l)) continue;
             var obj2 = dom.objects.getLanguageSelectorObject(l);
             if (!obj2) continue;
             obj2.checked = language === l;
+        }
+        
+        var els = document.getElementsByName("settings-fontSmoothing");
+        for (var ee in els) {
+	     	if (!els.hasOwnProperty(ee)) continue;
+			els[ee].checked = (parseInt(els[ee].value) == fontAntialiasing)?true:false;
         }
     };
 
@@ -425,11 +472,15 @@ var settings = new function() {
      * Applies language to the document.
      */
     function translateDocument() {
-        var i = 0, e;
-        while (e = dom.element("lang-field-" + i)) {
+        var e, l;
+        for (var i = 0; i < lang.getLanguagesNumber(); i++) {
+	        e = dom.element("lang-field-" + i);
+	        if (e && (l = lang.get(i))) { e.innerHTML = l; }
+        }
+        /*while (e = dom.element("lang-field-" + i)) {
             e.innerHTML = lang.get(62 + i);
             i++;
-        }
+        }*/
     }
 
     /**

@@ -6,7 +6,7 @@
 <html>
 
     <head>
-        <title id="lang-field-15">Caché WEB Terminal</title>
+        <title id="lang-field-77">Caché WEB Terminal</title>
         <meta charset="utf-8">
         <meta name="author" content="ZitRo - InterSystems">
         <meta name="Description" content="Web-based terminal for Cache administration.">
@@ -30,86 +30,96 @@
     <body>
         <div id="terminal-control-panel">
             <div class="terminal-control-content">
-                <span id="terminal-control-closeButton" class="info"><span id="lang-field-0"></span></span>
-                <h1 id="lang-field-1"></h1>
+                <span id="terminal-control-closeButton" class="info"><span id="lang-field-62"></span></span>
+                <h1 id="lang-field-63"></h1>
                 <table id="terminal-control-table">
                     <tbody>
                         <tr>
-                            <td class="center" colspan="2" id="lang-field-2"></td>
+                            <td class="center" colspan="2" id="lang-field-64"></td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-highlighting" type="checkbox">
-                                <label for="settings-highlighting" id="lang-field-3">
+                                <label for="settings-highlighting" id="lang-field-65">
 
                                 </label>
                             </td>
-                            <td id="lang-field-4">
+                            <td id="lang-field-66">
 
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-parse-output" type="checkbox">
-                                <label for="settings-parse-output" id="lang-field-5">
+                                <label for="settings-parse-output" id="lang-field-67">
 
                                 </label>
                             </td>
-                            <td id="lang-field-6">
+                            <td id="lang-field-68">
 
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-cleanStartup" type="checkbox">
-                                <label for="settings-cleanStartup" id="lang-field-7">
+                                <label for="settings-cleanStartup" id="lang-field-69">
 
                                 </label>
                             </td>
-                            <td id="lang-field-8">
+                            <td id="lang-field-70">
 
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-animations" type="checkbox">
-                                <label for="settings-animations" id="lang-field-9">
+                                <label for="settings-animations" id="lang-field-71">
 
                                 </label>
                             </td>
-                            <td id="lang-field-10">
+                            <td id="lang-field-72">
 
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <input id="settings-autosaving" type="checkbox">
-                                <label for="settings-autosaving" id="lang-field-11">
+                                <label for="settings-autosaving" id="lang-field-73">
 
                                 </label>
                             </td>
-                            <td id="lang-field-12">
+                            <td id="lang-field-74">
 
                             </td>
                         </tr>
                         <tr>
-                            <td id="lang-field-13">
+                            <td id="lang-field-80">
 
                             </td>
                             <td>
-                                <label id="terminal-languages-container">
-
-                                </label>
+ 								<label><input name="settings-fontSmoothing" type="radio" value="0"><span id="lang-field-81"></span></label>
+ 								<label><input name="settings-fontSmoothing" type="radio" value="1"><span id="lang-field-82"></span></label>
+ 								<label><input name="settings-fontSmoothing" type="radio" value="2"><span id="lang-field-83"></span></label>
                             </td>
                         </tr>
                         <tr>
-                            <td id="lang-field-14">
+                            <td id="lang-field-75">
 
                             </td>
                             <td>
-                                <label id="terminal-themes-container">
+                                <div id="terminal-languages-container">
 
-                                </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="lang-field-76">
+
+                            </td>
+                            <td>
+                                <div id="terminal-themes-container">
+
+                                </div>
                             </td>
                         </tr>
                     </tbody>

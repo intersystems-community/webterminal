@@ -751,7 +751,32 @@ var lang = new function() {
         79: {
             en: "Login failed.",
             ru: "Вход не выполнен."
+        },
+        80: {
+	    	en: "Font smoothing",
+	    	ru: "Сглаживание шрифтов"  
+        },
+        81: {
+	        en: "None",
+	    	ru: "Нет"
+        },
+        82: {
+	        en: "Antialiasing",
+	    	ru: "Антиалиасинг"
+        },
+        83: {
+	        en: "Subpixel-antialiasing",
+	        ru: "Субпиксельный антиалиасинг"
         }
+    };
+    
+    this.getLanguagesNumber = function() {
+	    var n = 0;
+	    for (var i in languageBase) {
+		 	if(!languageBase.hasOwnProperty(i)) continue;
+		 	if (parseInt(i) || 0 > n) n = i;
+	    }
+	    return n + 1;
     };
 
     this.setLanguage = function(lang) {
@@ -768,7 +793,7 @@ var lang = new function() {
      * Returns language constant according to current language.
      */
     this.get = function(languageConstID) {
-        var err = "[[No translation, id=" + languageConstID + "]]";
+        var err = undefined;
         return (languageBase[languageConstID])?languageBase[languageConstID][currentLanguage] || err:err;
     };
 
