@@ -29,7 +29,7 @@ var lang = new function() {
             0: parser.highlightHTML("/help"),
             1: parser.highlightHTML("/tip"),
             2: parser.highlightHTML("/connect"),
-            3: "0.9.9.7 beta",
+            3: "0.9.9.9 beta",
             4: 1,
             5: parser.highlightHTML("set test = 12"),
             6: parser.highlightHTML("write test"),
