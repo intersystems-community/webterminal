@@ -367,6 +367,10 @@ var terminal = new function() {
                     false
                 );
             },
+            
+            version: function() {
+	            terminal.output.write(application.version());
+            },
 
             clear: function() {
                 dom.clearLogs();
@@ -410,10 +414,10 @@ var terminal = new function() {
 
             about: function() {
                 server.submit(terminal.serverActions.EXECUTE, 'for i=0:0.2:$zpi*2 { for u=1:1:($zsin(i)*15 + 15) { w ' +
-                    '" " } w "# " if (i=1.4) { w "CacheWebTerminal v' + application.version() + '" } elseif (i=1.6) {' +
+                    '" " } w "# " if (i=1.4) { w "' + application.version() + '" } elseif (i=1.6) {' +
                     ' w "'+lang.get(18)+' InterSystems Cache" } elseif (i=1.8) { w "by ZitRo" } elseif (i=4.4) { w "' +
                     lang.get(19) + '" } elseif (i=4.6) { w "'+lang.get(20)+': http://intersystems-ru.github.io/webterm' +
-                    'inal" } elseif (i=4.8) { w "'+lang.get(21)+'" } elseif (i=5) { w "'+lang.get(22)+'..." } w ! h 0.04}');
+                    'inal" } elseif (i=4.8) { w "'+lang.get(21)+'" } w ! h 0.04}');
             },
 
             siege: function(iterations,serverDelay) {
@@ -1676,6 +1680,7 @@ var terminal = new function() {
                 "/reset": 0,
                 "/reconnect": 0,
                 "/autocomplete": 0,
+                "/version": 0,
                 "/save": 0,
                 "/load": 0,
                 "/settings": 0,
@@ -1685,7 +1690,8 @@ var terminal = new function() {
                 "/favorite": 0,
                 "/watch": 0,
                 "/tip": 1,
-                "/echo": 0
+                "/echo": 0,
+                "/about": 0
             },
             "commands": {
                 "!autocomplete": {

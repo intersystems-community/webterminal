@@ -6,15 +6,15 @@
  */
 var application = new function() {
 
-    var version = "0.9.9.9 beta"; // @link copy to language.js
+    var version = "1.0 beta"; // @link copy to language.js
     this.debug = false; // remove for release
-    this.debugUrlPart = "172.27.25.133:57772"; // in-debug mode
+    this.debugUrlPart = "127.0.0.1:57772"; // ip address to forward connection to
 
     this.browser = "gc";
     this.authorizationKey = "";
 
     /**
-     * How to make your own theme for this terminal application? Easier then ever!
+     * How to make your own theme for this terminal application? Just follow the next:
      *
      * 1. Add theme name to the list below;
      * 2. Make CSS theme file like theme-default.css;
@@ -31,7 +31,7 @@ var application = new function() {
         "monokai": 0
     };
 
-    this.version = function() { return version };
+    this.version = function() { return "Caché WEB Terminal v" + version };
 
     this.HELPBOX = lang.get(49);
 

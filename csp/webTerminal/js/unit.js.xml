@@ -3,6 +3,8 @@
 <CSP name="WebTerminal/js/unit.js" application="/csp/sys/" default="1"><![CDATA[
 /**
  * Provides unit tests for terminal application. Use unit.run() to run unit tests.
+ *
+ * Coverage: 1%
  */
 var unit = new function() {
 
