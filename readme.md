@@ -1,6 +1,8 @@
 # Cache Web Terminal
 Web-based terminal application for InterSystems Cach&eacute; database. Access your database from the web, local network or even localhost.
 
+Visit [project page](http://intersystems-ru.github.io/webterminal) for more details.
+
 ### Ways to install terminal
 <UL>
 <LI>Just download XML from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import it into %SYS namespace.</LI>
@@ -16,8 +18,14 @@ Unauthorized users will become "UnknownUser", so be patient.
 
 ### What's new?
 
+#### v 1.0 (beta)
++ /version command add
++ Tests on Win7/Win8/UNIX (2014.1/2014.2)
++ Some little fixes
++ Font smoothing option add
+
 #### v 0.9.9.8 (dev)
-* autocomplete on unix fix
+* Autocomplete on unix fix
 * "w #" command support
 
 #### v 0.9.9.5-7 (dev)
@@ -93,8 +101,7 @@ Unauthorized users will become "UnknownUser", so be patient.
 
 ### Usage
 Point your browser to the following csp file: (http://[host]:[port]/csp/sys/webTerminal/index.csp) Type "/help" to get more information.
-### Additional information
-Visit [project page](http://intersystems-ru.github.io/webterminal) for extra information.
+
 ### Description
 <table>
 	<tr>
