@@ -116,3 +116,11 @@ a:hover {
     width: 100%;
     height: 100%;
 }
+
+#forkLink {
+	position: absolute;
+	right: 0;
+	top: 0;
+	display: block;
+	z-index: 1;
+}
