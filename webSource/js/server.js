@@ -2,7 +2,7 @@ var server = new function() {
 
     var socket = null, // webSocket object
         serverRoot = "%WebTerminal.Engine.cls", // name of Cache class
-        LOG_DATA = false;
+        LOG_DATA = true;
 
     var logData = function(direction,string) {
         log.write(

@@ -1,0 +1,119 @@
+/// This routine demonstrates Caché terminal escape sequences support.
+/// Created as standard for Caché WEB Terminal v2
+EscapeSequencesDemo
+    s ESC = $c(27)
+    s standardAttributes = $lb("Bright", "Dim", "", "Underscore", "Blink", "", "Reverse", "Hidden")
+    s foregroundColors = $lb("Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White")
+    s backgroundColors = $lb("Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White")
+
+    w #
+    w "Screen cleared.", !
+
+    w !, "Standard attributes:", !
+    for i=1:1:8 {
+        if ($lg(standardAttributes, i) = "") continue
+        w "[" , i, "m", ": ", ESC, "[", i, "m", $lg(standardAttributes, i), ESC, "[0m", " "
+    }
+
+    w !!, "Foreground colors:", !
+    for i=30:1:37 {
+        if ($lg(foregroundColors, i-29) = "") continue
+        w "[" , i, "m", ": ", ESC, "[", i, "m", $lg(foregroundColors, i-29), ESC, "[0m", " "
+    }
+
+    w !!, "Background colors:", !
+    for i=40:1:47 {
+        if ($lg(backgroundColors, i-39) = "") continue
+        w "[" , i, "m", ": ", ESC, "[", i, "m", $lg(backgroundColors, i-39), ESC, "[0m", " "
+    }
+
+    w !!, "Combinations:"
+    w !, ESC, "[31;1;46;4m", "Bright red underscored text on cyan background", ESC, "[0m", !
+    w ESC, "[5;34;42;4m", "Blue/pink blinking text on green background", ESC, "[0m", !
+
+    d Read
+    w #
+
+    w !!, "Scrolling sequences.", !, "This", !, "Text", !, "Must", !, "Be", !, "Overwritten", !
+    w ESC, "[18;22r"
+
+    for i=0:1:40 {
+        if (i = 16) w ESC, "[4m"
+        w "Line --------------- ", i, !
+        if (i = 16) w ESC, "[0m"
+    }
+
+    w !, "Here display scrolls. Next: \r, scroll 16 up, 1 down."
+    r null
+    w $c(13), ESC, "M", ESC, "M", ESC, "M", ESC, "M",
+    ESC, "M", ESC, "M", ESC, "M", ESC, "M",
+    ESC, "M", ESC, "M", ESC, "M", ESC, "M",
+    ESC, "M", ESC, "M", ESC, "M", ESC, "M", ESC, "D"
+
+    w "Next: enable scrolling for entire display and clearing the screen."
+    d Read
+    w ESC, "[r", #
+
+    w !!, "Tab control: clear all tabs, set new tabs.", !!
+    w ESC, "[3g"
+    w " -1->", ESC, "H", " ---2--->", ESC, "H", " --------3------->", ESC, "H", " ---4--->", ESC, "H",
+      " -------5------->", ESC, "H", !
+    w $c(9), "1", $c(9), "2", $c(9), "3", $c(9), "4", $c(9), "5", !
+
+    w "clear tab position 3 ---------->", ESC, "[g", !
+    w $c(9), "1", $c(9), "2", $c(9), "3", $c(9), "4", $c(9), "5", !
+    d Read
+
+    w !!, "Device status queries:"
+    w !, "<ESC>[c (Querying device code): ", ESC, "[c"
+    r temp
+    w "RESPONSE: ", $replace(temp, ESC, "<ESC>"), ";"
+    w !, "<ESC>[5n (Querying device status): ", ESC, "[5n"
+    r temp
+    w "RESPONSE: ", $replace(temp, ESC, "<ESC>"), "; (<ESC>[0n = OK, <ESC>[3n = FAIL)"
+    w !, "<ESC>[6n (Querying cursor position): ", ESC, "[6n"
+    r temp
+    w "RESPONSE: ", $replace(temp, ESC, "<ESC>"), ";"
+    // it seems that Caché term isn't responsing to this requests
+
+    // does this affects to something?
+    w !!, "Reseting device...", ESC, "c"
+    d Read
+
+    // Not effective for Caché term:
+    // <ESC>[7l (disable line wrap)
+    // <ESC>[7h (enable line wrap)
+
+    w #, !!, "Cursor control: move (38, 10), draw box."
+    w ESC, "[10;38H", "XX", ESC, "[1C", "XX", ESC, "[1B", ESC, "[1D", "X",
+    ESC, "[1B", ESC, "[1D", "X", ESC, "[5D", "XXXX", ESC, "[4D", ESC, "[1A", "X"
+    // Not effective for Caché term:
+    // <ESC>[s (save cursor)
+    // <ESC>[u (restore cursor)
+    // <ESC>[7 (save cursor with attributes)
+    // <ESC>[8 (restore cursor with attributes)
+
+    w !!, "this                            text", !!!, "will      (except this line)        be", !!!,
+      "e        ", $c(10), "r        ", $c(10), "a         ", $c(10), "z        ", $c(10), "e      ",
+      $c(10), "d"
+    d Read
+
+    w ESC, "[1A", ESC, "[K" // eraze "d" letter (till end of a line)
+    w ESC, "[2A", ESC, "[40C", "X", ESC, "[1K" // eraze "z" letter (till start of a line)
+    w ESC, "[1B", ESC, "[2K" // eraze "e" letter (whole line)
+    w ESC, "[5A", ESC, "[J" // eraze "a", "r", "e" (to bottom)
+    w ESC, "[5A", ESC, "[1J" // eraze screen to home except one line
+    w ESC, "[1;1H", "Erazing whole screen and finishing program."
+    d Read
+
+    w ESC, "[2J", !, "Done."
+
+    // check printing support (when printer is connected)
+    // define key support?
+
+    q
+
+Read()
+    w !, "Press ENTER to continue..."
+    r null
+    q
