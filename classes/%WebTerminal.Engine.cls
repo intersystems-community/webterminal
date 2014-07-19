@@ -11,7 +11,7 @@ Parameter authorizationTimeout = 5;
 // USER CONSTANTS END
 
 /// This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
-/// conection or over a pool of shared connections.  It may be set to one of the following:
+/// connection or over a pool of shared connections.  It may be set to one of the following:
 /// <br><ul>
 /// <li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
 /// <li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
