@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+        <title id="lang-field-77">Caché WEB Terminal</title>
+        <meta charset="utf-8">
+        <meta name="author" content="ZitRo - InterSystems">
+        <meta name="Description" content="Web-based terminal for Cache administration.">
+        <meta name="keywords" content="Cache,Caché,terminal,web,web-based,remote,control,Caché WebTerminal">
+        <link href="favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+        <link rel="stylesheet" href="css/base.css">
+        <link rel="stylesheet" href="css/terminal.css">
+        <link rel="stylesheet" href="css/extra.css">
+        <link rel="stylesheet" href="css/theme-default.css" id="terminal-color-theme">
+        <script type="text/javascript" src="js/storage.js"></script> <!-- first loading storage independent module -->
+        <script type="text/javascript" src="js/parser.js"></script> <!-- parser is independent module -->
+        <script type="text/javascript" src="js/hid.js"></script> <!-- hid is independent module -->
+        <script type="text/javascript" src="js/language.js"></script> <!-- language module reads setting from storage -->
+        <script type="text/javascript" src="js/base.js"></script> <!-- dom/settings uses storage, parser and language -->
+        <script type="text/javascript" src="js/application.js"></script> <!-- application module uses language, settings, storage -->
+        <script type="text/javascript" src="js/server.js"></script> <!-- server uses parser -->
+        <script type="text/javascript" src="js/terminal.js"></script> <!-- terminal uses almost all modules above -->
+        <script type="text/javascript" src="js/unit.js"></script> <!-- unit-test module, not necessary -->
+    </head>
+
+    <body>
+        <div id="terminal-control-panel">
+            <div class="terminal-control-content">
+                <span id="terminal-control-closeButton" class="info"><span id="lang-field-62"></span></span>
+                <h1 id="lang-field-63"></h1>
+                <table id="terminal-control-table">
+                    <tbody>
+                        <tr>
+                            <td class="center" colspan="2" id="lang-field-64"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input id="settings-highlighting" type="checkbox">
+                                <label for="settings-highlighting" id="lang-field-65">
+
+                                </label>
+                            </td>
+                            <td id="lang-field-66">
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input id="settings-parse-output" type="checkbox">
+                                <label for="settings-parse-output" id="lang-field-67">
+
+                                </label>
+                            </td>
+                            <td id="lang-field-68">
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input id="settings-cleanStartup" type="checkbox">
+                                <label for="settings-cleanStartup" id="lang-field-69">
+
+                                </label>
+                            </td>
+                            <td id="lang-field-70">
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input id="settings-animations" type="checkbox">
+                                <label for="settings-animations" id="lang-field-71">
+
+                                </label>
+                            </td>
+                            <td id="lang-field-72">
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input id="settings-autosaving" type="checkbox">
+                                <label for="settings-autosaving" id="lang-field-73">
+
+                                </label>
+                            </td>
+                            <td id="lang-field-74">
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="lang-field-80">
+
+                            </td>
+                            <td>
+ 								<label><input name="settings-fontSmoothing" type="radio" value="0"><span id="lang-field-81"></span></label>
+ 								<label><input name="settings-fontSmoothing" type="radio" value="1"><span id="lang-field-82"></span></label>
+ 								<label><input name="settings-fontSmoothing" type="radio" value="2"><span id="lang-field-83"></span></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="lang-field-75">
+
+                            </td>
+                            <td>
+                                <div id="terminal-languages-container">
+
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="lang-field-76">
+
+                            </td>
+                            <td>
+                                <div id="terminal-themes-container">
+
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="terminal-base" id="terminal">
+            <div class="terminal-output-block" id="terminal-output">
+                <!-- output -->
+            </div>
+            <div class="terminal-inputContainer">
+                <div class="terminal-message-head" id="terminal-namespace">
+                    <!-- namespace -->
+                </div>
+                <div class="terminal-message-body">
+                    <div class="terminal-input-visible" id="terminal-inputView">
+                        <!-- highlighted input -->
+                    </div>
+                    <textarea class="terminal-input-hidden" id="terminal-hiddenInput">
+                    	<!-- normal input -->
+                    </textarea>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" id="startup">
+            try {
+                application.authorizationKey = "#(%session.CSPSessionCookie)#";
+                application.initialize();
+            } catch (e) {
+                alert("Unable to initialize terminal: check console output.");
+                console.log(e)
+            }
+        </script>
+    </body>
+
+</html>
