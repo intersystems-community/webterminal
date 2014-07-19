@@ -74,7 +74,7 @@ EscapeSequencesDemo
     w !, "<ESC>[6n (Querying cursor position): ", ESC, "[6n"
     r temp
     w "RESPONSE: ", $replace(temp, ESC, "<ESC>"), ";"
-    // it seems that Caché term isn't responsing to this requests
+    // it seems that Caché term isn't responding to this requests
 
     // does this affects to something?
     w !!, "Reseting device...", ESC, "c"
@@ -98,12 +98,12 @@ EscapeSequencesDemo
       $c(10), "d"
     d Read
 
-    w ESC, "[1A", ESC, "[K" // eraze "d" letter (till end of a line)
-    w ESC, "[2A", ESC, "[40C", "X", ESC, "[1K" // eraze "z" letter (till start of a line)
-    w ESC, "[1B", ESC, "[2K" // eraze "e" letter (whole line)
-    w ESC, "[5A", ESC, "[J" // eraze "a", "r", "e" (to bottom)
-    w ESC, "[5A", ESC, "[1J" // eraze screen to home except one line
-    w ESC, "[1;1H", "Erazing whole screen and finishing program."
+    w ESC, "[1A", ESC, "[K" // erase "d" letter (till end of a line)
+    w ESC, "[2A", ESC, "[40C", "X", ESC, "[1K" // erase "z" letter (till start of a line)
+    w ESC, "[1B", ESC, "[2K" // erase "e" letter (whole line)
+    w ESC, "[5A", ESC, "[J" // erase "a", "r", "e" (to bottom)
+    w ESC, "[5A", ESC, "[1J" // erase screen to home except one line
+    w ESC, "[1;1H", "Erasing whole screen and finishing program."
     d Read
 
     w ESC, "[2J", !, "Done."
