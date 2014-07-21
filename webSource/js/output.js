@@ -1,10 +1,13 @@
 var LINE_ID_NAME = "terminal-line-",
     LINE_CLASSNAME = "terminalLine";
 
+var CARET;
+
 /**
  * Represents output and everything related to it.
  * todo: reorganise "animations" usage
  * todo: remove "highlight output" option
+ * todo: fix terminal overflow crash
  */
 var Output = function() {
 
@@ -49,11 +52,9 @@ var Output = function() {
          */
         this.writePlain = function(text, position) {
 
-            var writePart = text.substr(0, _this.width - linePlainText.length);
+            if (typeof position === "undefined") position = linePlainText.length;
 
-            console.log(writePart);
-
-            if (!position) position = linePlainText.length;
+            var writePart = text.substr(0, _this.width - linePlainText.length); // position? huh?
 
             if (position > linePlainText.length) {
                 for (var i = linePlainText.length; i <= position; i++) {
@@ -97,8 +98,10 @@ var Output = function() {
          *
          * @type {number}
          */
-        CURRENT_LINE = 0,
+        TOP_LINE = 0,
         MAX_LINE = 0, // maximal created line
+
+        CONTROL_SEQUENCE_PATTERN = /[\r\n]|\x1b[^@-~][@-~]/g,
 
         /**
          * Line elements.
@@ -106,6 +109,14 @@ var Output = function() {
          * @type {TerminalLine[]}
          */
         lines = [new TerminalLine(0)];
+
+    var setCaretX = function(x) {
+        _this.caret.x = Math.max(1, Math.min(_this.width, x));
+    };
+
+    var setCaretY = function(y) {
+        _this.caret.y = Math.max(1, Math.min(_this.height, y));
+    };
 
     /**
      * Caret position.
@@ -121,18 +132,46 @@ var Output = function() {
     this.height = 0;
 
     /**
-     * Outputs plain text to terminal.
+     * Receives sequence to parse and apply.
+     *
+     * @param {string} sequence
+     */
+    var applyControlSequence = function(sequence) {
+
+        if (sequence === "\r") {
+            setCaretX(1);
+        } else if (sequence === "\n") {
+            setCaretY(_this.caret.y + 1);
+        }
+
+    };
+
+    /**
+     * Outputs plain text to caret position (x;y) to terminal.
      *
      * @param text
      */
     var outPlainText = function(text) {
 
+        var line, xDelta;
+
         do {
-            text = getCurrentLine().writePlain(text);
-            if (text) {
+
+            while (!(line = getCurrentLine())) {
                 _this._controls.appendLine();
-                CURRENT_LINE++;
             }
+
+            xDelta = text.length;
+            text = line.writePlain(text, _this.caret.x - 1);
+            xDelta -= text.length;
+
+            setCaretX(_this.caret.x + xDelta);
+
+            if (text) {
+                setCaretX(1);
+                setCaretY(_this.caret.y + 1);
+            }
+
         } while (text);
 
     };
@@ -141,7 +180,7 @@ var Output = function() {
      * @returns {TerminalLine|undefined}
      */
     var getCurrentLine = function() {
-        return lines[CURRENT_LINE];
+        return lines[TOP_LINE + _this.caret.y - 1];
     };
 
     /**
@@ -154,6 +193,9 @@ var Output = function() {
          */
         appendLine: function() {
             lines.push(new TerminalLine(++MAX_LINE));
+            if (MAX_LINE - TOP_LINE > _this.height) {
+                TOP_LINE = MAX_LINE - _this.height;
+            }
         }
 
     };
@@ -164,23 +206,21 @@ var Output = function() {
      */
     this._output = function(text) {
 
-        var line = getCurrentLine(),
-            textOrigin = text,
+        var textOrigin = text,
             lastIndex = 0;
 
-        text.replace(/[\r\n]|\x1b[^@-~][@-~]/g, function(part, index, string) {
+        text.replace(CONTROL_SEQUENCE_PATTERN, function(part, index, string) {
             var beforePart = string.substring(lastIndex, index);
             if (!lastIndex) textOrigin = string;
             lastIndex = index + part.length;
             if (beforePart) outPlainText(beforePart);
+            applyControlSequence(part);
             return "";
         });
 
         var textLeft = textOrigin.substring(lastIndex, textOrigin.length);
 
         if (textLeft) outPlainText(textLeft);
-
-        line.innerHTML += text;
 
     };
 
@@ -328,6 +368,8 @@ var Output = function() {
         dom.objects.output.removeChild(tel);
 
     };
+
+    CARET = this.caret;
 
     setInterval(this.freeStack, STACK_REFRESH_INTERVAL); // refreshing output
 

@@ -20,6 +20,7 @@ var lang = new function() {
         "en": 0,
         "ru": 0
     };
+
     var currentLanguage = "en", languages = this.availableLanguages;
 
     var c = {
@@ -40,8 +41,8 @@ var lang = new function() {
      */
     var languageBase = {
         0: {
-            en: "Terminal base ready. Type " + c[0] + " or " + c[1] + " to get more information.",
-            ru: "Приложение терминала готово. Введите " + c[0] + " или " + c[1] + " чтобы получить дополнительную информацию."
+            en: "Terminal base ready. Type /help or /tip to get more information.",
+            ru: "Приложение терминала готово. Введите /help или /tip чтобы получить дополнительную информацию."
         },
         1: {
             en: "Connecting to",

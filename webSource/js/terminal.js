@@ -314,7 +314,7 @@ var terminal = new function() {
                     if (data.charAt(0) === "!") {
 	                	terminal.output.write(data.substr(1))
                     } else if (!settings.get_cleanStartup()) {
-                        terminal.output.write((data == "1")?lang.get(3):lang.get(5));
+                        terminal.output.write((data == "1")?lang.get(3):lang.get(5) + "\r\n");
                     }
                     terminal.ready = true; // TERMINAL READY
                 } break;
@@ -325,7 +325,7 @@ var terminal = new function() {
                     if (data.charAt(0) === "!") {
 	                    terminal.output.write(lang.get(79) + " " + data.substr(1));
                     } else if (!settings.get_cleanStartup()) {
-	                    terminal.output.write(lang.get(78) + " " + data);
+	                    terminal.output.write(lang.get(78) + " " + data + "\r\n");
                     }
                 } break;
                 default: {
@@ -550,8 +550,8 @@ var terminal = new function() {
 
         var serverURL = server.getDefaultServerURL();
         if (!settings.get_cleanStartup()) {
-            this.output.write(lang.get(0));
-            this.output.write(lang.get(1) + " " + serverURL + "...");
+            this.output.write(lang.get(0) + "\r\n");
+            this.output.write(lang.get(1) + " " + serverURL + "...\r\n");
         }
 
         server.connect(serverURL);
