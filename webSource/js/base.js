@@ -166,7 +166,7 @@ var dom = new function() {
     this.performForClassObjects = function(className,handler) {
         var classes = document.getElementsByClassName(className);
         for (var i = 0; i < classes.length; i++) {
-            handler.call(classes[i])
+            handler.call(classes[i], classes[i]);
         }
     };
 

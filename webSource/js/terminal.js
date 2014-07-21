@@ -932,7 +932,7 @@ var terminal = new function() {
          * @returns {boolean}
          */
         this.stopAll = function() {
-            var stop = false;
+            var stop;
             for (var watch in watches) {
                 if (!watches.hasOwnProperty(watch)) continue;
                 stop = true;
@@ -943,13 +943,36 @@ var terminal = new function() {
 
     };
 
-    // represents output and anything related to it
+    /**
+     * Represents output and everything related to it.
+     * todo: reorganise "animations" usage
+     * todo: remove "highlight output" option
+     */
     this.output = new function() {
 
+        /**
+         * Output stack. A string including everything related to output and used to update terminal
+         * output once per ~25ms
+         *
+         * @type {string}
+         */
         var stack = "",
+            /**
+             * @type {HTMLElement|null}
+             * @deprecated - CWTv2: Terminal has only one output target.
+             */
             target = null,
+            /**
+             * @type {number}
+             * @deprecated
+             */
             lastID = 0,
+            /**
+             * @type {boolean}
+             * @deprecated - Rebase marking mechanism.
+             */
             mark = false,
+            _this = this,
             escapeCharactersProcessing = false;
 
         var STACK_REFRESH_INTERVAL = 25;
@@ -963,16 +986,18 @@ var terminal = new function() {
          * processEscape flag.
          *
          * @param text {string}
-         * [ @param processEscape {boolean} ]
+         * @param {boolean} [processEscape]
          */
         this.write = function(text, processEscape) {
 	        
-            escapeCharactersProcessing = (processEscape)?true:false;
+            /*escapeCharactersProcessing = !!(processEscape);
             if (target == dom.objects.output) {
                 this.forceWrite(text);
             } else {
                 stack += text.replace('[0J','');
-            }
+            }*/
+            stack += text;
+
         };
 
         /**
@@ -980,6 +1005,7 @@ var terminal = new function() {
          *
          * @param object
          * @returns {boolean}
+         * @deprecated - CWTv2: Terminal has only one output target.
          */
         this.setTarget = function(object) {
             target = object;
@@ -988,10 +1014,11 @@ var terminal = new function() {
         
         /**
          * Clears output field.
+         * @deprecated - CWTv2: use escape sequence instead.
          */
         this.clear = function() {
 	        
-	        // @todo: fix this potentialy wrong code
+	        // @todo: fix this potentially wrong code
 	        dom.clearLogs();
 	        stack = "";
 	        
@@ -1006,27 +1033,22 @@ var terminal = new function() {
          * Marks down all marked log headers.
          */
         this.markDownAll = function() {
-            if (mark == false) dom.performForClassObjects("waiting",function(){
-                this.className = this.className.replace(/waiting/g,"complete")
+            if (mark == false) dom.performForClassObjects("waiting", function(object){
+                object.className = object.className.replace(/waiting/g,"complete")
             });
-        };
-
-        this.processEscapeBlock = function() {
-
         };
 
         /**
          * Writing output to object immediately.
          *
          * @param text
-         * [ @param marking ]
-         *  Shows if it needed to mark log as "executing". Mark will still continue until another force write call.
-         * @return {object}
-         *  Object to output to.
+         * @param [marking] - Shows if it needed to mark log as "executing". Mark will still
+         *                    continue until another force write call.
+         * @return {object} - Object to output to.
          */
-        this.forceWrite = function(text,marking) {
+        this.forceWrite = function(text, marking) {
 
-			if (typeof marking == "undefined") marking = false;
+			/*if (typeof marking == "undefined") marking = false;
             escapeCharactersProcessing = false;
 
             var div = document.createElement("div");
@@ -1051,12 +1073,14 @@ var terminal = new function() {
 
             dom.scrollBottom();
 
-            return body;
+            return body;*/
+            _this.freeStack();
 
         };
 
         this.freeStack = function(highlight) {
-            if (!stack) return;
+
+            /*if (!stack) return;
 
             if (settings.get_animations()) {
                 var el = document.createElement("span");
@@ -1067,10 +1091,13 @@ var terminal = new function() {
                 target.appendChild(el);
             } else {
                 target.innerHTML += stack;
-            }
+            }*/
 
+            if (!stack) return;
+            dom.objects.output.innerHTML += stack; // todo
             dom.scrollBottom();
             stack = "";
+
         };
 
         setInterval(this.freeStack,STACK_REFRESH_INTERVAL); // refreshing output
