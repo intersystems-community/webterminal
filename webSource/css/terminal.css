@@ -1,5 +1,9 @@
 .terminal-base {
-    position: relative;
+    position: absolute;
+    left: 2%;
+    top: 2%;
+    width: 96%;
+    height: 96%;
 }
 
 .terminal-base tr, td {
@@ -11,6 +15,7 @@
 
 .terminal-output-block {
     position: relative;
+    min-height: 100%;
     overflow: hidden;
     display: block;
     white-space: pre;

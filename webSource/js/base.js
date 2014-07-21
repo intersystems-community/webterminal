@@ -136,7 +136,7 @@ var dom = new function() {
     /**
      * Clear all logs before.
      */
-    this.clearLogs = function() {
+    this.clearOutput = function() {
         this.objects.output.innerHTML = "";
     };
 

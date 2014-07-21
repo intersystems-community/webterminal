@@ -20,6 +20,7 @@
         <script type="text/javascript" src="js/base.js"></script> <!-- dom/settings uses storage, parser and language -->
         <script type="text/javascript" src="js/application.js"></script> <!-- application module uses language, settings, storage -->
         <script type="text/javascript" src="js/server.js"></script> <!-- server uses parser -->
+        <script type="text/javascript" src="js/output.js"></script>
         <script type="text/javascript" src="js/terminal.js"></script> <!-- terminal uses almost all modules above -->
         <script type="text/javascript" src="js/unit.js"></script> <!-- unit-test module, not necessary -->
     </head>
@@ -145,7 +146,7 @@
                 application.initialize();
             } catch (e) {
                 alert("Unable to initialize terminal: check console output.");
-                console.log(e)
+                throw e;
             }
         </script>
     </body>
