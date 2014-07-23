@@ -1,9 +1,36 @@
 .terminal-base {
     position: absolute;
-    left: 2%;
-    top: 2%;
-    width: 96%;
-    height: 96%;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.terminal-output-central {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: table;
+}
+
+.terminal-output-central > div {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.terminal-output-central > div > div {
+    display: inline-block;
+    text-align: left;
+    position: relative;
+}
+
+.terminalLine {
+    overflow: hidden;
+    word-break: break-all;
+    word-wrap: break-word;
 }
 
 .terminal-base tr, td {

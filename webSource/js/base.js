@@ -18,9 +18,15 @@ function Clone(source) {
     }
 }
 
-Object.prototype.merge = function(object) {
+/**
+ * Merges two objects recursively that each property of sourceObject will appear in object.
+ *
+ * @param {object} object
+ * @param {object} sourceObject
+ */
+var mergeObjects = function (object, sourceObject) {
 
-    var combine = function(target,object) {
+    var combine = function(target, object) {
 
         for (var property in object) {
 
@@ -35,9 +41,30 @@ Object.prototype.merge = function(object) {
 
     };
 
-    combine(this,object);
+    combine(object, sourceObject);
 
 };
+
+//Object.prototype.merge = function(object) {
+//
+//    var combine = function(target,object) {
+//
+//        for (var property in object) {
+//
+//            if (!object.hasOwnProperty(property)) continue;
+//            if (typeof object[property] != "object") {
+//                target[property] = object[property];
+//            } else {
+//                target[property] = new Clone(object[property]);
+//            }
+//
+//        }
+//
+//    };
+//
+//    combine(this,object);
+//
+//};
 
 var log = new function() {
     this.write = function() {

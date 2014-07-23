@@ -124,8 +124,14 @@
                 </table>
             </div>
         </div>
+        <!-- todo: only outer block in dom; other generate with javascript -->
         <div class="terminal-base" id="terminal">
-            <div class="terminal-output-block" id="terminal-output"></div>
+            <div class="terminal-output-central">
+                <div>
+                    <div id="terminal-output"></div>
+                </div>
+            </div>
+            <div class="terminal-output-block"></div>
             <div class="terminal-inputContainer">
                 <div class="terminal-message-head" id="terminal-namespace">
                     <!-- namespace -->

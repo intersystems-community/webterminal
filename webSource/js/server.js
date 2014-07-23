@@ -6,7 +6,9 @@ var server = new function() {
 
     var logData = function(direction,string) {
         log.write(
-            "DATA " + ((direction)?"to":"from") + " server: (" + ((string)?string.charCodeAt(0):"empty") + ") ",string
+            "DATA " + ((direction)?"to":"from") + " server: ("
+                + ((string)?string.charCodeAt(0):"empty") + ") "
+            , "\"" + string + "\""
         );
     };
 

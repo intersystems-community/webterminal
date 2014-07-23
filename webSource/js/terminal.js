@@ -1357,7 +1357,8 @@ var terminal = new function() {
                 if (merging) {
                     this.tokens.class[name] = classToken;
                 } else {
-                    this.tokens.class[name].merge(classToken);
+                    //this.tokens.class[name].merge(classToken); @changed CWTv2
+                    mergeObjects(this.tokens.class[name], classToken);
                 }
 
             } else {
@@ -1381,7 +1382,8 @@ var terminal = new function() {
                 if (!this.tokens.global.hasOwnProperty(name)) {
                     this.tokens.global[name] = globalToken;
                 } else {
-                    this.tokens.global[name].merge(globalToken);
+                    // this.tokens.global[name].merge(globalToken); @changed CWTv2
+                    mergeObjects(this.tokens.global[name], globalToken);
                 }
 
             } else {
