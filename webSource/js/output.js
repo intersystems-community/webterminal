@@ -18,7 +18,9 @@ var Output = function() {
         var lineElement = document.createElement("div"),
             __this = this,
             linePlainText = "",
-            graphicRenditionIndex = {}; // { "stringPos": [attributes] }
+            graphicRenditionIndex = {
+
+            }; // { "stringPos": [attributes] }
 
         /**
          * Initialisation.
@@ -39,7 +41,9 @@ var Output = function() {
         this.render = function() {
 
             var positions = [],
-                i, lineText = "";
+                i,
+                lineText = "",
+                temp;
 
             for (i in graphicRenditionIndex) {
                 positions.push(i);
@@ -47,12 +51,14 @@ var Output = function() {
 
             positions.sort(function(a, b) { return a > b; });
 
+            if (positions[0] != "0") positions.unshift("0");
             //console.log(graphicRenditionIndex, positions);
 
-            for (i = 0; i < positions.length; i++) {
-                lineText += "<span class=\"" + graphicRenditionIndex[positions[i]].join(" ")
-                    + "\">" + linePlainText.substring(
-                            positions[i - 1] || 0,
+            for (i = 0; i < positions.length; i++) { // todo: fix render mechanism
+                temp = (graphicRenditionIndex[positions[i]] || []).join(" term-gri");
+                if (temp) temp = "<span class=\"term-gri" + temp + "\">";
+                lineText += temp + linePlainText.substring(
+                            positions[i] || 0,
                             positions[i + 1] || linePlainText.length
                         ).replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span>";
             }
@@ -150,7 +156,7 @@ var Output = function() {
         SEGMENT_PIXEL_WIDTH = 0,
         SEGMENT_PIXEL_HEIGHT = 0,
 
-        CONTROL_SEQUENCE_PATTERN = /[\r\n]|\x1b[^@-~]*[@-~]/g, // todo: fix and debug
+        CONTROL_SEQUENCE_PATTERN = /[\r\n]|\x1b\[?[^@-~]*[@-~]/g, // todo: fix and debug
 
         CURRENT_GRAPHIC_RENDITION = {},// { "attribute": true }
 
@@ -167,6 +173,13 @@ var Output = function() {
 
     var setCaretY = function(y) {
         _this.caret.y = Math.max(1, Math.min(_this.height, y));
+    };
+
+    var thereIsAnyCurrentGraphicRendition = function() {
+        for (var i in CURRENT_GRAPHIC_RENDITION) {
+            return true;
+        }
+        return false;
     };
 
     /**
@@ -214,8 +227,6 @@ var Output = function() {
      * @param {string} sequence
      */
     var applyControlSequence = function(sequence) {
-
-        console.log("Sequence:", sequence);
 
         if (sequence === "\r") {
             setCaretX(1);

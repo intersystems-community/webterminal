@@ -531,9 +531,9 @@ var terminal = new function() {
 
         _this.output = new Output();
         window.onbeforeunload = handlers.end;
-        window.onresize = function(event) {
+        window.addEventListener("resize", function(event) {
             _this.output.sizeChanged();
-        };
+        });
         _this.output.sizeChanged();
 
         lang.initialize();
