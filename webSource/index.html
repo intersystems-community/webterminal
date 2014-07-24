@@ -149,6 +149,9 @@
         <script type="text/javascript" id="startup">
             try {
                 //application.authorizationKey = "#(%session.CSPSessionCookie)#";
+//                var terminal = new Terminal({ // todo
+//                    element: document.getElementById("terminal")
+//                });
                 application.initialize();
             } catch (e) {
                 alert("Unable to initialize terminal: check console output.");

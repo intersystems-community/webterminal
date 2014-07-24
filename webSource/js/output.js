@@ -45,18 +45,27 @@ var Output = function() {
                 lineText = "",
                 temp;
 
+            console.log("Rendering line...");
+
             for (i in graphicRenditionIndex) {
-                positions.push(i);
+                positions.push(parseInt(i));
             }
 
-            positions.sort(function(a, b) { return a > b; });
+            console.log("Unsorted positions:", positions.slice());
 
-            if (positions[0] != "0") positions.unshift("0");
+            positions.sort(function(a, b) { return a > b; }); // sometimes wrong .sort in chrome!
+
+            if (positions[0] !== 0) positions.unshift(0);
             //console.log(graphicRenditionIndex, positions);
+            console.log("Positions:", positions.slice());
 
-            for (i = 0; i < positions.length; i++) { // todo: fix render mechanism
+            for (i = 0; i < positions.length; i++) {
                 temp = (graphicRenditionIndex[positions[i]] || []).join(" term-gri");
                 if (temp) temp = "<span class=\"term-gri" + temp + "\">";
+                console.log("Rendering text part \"" + linePlainText.substring(
+                        positions[i] || 0,
+                        positions[i + 1] || linePlainText.length
+                ).replace(/&/g, "&amp;").replace(/</g, "&lt;") + "\"");
                 lineText += temp + linePlainText.substring(
                             positions[i] || 0,
                             positions[i + 1] || linePlainText.length
@@ -106,11 +115,17 @@ var Output = function() {
 
             // todo: clear graphicRenditionIndex[writePart.length] array
 
-            // set new attributes
-            for (i in CURRENT_GRAPHIC_RENDITION) {
-                if (!graphicRenditionIndex.hasOwnProperty(position.toString())) // force > out block
-                    graphicRenditionIndex[position] = [];
-                graphicRenditionIndex[position].push(i);
+            if (thereIsAnyCurrentGraphicRendition()) {
+
+                // set new attributes
+                for (i in CURRENT_GRAPHIC_RENDITION) {
+                    if (!graphicRenditionIndex.hasOwnProperty(position.toString())) // force > out block
+                        graphicRenditionIndex[position] = [];
+                    graphicRenditionIndex[position].push(i);
+                }
+
+            } else {
+                graphicRenditionIndex[position] = [];
             }
 
             __this.render();
@@ -228,6 +243,8 @@ var Output = function() {
      */
     var applyControlSequence = function(sequence) {
 
+        console.log("SEQUENCE", sequence);
+
         if (sequence === "\r") {
             setCaretX(1);
         } else if (sequence === "\n") {
@@ -235,13 +252,20 @@ var Output = function() {
                 scrollDisplay(1);
             }
             setCaretY(_this.caret.y + 1);
-        } else if (sequence.match(/\x1b\[[0-9]+m/)) {
-            var code = parseInt(sequence.match(/[0-9]+/)[0]);
-            if (code === 0) {
-                CURRENT_GRAPHIC_RENDITION = {};
-            } else {
-                CURRENT_GRAPHIC_RENDITION[code] = true;
+        } else if (sequence.match(/\x1b\[[0-9;]+m/)) {
+
+            var codes = sequence.match(/[0-9;]+/)[0].split(";"),
+                code;
+
+            for (var i in codes) {
+                code = parseInt(codes[i]);
+                if (code === 0) {
+                    CURRENT_GRAPHIC_RENDITION = {};
+                } else {
+                    CURRENT_GRAPHIC_RENDITION[code] = true;
+                }
             }
+
         }
 
     };

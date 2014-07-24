@@ -31,6 +31,7 @@
     overflow: hidden;
     word-break: break-all;
     word-wrap: break-word;
+    white-space: pre;
 }
 
 .terminal-base tr, td {

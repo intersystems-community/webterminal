@@ -1,9 +1,30 @@
-.term-gri1 {
+.term-gri1 { /* bright */
     font-weight: 900;
+}
+
+.term-gri2 { /* dim */
+    opacity: 0.8;
 }
 
 .term-gri4 {
     text-decoration: underline;
+}
+
+.term-gri5 {
+    animation: blinker infinite 1s;
+    -o-animation: blinker infinite 1s;
+    -ms-animation: blinker infinite 1s;
+    -moz-animation: blinker infinite 1s;
+    -webkit-animation: blinker infinite 1s;
+}
+
+.term-gri7 {
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
+}
+
+.term-gri8 {
+    opacity: 0;
 }
 
 .term-gri30 {

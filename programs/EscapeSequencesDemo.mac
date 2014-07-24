@@ -29,7 +29,7 @@ EscapeSequencesDemo
 
     w !!, "Combinations:"
     w !, ESC, "[31;1;46;4m", "Bright red underscored text on cyan background", ESC, "[0m", !
-    w ESC, "[5;34;42;4m", "Blue/pink blinking text on green background", ESC, "[0m", !
+    w ESC, "[5;34;42;4m", "Blue blinking text on green background", ESC, "[0m", !
 
     d Read
     w #
