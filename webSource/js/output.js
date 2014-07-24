@@ -45,27 +45,17 @@ var Output = function() {
                 lineText = "",
                 temp;
 
-            console.log("Rendering line...");
-
             for (i in graphicRenditionIndex) {
                 positions.push(parseInt(i));
             }
 
-            console.log("Unsorted positions:", positions.slice());
-
-            positions.sort(function(a, b) { return a > b; }); // sometimes wrong .sort in chrome!
+            positions.sort(function(a, b) { return a - b; });
 
             if (positions[0] !== 0) positions.unshift(0);
-            //console.log(graphicRenditionIndex, positions);
-            console.log("Positions:", positions.slice());
 
             for (i = 0; i < positions.length; i++) {
                 temp = (graphicRenditionIndex[positions[i]] || []).join(" term-gri");
                 if (temp) temp = "<span class=\"term-gri" + temp + "\">";
-                console.log("Rendering text part \"" + linePlainText.substring(
-                        positions[i] || 0,
-                        positions[i + 1] || linePlainText.length
-                ).replace(/&/g, "&amp;").replace(/</g, "&lt;") + "\"");
                 lineText += temp + linePlainText.substring(
                             positions[i] || 0,
                             positions[i + 1] || linePlainText.length
@@ -242,8 +232,6 @@ var Output = function() {
      * @param {string} sequence
      */
     var applyControlSequence = function(sequence) {
-
-        console.log("SEQUENCE", sequence);
 
         if (sequence === "\r") {
             setCaretX(1);
