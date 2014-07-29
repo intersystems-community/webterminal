@@ -1,23 +1,27 @@
 /**
- * Terminal language object. It is used in autocomplete.
+ * Terminal dictionary object. Stores all defined keywords and rules for them.
  *
- * Object consists of other objects which determines program language. That's no meter how to call
- * first-level objects of [tokens] - that's just for perception. Language units must have properties
- * of type number, which determines importance of language unit usage. Properties beginning with the
- * symbol "!" are the control properties. They determining extra rules for language unit.
+ * Object consists of other objects which determines program dictionary. That's no meter how to call
+ * first-level objects of [tokens] - that's just for perception. Dictionary units must have
+ * properties of type number, which determines importance of dictionary unit usage. Properties
+ * beginning with the symbol "!" are the control properties. They determining extra rules for
+ * dictionary unit.
+ *
  * Functionality of this properties is the next:
  *     "!autocomplete": reversed regular expression for autocomplete. Note the follow:
  *       + To search unit in any position join ".*" to the end of expression. There's no meter to
  *         add this if you expecting unit to be placed at the beginning of string, such as system
  *         commands.
  *       + Insert brackets to regular expression in position which have to match with properties
- *         (language units)
+ *         (dictionary units)
  *       + Do not forget to write REVERSED regular expression for your expectations.
+ *
+ * @needImprovements
  */
-var TerminalLanguage = function () {
+var TerminalDictionary = function () {
 
     /**
-     * Tokens language object. RULES:
+     * Tokens dictionary object. RULES:
      *  Autocomplete parsing will be performed for any object in {tokens} which has "!autocomplete"
      *  property and reversedRegExp property inside. There are two optional parameters:
      *    + separator (no default) - brakes autocomplete variants by parts. For example, it can be
@@ -386,7 +390,7 @@ var TerminalLanguage = function () {
  * @param {string} name
  * @param {object} token
  */
-TerminalLanguage.prototype.addClassToken = function (name, token) { // adds class to tokens
+TerminalDictionary.prototype.addClassToken = function (name, token) { // adds class to tokens
 
     if (!this._tokens.class.hasOwnProperty(name)) {
         this._tokens.class[name] = token;
@@ -403,7 +407,7 @@ TerminalLanguage.prototype.addClassToken = function (name, token) { // adds clas
  * @param {string} name
  * @param {*} token
  */
-TerminalLanguage.prototype.addGlobalToken = function (name, token) { // adds class to tokens
+TerminalDictionary.prototype.addGlobalToken = function (name, token) { // adds class to tokens
 
     if (!this._tokens.global.hasOwnProperty(name)) {
         this._tokens.global[name] = token;
@@ -415,11 +419,11 @@ TerminalLanguage.prototype.addGlobalToken = function (name, token) { // adds cla
 };
 
 /**
- * Creates user's language token for given name.
+ * Creates user's dictionary token for given name.
  *
- * @param {string} name - Name of language unit.
+ * @param {string} name - Name of dictionary unit.
  */
-TerminalLanguage.prototype.addUserToken = function (name) {
+TerminalDictionary.prototype.addUserToken = function (name) {
 
     var r = new RegExp("[a-zA-Z][a-zA-Z0-9]*");
 
@@ -435,12 +439,12 @@ TerminalLanguage.prototype.addUserToken = function (name) {
 };
 
 /**
- * Removes user language token(s) for given name.
+ * Removes user dictionary token(s) for given name.
  *
  * @param {string|"*"} name - Name of token to remove. If parameter equals to "*", all tokens will
  *                            be removed.
  */
-TerminalLanguage.prototype.removeUserToken = function (name) {
+TerminalDictionary.prototype.removeUserToken = function (name) {
 
     var t;
     
@@ -463,12 +467,12 @@ TerminalLanguage.prototype.removeUserToken = function (name) {
  *
  * @param {object} tokens
  */
-TerminalLanguage.prototype.addClassTokens = function (tokens) {
+TerminalDictionary.prototype.addClassTokens = function (tokens) {
 
     var property;
 
-    if (typeof tokens != "object") {
-        log.write("language.addClasses error: argument is not an object.")
+    if (typeof tokens !== "object") {
+        console.error("Argument is not an object.");
     }
 
     for (property in tokens) {
@@ -483,12 +487,12 @@ TerminalLanguage.prototype.addClassTokens = function (tokens) {
  *
  * @param {object} tokens
  */
-TerminalLanguage.prototype.addGlobalTokens = function (tokens) {
+TerminalDictionary.prototype.addGlobalTokens = function (tokens) {
 
     var property;
 
-    if (typeof tokens != "object") {
-        log.write("language.addGlobals error: argument is not an object.")
+    if (typeof tokens !== "object") {
+        console.error("Error: argument is not an object.")
     }
 
     for (property in tokens) {
@@ -505,7 +509,7 @@ TerminalLanguage.prototype.addGlobalTokens = function (tokens) {
  *
  * @param {string} string
  */
-TerminalLanguage.prototype.parseForCachéTokens = function (string) {
+TerminalDictionary.prototype.parseForCachéTokens = function (string) {
 
     var re = new RegExp(
             "[\\s\\{](set|s)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))\\s*=",
@@ -546,20 +550,20 @@ TerminalLanguage.prototype.parseForCachéTokens = function (string) {
 };
 
 /**
- * Exports terminal language to object.
+ * Exports terminal dictionary to object.
  *
  * @returns {string}
  */
-TerminalLanguage.prototype.exportJSON = function () {
+TerminalDictionary.prototype.exportJSON = function () {
     return JSON.stringify(this);
 };
 
 /**
- * Imports language from exported object.
+ * Imports dictionary from exported object.
  *
  * @param {string} json
  */
-TerminalLanguage.prototype.importJSON = function (json) {
+TerminalDictionary.prototype.importJSON = function (json) {
 
     var data, i;
 

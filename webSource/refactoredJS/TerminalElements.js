@@ -34,7 +34,7 @@ var TerminalElements = function (parentElement) {
     this.output = document.createElement("div");
 
     /**
-     * @type {HTMLElement}
+     * @type {HTMLInputElement}
      */
     this.input = document.createElement("input");
 

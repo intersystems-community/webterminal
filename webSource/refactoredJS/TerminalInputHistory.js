@@ -1,12 +1,10 @@
 /**
  * Controls the input history of terminal application.
  *
- * @param {Terminal} terminal
  * @constructor
  */
-var TerminalInputHistory = function (terminal) {
+var TerminalInputHistory = function () {
 
-    this._terminal = terminal;
     this._history = [""];
     this._currentPosition = 0;
 

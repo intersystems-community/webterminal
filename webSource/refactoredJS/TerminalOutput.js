@@ -2,8 +2,15 @@
  * Represents output and everything related to it.
  * todo: reorganise "animations" usage
  * todo: remove "highlight output" option
+ *
+ * @param {Terminal} TERMINAL
  */
-var TerminalOutput = function () {
+var TerminalOutput = function (TERMINAL) {
+
+    /**
+     * @type {Terminal}
+     */
+    this.TERMINAL = TERMINAL;
 
     /**
      * Output stack. Each output operation will be written to stack first.
@@ -50,7 +57,7 @@ var TerminalOutput = function () {
      * @type {{number: boolean}}
      * @private
      */
-    this._CURRENT_GRAPHIC_RENDITION = {};
+    this.CURRENT_GRAPHIC_RENDITION = {};
 
     /**
      * Array of TerminalOutputLine instances.
@@ -94,6 +101,11 @@ var TerminalOutput = function () {
 };
 
 /**
+ * @type {string}
+ */
+TerminalOutput.prototype.LINE_CLASSNAME = "terminal-line";
+
+/**
  * Sets caret X position. Caret position is limited by terminal output size.
  *
  * @param {number} x
@@ -135,8 +147,8 @@ TerminalOutput.prototype.anyGraphicRenditionSet = function () {
 
     var i;
 
-    for (i in this._CURRENT_GRAPHIC_RENDITION) {
-        return true;
+    for (i in this.CURRENT_GRAPHIC_RENDITION) {
+        if (this.CURRENT_GRAPHIC_RENDITION.hasOwnProperty(i)) return true;
     }
 
     return false;
@@ -151,9 +163,9 @@ TerminalOutput.prototype.anyGraphicRenditionSet = function () {
 TerminalOutput.prototype.setGraphicRendition = function (index) {
 
     if (index === 0) {
-        this._CURRENT_GRAPHIC_RENDITION = {};
+        this.CURRENT_GRAPHIC_RENDITION = {};
     } else {
-        this._CURRENT_GRAPHIC_RENDITION[index] = true;
+        this.CURRENT_GRAPHIC_RENDITION[index] = true;
     }
 
 };
@@ -200,7 +212,7 @@ TerminalOutput.prototype.getCurrentLine = function () {
         u;
 
     for (u = this._lines.length; u <= i; u++) {
-        this._lines[u] = new TerminalOutputLine(u);
+        this._lines[u] = new TerminalOutputLine(this);
     }
 
     return this._lines[i];
@@ -216,7 +228,7 @@ TerminalOutput.prototype.getCurrentLine = function () {
 TerminalOutput.prototype._spawnLines = function (number) {
 
     for (; number > 0; number--) {
-        this._lines.push(new TerminalOutputLine(this._lines.length));
+        this._lines.push(new TerminalOutputLine(this));
     }
 
 };
@@ -332,15 +344,16 @@ TerminalOutput.prototype.sizeChanged = function () {
 
     var tel = document.createElement("span");
 
-    dom.objects.output.appendChild(tel);
+    tel.className = this.LINE_CLASSNAME;
+
+    this.TERMINAL.elements.output.appendChild(tel);
     tel.innerHTML = "XXX<br/>XXX<br/>XXX";
 
     this.SYMBOL_PIXEL_WIDTH = Math.floor(tel.offsetWidth/3);
     this.SYMBOL_PIXEL_HEIGHT = Math.floor(tel.offsetHeight/3);
 
-//    this.WIDTH = Math.floor(dom.objects.terminal.offsetWidth / this.SEGMENT_PIXEL_WIDTH);
-//    this.HEIGHT = Math.floor(dom.objects.terminal.offsetHeight / this.SEGMENT_PIXEL_HEIGHT);
-//    todo: reorganize dom.objects.terminal
+    this.WIDTH = this.TERMINAL.elements.terminal.offsetWidth / this.SYMBOL_PIXEL_WIDTH;
+    this.HEIGHT = this.TERMINAL.elements.terminal.offsetHeight / this.SYMBOL_PIXEL_HEIGHT;
 
     dom.objects.output.style.width = (this.WIDTH * this.SYMBOL_PIXEL_WIDTH) + "px";
     dom.objects.output.style.height = (this.HEIGHT * this.SYMBOL_PIXEL_HEIGHT) + "px";

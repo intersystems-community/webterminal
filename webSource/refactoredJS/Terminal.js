@@ -138,9 +138,21 @@ var Terminal = function () {
     this.storage = new TerminalStorage();
 
     /**
-     * @type {TerminalLanguage}
+     * @type {TerminalOutput}
      */
-    this.language = new TerminalLanguage();
+    this.output = new TerminalOutput(this);
+
+    /**
+     * @type {TerminalInput}
+     */
+    this.input = new TerminalInput(this);
+
+    /**
+     * @type {TerminalDictionary}
+     */
+    this.dictionary = new TerminalDictionary();
+
+    this.favorites = new TerminalFavorites();
 
 };
 
@@ -150,12 +162,38 @@ var Terminal = function () {
 Terminal.prototype.saveState = function () {
 
     // todo: refactor & uncomment
-    //this.storage.set("history", terminal.history.exportJSON());
-    this.storage.set("language", this.language.exportJSON());
-    //this.storage.set("favorites", terminal.favorites.export());
+    this.storage.set("history", this.input.history.exportJSON());
+    this.storage.set("dictionary", this.dictionary.exportJSON());
+    this.storage.set("favorites", terminal.favorites.exportJSON());
     //this.storage.set("definitions", terminal.definitions.export());
     //this.storage.set("settings", settings.export());
     this.storage.setLastSaveDate(new Date());
     terminal.output.write(this.localization.get(6));
+
+};
+
+/**
+ * Loads terminal state from local storage.
+ */
+Terminal.prototype.loadState = function () {
+
+    if (!this.storage.getLastSaveDate()) {
+        console.warn("Unable to load terminal state: it hasn't been saved before.");
+        return;
+    }
+
+    this.input.history.importJSON(this.storage.get("history"));
+    this.dictionary.importJSON(this.storage.get("dictionary"));
+    this.favorites.importJSON(this.storage.get("favorites"));
+
+};
+
+/**
+ * Resets terminal state.
+ */
+Terminal.prototype.resetState = function () {
+
+    this.storage.clear();
+    // todo: without refreshing page wipe data and reset settings
 
 };
