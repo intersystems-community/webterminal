@@ -13,31 +13,23 @@ var TerminalInputHistory = function (terminal) {
 };
 
 /**
- * Gets history record by its position in memory.
- *
- * @param {number} position
- * @returns {string}
- */
-TerminalInputHistory.prototype.get = function (position) {
-    return this._history[position] || "";
-};
-
-/**
  * Imports history from exported object.
  *
- * @param {string} historyJSON
+ * @param {string} json
  */
-TerminalInputHistory.prototype.importJSON = function (historyJSON) {
+TerminalInputHistory.prototype.importJSON = function (json) {
 
-    var data;
+    var data, i;
 
     try {
-        data = JSON.parse(historyJSON);
-        this._history = data["_history"] || [""];
-        this._currentPosition = data["_currentPosition"];
+        data = JSON.parse(json);
+        for (i in this) {
+            if (!this.hasOwnProperty(i)) continue;
+            this[i] = data[i] || this[i];
+        }
     } catch (e) { console.error(e); }
 
-    // todo: _terminal.input.set(this.getCurrent());
+    // todo: move to terminal controller: _terminal.input.set(this.getCurrent());
 
 };
 
@@ -48,6 +40,16 @@ TerminalInputHistory.prototype.importJSON = function (historyJSON) {
  */
 TerminalInputHistory.prototype.exportJSON = function () {
     return JSON.stringify(this);
+};
+
+/**
+ * Gets history record by its position in memory.
+ *
+ * @param {number} position
+ * @returns {string}
+ */
+TerminalInputHistory.prototype.get = function (position) {
+    return this._history[position] || "";
 };
 
 /**

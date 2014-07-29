@@ -17,6 +17,11 @@ body {
     /*overflow: hidden;*/
 }
 
+pre, code, kbd, samp, tt {
+    font-family: monospace, monospace;
+    font-size: 1em;
+}
+
 table {
     padding: 0;
     border: 0;

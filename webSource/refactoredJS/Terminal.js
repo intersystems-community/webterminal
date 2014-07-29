@@ -123,9 +123,24 @@ var Terminal = function () {
     //                                      modules / plugins                                     \\
 
     /**
+     * @type {TerminalElements}
+     */
+    this.elements = new TerminalElements(document.body);
+
+    /**
+     * @type {TerminalLocalization}
+     */
+    this.localization = new TerminalLocalization();
+
+    /**
      * @type {TerminalStorage}
      */
     this.storage = new TerminalStorage();
+
+    /**
+     * @type {TerminalLanguage}
+     */
+    this.language = new TerminalLanguage();
 
 };
 
@@ -134,12 +149,13 @@ var Terminal = function () {
  */
 Terminal.prototype.saveState = function () {
 
-    this.storage.set("history", terminal.history.export());
-    storage.set("language", terminal.language.export());
-    storage.set("favorites", terminal.favorites.export());
-    storage.set("definitions", terminal.definitions.export());
-    storage.set("settings", settings.export());
-    storage.modifySave();
-    terminal.output.write(lang.get(6));
+    // todo: refactor & uncomment
+    //this.storage.set("history", terminal.history.exportJSON());
+    this.storage.set("language", this.language.exportJSON());
+    //this.storage.set("favorites", terminal.favorites.export());
+    //this.storage.set("definitions", terminal.definitions.export());
+    //this.storage.set("settings", settings.export());
+    this.storage.setLastSaveDate(new Date());
+    terminal.output.write(this.localization.get(6));
 
 };

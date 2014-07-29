@@ -6,7 +6,7 @@
     height: 100%;
 }
 
-.terminal-output-central {
+.terminal-output-centralizer {
     position: absolute;
     left: 0;
     top: 0;
@@ -15,13 +15,13 @@
     display: table;
 }
 
-.terminal-output-central > div {
+.terminal-output-centralizer > div {
     display: table-cell;
     text-align: center;
     vertical-align: middle;
 }
 
-.terminal-output-central > div > div {
+.terminal-output-centralizer > div > div {
     display: inline-block;
     text-align: left;
     position: relative;

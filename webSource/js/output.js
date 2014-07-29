@@ -468,10 +468,10 @@ var Output = function() {
         var tel = document.createElement("span");
 
         dom.objects.output.appendChild(tel);
-        tel.innerHTML = "X";
+        tel.innerHTML = "XXX<br/>XXX<br/>XXX";
 
-        SEGMENT_PIXEL_WIDTH = tel.offsetWidth;
-        SEGMENT_PIXEL_HEIGHT = tel.offsetHeight;
+        SEGMENT_PIXEL_WIDTH = tel.offsetWidth/3;
+        SEGMENT_PIXEL_HEIGHT = tel.offsetHeight/3;
 
         _this.width = Math.floor(dom.objects.terminal.offsetWidth / SEGMENT_PIXEL_WIDTH);
         _this.height = Math.floor(dom.objects.terminal.offsetHeight / SEGMENT_PIXEL_HEIGHT);
