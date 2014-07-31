@@ -34,8 +34,14 @@
  *      In this mode terminal client will listen for data from server and output any data as it is,
  *      without any action identifiers. The same with terminal: any data sent to server won't
  *      include any identifiers.
+ *
+ * @param setting {{
+ *     [container]: HTMLElement
+ * }}
  */
-var Terminal = function () {
+var Terminal = function (setting) {
+
+    if (!setting) setting = {};
 
     //                                         constants                                          \\
 
@@ -123,9 +129,11 @@ var Terminal = function () {
     //                                      modules / plugins                                     \\
 
     /**
+     * Keep on the top of other modules.
+     *
      * @type {TerminalElements}
      */
-    this.elements = new TerminalElements(document.body);
+    this.elements = new TerminalElements(setting.container || document.body);
 
     /**
      * @type {TerminalLocalization}
@@ -152,7 +160,18 @@ var Terminal = function () {
      */
     this.dictionary = new TerminalDictionary();
 
+    /**
+     * @type {TerminalFavorites}
+     */
     this.favorites = new TerminalFavorites();
+
+    this.initialize();
+
+};
+
+Terminal.prototype.initialize = function () {
+
+    this.input.prompt("TEST > ");
 
 };
 

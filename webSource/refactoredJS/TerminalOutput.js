@@ -96,7 +96,7 @@ var TerminalOutput = function (TERMINAL) {
      */
     this.STACK_REFRESH_INTERVAL = 25;
 
-    setInterval(this.freeStack, this.STACK_REFRESH_INTERVAL);
+    this.initialize();
 
 };
 
@@ -105,22 +105,55 @@ var TerminalOutput = function (TERMINAL) {
  */
 TerminalOutput.prototype.LINE_CLASSNAME = "terminal-line";
 
+TerminalOutput.prototype.initialize = function () {
+
+    var _this = this;
+
+    this.sizeChanged();
+
+    setInterval(function () {
+        _this.freeStack();
+    }, this.STACK_REFRESH_INTERVAL);
+    window.addEventListener("resize", function () {
+        _this.sizeChanged();
+    });
+
+};
+
 /**
  * Sets caret X position. Caret position is limited by terminal output size.
  *
  * @param {number} x
+ * @returns {boolean} - If position wasn't limited and now equal to X.
  */
 TerminalOutput.prototype.setCaretX = function (x) {
     this._caret.x = Math.max(1, Math.min(this.WIDTH, x));
+    return x === this._caret.x;
 };
 
 /**
  * Sets caret Y position. Caret position is limited by terminal output size.
  *
  * @param {number} y
+ * @returns {boolean} - If position wasn't limited and now equal to Y.
  */
 TerminalOutput.prototype.setCaretY = function (y) {
     this._caret.y = Math.max(1, Math.min(this.HEIGHT, y));
+    return y === this._caret.y;
+};
+
+/**
+ * @returns {number}
+ */
+TerminalOutput.prototype.getCaretX = function () {
+    return this._caret.x;
+};
+
+/**
+ * @returns {number}
+ */
+TerminalOutput.prototype.getCaretY = function () {
+    return this._caret.y;
 };
 
 /**
@@ -205,8 +238,9 @@ TerminalOutput.prototype.applyControlSequence = function (sequence) {
 
 /**
  * @returns {TerminalOutputLine}
+ * @private
  */
-TerminalOutput.prototype.getCurrentLine = function () {
+TerminalOutput.prototype._getCurrentLine = function () {
 
     var i = this._TOP_LINE + (this._caret.y - 1),
         u;
@@ -217,6 +251,25 @@ TerminalOutput.prototype.getCurrentLine = function () {
 
     return this._lines[i];
 
+};
+
+/**
+ * Outputs new line.
+ */
+TerminalOutput.prototype.printNewLine = function () {
+
+    this.applyControlSequence("\r");
+    this.applyControlSequence("\n");
+
+};
+
+/**
+ * Returns actual line number of all terminal output.
+ *
+ * @returns {number}
+ */
+TerminalOutput.prototype.getLineNumber = function () {
+    return this._TOP_LINE + this._caret.y - 1;
 };
 
 /**
@@ -240,22 +293,23 @@ TerminalOutput.prototype._spawnLines = function (number) {
  *                          sequences.
  * @private
  */
-TerminalOutput.prototype._writePlainText = function (string) {
+TerminalOutput.prototype._printPlainText = function (string) {
 
     var line, xDelta;
 
     do {
 
-        line = this.getCurrentLine();
+        line = this._getCurrentLine();
 
         xDelta = string.length;
         string = line.writePlain(string, this._caret.x - 1);
         xDelta -= string.length;
 
         if (string) {
-            this.applyControlSequence("\r");
-            this.applyControlSequence("\n");
-        } else this.setCaretX(this._caret.x + xDelta);
+            this.printNewLine();
+        } else if (!this.setCaretX(this._caret.x + xDelta)) {
+            this.printNewLine();
+        }
 
     } while (string);
 
@@ -278,14 +332,14 @@ TerminalOutput.prototype._output = function (text) {
         var beforePart = string.substring(lastIndex, index);
         if (!lastIndex) textOrigin = string;
         lastIndex = index + part.length;
-        if (beforePart) _this._writePlainText(beforePart);
+        if (beforePart) _this._printPlainText(beforePart);
         _this.applyControlSequence(part);
         return "";
     });
 
     textLeft = textOrigin.substring(lastIndex, textOrigin.length);
 
-    if (textLeft) this._writePlainText(textLeft);
+    if (textLeft) this._printPlainText(textLeft);
 
 };
 
@@ -294,9 +348,29 @@ TerminalOutput.prototype._output = function (text) {
  *
  * @param text {string}
  */
-TerminalOutput.prototype.write = function (text) {
+TerminalOutput.prototype.print = function (text) {
 
     this._stack += text;
+
+};
+
+/**
+ * May print text out-of-terminal. Synchronous operation
+ *
+ * @param {string} text
+ * @param {number} line
+ * @param {number} position
+ */
+TerminalOutput.prototype.printFromLineActualPosition = function (text, line, position) {
+
+    this.freeStack();
+    this._caret.x = position + 1;
+    this._caret.y = line - this._TOP_LINE + 1;
+    this.print(text);
+    this.freeStack();
+
+    this.setCaretX(this.getCaretX()); // limit caret again
+    this.setCaretY(this.getCaretY());
 
 };
 
@@ -305,9 +379,9 @@ TerminalOutput.prototype.write = function (text) {
  *
  * @param {string} [text]
  */
-TerminalOutput.prototype.forceWrite = function (text) {
+TerminalOutput.prototype.printSync = function (text) {
 
-    this.write(text);
+    this.print(text);
     this.freeStack();
 
 };
@@ -342,22 +416,36 @@ TerminalOutput.prototype.clear = function () {
  */
 TerminalOutput.prototype.sizeChanged = function () {
 
-    var tel = document.createElement("span");
+    var tel = document.createElement("span"),
+        testScrollbar = document.createElement("div"),
+        scrollBarWidth,
+        lastProperty = this.TERMINAL.elements.output.style.overflowY;
+
+    this.TERMINAL.elements.output.style.overflowY = "scroll";
+
+    this.TERMINAL.elements.output.appendChild(testScrollbar);
+    scrollBarWidth = this.TERMINAL.elements.output.offsetWidth - testScrollbar.offsetWidth;
+    this.TERMINAL.elements.output.style.overflowY = lastProperty;
 
     tel.className = this.LINE_CLASSNAME;
-
+    tel.innerHTML = "XXX";
     this.TERMINAL.elements.output.appendChild(tel);
-    tel.innerHTML = "XXX<br/>XXX<br/>XXX";
 
-    this.SYMBOL_PIXEL_WIDTH = Math.floor(tel.offsetWidth/3);
-    this.SYMBOL_PIXEL_HEIGHT = Math.floor(tel.offsetHeight/3);
+    this.SYMBOL_PIXEL_WIDTH = tel.offsetWidth/3;
+    this.SYMBOL_PIXEL_HEIGHT = tel.offsetHeight;
 
-    this.WIDTH = this.TERMINAL.elements.terminal.offsetWidth / this.SYMBOL_PIXEL_WIDTH;
-    this.HEIGHT = this.TERMINAL.elements.terminal.offsetHeight / this.SYMBOL_PIXEL_HEIGHT;
+    this.WIDTH = Math.floor(
+            (this.TERMINAL.elements.terminal.offsetWidth - scrollBarWidth) / this.SYMBOL_PIXEL_WIDTH
+    );
+    this.HEIGHT = Math.floor(
+            this.TERMINAL.elements.terminal.offsetHeight / this.SYMBOL_PIXEL_HEIGHT
+    );
 
-    dom.objects.output.style.width = (this.WIDTH * this.SYMBOL_PIXEL_WIDTH) + "px";
-    dom.objects.output.style.height = (this.HEIGHT * this.SYMBOL_PIXEL_HEIGHT) + "px";
+    this.TERMINAL.elements.output.style.width =
+        (this.WIDTH * this.SYMBOL_PIXEL_WIDTH + scrollBarWidth) + "px";
+    this.TERMINAL.elements.output.style.height = (this.HEIGHT * this.SYMBOL_PIXEL_HEIGHT) + "px";
 
-    dom.objects.output.removeChild(tel);
+    this.TERMINAL.elements.output.removeChild(testScrollbar);
+    this.TERMINAL.elements.output.removeChild(tel);
 
 };

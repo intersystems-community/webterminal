@@ -4,10 +4,10 @@
  * Terminal structure:
  * <parentElement> - block which has at least non-zero width and height
  *     <terminal> - terminal window which will fill parent by 100% width and 100% height
+ *        <input/> - floating input
  *        <outputCentralizer> - wrapper to centralize terminal output.
  *            <outputCentralizer> - another wrapper
  *                <output> - scrollable output container
- *                    <input/> - floating input
  *                    [content]
  *                </output>
  *            </outputCentralizer>
@@ -53,11 +53,12 @@ TerminalElements.prototype._initialize = function (parentElement) {
     var centralizer = document.createElement("div"),
         centralizerInner = document.createElement("div");
 
-    this.terminal.className = "terminal-base";
-    centralizer.className = "terminal-output-centralizer";
-    this.output.className = "terminal-output";
+    this.terminal.className = "terminalContainer";
+    centralizer.className = "terminalOutputCentralizer";
+    this.input.className = "terminalInput";
+    this.output.className = "terminalOutput";
 
-    this.output.appendChild(this.input);
+    this.terminal.appendChild(this.input);
     centralizerInner.appendChild(this.output);
     centralizer.appendChild(centralizerInner);
     this.terminal.appendChild(centralizer);

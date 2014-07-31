@@ -1,0 +1,51 @@
+.terminalContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    color: white;
+    background: black; /*url("../img/back.png") black;*/
+    font-family: FreeMono, monospace;
+    font-size: 16px;
+}
+
+.terminalContainer .terminalOutputCentralizer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: table;
+}
+
+.terminalContainer .terminalOutputCentralizer > div {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.terminalContainer .terminalOutputCentralizer > div > div {
+    display: inline-block;
+    text-align: left;
+    position: relative;
+    box-shadow: 0 0 0 1px white;
+    overflow-y: scroll;
+}
+
+.terminalContainer .terminalInput {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+
+    /* ie visible caret fix */
+    position: absolute;
+    height: 1em;
+    top: -1.5em;
+}
+
+.terminalContainer .terminalOutput {
+    white-space: pre;
+    word-wrap: break-word;
+    word-break: break-all;
+}
