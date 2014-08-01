@@ -18,8 +18,9 @@ var TerminalOutputLine = function (TERMINAL_OUTPUT) {
 
     /**
      * @type {HTMLElement}
+     * @private
      */
-    this.lineElement = document.createElement("div");
+    this._lineElement = document.createElement("div");
 
     /**
      * Text of line which will be rendered.
@@ -39,11 +40,18 @@ var TerminalOutputLine = function (TERMINAL_OUTPUT) {
 
 TerminalOutputLine.prototype.initialize = function () {
 
-    this.lineElement.className = this.TERMINAL_OUTPUT.LINE_CLASSNAME;
-    this.lineElement.style.height = this.TERMINAL_OUTPUT.SYMBOL_PIXEL_HEIGHT + "px";
+    this._lineElement.className = this.TERMINAL_OUTPUT.LINE_CLASSNAME;
+    this._lineElement.style.height = this.TERMINAL_OUTPUT.SYMBOL_PIXEL_HEIGHT + "px";
 
-    this.TERMINAL.elements.output.appendChild(this.lineElement);
+    this.TERMINAL.elements.output.appendChild(this._lineElement);
 
+};
+
+/**
+ * @returns {HTMLElement}
+ */
+TerminalOutputLine.prototype.getElement = function () {
+    return this._lineElement;
 };
 
 /**
@@ -75,7 +83,7 @@ TerminalOutputLine.prototype.render = function () {
 
     if (!lineText) lineText = this.linePlainText.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
-    this.lineElement.innerHTML = lineText;
+    this._lineElement.innerHTML = lineText;
 
 };
 

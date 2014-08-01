@@ -103,7 +103,7 @@ var TerminalOutput = function (TERMINAL) {
 /**
  * @type {string}
  */
-TerminalOutput.prototype.LINE_CLASSNAME = "terminal-line";
+TerminalOutput.prototype.LINE_CLASSNAME = "terminalLine";
 
 TerminalOutput.prototype.initialize = function () {
 
@@ -238,9 +238,8 @@ TerminalOutput.prototype.applyControlSequence = function (sequence) {
 
 /**
  * @returns {TerminalOutputLine}
- * @private
  */
-TerminalOutput.prototype._getCurrentLine = function () {
+TerminalOutput.prototype.getCurrentLine = function () {
 
     var i = this._TOP_LINE + (this._caret.y - 1),
         u;
@@ -299,7 +298,7 @@ TerminalOutput.prototype._printPlainText = function (string) {
 
     do {
 
-        line = this._getCurrentLine();
+        line = this.getCurrentLine();
 
         xDelta = string.length;
         string = line.writePlain(string, this._caret.x - 1);
@@ -428,10 +427,10 @@ TerminalOutput.prototype.sizeChanged = function () {
     this.TERMINAL.elements.output.style.overflowY = lastProperty;
 
     tel.className = this.LINE_CLASSNAME;
-    tel.innerHTML = "XXX";
+    tel.innerHTML = "XXXXXXXXXX";
     this.TERMINAL.elements.output.appendChild(tel);
 
-    this.SYMBOL_PIXEL_WIDTH = tel.offsetWidth/3;
+    this.SYMBOL_PIXEL_WIDTH = tel.offsetWidth/10;
     this.SYMBOL_PIXEL_HEIGHT = tel.offsetHeight;
 
     this.WIDTH = Math.floor(

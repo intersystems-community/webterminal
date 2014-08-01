@@ -49,3 +49,23 @@
     word-wrap: break-word;
     word-break: break-all;
 }
+
+.terminalContainer .terminalLine {
+    position: relative;
+    overflow: hidden;
+}
+
+.terminalContainer .terminalCaret {
+    position: absolute;
+    left: 0;
+    top: 0;
+    animation: blink infinite 1s;
+    -o-animation: blink infinite 1s;
+    -ms-animation: blink infinite 1s;
+    -moz-animation: blink infinite 1s;
+    -webkit-animation: blink infinite 1s;
+}
+
+.terminalContainer .terminalCaret:after {
+    content: "_";
+}

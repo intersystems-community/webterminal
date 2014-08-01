@@ -27,7 +27,7 @@ var TerminalInput = function (TERMINAL) {
     /**
      * @type {TerminalInputCaret}
      */
-    this.caretView = new TerminalInputCaret(this);
+    this.caret = new TerminalInputCaret(this);
 
     /**
      * Variable that indicates last length of input to determine if text was erazed.
@@ -58,7 +58,7 @@ TerminalInput.prototype.initialize = function () {
     var _this = this;
 
     window.addEventListener("keydown", function () { // PC devices
-        // activeElement is an HTMLElement
+        // activeElement can be HTMLInputElement
         // noinspection JSValidateTypes
         if (_this.ENABLED && document.activeElement !== _this.TERMINAL.elements.input) {
             _this.focus();
@@ -70,11 +70,11 @@ TerminalInput.prototype.initialize = function () {
             event.preventDefault();
             _this.focus();
         }
-    }, false);
+    });
 
     this.TERMINAL.elements.input.addEventListener("input", function () {
         if (_this.ENABLED) {
-            _this.onInput(event);
+            _this.onInput();
         }
     });
 
@@ -104,6 +104,7 @@ TerminalInput.prototype._enable = function () {
     this.ENABLED = true;
     this.TERMINAL.elements.input.removeAttribute("disabled");
     this.focus();
+    this.caret.update();
 
 };
 
@@ -116,6 +117,7 @@ TerminalInput.prototype._disable = function () {
 
     this.TERMINAL.elements.input.setAttribute("disabled", "");
     this.ENABLED = false;
+    this.caret.hide();
 
 };
 
@@ -147,6 +149,8 @@ TerminalInput.prototype.onInput = function () {
     this.TERMINAL.output.setCaretY(cy);
 
     this.__inputLastLength = length;
+
+    this.caret.update();
 
 };
 
