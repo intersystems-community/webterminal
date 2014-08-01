@@ -17,7 +17,7 @@ var TerminalInput = function (TERMINAL) {
      * @type {boolean}
      * @debug
      */
-    this.ENABLED = true;
+    this.ENABLED = false;
 
     /**
      * @type {TerminalInputHistory}
@@ -196,9 +196,9 @@ TerminalInput.prototype.keyDown = function (event) {
  */
 TerminalInput.prototype.submit = function () {
 
+    this.TERMINAL.controller.terminalQuery(this.TERMINAL.elements.input.value);
     this.TERMINAL.elements.input.value = "";
     this.__inputLastLength = 0;
-    this.prompt("TEST > ");
 
 };
 

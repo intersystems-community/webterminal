@@ -36,12 +36,15 @@
  *      include any identifiers.
  *
  * @param setting {{
+ *     controller: TerminalController,
  *     [container]: HTMLElement
  * }}
  */
 var Terminal = function (setting) {
 
-    if (!setting) setting = {};
+    if (!setting) setting = {
+        controller: new TerminalController(this)
+    };
 
     //                                         constants                                          \\
 
@@ -165,13 +168,18 @@ var Terminal = function (setting) {
      */
     this.favorites = new TerminalFavorites();
 
+    /**
+     * @type {TerminalController}
+     */
+    this.controller = new TerminalController(this);
+
     this.initialize();
 
 };
 
 Terminal.prototype.initialize = function () {
 
-    this.input.prompt("TEST > ");
+
 
 };
 

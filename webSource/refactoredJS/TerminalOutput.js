@@ -78,9 +78,13 @@ var TerminalOutput = function (TERMINAL) {
     };
 
     /**
-     * When enabled, caret can be placed out of terminal by Y axis.
+     * When enabled, caret position will be limited in [1, WIDTH] by X and [1, HEIGHT] by Y axis.
      *
-     * @type {boolean}
+     * This enables terminal to print content out of it's viewport.
+     *
+     * MAKE SURE TO SET "true" VALUE BACK IN THE SAME CODE SCOPE WHEN USED.
+     *
+     * @type {boolean} flag
      */
     this.$CARET_RESTRICTION_ON = true;
 
