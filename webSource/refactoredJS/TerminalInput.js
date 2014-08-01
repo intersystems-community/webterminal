@@ -1,6 +1,5 @@
 /**
  * Terminal input controller.
- * todo.
  *
  * @see TerminalElements.input
  * @param {Terminal} TERMINAL

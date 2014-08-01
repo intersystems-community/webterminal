@@ -28,7 +28,6 @@
     display: inline-block;
     text-align: left;
     position: relative;
-    box-shadow: 0 0 0 1px white;
     overflow-y: scroll;
 }
 

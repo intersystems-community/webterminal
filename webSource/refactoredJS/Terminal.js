@@ -46,62 +46,6 @@ var Terminal = function (setting) {
         controller: new TerminalController(this)
     };
 
-    //                                         constants                                          \\
-
-    /**
-     * Terminal mode constants.
-     *
-     * @type {{NORMAL: number, CLEAR_IO: number, SQL: number, MACRO: number, DEFAULT: number,
-     *       LAST: number}}
-     */
-    this.MODE = {
-        NORMAL: 0, // executing commands on server
-        CLEAR_IO: 3,// real-time execution (while messaging) mode until /END/ from server
-        SQL: 1, // executing sql queries
-        MACRO: 2, // macro recording (set of commands)
-        DEFAULT: 0, // default terminal mode
-        LAST: 0 // determines last switched mode (functional, do not change)
-    };
-
-    /**
-     * Client action constants for server's response first byte.
-     *
-     * @type {{NONE: string, ENTER_CLEAR_IO: string, EXIT_CLEAR_IO: string, OUTPUT: string,
-     *       CHANGE_NAMESPACE: string, LOAD_AUTOCOMPLETE: string, READ_STRING: string,
-     *       READ_CHARACTER: string, AUTHORIZATION_STATUS: string, WATCH: string,
-     *       LOGIN_INFO: string}}
-     */
-    this.CLIENT_ACTION = {
-        NONE: String.fromCharCode(0), // useless action
-        ENTER_CLEAR_IO: String.fromCharCode(1), // enters clear IO. In this mode terminal won't send action id
-        EXIT_CLEAR_IO: String.fromCharCode(2), // exits clear IO
-        OUTPUT: String.fromCharCode(3), // just outputs message body
-        CHANGE_NAMESPACE: String.fromCharCode(4), // changes namespace
-        LOAD_AUTOCOMPLETE: String.fromCharCode(5), // loads autocomplete file. Body holds only namespace
-        READ_STRING: String.fromCharCode(6), // reads string - removes namespace like in common terminal
-        READ_CHARACTER: String.fromCharCode(7), // reads character - removes namespace like in common terminal
-        AUTHORIZATION_STATUS: String.fromCharCode(8), // alerts client about authorization success. Holds 1/0
-        WATCH: String.fromCharCode(9), // start watching
-        LOGIN_INFO: String.fromCharCode(10) // output information about login
-    };
-
-    /**
-     * Server action constants for client's first byte in message.
-     *
-     * @type {{NONE: string, EXECUTE: string, EXECUTE_SQL: string, GENERATE_AUTOCOMPLETE: string,
-     *       WATCH: string, CHECK_WATCH: string, RESET: string, ECHO: string}}
-     */
-    this.SERVER_ACTION = {
-        NONE: String.fromCharCode(0),
-        EXECUTE: String.fromCharCode(1),
-        EXECUTE_SQL: String.fromCharCode(2),
-        GENERATE_AUTOCOMPLETE: String.fromCharCode(3),
-        WATCH: String.fromCharCode(4),
-        CHECK_WATCH: String.fromCharCode(5),
-        RESET: String.fromCharCode(6),
-        ECHO: String.fromCharCode(7)
-    };
-
     //                                      local variables                                      \\
 
     /**
@@ -112,14 +56,6 @@ var Terminal = function (setting) {
      * @private
      */
     this._receiveDataHandler = null;
-
-    /**
-     * Defines current mode of terminal.
-     *
-     * @type {number}
-     * @private
-     */
-    this._mode = this.MODE.NORMAL;
 
     /**
      * Shows terminal ready state.
