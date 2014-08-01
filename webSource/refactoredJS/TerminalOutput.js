@@ -78,6 +78,13 @@ var TerminalOutput = function (TERMINAL) {
     };
 
     /**
+     * When enabled, caret can be placed out of terminal by Y axis.
+     *
+     * @type {boolean}
+     */
+    this.$CARET_RESTRICTION_ON = true;
+
+    /**
      * Current terminal output width in symbols.
      *
      * @type {number}
@@ -138,8 +145,21 @@ TerminalOutput.prototype.setCaretX = function (x) {
  * @returns {boolean} - If position wasn't limited and now equal to Y.
  */
 TerminalOutput.prototype.setCaretY = function (y) {
-    this._caret.y = Math.max(1, Math.min(this.HEIGHT, y));
+    this._caret.y = this.$CARET_RESTRICTION_ON ? Math.max(1, Math.min(this.HEIGHT, y)) : y;
     return y === this._caret.y;
+};
+
+/**
+ * Increase _TOP_LINE for given amount. Use this function if only you know what are you doing.
+ *
+ * @param {number} delta
+ */
+TerminalOutput.prototype.increaseTopLine = function (delta) {
+    this._TOP_LINE += Math.round(delta);
+    if (this._TOP_LINE < 0) {
+        this._TOP_LINE = 0;
+        console.warn("_TOP_LINE = 0 bottom restriction applied.");
+    }
 };
 
 /**
@@ -237,6 +257,23 @@ TerminalOutput.prototype.applyControlSequence = function (sequence) {
 };
 
 /**
+ * @returns {TerminalOutputLine}
+ */
+TerminalOutput.prototype.getTopLine = function () {
+
+    var u;
+
+    for (u = this._lines.length; u <= this._TOP_LINE; u++) {
+        this._lines[u] = new TerminalOutputLine(this);
+    }
+
+    return this._lines[this._TOP_LINE];
+
+};
+
+/**
+ * Returns current line. New lines will be added if they does not exists.
+ *
  * @returns {TerminalOutputLine}
  */
 TerminalOutput.prototype.getCurrentLine = function () {
@@ -354,22 +391,33 @@ TerminalOutput.prototype.print = function (text) {
 };
 
 /**
- * May print text out-of-terminal. Synchronous operation
+ * May print text out-of-terminal (by Y axis). Synchronous operation.
  *
  * @param {string} text
  * @param {number} line
  * @param {number} position
+ * @param {boolean=true} restrictCaret - restrict caret position to terminal window at end.
  */
-TerminalOutput.prototype.printFromLineActualPosition = function (text, line, position) {
+TerminalOutput.prototype.printAtLine = function (text, line, position, restrictCaret) {
 
-    this.freeStack();
+    var lastRestriction = this.$CARET_RESTRICTION_ON;
+
+    if (typeof restrictCaret === "undefined") restrictCaret = true;
+
+    this.printSync();
+    this.$CARET_RESTRICTION_ON = false;
     this._caret.x = position + 1;
     this._caret.y = line - this._TOP_LINE + 1;
-    this.print(text);
-    this.freeStack();
+    //console.log("caret: (",this._caret.x,";",this._caret.y,"); top line:",this._TOP_LINE);
+    this.printSync(text);
 
-    this.setCaretX(this.getCaretX()); // limit caret again
-    this.setCaretY(this.getCaretY());
+    if (restrictCaret) { // limit caret again
+        this.$CARET_RESTRICTION_ON = true;
+        this.setCaretX(this.getCaretX());
+        this.setCaretY(this.getCaretY());
+    }
+
+    this.$CARET_RESTRICTION_ON = lastRestriction;
 
 };
 
@@ -380,7 +428,8 @@ TerminalOutput.prototype.printFromLineActualPosition = function (text, line, pos
  */
 TerminalOutput.prototype.printSync = function (text) {
 
-    this.print(text);
+    this.freeStack();
+    this.print(text || "");
     this.freeStack();
 
 };
@@ -389,14 +438,13 @@ TerminalOutput.prototype.freeStack = function () {
 
     if (!this._stack) return;
     this._output(this._stack);
-    // dom.scrollBottom(); todo: scroll to line, is it required?
     this._stack = "";
+    this.scrollToActualLine();
 
 };
 
 /**
  * Clears output field.
- * @deprecated - CWTv2: use escape sequence instead.
  */
 TerminalOutput.prototype.clear = function () {
 
@@ -404,14 +452,20 @@ TerminalOutput.prototype.clear = function () {
     this._spawnLines(this.HEIGHT);
     this.setCaretX(1);
     this.setCaretY(1);
-    // dom.scrollBottom(); todo: scroll to line
+    this.scrollToActualLine();
 
 };
 
 /**
+ * Scrolls terminal to _TOP_LINE.
+ */
+TerminalOutput.prototype.scrollToActualLine = function () {
+    this.TERMINAL.elements.output.scrollTop = this.getTopLine().getElement().offsetTop;
+};
+
+/**
  * Window size change handler. Recalculates terminal sizes.
- *
- * todo: fix non-chromium margins, scrollbar.
+ * Changes this.WIDTH and this.HEIGHT constants and resizes this.TERMINAL.elements.output
  */
 TerminalOutput.prototype.sizeChanged = function () {
 

@@ -122,7 +122,22 @@ TerminalInput.prototype._disable = function () {
 };
 
 /**
+ * Returns caret position from beginning of input.
+ */
+TerminalInput.prototype.getCaretPosition = function () {
+    return this.TERMINAL.elements.input.selectionStart || this.TERMINAL.elements.input.value.length;
+};
+
+/**
  * Terminal input handler. Fires when hidden input changes.
+ *
+ * The algorithm:
+ *  ? Output can be print at any part of terminal because it is not restricted by size. So this
+ *  function use capable options setup to allow printing out-of-terminal window.
+ *  1. Print actual input at line where it was prompted and leave caret unrestricted;
+ *  2. Print spaces on erased symbols place and then restore unrestricted caret position;
+ *  3. Decrease top line if caret.x < 1 to make caret visible on screen;
+ *  4. Restrict the caret position.
  */
 TerminalInput.prototype.onInput = function () {
 
@@ -130,10 +145,11 @@ TerminalInput.prototype.onInput = function () {
         string = "",
         length = this.TERMINAL.elements.input.value.length;
 
-    this.TERMINAL.output.printFromLineActualPosition(
+    this.TERMINAL.output.printAtLine(
         this.TERMINAL.elements.input.value,
         this._initialPosition.line,
-        this._initialPosition.position
+        this._initialPosition.position,
+        false
     );
 
     for (i = 0; i < this.__inputLastLength - length; i++) {
@@ -143,13 +159,19 @@ TerminalInput.prototype.onInput = function () {
     cx = this.TERMINAL.output.getCaretX();
     cy = this.TERMINAL.output.getCaretY();
 
+    this.TERMINAL.output.$CARET_RESTRICTION_ON = false;
     this.TERMINAL.output.printSync(string);
+    this.TERMINAL.output.$CARET_RESTRICTION_ON = true;
+    if (this.TERMINAL.output.getCaretY() < 1) {
+        this.TERMINAL.output.increaseTopLine(this.TERMINAL.output.getCaretY() - 1);
+    }
 
     this.TERMINAL.output.setCaretX(cx);
     this.TERMINAL.output.setCaretY(cy);
 
     this.__inputLastLength = length;
 
+    this.TERMINAL.output.scrollToActualLine();
     this.caret.update();
 
 };
@@ -175,6 +197,7 @@ TerminalInput.prototype.keyDown = function (event) {
 TerminalInput.prototype.submit = function () {
 
     this.TERMINAL.elements.input.value = "";
+    this.__inputLastLength = 0;
     this.prompt("TEST > ");
 
 };
