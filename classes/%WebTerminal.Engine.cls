@@ -1,5 +1,8 @@
 /// This class represents the core of web terminal.
 /// All operations with opened WebSocket placed here.
+///
+/// WARNING! Application under development. Security is not guaranteed.
+///
 Class %WebTerminal.Engine Extends (%CSP.WebSocket, %Library.Routine)
 {
 

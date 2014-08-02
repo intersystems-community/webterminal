@@ -20,9 +20,9 @@ var TerminalController = function (TERMINAL) {
 
     /**
      * todo: remove debug parameter
-     * @type {CachéWebTerminalServer}
+     * @type {CacheWebTerminalServer}
      */
-    this.server = new CachéWebTerminalServer(
+    this.server = new CacheWebTerminalServer(
         this, (location.protocol==="https:" ? "wss:" : "ws:"), location.host, "57772"
     );
 
@@ -165,13 +165,11 @@ TerminalController.prototype.clientAction = {
     },
 
     R: function (length) {
-        // todo: length
-        console.log("Input length: ", length);
         this.TERMINAL.input.prompt("", length);
     },
 
     RC: function () {
-        // todo: length
+        // todo: without echo
         this.TERMINAL.input.prompt("", 1);
     },
 

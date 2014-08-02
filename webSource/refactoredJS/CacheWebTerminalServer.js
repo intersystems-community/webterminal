@@ -7,7 +7,7 @@
  * @param {string} PORT - Port number, may be empty.
  * @constructor
  */
-var CachéWebTerminalServer = function (CONTROLLER, WS_PROTOCOL, IP, PORT) {
+var CacheWebTerminalServer = function (CONTROLLER, WS_PROTOCOL, IP, PORT) {
 
     /**
      * @type {string}
@@ -43,9 +43,9 @@ var CachéWebTerminalServer = function (CONTROLLER, WS_PROTOCOL, IP, PORT) {
 
 };
 
-CachéWebTerminalServer.prototype.RECONNECTION_TIMEOUT = 10000;
+CacheWebTerminalServer.prototype.RECONNECTION_TIMEOUT = 10000;
 
-CachéWebTerminalServer.prototype.initialize = function () {
+CacheWebTerminalServer.prototype.initialize = function () {
 
     var _this = this;
 
@@ -72,7 +72,7 @@ CachéWebTerminalServer.prototype.initialize = function () {
     };
 
     this.socket.onmessage = function (event) {
-        console.log("server >> ", event.data);
+        //console.log("server >> ", event.data);
         _this.CONTROLLER.serverData(event.data);
     };
 
@@ -83,10 +83,10 @@ CachéWebTerminalServer.prototype.initialize = function () {
  *
  * @param {string|ArrayBuffer} string
  */
-CachéWebTerminalServer.prototype.send = function (string) {
+CacheWebTerminalServer.prototype.send = function (string) {
 
     try {
-        console.log("server << ", string);
+        //console.log("server << ", string);
         this.socket.send(string);
     } catch (e) {
         this.CONTROLLER.TERMINAL.output.print("Unable to send data to server.\r\n");
@@ -98,7 +98,7 @@ CachéWebTerminalServer.prototype.send = function (string) {
 /**
  * @param {event} event
  */
-CachéWebTerminalServer.prototype.onConnect = function (event) {
+CacheWebTerminalServer.prototype.onConnect = function (event) {
 
     this.CONTROLLER.TERMINAL.output.print("Connection to Caché Server established.\r\n");
 
@@ -107,7 +107,7 @@ CachéWebTerminalServer.prototype.onConnect = function (event) {
 /**
  * @param {event} event
  */
-CachéWebTerminalServer.prototype.onClose = function (event) {
+CacheWebTerminalServer.prototype.onClose = function (event) {
 
     this.CONTROLLER.TERMINAL.output.print("WebSocket connection closed. Code " + event["code"]
         + (event["reason"] ? ", reason: " + event["reason"] : "") + ".\r\n");
@@ -117,7 +117,7 @@ CachéWebTerminalServer.prototype.onClose = function (event) {
 /**
  * Error trigger.
  */
-CachéWebTerminalServer.prototype.onError = function () {
+CacheWebTerminalServer.prototype.onError = function () {
 
     var _this = this;
 
