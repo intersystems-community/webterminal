@@ -1,8 +1,8 @@
 /// This class represents the core of web terminal.
 /// All operations with opened WebSocket placed here.
-///
+/// 
 /// WARNING! Application under development. Security is not guaranteed.
-///
+/// 
 Class %WebTerminal.Engine Extends (%CSP.WebSocket, %Library.Routine)
 {
 
@@ -62,6 +62,8 @@ Property ConstClientWatch As %String [ InitialExpression = "WATCH#" ];
 
 Property ConstClientLoginInfo As %String [ InitialExpression = "I#" ];
 
+Property ConstClientClearScreen As %String [ InitialExpression = "CLRSCR#" ];
+
 Property CurrentNamespace As %String;
 
 Property InitialZName As %String;
@@ -83,53 +85,106 @@ PrepareInput(data)
     Try { Set data=$zconvert(data, "I", "UTF8") } Catch {  }
     quit data
     
+/// Routine from %CSP.WebSocket.cls
+Read(len = 32656, timeout = 86400, BytesAvailable, AtEnd, data, data1, header, size, type)
+    Set $ZTrap="ReadError"
+    If len<1 Set len=32656
+    //If (..SharedConnection = 1) {
+    //    Set data=..ReadAsync(.len, .sc, timeout)
+    //    Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+    //    Set len=$Length(data1)
+    //    Quit data1
+    //}
+    Set BytesAvailable=0, AtEnd=0
+    Read header#5:timeout
+    If $Test=0 {
+        Set len=0
+        //Set sc=$$$ERROR($$$CSPWebSocketTimeout, "WebSocket Read Operation timed-out")
+        Set AtEnd=1
+        Quit ""
+    }
+    Set type=$Extract(header,5)
+    If type=9 {
+        Set len=0
+        //Set sc=$$$ERROR($$$CSPWebSocketClosed,"WebSocket Closed by the Client")
+        Set AtEnd=1
+        Quit ""
+    }
+    Set header=$Extract(header, 1, 4)
+    Set size=$ZLA(header)-1 If size<0 Set size=0
+    Set BytesAvailable=size
+ReadData
+    If BytesAvailable > len {
+        Set size=len
+        Set BytesAvailable=BytesAvailable-len
+    }
+    else {
+        Set size=BytesAvailable
+        Set BytesAvailable=0
+    }
+    If 'BytesAvailable Set AtEnd=1
+    If size=0 Set len=0 Quit ""
+    Read data#size
+    Set len=size
+    //Set sc=$$$OK
+    Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+    Set len=$Length(data1)
+    Quit data1
+ReadError   
+    #; No interrupts during cleanup or error processing
+    $$$SetExternalInterrupts(0)
+    Set $ZTrap="ReadHalt"
+    Hang 5
+    Close 0
+ReadHalt
+    Halt
+    
 //////////////////////////////////////////////
     
 wstr(s)
     do ##class(%Device).ReDirectIO($$$NO)
-    w ..ConstClientOutputMessage, $$PrepareOutput(s), *-3
+    w "O#", $$PrepareOutput(s), *-3 // ..ConstClientOutputMessage
     do ##class(%Device).ReDirectIO($$$YES)
     quit
 
 wchr(c) 
     do ##class(%Device).ReDirectIO($$$NO)
-    w ..ConstClientOutputMessage, $$PrepareOutput($c(c)), *-3
+    w "O#", $$PrepareOutput($c(c)), *-3 // ..ConstClientOutputMessage
     do ##class(%Device).ReDirectIO($$$YES)
     quit
 
 wnl 
     do ##class(%Device).ReDirectIO($$$NO)
-    w ..ConstClientOutputMessage, $c(13,10), *-3
+    w "O#", $c(13, 10), *-3 // ..ConstClientOutputMessage
     do ##class(%Device).ReDirectIO($$$YES)
     quit
 
 wff 
     do ##class(%Device).ReDirectIO($$$NO)
-    w ..ConstClientOutputMessage, $c(12), *-3
+    w "CLRSCR#", *-3 // ..ConstClientClearScreen
     do ##class(%Device).ReDirectIO($$$YES)
     quit
     
 wtab(s)
     do ##class(%Device).ReDirectIO($$$NO)
-    w ..ConstClientOutputMessage, $$PrepareOutput($j("",s-$x)), *-3
+    w "O#", $$PrepareOutput($C(27) _ "[" _ (s + 1) _ "G"), *-3 // ..ConstClientOutputMessage
     do ##class(%Device).ReDirectIO($$$YES)
     quit
     
-rstr(len = 32656,timeout = 86400)
+rstr(len = 32656, timeout = 86400, data)
     do ##class(%Device).ReDirectIO($$$NO)
-    w ..ConstClientReadString, len, *-3
+    w "R#", len, *-3 // ..ConstClientReadString
     
-    set data = ..Read(,,timeout)
-    set data = $$PrepareInput(data)
+    s data = $$Read(len, timeout)
     
     do ##class(%Device).ReDirectIO($$$YES)
     quit data
     
-rchr(timeout = 86400)
+rchr(timeout = 86400, data)
     do ##class(%Device).ReDirectIO($$$NO)
-    w ..ConstClientReadChar, *-3
+    w "RC#", *-3 // ..ConstClientReadChar
     
-    set data = ..Read(,,timeout)
+    set data = $$Read(1, timeout)
     set data = $$PrepareInput($ASCII($EXTRACT(data,1,1)))
     
     do ##class(%Device).ReDirectIO($$$YES)
@@ -173,7 +228,7 @@ Method AddWatch(name) As %Status
         }
     }
     
-    q 0 // what do you want?
+    q 0
 }
 
 /// Removes watch from watches list
@@ -584,7 +639,7 @@ Method ExecuteCommand(query As %String = "") As %Status
     }
     
     if ($ZERROR '= "") {
-        w ..ParseError($ZERROR)
+        w $ZERROR, *-3
     }
     
     do ..EndClearIO() // execute session end
@@ -676,7 +731,7 @@ Method ClientLoop() As %Status
         set action = $EXTRACT(data, 1, pos-2)
         set data = $EXTRACT(data, pos, *)
             
-        if (action = ..ConstServerActionExecute) { // autorized
+        if (action = ..ConstServerActionExecute) {
             
             do ..ExecuteCommand(data)
                 

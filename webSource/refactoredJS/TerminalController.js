@@ -85,7 +85,8 @@ TerminalController.prototype.CLIENT_ACTION = {
     AUTHORIZATION_STATUS: "AUTH", // alerts client about authorization success. Holds 1/0
     WATCH: "WATCH", // start watching
     LOGIN_INFO: "I", // output information about login
-    PROMPT: "PROMPT" // prompt user to input command
+    PROMPT: "PROMPT", // prompt user to input command
+    CLEAR_SCREEN: "CLRSCR"
 };
 
 /**
@@ -199,6 +200,10 @@ TerminalController.prototype.clientAction = {
 
     I: function (data) {
         this.TERMINAL.output.print(data + "\r\n");
+    },
+
+    CLRSCR: function () {
+        this.TERMINAL.output.clear();
     }
 
 };

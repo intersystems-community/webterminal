@@ -49,7 +49,7 @@ var TerminalOutput = function (TERMINAL) {
      *
      * @type {RegExp}
      */
-    this.CONTROL_SEQUENCE_PATTERN = /[\r\n]|\x1b\[?[^@-~]*[@-~]/g; // todo: fix and debug
+    this.CONTROL_SEQUENCE_PATTERN = /[\x00-\x1F]|\x1b\[?[^@-~]*[@-~]/g; // todo: fix and debug
 
     /**
      * Object that includes current graphic rendition flags as a key.
@@ -181,6 +181,35 @@ TerminalOutput.prototype.getCaretY = function () {
 };
 
 /**
+ * This object handles implementation of control characters in range \x00..\x1F.
+ *
+ * @private
+ */
+TerminalOutput.prototype._controlCharacters = {
+
+    "\x00": function () {
+
+    },
+
+    "\x0A": function () {
+
+        if (this._caret.y === this.HEIGHT) {
+            this.scrollDisplay(1);
+        }
+
+        this.setCaretY(this._caret.y + 1);
+
+    },
+
+    "\x0D": function () {
+
+        this.setCaretX(1);
+
+    }
+
+};
+
+/**
  * Scrolls the display down.
  *
  * @param {number} delta - Positive to scroll down.
@@ -234,26 +263,29 @@ TerminalOutput.prototype.setGraphicRendition = function (index) {
  */
 TerminalOutput.prototype.applyControlSequence = function (sequence) {
 
-    var codes, i;
+    var codes, i, body, letter;
 
-    if (sequence === "\r") {
+    if (i = sequence.match(/[\x00-\x1F]/)) {
 
-        this.setCaretX(1);
-
-    } else if (sequence === "\n") {
-
-        if (this._caret.y === this.HEIGHT) {
-            this.scrollDisplay(1);
+        if (this._controlCharacters.hasOwnProperty(i[0])) {
+            this._controlCharacters[i[0]].call(this);
         }
 
-        this.setCaretY(this._caret.y + 1);
+    } else if (sequence.match(/\x1b\[[0-9;]*[A-Za-z]/)) {
 
-    } else if (sequence.match(/\x1b\[[0-9;]+m/)) {
+        letter = sequence.charAt(sequence.length - 1);
+        body = sequence.match(/[0-9;]+/);
+        codes = body ? body[0].split(";") : [0];
 
-        codes = sequence.match(/[0-9;]+/)[0].split(";");
-
-        for (i in codes) {
-            this.setGraphicRendition(parseInt(codes[i]));
+        switch (letter) {
+            case "m": {
+                for (i in codes) {
+                    this.setGraphicRendition(parseInt(codes[i]));
+                }
+            } break;
+            case "G": {
+                this.setCaretX(codes[0] || 1);
+            }
         }
 
     }
@@ -452,11 +484,12 @@ TerminalOutput.prototype.freeStack = function () {
  */
 TerminalOutput.prototype.clear = function () {
 
-    this.scrollDisplay(this._lines.length - this._TOP_LINE);
+    this.printSync();
+    this._TOP_LINE = this._lines.length;
     this._spawnLines(this.HEIGHT);
+    this.scrollToActualLine();
     this.setCaretX(1);
     this.setCaretY(1);
-    this.scrollToActualLine();
 
 };
 

@@ -11,11 +11,11 @@
 }
 
 .term-gri5 {
-    animation: blinker infinite 1s;
-    -o-animation: blinker infinite 1s;
-    -ms-animation: blinker infinite 1s;
-    -moz-animation: blinker infinite 1s;
-    -webkit-animation: blinker infinite 1s;
+    animation: blink infinite 1s;
+    -o-animation: blink infinite 1s;
+    -ms-animation: blink infinite 1s;
+    -moz-animation: blink infinite 1s;
+    -webkit-animation: blink infinite 1s;
 }
 
 .term-gri7 {
