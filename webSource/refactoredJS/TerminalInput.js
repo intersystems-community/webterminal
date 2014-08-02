@@ -21,7 +21,7 @@ var TerminalInput = function (TERMINAL) {
     /**
      * @type {TerminalInputHistory}
      */
-    this.history = new TerminalInputHistory();
+    this.history = new TerminalInputHistory(this);
 
     /**
      * @type {TerminalInputCaret}
@@ -91,6 +91,22 @@ TerminalInput.prototype.initialize = function () {
 TerminalInput.prototype.focus = function () {
     this.TERMINAL.elements.input.blur();
     this.TERMINAL.elements.input.focus();
+};
+
+/**
+ * Sets the terminal input string.
+ * @param {string} text
+ */
+TerminalInput.prototype.set = function (text) {
+
+    var element = this.TERMINAL.elements.input,
+        length;
+
+    element.value = text;
+    length = element.value.length;
+    this.onInput();
+    setTimeout(function() { element.setSelectionRange(length, length); }, 1);
+
 };
 
 /**
@@ -202,6 +218,7 @@ TerminalInput.prototype.keyDown = function (event) {
 TerminalInput.prototype.submit = function () {
 
     this.TERMINAL.controller.terminalQuery(this.TERMINAL.elements.input.value);
+    this.history.save(this.TERMINAL.elements.input.value);
     this.TERMINAL.elements.input.value = "";
     this.__inputLastLength = 0;
     this._disable();

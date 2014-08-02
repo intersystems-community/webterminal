@@ -1,12 +1,45 @@
 /**
  * Controls the input history of terminal application.
  *
+ * @param {TerminalInput} INPUT
  * @constructor
  */
-var TerminalInputHistory = function () {
+var TerminalInputHistory = function (INPUT) {
 
+    /**
+     * @type {TerminalInput}
+     */
+    this.INPUT = INPUT;
+
+    /**
+     * @type {string[]}
+     * @private
+     */
     this._history = [""];
+
+    /**
+     * @type {number}
+     * @private
+     */
     this._currentPosition = 0;
+
+    this.initialize();
+
+};
+
+TerminalInputHistory.prototype.initialize = function () {
+
+    var _this = this;
+
+    window.addEventListener("keydown", function (event) {
+        if (event.keyCode === 38) { // UP
+            _this.seek(-1);
+            _this.INPUT.set(_this.getCurrent());
+        } else if (event.keyCode === 40) { // DOWN
+            _this.seek(1);
+            _this.INPUT.set(_this.getCurrent());
+        }
+    });
 
 };
 
@@ -41,6 +74,14 @@ TerminalInputHistory.prototype.exportJSON = function () {
 };
 
 /**
+ * @param {number} delta - 1 or -1 to list history records.
+ */
+TerminalInputHistory.prototype.seek = function (delta) {
+    this._currentPosition = (delta + this._currentPosition) % this._history.length;
+    if (this._currentPosition < 0) this._currentPosition += this._history.length;
+};
+
+/**
  * Gets history record by its position in memory.
  *
  * @param {number} position
@@ -56,7 +97,12 @@ TerminalInputHistory.prototype.get = function (position) {
  * @param {string} text
  */
 TerminalInputHistory.prototype.save = function (text) {
-    this._history[this._currentPosition] = text;
+    if (this._history[this._history.length - 2] === text || text === "") {
+        return;
+    }
+    this._history[this._history.length - 1] = text;
+    this._history.push("");
+    this._currentPosition = this._history.length - 1;
 };
 
 /**
@@ -66,8 +112,8 @@ TerminalInputHistory.prototype.append = function () {
     if (this.getCurrent() === "" || this.getCurrent() === this.get(this._currentPosition - 1)) {
         return;
     }
-    this._currentPosition = history.length;
     this._history.push("");
+    this._currentPosition = history.length;
 };
 
 /**
