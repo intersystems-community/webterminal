@@ -29,7 +29,7 @@ var TerminalInput = function (TERMINAL) {
     this.caret = new TerminalInputCaret(this);
 
     /**
-     * Variable that indicates last length of input to determine if text was erazed.
+     * Variable that indicates last length of input to determine if text was erased.
      *
      * @see this.prototype.onInput
      * @type {number}
@@ -56,7 +56,7 @@ TerminalInput.prototype.initialize = function () {
 
     var _this = this;
 
-    window.addEventListener("keydown", function () { // PC devices
+    window.addEventListener("keypress", function () { // PC devices
         // activeElement can be HTMLInputElement
         // noinspection JSValidateTypes
         if (_this.ENABLED && document.activeElement !== _this.TERMINAL.elements.input) {
@@ -169,6 +169,9 @@ TerminalInput.prototype.onInput = function () {
     this.TERMINAL.output.setCaretY(cy);
 
     this.__inputLastLength = length;
+    if (length === this.TERMINAL.elements.input.maxLength) {
+        this.submit();
+    }
 
     this.TERMINAL.output.scrollToActualLine();
     this.caret.update();
@@ -182,10 +185,13 @@ TerminalInput.prototype.onInput = function () {
  */
 TerminalInput.prototype.keyDown = function (event) {
 
-    var key = event.charCode || event.keyCode;
+    var key = event.charCode || event.keyCode,
+        _this = this;
 
     switch (key) {
         case 13: this.submit(); break; // enter
+        case 37: setTimeout(function () { _this.caret.update(); }, 1); break; // left arrow
+        case 39: setTimeout(function () { _this.caret.update(); }, 1); break; // right arrow
     }
 
 };
@@ -198,19 +204,29 @@ TerminalInput.prototype.submit = function () {
     this.TERMINAL.controller.terminalQuery(this.TERMINAL.elements.input.value);
     this.TERMINAL.elements.input.value = "";
     this.__inputLastLength = 0;
+    this._disable();
 
 };
 
 /**
- * @param {string} [invitationMessage]
- * @param {function} [handler]
+ * Limit input length.
+ *
+ * @param {number} symbols
  */
-TerminalInput.prototype.prompt = function (invitationMessage, handler) {
+TerminalInput.prototype.limitLength = function (symbols) {
+    this.TERMINAL.elements.input.maxLength = symbols;
+};
 
-    if (invitationMessage) {
-        this.TERMINAL.output.printNewLine();
-        this.TERMINAL.output.printSync(invitationMessage);
-    }
+/**
+ * @param {string} [invitationMessage]
+ * @param {number=32656} [length]
+ * @param {function} [handler]
+ * todo: length of input
+ */
+TerminalInput.prototype.prompt = function (invitationMessage, length, handler) {
+
+    this.limitLength(length || 32656);
+    this.TERMINAL.output.printSync(invitationMessage || "");
 
     this._initialPosition.line = this.TERMINAL.output.getLineNumber();
     this._initialPosition.position = this.TERMINAL.output.getCaretX() - 1;

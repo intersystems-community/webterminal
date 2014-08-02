@@ -298,8 +298,8 @@ TerminalOutput.prototype.getCurrentLine = function () {
  */
 TerminalOutput.prototype.printNewLine = function () {
 
-    this.applyControlSequence("\r");
-    this.applyControlSequence("\n");
+    this.print("\r");
+    this.print("\n");
 
 };
 

@@ -37,7 +37,7 @@
     padding: 0;
     opacity: 0;
 
-    /* ie visible caret fix */
+    /* ie visible caret fix (except one annoying pixel, huh) */
     position: absolute;
     height: 1em;
     top: -1.5em;

@@ -2,16 +2,22 @@
  * Connection between server and client is handled with instance of this function.
  *
  * @param {TerminalController} CONTROLLER
+ * @param {string} WS_PROTOCOL - String of type "ws:" or "wss:"
  * @param {string} IP
  * @param {string} PORT - Port number, may be empty.
  * @constructor
  */
-var CachéWebTerminalServer = function (CONTROLLER, IP, PORT) {
+var CachéWebTerminalServer = function (CONTROLLER, WS_PROTOCOL, IP, PORT) {
 
     /**
      * @type {string}
      */
     this.CACHÉ_CLASS_NAME = "%WebTerminal.Engine.cls";
+
+    /**
+     * @type {string}
+     */
+    this.PROTOCOL = WS_PROTOCOL;
 
     /**
      * @type {string}
@@ -45,7 +51,7 @@ CachéWebTerminalServer.prototype.initialize = function () {
 
     try {
         this.socket = new WebSocket(
-                "ws://" + this.IP + (this.PORT ? ":" + this.PORT : "") + "/"
+                this.PROTOCOL + "//" + this.IP + (this.PORT ? ":" + this.PORT : "") + "/"
                 + this.CACHÉ_CLASS_NAME.replace(/%/g,"%25")
         );
     } catch (e) {
@@ -66,6 +72,7 @@ CachéWebTerminalServer.prototype.initialize = function () {
     };
 
     this.socket.onmessage = function (event) {
+        console.log("server >> ", event.data);
         _this.CONTROLLER.serverData(event.data);
     };
 
@@ -79,6 +86,7 @@ CachéWebTerminalServer.prototype.initialize = function () {
 CachéWebTerminalServer.prototype.send = function (string) {
 
     try {
+        console.log("server << ", string);
         this.socket.send(string);
     } catch (e) {
         this.CONTROLLER.TERMINAL.output.print("Unable to send data to server.\r\n");

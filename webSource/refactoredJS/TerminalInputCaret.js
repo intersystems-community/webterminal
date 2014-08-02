@@ -39,7 +39,9 @@ TerminalInputCaret.prototype.update = function () {
         return;
     }
 
-    this._element.style.left = (this.INPUT.TERMINAL.output.getCaretX() - 1)
+    this._element.style.left = (this.INPUT.TERMINAL.output.getCaretX() - 1
+    - this.INPUT.TERMINAL.elements.input.value.length
+    + this.INPUT.TERMINAL.elements.input.selectionStart)
         * this.INPUT.TERMINAL.output.SYMBOL_PIXEL_WIDTH + "px";
 
     line.getElement().appendChild(this._element);
