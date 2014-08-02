@@ -2,7 +2,19 @@
  * Terminal controller instance handles input from terminal and converts data between server and
  * terminal application.
  *
- * todo: rebuild server-client IO to event-driven.
+ * The main messaging rules:
+ *
+ * Package body      Description                       Package body     Description
+ * --<-- Server listens from client --<--              -->-- Client receives from server -->--
+ * EXEC#{body}       Execute the {body}                AUTH#{s}         {s}==1 => client authorized
+ *                                                     EST#             Execution started
+ *                                                     END#             Execution ended
+ *                                                     O#{data}         Output {data}
+ *                                                     NS#{ns}          Change namespace to {ns}
+ *                                                     R#{chars}        Read {chars} characters
+ *                                                     PROMPT#{mess}    Ask user input with {mess}
+ *                                                     I#{data}         Same as O
+ *
  * @param {Terminal} TERMINAL
  * @constructor
  */

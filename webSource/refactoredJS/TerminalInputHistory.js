@@ -106,24 +106,6 @@ TerminalInputHistory.prototype.save = function (text) {
 };
 
 /**
- * Creates new history record for current input.
- */
-TerminalInputHistory.prototype.append = function () {
-    if (this.getCurrent() === "" || this.getCurrent() === this.get(this._currentPosition - 1)) {
-        return;
-    }
-    this._history.push("");
-    this._currentPosition = history.length;
-};
-
-/**
- * Seeks current history position to last.
- */
-TerminalInputHistory.prototype.seekToEnd = function () {
-    this._currentPosition = this._history.length - 1;
-};
-
-/**
  * Returns current history record.
  *
  * @returns {string}

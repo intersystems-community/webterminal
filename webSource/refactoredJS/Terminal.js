@@ -3,37 +3,30 @@
  *
  * @author ZitRo
  *
- * Required objects:
- *  TerminalStorage
+ * Architecture:
  *
- * Cache terminal protocol over-WebSocket description (CTWPv3):
+ *    Globals - Some global definitions.
+ *       ║
+ *       ║           {CacheWebTerminalServer} - Default server adapter for InterSystems Caché.
+ *       ╔ {TerminalController} ╝ - Controller, object that implements terminalQuery function and
+ *       ║                           uses terminal API for interaction with terminal application.
+ *       ║
+ *   {Terminal}
+ *       ║
+ *    Modules
+ *       ║
+ *       ╠ {TerminalElements} - Handles terminal DOM elements and elements structure. Modules can
+ *       ║                      access this elements.
+ *       ╠ {TerminalLocalization} - Object-database that obtain localizations.
+ *       ╠ {TerminalStorage} - Persistent storage adapter for saving data.
+ *       ╠ {TerminalOutput} - Output mechanism of terminal.
+ *       ║        ╚ {TerminalOutputLine} - Representation of one terminal line of text.
+ *       ╠ {TerminalInput}
+ *       ║       ╚ {TerminalInputCaret} - Visible caret.
+ *       ║       ╚ {TerminalInputHistory} - Terminal command history.
+ *       ╠ {TerminalDictionary} - All lexemes that form autocomplete database.
+ *       ╚ {TerminalFavorites} - Favorites storage.
  *
- *  AUTHORIZATION:
- *      First package from client includes ONLY authorization key in clear text form. If this key is
- *      invalid, server closes connection immediately. If server accepts key, main terminal session
- *      starts.
- *
- *  MESSAGING:
- *      Every client-server package (except clear I/O mode) includes one action-identifier byte.
- *      This byte tells what to perform on received side. The next table of action bytes are in use:
- *
- *      BYTE    SERVER received                             CLIENT received
- *      0       Ignore body                                 Ignore body
- *      1       Execute body                                Enter clear I/O mode (execution begins)
- *      2       Execute sql body                            Exit clear I/O mode (with "exit" body)
- *      3       Generate autocomplete (body - flag)         Output message
- *      4       Watch (body: name)                          Change namespace
- *      5       Check watches                               Load autocomplete
- *      6       RESET to default                            Read string
- *      7       ECHO (body)                                 Read char
- *      8                                                   Authorization status (body: 1/0)
- *      9                                                   Watch (body: name)
- *		10													LoginInfo (body: user logged in)
- *
- *	Clear I/O mode
- *      In this mode terminal client will listen for data from server and output any data as it is,
- *      without any action identifiers. The same with terminal: any data sent to server won't
- *      include any identifiers.
  *
  * @param setting {{
  *     controller: TerminalController,
