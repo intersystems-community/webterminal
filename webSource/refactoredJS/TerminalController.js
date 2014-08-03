@@ -127,6 +127,48 @@ TerminalController.prototype.setNamespace = function (newNamespace) {
 };
 
 /**
+ * @type {{command: function}}
+ */
+TerminalController.prototype.internalCommands = {
+
+    help: function () {
+        this.TERMINAL.output.print(this.TERMINAL.localization.get(49));
+    }
+
+};
+
+/**
+ * Tries to execute command on client-side. If attempt was successful, returns true.
+ *
+ * @param {string} query
+ * @return {boolean}
+ */
+TerminalController.prototype.internalCommand = function (query) {
+
+    var array = query.match(/("[^"]*")|[^\s"]+/g),
+        i, u, command, beforeCommand;
+
+    for (i in array) {
+        if (/^\/[a-z]+$/.test(array[i])) {
+            command = array[i].substr(1);
+            if (this.internalCommands.hasOwnProperty(command)) {
+                array.splice(0, i + 1);
+                beforeCommand = query.substring(0, query.indexOf("/" + command) - 1);
+                for (u = 0; u < array.length; u++) {
+                    array[u] = array[u].replace(/"/g,"");
+                }
+                if (beforeCommand !== "") array.splice(0, 0, beforeCommand);
+                this.internalCommands[command].call(this, array);
+                return true;
+            }
+        }
+    }
+
+    return false;
+
+};
+
+/**
  * This function handles any terminal query.
  *
  * @param {string} query
@@ -136,8 +178,10 @@ TerminalController.prototype.terminalQuery = function (query) {
     if (this.EXECUTION_IN_PROGRESS) {
         this.server.send(query);
     } else {
-        this.server.send(this.SERVER_ACTION.EXECUTE + query);
-        this.TERMINAL.output.printNewLine();
+        this.TERMINAL.output.print("\r\n");
+        if (!this.internalCommand(query)) {
+            this.server.send(this.SERVER_ACTION.EXECUTE + query);
+        } else this.clientAction["PROMPT"].call(this, this.NAMESPACE);
     }
 
 };
@@ -150,6 +194,7 @@ TerminalController.prototype.terminalQuery = function (query) {
 TerminalController.prototype.clientAction = {
 
     PROMPT: function (data) {
+        this.setNamespace(data);
         this.TERMINAL.input.prompt(data + " > ");
     },
 
@@ -159,7 +204,7 @@ TerminalController.prototype.clientAction = {
 
     END: function () {
         this.EXECUTION_IN_PROGRESS = false;
-        this.TERMINAL.output.printNewLine();
+        this.TERMINAL.output.print("\r\n");
     },
 
     /**
@@ -169,6 +214,10 @@ TerminalController.prototype.clientAction = {
         this.TERMINAL.output.print(data);
     },
 
+    /**
+     * @see this.PROMPT
+     * @param {string} data
+     */
     NS: function (data) {
         this.setNamespace(data);
     },
@@ -182,7 +231,6 @@ TerminalController.prototype.clientAction = {
     },
 
     RC: function () {
-        // todo: without echo
         this.TERMINAL.input.prompt("", 1);
     },
 

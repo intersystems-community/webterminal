@@ -60,8 +60,6 @@ TerminalInputHistory.prototype.importJSON = function (json) {
         }
     } catch (e) { console.error(e); }
 
-    // todo: move to terminal controller: _terminal.input.set(this.getCurrent());
-
 };
 
 /**

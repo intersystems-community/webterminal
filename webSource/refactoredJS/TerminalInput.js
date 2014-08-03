@@ -217,11 +217,11 @@ TerminalInput.prototype.keyDown = function (event) {
  */
 TerminalInput.prototype.submit = function () {
 
+    this._disable();
     this.TERMINAL.controller.terminalQuery(this.TERMINAL.elements.input.value);
     this.history.save(this.TERMINAL.elements.input.value);
     this.TERMINAL.elements.input.value = "";
     this.__inputLastLength = 0;
-    this._disable();
 
 };
 
@@ -237,10 +237,8 @@ TerminalInput.prototype.limitLength = function (symbols) {
 /**
  * @param {string} [invitationMessage]
  * @param {number=32656} [length]
- * @param {function} [handler]
- * todo: length of input
  */
-TerminalInput.prototype.prompt = function (invitationMessage, length, handler) {
+TerminalInput.prototype.prompt = function (invitationMessage, length) {
 
     this.limitLength(length || 32656);
     this.TERMINAL.output.printSync(invitationMessage || "");

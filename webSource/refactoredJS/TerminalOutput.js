@@ -49,7 +49,7 @@ var TerminalOutput = function (TERMINAL) {
      *
      * @type {RegExp}
      */
-    this.CONTROL_SEQUENCE_PATTERN = /[\x00-\x1F]|\x1b\[?[^@-~]*[@-~]/g; // todo: fix and debug
+    this.CONTROL_SEQUENCE_PATTERN = /[\x00-\x1A]|\x1b\[?[^@-~]*[@-~]/g;
 
     /**
      * Object that includes current graphic rendition flags as a key.
@@ -76,6 +76,14 @@ var TerminalOutput = function (TERMINAL) {
         x: 1,
         y: 1
     };
+
+    /**
+     * Holds the tab positions.
+     *
+     * @type {{position: boolean}}
+     * @private
+     */
+    this._tabs = {};
 
     /**
      * When enabled, caret position will be limited in [1, WIDTH] by X and [1, HEIGHT] by Y axis.
@@ -118,9 +126,8 @@ TerminalOutput.prototype.LINE_CLASSNAME = "terminalLine";
 
 TerminalOutput.prototype.initialize = function () {
 
-    var _this = this;
-
-    this.sizeChanged();
+    var _this = this,
+        x;
 
     setInterval(function () {
         _this.freeStack();
@@ -129,6 +136,35 @@ TerminalOutput.prototype.initialize = function () {
         _this.sizeChanged();
     });
 
+    this.sizeChanged();
+
+    // set initial tabs
+    for (x = 9; x < this.WIDTH; x += 8) {
+        this.setTab(x);
+    }
+
+};
+
+/**
+ * Set tab at position x.
+ *
+ * @param {number} x
+ */
+TerminalOutput.prototype.setTab = function (x) {
+    this._tabs[x] = true;
+};
+
+/**
+ * Clear tabs. If position is not defined, clears all tabs.
+ *
+ * @param {number} [position]
+ */
+TerminalOutput.prototype.clearTab = function (position) {
+    if (position) {
+        delete this._tabs[position];
+    } else {
+        this._tabs = {};
+    }
 };
 
 /**
@@ -191,6 +227,21 @@ TerminalOutput.prototype._controlCharacters = {
 
     },
 
+    // \t
+    "\x09": function () {
+
+        var x = this.getCaretX();
+
+        for (; x < this.WIDTH; x++) {
+            if (this._tabs.hasOwnProperty(x.toString())) {
+                this.setCaretX(x);
+                break;
+            }
+        }
+
+    },
+
+    // \n
     "\x0A": function () {
 
         if (this._caret.y === this.HEIGHT) {
@@ -201,9 +252,96 @@ TerminalOutput.prototype._controlCharacters = {
 
     },
 
+    // \r
     "\x0D": function () {
 
         this.setCaretX(1);
+
+    }
+
+};
+
+/**
+ * Escape sequences implementation.
+ *
+ * "lastSequenceCharacter": function (sequence, params) { implementation }
+ * Where:
+ *  sequence - full escape sequence with escape character
+ *  params - symbols between bracket (esc character) and last character
+ *
+ * @private
+ */
+TerminalOutput.prototype._controlSequences = {
+
+    // GRAPHIC CONTROL
+
+    "m": function (sequence, params) {
+
+        var codes = params.split(";"),
+            i;
+
+        for (i in codes) {
+            this.setGraphicRendition(parseInt(codes[i] || 0));
+        }
+
+    },
+
+    // CURSOR CONTROL
+
+    "A": function (sequence, params) {
+        this.setCaretY(this.getCaretY() - (parseInt(params) || 1));
+    },
+
+    "B": function (sequence, params) {
+        this.setCaretY(this.getCaretY() + (parseInt(params) || 1));
+    },
+
+    "C": function (sequence, params) {
+        this.setCaretX(this.getCaretX() + (parseInt(params) || 1));
+    },
+
+    "D": function (sequence, params) {
+        this.setCaretX(this.getCaretX() - (parseInt(params) || 1));
+    },
+
+    "f": function (sequence, params) {
+
+        var positions = params.split(";");
+
+        this.setCaretX(parseInt(positions[1] || 1));
+        this.setCaretY(parseInt(positions[0] || 1));
+
+    },
+
+    "H": function (sequence, params) {
+
+        if (sequence.charAt(1) === "[") {
+
+            this._controlSequences.f.call(this, sequence, params);
+
+        } else { // TAB CONTROL
+
+            this.setTab(this.getCaretX());
+
+        }
+
+    },
+
+    // TAB CONTROL
+
+    "g": function (sequence, params) {
+
+        if (params === "3") {
+            this.clearTab();
+        } else {
+            this.clearTab(this.getCaretX());
+        }
+
+    },
+
+    "G": function (sequence, params) {
+
+        this.setCaretX(parseInt(params) || 1);
 
     }
 
@@ -263,29 +401,20 @@ TerminalOutput.prototype.setGraphicRendition = function (index) {
  */
 TerminalOutput.prototype.applyControlSequence = function (sequence) {
 
-    var codes, i, body, letter;
+    var i, letter;
 
-    if (i = sequence.match(/[\x00-\x1F]/)) {
+    if (i = sequence.match(/[\x00-\x1A]/)) {
 
         if (this._controlCharacters.hasOwnProperty(i[0])) {
             this._controlCharacters[i[0]].call(this);
         }
 
-    } else if (sequence.match(/\x1b\[[0-9;]*[A-Za-z]/)) {
+    } else if (i = sequence.match(/\x1b\[?([^@-~]*)([@-~])/)) {
 
-        letter = sequence.charAt(sequence.length - 1);
-        body = sequence.match(/[0-9;]+/);
-        codes = body ? body[0].split(";") : [0];
+        letter = i[2];
 
-        switch (letter) {
-            case "m": {
-                for (i in codes) {
-                    this.setGraphicRendition(parseInt(codes[i]));
-                }
-            } break;
-            case "G": {
-                this.setCaretX(codes[0] || 1);
-            }
+        if (this._controlSequences.hasOwnProperty(letter)) {
+            this._controlSequences[letter].call(this, i[0], i[1]);
         }
 
     }
@@ -328,10 +457,11 @@ TerminalOutput.prototype.getCurrentLine = function () {
 /**
  * Outputs new line.
  */
-TerminalOutput.prototype.printNewLine = function () {
+TerminalOutput.prototype.newLineSequence = function () {
 
-    this.print("\r");
-    this.print("\n");
+    // do not flip to .print - may cause recursion. || change _outPlainText
+    this.applyControlSequence("\r");
+    this.applyControlSequence("\n");
 
 };
 
@@ -378,9 +508,9 @@ TerminalOutput.prototype._printPlainText = function (string) {
         xDelta -= string.length;
 
         if (string) {
-            this.printNewLine();
+            this.newLineSequence();
         } else if (!this.setCaretX(this._caret.x + xDelta)) {
-            this.printNewLine();
+            this.newLineSequence();
         }
 
     } while (string);
@@ -390,16 +520,17 @@ TerminalOutput.prototype._printPlainText = function (string) {
 /**
  * Output and parse text with control symbols.
  *
- * @param {string} text
+ * @param {string=} text
  * @private
  */
 TerminalOutput.prototype._output = function (text) {
 
-    var textOrigin = text,
+    var textOrigin = text || "",
         lastIndex = 0,
         textLeft,
         _this = this;
 
+    text = text || "";
     text.replace(this.CONTROL_SEQUENCE_PATTERN, function(part, index, string) {
         var beforePart = string.substring(lastIndex, index);
         if (!lastIndex) textOrigin = string;
@@ -440,11 +571,9 @@ TerminalOutput.prototype.printAtLine = function (text, line, position, restrictC
 
     if (typeof restrictCaret === "undefined") restrictCaret = true;
 
-    this.printSync();
     this.$CARET_RESTRICTION_ON = false;
     this._caret.x = position + 1;
     this._caret.y = line - this._TOP_LINE + 1;
-    //console.log("caret: (",this._caret.x,";",this._caret.y,"); top line:",this._TOP_LINE);
     this.printSync(text);
 
     if (restrictCaret) { // limit caret again

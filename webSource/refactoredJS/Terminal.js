@@ -39,25 +39,6 @@ var Terminal = function (setting) {
         controller: new TerminalController(this)
     };
 
-    //                                      local variables                                      \\
-
-    /**
-     * Defines data handler for server data. If the function return false, data won't be processed
-     * by the terminal.
-     *
-     * @type {function|null}
-     * @private
-     */
-    this._receiveDataHandler = null;
-
-    /**
-     * Shows terminal ready state.
-     *
-     * @type {boolean}
-     * @private
-     */
-    this._ready = false;
-
     //                                      modules / plugins                                     \\
 
     /**

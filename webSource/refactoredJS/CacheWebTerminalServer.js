@@ -96,9 +96,9 @@ CacheWebTerminalServer.prototype.send = function (string) {
 };
 
 /**
- * @param {event} event
+ * Connection handler.
  */
-CacheWebTerminalServer.prototype.onConnect = function (event) {
+CacheWebTerminalServer.prototype.onConnect = function () {
 
     this.CONTROLLER.TERMINAL.output.print("Connection to Caché Server established.\r\n");
 
