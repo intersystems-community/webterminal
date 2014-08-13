@@ -27,7 +27,7 @@ var TerminalOutput = function (TERMINAL) {
      * @type {number}
      * @private
      */
-    this._TOP_LINE = 0;
+    this._TOP_LINE_INDEX = 0;
 
     /**
      * Width of one terminal symbol.
@@ -190,15 +190,15 @@ TerminalOutput.prototype.setCaretY = function (y) {
 };
 
 /**
- * Increase _TOP_LINE for given amount. Use this function if only you know what are you doing.
+ * Increase _TOP_LINE_INDEX for given amount. Use this function if only you know what are you doing.
  *
  * @param {number} delta
  */
 TerminalOutput.prototype.increaseTopLine = function (delta) {
-    this._TOP_LINE += Math.round(delta);
-    if (this._TOP_LINE < 0) {
-        this._TOP_LINE = 0;
-        console.warn("_TOP_LINE = 0 bottom restriction applied.");
+    this._TOP_LINE_INDEX += Math.round(delta);
+    if (this._TOP_LINE_INDEX < 0) {
+        this._TOP_LINE_INDEX = 0;
+        console.warn("_TOP_LINE_INDEX = 0 bottom restriction applied.");
     }
 };
 
@@ -355,7 +355,7 @@ TerminalOutput.prototype._controlSequences = {
 TerminalOutput.prototype.scrollDisplay = function (delta) {
 
     if (delta > 0) {
-        this._TOP_LINE += delta;
+        this._TOP_LINE_INDEX += delta;
     } else {
         console.warn("Todo: scroll up");
     }
@@ -428,11 +428,11 @@ TerminalOutput.prototype.getTopLine = function () {
 
     var u;
 
-    for (u = this._lines.length; u <= this._TOP_LINE; u++) {
+    for (u = this._lines.length; u <= this._TOP_LINE_INDEX; u++) {
         this._lines[u] = new TerminalOutputLine(this);
     }
 
-    return this._lines[this._TOP_LINE];
+    return this._lines[this._TOP_LINE_INDEX];
 
 };
 
@@ -443,14 +443,7 @@ TerminalOutput.prototype.getTopLine = function () {
  */
 TerminalOutput.prototype.getCurrentLine = function () {
 
-    var i = this._TOP_LINE + (this._caret.y - 1),
-        u;
-
-    for (u = this._lines.length; u <= i; u++) {
-        this._lines[u] = new TerminalOutputLine(this);
-    }
-
-    return this._lines[i];
+    return this.getLineByCursorY(this.getCaretY());
 
 };
 
@@ -471,7 +464,7 @@ TerminalOutput.prototype.newLineSequence = function () {
  * @returns {number}
  */
 TerminalOutput.prototype.getLineNumber = function () {
-    return this._TOP_LINE + this._caret.y - 1;
+    return this._TOP_LINE_INDEX + this._caret.y - 1;
 };
 
 /**
@@ -558,6 +551,32 @@ TerminalOutput.prototype.print = function (text) {
 };
 
 /**
+ * @param {number} index
+ * @returns {TerminalOutputLine}
+ */
+TerminalOutput.prototype.getLineByIndex = function (index) {
+
+    var u;
+
+    for (u = this._lines.length; u <= index; u++) {
+        this._lines[u] = new TerminalOutputLine(this);
+    }
+
+    return this._lines[index];
+
+};
+
+/**
+ * @param {number} y
+ * @returns {TerminalOutputLine}
+ */
+TerminalOutput.prototype.getLineByCursorY = function (y) {
+
+    return this.getLineByIndex(this._TOP_LINE_INDEX + (y - 1));
+
+};
+
+/**
  * May print text out-of-terminal (by Y axis). Synchronous operation.
  *
  * @param {string} text
@@ -573,7 +592,7 @@ TerminalOutput.prototype.printAtLine = function (text, line, position, restrictC
 
     this.$CARET_RESTRICTION_ON = false;
     this._caret.x = position + 1;
-    this._caret.y = line - this._TOP_LINE + 1;
+    this._caret.y = line - this._TOP_LINE_INDEX + 1;
     this.printSync(text);
 
     if (restrictCaret) { // limit caret again
@@ -601,9 +620,25 @@ TerminalOutput.prototype.printSync = function (text) {
 
 TerminalOutput.prototype.freeStack = function () {
 
+    var temp;
+
     if (!this._stack) return;
-    this._output(this._stack);
-    this._stack = "";
+
+    // ? Wait for valid escape sequence.
+    // This weird condition splits output stack so that valid escape sequences won't be separated.
+    // In other words, this prevents printing beginning of sequence (for example, "<ESC>[0...") and
+    // ending (f.e. "m") separately.
+    // Also I believe that this technique can be improved. If you have any suggestions, please,
+    // comment this out.
+    if ((temp = this._stack.lastIndexOf("\x1B")) !== -1
+        && (temp = this._stack.substring(temp, this._stack.length))
+            .match(this.CONTROL_SEQUENCE_PATTERN)) {
+        this._output(this._stack);
+        this._stack = "";
+    } else {
+        this._output(this._stack.substring(0, this._stack.length - (temp.length || 0)));
+        this._stack = temp===-1?"":temp;
+    }
     this.scrollToActualLine();
 
 };
@@ -614,7 +649,7 @@ TerminalOutput.prototype.freeStack = function () {
 TerminalOutput.prototype.clear = function () {
 
     this.printSync();
-    this._TOP_LINE = this._lines.length;
+    this._TOP_LINE_INDEX = this._lines.length;
     this._spawnLines(this.HEIGHT);
     this.scrollToActualLine();
     this.setCaretX(1);
@@ -623,7 +658,7 @@ TerminalOutput.prototype.clear = function () {
 };
 
 /**
- * Scrolls terminal to _TOP_LINE.
+ * Scrolls terminal to _TOP_LINE_INDEX.
  */
 TerminalOutput.prototype.scrollToActualLine = function () {
     this.TERMINAL.elements.output.scrollTop = this.getTopLine().getElement().offsetTop;

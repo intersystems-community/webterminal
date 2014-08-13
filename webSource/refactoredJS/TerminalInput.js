@@ -29,9 +29,23 @@ var TerminalInput = function (TERMINAL) {
     this.caret = new TerminalInputCaret(this);
 
     /**
+     * Variants of autocompletion.
+     *
+     * @see TerminalInput._onInput - Updating.
+     * @type {string[]}
+     */
+    this._autocompleteVariants = [];
+
+    /**
+     * @type {TerminalHint}
+     * @private
+     */
+    this._autocompleteHint = new TerminalHint(this.TERMINAL);
+
+    /**
      * Variable that indicates last length of input to determine if text was erased.
      *
-     * @see this.prototype.onInput
+     * @see this.prototype._onInput
      * @type {number}
      * @private
      */
@@ -43,7 +57,7 @@ var TerminalInput = function (TERMINAL) {
      * @type {{line: number, position: number}}
      * @private
      */
-    this._initialPosition = {
+    this.INITIAL_POSITION = {
         line: 0,
         position: 0
     };
@@ -73,7 +87,7 @@ TerminalInput.prototype.initialize = function () {
 
     this.TERMINAL.elements.input.addEventListener("input", function () {
         if (_this.ENABLED) {
-            _this.onInput();
+            _this._onInput();
         }
     });
 
@@ -104,7 +118,7 @@ TerminalInput.prototype.set = function (text) {
 
     element.value = text;
     length = element.value.length;
-    this.onInput();
+    this._onInput();
     setTimeout(function() { element.setSelectionRange(length, length); }, 1);
 
 };
@@ -144,6 +158,79 @@ TerminalInput.prototype.getCaretPosition = function () {
 };
 
 /**
+ * @param {string} string
+ * @returns {string}
+ */
+TerminalInput.prototype.set = function (string) {
+    return this.TERMINAL.elements.input.value = string;
+};
+
+/**
+ * @returns {string}
+ */
+TerminalInput.prototype.get = function () {
+    return this.TERMINAL.elements.input.value;
+};
+
+/**
+ * @param {number} position
+ */
+TerminalInput.prototype.setCaretPosition = function (position) {
+    this.TERMINAL.elements.input.selectionStart =
+        this.TERMINAL.elements.input.selectionEnd = position;
+};
+
+/**
+ * Complete the input with autocomplete variant if available.
+ */
+TerminalInput.prototype.complete = function () {
+
+    var variant = this.getCurrentAutocompleteVariant(),
+        caretPosition = this.getCaretPosition();
+
+    if (!variant) return;
+
+    this.set(this.get().splice(caretPosition, 0, variant));
+    this.setCaretPosition(caretPosition + variant.length);
+    this._onInput();
+
+};
+
+/**
+ * @returns {string}
+ */
+TerminalInput.prototype.getCurrentAutocompleteVariant = function () {
+
+    return this._autocompleteVariants[0] || "";
+
+};
+
+/**
+ * Prints the current autocomplete variant if available and returns caret to position of print
+ * start.
+ *
+ * @private
+ */
+TerminalInput.prototype._updateAutocompleteView = function () {
+
+    var variant = this.getCurrentAutocompleteVariant();
+
+    if (!variant) {
+        this._autocompleteHint.hide();
+        return;
+    }
+
+    this._autocompleteHint.show(
+        (this.INITIAL_POSITION.position + this.getCaretPosition()) % this.TERMINAL.output.WIDTH + 1,
+        this.INITIAL_POSITION.line + Math.floor(
+            (this.INITIAL_POSITION.position + this.getCaretPosition())
+            / this.TERMINAL.output.WIDTH),
+        variant
+    );
+
+};
+
+/**
  * Terminal input handler. Fires when hidden input changes.
  *
  * The algorithm:
@@ -153,17 +240,24 @@ TerminalInput.prototype.getCaretPosition = function () {
  *  2. Print spaces on erased symbols place and then restore unrestricted caret position;
  *  3. Decrease top line if caret.x < 1 to make caret visible on screen;
  *  4. Restrict the caret position.
+ *
+ *  @private
  */
-TerminalInput.prototype.onInput = function () {
+TerminalInput.prototype._onInput = function () {
 
     var i, cx, cy,
         string = "",
         length = this.TERMINAL.elements.input.value.length;
 
+    this._autocompleteVariants =
+        this.TERMINAL.autocomplete.getEndings(
+            this.TERMINAL.elements.input.value.substring(0, this.getCaretPosition())
+        );
+
     this.TERMINAL.output.printAtLine(
         this.TERMINAL.elements.input.value,
-        this._initialPosition.line,
-        this._initialPosition.position,
+        this.INITIAL_POSITION.line,
+        this.INITIAL_POSITION.position,
         false
     );
 
@@ -184,12 +278,13 @@ TerminalInput.prototype.onInput = function () {
     this.TERMINAL.output.setCaretX(cx);
     this.TERMINAL.output.setCaretY(cy);
 
-    this.__inputLastLength = length;
+    this.__inputLastLength = length + this.getCurrentAutocompleteVariant().length;
     if (length === this.TERMINAL.elements.input.maxLength) {
         this.submit();
     }
 
     this.TERMINAL.output.scrollToActualLine();
+    this._updateAutocompleteView();
     this.caret.update();
 
 };
@@ -205,9 +300,15 @@ TerminalInput.prototype.keyDown = function (event) {
         _this = this;
 
     switch (key) {
+        case 9: {
+            this.complete();
+            event.preventDefault();
+        } break; // tab
         case 13: this.submit(); break; // enter
-        case 37: setTimeout(function () { _this.caret.update(); }, 1); break; // left arrow
-        case 39: setTimeout(function () { _this.caret.update(); }, 1); break; // right arrow
+        case 35: setTimeout(function () { _this._onInput(); }, 1); break; // end
+        case 36: setTimeout(function () { _this._onInput(); }, 1); break; // home
+        case 37: setTimeout(function () { _this._onInput(); }, 1); break; // left arrow
+        case 39: setTimeout(function () { _this._onInput(); }, 1); break; // right arrow
     }
 
 };
@@ -243,8 +344,8 @@ TerminalInput.prototype.prompt = function (invitationMessage, length) {
     this.limitLength(length || 32656);
     this.TERMINAL.output.printSync(invitationMessage || "");
 
-    this._initialPosition.line = this.TERMINAL.output.getLineNumber();
-    this._initialPosition.position = this.TERMINAL.output.getCaretX() - 1;
+    this.INITIAL_POSITION.line = this.TERMINAL.output.getLineNumber();
+    this.INITIAL_POSITION.position = this.TERMINAL.output.getCaretX() - 1;
 
     this._enable();
 

@@ -13,6 +13,7 @@ var TerminalAutocomplete = function () {
  * Types of autocomplete. Properties:
  *  revRegExp - defines reversed matcher for autocomplete. Remembering parentheses defines part
  *              to match.
+ *              For example, string "do the ro" will become "or eht od" when matching.
  *  split - defines character to split autocomplete. E.g. "test.me" and "test.my" for "te" will
  *          bring "st", not "st.me" or "st.my".
  *
@@ -20,11 +21,15 @@ var TerminalAutocomplete = function () {
  */
 TerminalAutocomplete.prototype.TYPES = {
     common: {
-        revRegExp: /([a-zA-Z]+)(\s.*)?/
+        revRegExp: /^([a-zA-Z]+)/
     },
     class: {
-        revRegExp: /(([a-zA-Z\.]*[a-zA-Z])?%?)\(ssalc##\s.*/,
+        revRegExp: /^(([a-zA-Z\.]*[a-zA-Z])?%?)\(ssalc##/,
         split: "."
+    },
+    classProp: {
+        revRegExp: /^([a-zA-Z]*%?)\.\)(([a-zA-Z\.]*[a-zA-Z])?%?)\(ssalc##/,
+        parent: "class" // todo
     }
 };
 
@@ -81,7 +86,7 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
 
     for (i in this.TYPES) {
         matcher = this.TYPES[i].revRegExp || this.TYPES.common.revRegExp;
-        wordPart = string.match(matcher)[1];
+        wordPart = (string.match(matcher) || [])[1];
         if (wordPart) {
             this._appendEndings(variants, wordPart.split("").reverse().join(""), this.TYPES[i]);
         }

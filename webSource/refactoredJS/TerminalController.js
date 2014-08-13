@@ -31,7 +31,7 @@ var TerminalController = function (TERMINAL) {
     this.EXECUTION_IN_PROGRESS = false;
 
     /**
-     * todo: remove debug parameter
+     * todo: remove debug parameter - port 57772
      * @type {CacheWebTerminalServer}
      */
     this.server = new CacheWebTerminalServer(
@@ -98,7 +98,7 @@ TerminalController.prototype.CLIENT_ACTION = {
 TerminalController.prototype.SERVER_ACTION = {
     EXECUTE: "EXEC#",
     EXECUTE_SQL: "SQL#",
-    GENERATE_AUTOCOMPLETE: "GAC#",
+    AUTOCOMPLETE: "AC#",
     WATCH: "WATCH#",
     CHECK_WATCH: "CW#",
     RESET: "R#",
@@ -127,12 +127,20 @@ TerminalController.prototype.setNamespace = function (newNamespace) {
 };
 
 /**
+ * Internal terminal commands. Represented as a set of function with arguments. If function returns
+ * false, user won't be prompted for input.
+ *
  * @type {{command: function}}
  */
 TerminalController.prototype.internalCommands = {
 
     help: function () {
         this.TERMINAL.output.print(this.TERMINAL.localization.get(49));
+    },
+
+    autocomplete: function () {
+        this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
+        return false;
     }
 
 };
@@ -141,7 +149,7 @@ TerminalController.prototype.internalCommands = {
  * Tries to execute command on client-side. If attempt was successful, returns true.
  *
  * @param {string} query
- * @return {boolean}
+ * @return {boolean|number}
  */
 TerminalController.prototype.internalCommand = function (query) {
 
@@ -158,8 +166,9 @@ TerminalController.prototype.internalCommand = function (query) {
                     array[u] = array[u].replace(/"/g,"");
                 }
                 if (beforeCommand !== "") array.splice(0, 0, beforeCommand);
-                this.internalCommands[command].call(this, array);
-                return true;
+                if (this.internalCommands[command].call(this, array) === false) {
+                    return -1;
+                } else return true;
             }
         }
     }
@@ -179,9 +188,14 @@ TerminalController.prototype.terminalQuery = function (query) {
         this.server.send(query);
     } else {
         this.TERMINAL.output.print("\r\n");
-        if (!this.internalCommand(query)) {
+        if (this.internalCommand(query) === -1) {
+            // do not prompt
+        } else if (!this.internalCommand(query)) {
             this.server.send(this.SERVER_ACTION.EXECUTE + query);
-        } else this.clientAction["PROMPT"].call(this, this.NAMESPACE);
+        } else {
+            this.TERMINAL.output.print("\r\n");
+            this.clientAction["PROMPT"].call(this, this.NAMESPACE);
+        }
     }
 
 };
@@ -195,6 +209,7 @@ TerminalController.prototype.clientAction = {
 
     PROMPT: function (data) {
         this.setNamespace(data);
+        this.TERMINAL.output.print("\r\n");
         this.TERMINAL.input.prompt(data + " > ");
     },
 
@@ -204,7 +219,7 @@ TerminalController.prototype.clientAction = {
 
     END: function () {
         this.EXECUTION_IN_PROGRESS = false;
-        this.TERMINAL.output.print("\r\n");
+        //this.TERMINAL.output.print("\r\n");
     },
 
     /**
@@ -222,8 +237,8 @@ TerminalController.prototype.clientAction = {
         this.setNamespace(data);
     },
 
-    AC: function () {
-        // todo
+    AC: function (data) { // todo: autocomplete
+        console.log("AUTOCOMPLETE", data);
     },
 
     R: function (length) {

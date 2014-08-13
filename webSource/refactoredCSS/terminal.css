@@ -47,6 +47,7 @@
     white-space: pre;
     word-wrap: break-word;
     word-break: break-all;
+    overflow-x: hidden;
 }
 
 .terminalContainer .terminalLine {
@@ -67,4 +68,14 @@
 
 .terminalContainer .terminalCaret:after {
     content: "_";
+}
+
+.terminalContainer .terminalHint {
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: inherit;
+    opacity: 0.6;
+    text-shadow: 1px 1px 4px black;
+    z-index: 10;
 }

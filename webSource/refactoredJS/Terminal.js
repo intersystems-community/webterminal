@@ -19,6 +19,7 @@
  *       ║                      access this elements.
  *       ╠ {TerminalLocalization} - Object-database that obtain localizations.
  *       ╠ {TerminalStorage} - Persistent storage adapter for saving data.
+ *       ╠ {TerminalAutocomplete} - Holds autocomplete mechanism for terminal.
  *       ╠ {TerminalOutput} - Output mechanism of terminal.
  *       ║        ╚ {TerminalOutputLine} - Representation of one terminal line of text.
  *       ╠ {TerminalInput}
@@ -83,13 +84,22 @@ var Terminal = function (setting) {
      */
     this.controller = new TerminalController(this);
 
+    /**
+     * @type {TerminalAutocomplete}
+     */
+    this.autocomplete = new TerminalAutocomplete();
+
     this.initialize();
 
 };
 
 Terminal.prototype.initialize = function () {
 
-
+    this.autocomplete.register(this.autocomplete.TYPES.common, "test");
+    this.autocomplete.register(this.autocomplete.TYPES.common, "the");
+    this.autocomplete.register(this.autocomplete.TYPES.common, "thirty");
+    this.autocomplete.register(this.autocomplete.TYPES.common, "intelligent");
+    this.autocomplete.register(this.autocomplete.TYPES.common, "autocomplete");
 
 };
 

@@ -32,16 +32,25 @@ TerminalInputCaret.prototype.initialize = function () {
  */
 TerminalInputCaret.prototype.update = function () {
 
-    var line = this.INPUT.TERMINAL.output.getCurrentLine();
+    var line = this.INPUT.TERMINAL.output.getLineByIndex(
+        this.INPUT.INITIAL_POSITION.line + Math.floor(
+            (this.INPUT.INITIAL_POSITION.position + this.INPUT.getCaretPosition())
+            / this.INPUT.TERMINAL.output.WIDTH
+        )
+    );
 
     if (!line) {
         console.warn("Cannot get current terminal line element.");
         return;
     }
 
-    this._element.style.left = (this.INPUT.TERMINAL.output.getCaretX() - 1
-    - this.INPUT.TERMINAL.elements.input.value.length
-    + this.INPUT.TERMINAL.elements.input.selectionStart)
+//    this._element.style.left = (this.INPUT.TERMINAL.output.getCaretX() - 1
+//    - this.INPUT.TERMINAL.elements.input.value.length
+//    + this.INPUT.TERMINAL.elements.input.selectionStart)
+//        * this.INPUT.TERMINAL.output.SYMBOL_PIXEL_WIDTH + "px";
+
+    this._element.style.left = (this.INPUT.INITIAL_POSITION.position
+        + this.INPUT.TERMINAL.elements.input.selectionStart) % this.INPUT.TERMINAL.output.WIDTH
         * this.INPUT.TERMINAL.output.SYMBOL_PIXEL_WIDTH + "px";
 
     line.getElement().appendChild(this._element);
