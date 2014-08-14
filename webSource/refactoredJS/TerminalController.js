@@ -35,8 +35,13 @@ var TerminalController = function (TERMINAL) {
      * @type {CacheWebTerminalServer}
      */
     this.server = new CacheWebTerminalServer(
-        this, (location.protocol==="https:" ? "wss:" : "ws:"), location.host, "57772"
+        this, (location.protocol === "https:" ? "wss:" : "ws:"), location.host, "57772"
     );
+
+    /**
+     * @type {CacheTracing}
+     */
+    this.trace = new CacheTracing(this);
 
     /**
      * @type {string}
@@ -67,40 +72,15 @@ TerminalController.prototype.MODE = {
 };
 
 /**
- * Client action constants for server's response first byte.
- *
- * @type {{NONE: string, ENTER_CLEAR_IO: string, EXIT_CLEAR_IO: string, OUTPUT: string,
- *       CHANGE_NAMESPACE: string, LOAD_AUTOCOMPLETE: string, READ_STRING: string,
- *       READ_CHARACTER: string, AUTHORIZATION_STATUS: string, WATCH: string,
- *       LOGIN_INFO: string}}
- */
-TerminalController.prototype.CLIENT_ACTION = {
-    ENTER_CLEAR_IO: "EST", // enters clear IO. In this mode terminal won't send action id
-    EXIT_CLEAR_IO: "END", // exits clear IO
-    OUTPUT: "O", // just outputs message body
-    CHANGE_NAMESPACE: "NS", // changes namespace
-    LOAD_AUTOCOMPLETE: "AC", // loads autocomplete file. Body holds only namespace
-    READ_STRING: "R", // reads string - removes namespace like in common terminal
-    READ_CHARACTER: "RC", // reads character - removes namespace like in common terminal
-    AUTHORIZATION_STATUS: "AUTH", // alerts client about authorization success. Holds 1/0
-    WATCH: "WATCH", // start watching
-    LOGIN_INFO: "I", // output information about login
-    PROMPT: "PROMPT", // prompt user to input command
-    CLEAR_SCREEN: "CLRSCR"
-};
-
-/**
  * Server action constants for client's first byte in message.
- *
- * @type {{NONE: string, EXECUTE: string, EXECUTE_SQL: string, GENERATE_AUTOCOMPLETE: string,
- *       WATCH: string, CHECK_WATCH: string, RESET: string, ECHO: string}}
  */
 TerminalController.prototype.SERVER_ACTION = {
     EXECUTE: "EXEC#",
     EXECUTE_SQL: "SQL#",
     AUTOCOMPLETE: "AC#",
-    WATCH: "WATCH#",
-    CHECK_WATCH: "CW#",
+    TRACE: "TRACE#",
+    STOP_TRACE_ALL: "STOP_TRACE_ALL#",
+    CHECK_TRACE: "CT#",
     RESET: "R#",
     ECHO: "E#"
 };
@@ -139,9 +119,36 @@ TerminalController.prototype.internalCommands = {
         this.TERMINAL.output.print(this.TERMINAL.localization.get(49));
     },
 
-    autocomplete: function () {
-        this.mergeAutocompleteFile(this.NAMESPACE);
+    autocomplete: function (params) {
+
+        if (params[0] === "gen") {
+            this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
+        } else {
+            this.mergeAutocompleteFile(this.NAMESPACE);
+        }
+
         return false;
+
+    },
+
+    echo: function (params) {
+
+        this.server.send(this.SERVER_ACTION.ECHO + params.join("\r\n"));
+
+        return false;
+
+    },
+
+    trace: function (params) {
+
+        if (params[0]) {
+            this.server.send(this.SERVER_ACTION.TRACE + params[0]);
+        } else {
+            this.server.send(this.SERVER_ACTION.STOP_TRACE_ALL);
+        }
+
+        return false;
+
     }
 
 };
@@ -195,7 +202,6 @@ TerminalController.prototype.terminalQuery = function (query) {
             this.server.send(this.SERVER_ACTION.EXECUTE + query);
         } else {
             this.TERMINAL.output.print("\r\n");
-            console.log("Prompt in 2");
             this.clientAction["PROMPT"].call(this, this.NAMESPACE);
         }
     }
@@ -210,7 +216,6 @@ TerminalController.prototype.terminalQuery = function (query) {
 TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
 
     var autocomplete = this.TERMINAL.autocomplete,
-        time = new Date(),
         _this = this,
         p, sp,
         i = 0;
@@ -244,10 +249,7 @@ TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
 
             _this.TERMINAL.output.print("Globals merged: " + i + "\r\n");
 
-            console.log("Prompt in 1");
             _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
-
-            //console.log("Parsed in", (new Date()) - time, "ms");
 
         } else {
 
@@ -273,6 +275,10 @@ TerminalController.prototype.clientAction = {
         this.TERMINAL.input.prompt(data + " > ");
     },
 
+    /**
+     * todo: reorganize - hold from start till the end of server processing, not output.
+     * @constructor
+     */
     EST: function () {
         this.EXECUTION_IN_PROGRESS = true;
     },
@@ -317,8 +323,12 @@ TerminalController.prototype.clientAction = {
         }
     },
 
-    WATCH: function () {
-        // todo
+    TRACE: function (data) {
+        this.trace.start(data);
+    },
+
+    STOP_TRACE: function (data) {
+        this.trace.stop(data);
     },
 
     I: function (data) {

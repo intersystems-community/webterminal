@@ -45,14 +45,15 @@ var TerminalAutocomplete = function () {
  *              For example, string "do the ro" will become "or eht od" when matching.
  *  split - defines character to split autocomplete. E.g. "test.me" and "test.my" for "te" will
  *          bring "st", not "st.me" or "st.my".
- *  parents - Parent category that must trust his child. In this case engine will search for
- *           third/fourth/... argument of match() function as for parents of lexeme.
- *           Mask:  [match1,  match2   ..., matchN ] -> {lastMatch}
- *           Order: [parent1, parent2, ..., parentN] -> {child}
+ *  keepCase - makes autocomplete case matching to the last character.
  */
 TerminalAutocomplete.prototype.TYPES = {
     common: {
         regExp: /([a-zA-Z][a-z0-9A-Z]*)$/
+    },
+    keyword: {
+        regExp: /([\$\/]*[a-zA-Z]*[a-z0-9A-Z]*)$/i,
+        keepCase: true
     },
     class: {
         regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)$/,
@@ -83,6 +84,10 @@ TerminalAutocomplete.prototype._appendEndings = function (append, part, type) {
 
     var i;
 
+    var addVariant = function (variant, relevance) {
+        append[variant] = relevance; // todo: get lexeme relevance
+    };
+
     /**
      * @param {object} o
      * @param {string} ending
@@ -91,13 +96,11 @@ TerminalAutocomplete.prototype._appendEndings = function (append, part, type) {
 
         for (i in o) {
             if (i === type["split"] && ending !== "") {
-                append[ending] = Math.random(); // todo: get lexeme relevance
-                // continue
+                addVariant(ending, 0);
             } else if (i === "\n") {
                 if (ending !== "" && o[i].type === type) {
-                    append[ending] = Math.random(); // todo: get lexeme relevance
+                    addVariant(ending, 0);
                 }
-                // continue
             } else if (i !== "type") {
                 search(o[i], ending + i);
             }

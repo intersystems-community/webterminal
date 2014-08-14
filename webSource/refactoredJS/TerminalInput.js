@@ -315,6 +315,8 @@ TerminalInput.prototype.submit = function () {
     this.history.save(this.TERMINAL.elements.input.value);
     this.TERMINAL.elements.input.value = "";
     this.__inputLastLength = 0;
+    this._autocompleteVariants = [];
+    this._updateAutocompleteView();
 
 };
 

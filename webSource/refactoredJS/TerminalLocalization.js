@@ -760,6 +760,6 @@ TerminalLocalization.prototype.change = function (localizationCode) {
     if (this.AVAILABLE_LOCALIZATIONS.hasOwnProperty(localizationCode)) {
         this._currentLocalization = localizationCode;
     } else console.error("No available translations for \"" + localizationCode + "\". Please, " +
-        "check available languages at TerminalDictionary file.");
+        "check available languages at CacheDictionary file.");
 
 };

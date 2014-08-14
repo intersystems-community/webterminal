@@ -70,9 +70,9 @@ var Terminal = function (setting) {
     this.input = new TerminalInput(this);
 
     /**
-     * @type {TerminalDictionary}
+     * @type {CacheDictionary}
      */
-    this.dictionary = new TerminalDictionary();
+    this.dictionary = new CacheDictionary();
 
     /**
      * @type {TerminalFavorites}
@@ -95,11 +95,17 @@ var Terminal = function (setting) {
 
 Terminal.prototype.initialize = function () {
 
-    this.autocomplete.register(this.autocomplete.TYPES.common, "test");
-    this.autocomplete.register(this.autocomplete.TYPES.common, "the");
-    this.autocomplete.register(this.autocomplete.TYPES.common, "thirty");
-    this.autocomplete.register(this.autocomplete.TYPES.common, "intelligent");
-    this.autocomplete.register(this.autocomplete.TYPES.common, "autocomplete");
+    var i;
+
+    for (i in this.controller.internalCommands) {
+        this.autocomplete.register(this.autocomplete.TYPES.keyword, "/" + i);
+    }
+
+    for (i in this.dictionary.keywords) {
+        this.autocomplete.register(this.autocomplete.TYPES.keyword, this.dictionary.keywords[i]);
+        this.autocomplete.register(this.autocomplete.TYPES.keyword, this.dictionary.keywords[i]
+            .toUpperCase());
+    }
 
 };
 
