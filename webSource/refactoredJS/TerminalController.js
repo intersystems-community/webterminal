@@ -118,11 +118,12 @@ TerminalController.prototype.authorized = function () {
 /**
  * Fired when namespace changes.
  *
- * @param {string} newNamespace
+ * @param {string} namespace
  */
-TerminalController.prototype.setNamespace = function (newNamespace) {
+TerminalController.prototype.setNamespace = function (namespace) {
 
-    this.NAMESPACE = newNamespace;
+    this.TERMINAL.autocomplete.setNamespace(namespace);
+    this.NAMESPACE = namespace;
 
 };
 
@@ -139,7 +140,7 @@ TerminalController.prototype.internalCommands = {
     },
 
     autocomplete: function () {
-        this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
+        this.mergeAutocompleteFile(this.NAMESPACE);
         return false;
     }
 
@@ -194,9 +195,68 @@ TerminalController.prototype.terminalQuery = function (query) {
             this.server.send(this.SERVER_ACTION.EXECUTE + query);
         } else {
             this.TERMINAL.output.print("\r\n");
+            console.log("Prompt in 2");
             this.clientAction["PROMPT"].call(this, this.NAMESPACE);
         }
     }
+
+};
+
+/**
+ * Requests autocomplete file from server and merges it with autocomplete database.
+ *
+ * @param {string} namespace
+ */
+TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
+
+    var autocomplete = this.TERMINAL.autocomplete,
+        time = new Date(),
+        _this = this,
+        p, sp,
+        i = 0;
+
+    _this.TERMINAL.output.printSync("Merging autocomplete database for " + namespace +
+        "...\r\n");
+
+    this.server.getAutocompleteFile(namespace, function (data, namespace) {
+
+        if (data) {
+
+            if (data["class"]) {
+                for (p in data["class"]) {
+                    autocomplete.register(autocomplete.TYPES.class, p, namespace);
+                    for (sp in data["class"][p]) {
+                        autocomplete.register(autocomplete.TYPES.subclass, sp, namespace, [p]);
+                    }
+                    ++i;
+                }
+            }
+
+            _this.TERMINAL.output.print("Classes merged: " + i + "\r\n");
+            i = 0;
+
+            if (data["global"]) {
+                for (p in data["global"]) {
+                    autocomplete.register(autocomplete.TYPES.globals, "^" + p, namespace);
+                    ++i;
+                }
+            }
+
+            _this.TERMINAL.output.print("Globals merged: " + i + "\r\n");
+
+            console.log("Prompt in 1");
+            _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
+
+            //console.log("Parsed in", (new Date()) - time, "ms");
+
+        } else {
+
+            _this.TERMINAL.output.print("No autocomplete file found on server. Requesting...\r\n");
+            _this.server.send(_this.SERVER_ACTION.AUTOCOMPLETE);
+
+        }
+
+    });
 
 };
 
@@ -219,7 +279,6 @@ TerminalController.prototype.clientAction = {
 
     END: function () {
         this.EXECUTION_IN_PROGRESS = false;
-        //this.TERMINAL.output.print("\r\n");
     },
 
     /**
@@ -230,7 +289,6 @@ TerminalController.prototype.clientAction = {
     },
 
     /**
-     * @see this.PROMPT
      * @param {string} data
      */
     NS: function (data) {
@@ -238,7 +296,9 @@ TerminalController.prototype.clientAction = {
     },
 
     AC: function (data) { // todo: autocomplete
-        console.log("AUTOCOMPLETE", data);
+
+        this.mergeAutocompleteFile(data);
+
     },
 
     R: function (length) {

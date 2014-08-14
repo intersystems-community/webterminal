@@ -72,9 +72,38 @@ CacheWebTerminalServer.prototype.initialize = function () {
     };
 
     this.socket.onmessage = function (event) {
-        //console.log("server >> ", event.data);
+        console.log("server >> ", event.data);
         _this.CONTROLLER.serverData(event.data);
     };
+
+};
+
+/**
+ * Handler for autocomplete request.
+ *
+ * @callback autocompleteCallback
+ * @param {object} data
+ * @param {string} namespace
+ */
+
+/**
+ * @param {string} namespace
+ * @param {autocompleteCallback} callback
+ */
+CacheWebTerminalServer.prototype.getAutocompleteFile = function (namespace, callback) {
+
+    AJAX.get("js/autocomplete/" + encodeURIComponent(namespace) + ".js", function (data) {
+
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            data = null;
+            console.warn("No autocomplete data for " + namespace);
+        }
+
+        callback(data, namespace);
+
+    });
 
 };
 
@@ -86,7 +115,7 @@ CacheWebTerminalServer.prototype.initialize = function () {
 CacheWebTerminalServer.prototype.send = function (string) {
 
     try {
-        //console.log("server << ", string);
+        console.log("server << ", string);
         this.socket.send(string);
     } catch (e) {
         this.CONTROLLER.TERMINAL.output.print("Unable to send data to server.\r\n");

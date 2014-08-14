@@ -30,6 +30,57 @@ var mergeObjectProperties = function (object, sourceObject) {
 
 };
 
+var AJAX = new function() {
+
+    /**
+     * Handler for request.
+     *
+     * @callback requestCallback
+     * @param {string} data
+     * @param {boolean} [error]
+     */
+
+    /**
+     * Gets data from server and handles.
+     *
+     * @param url
+     * @param {requestCallback} callback
+     * @param [caching=false] - Cache the result.
+     */
+    this.get = function (url, callback, caching) {
+
+        var request = new XMLHttpRequest(),
+            s;
+
+        caching = "cache=" + ((caching) ? 1 : Math.random());
+
+        request.onreadystatechange = function() {
+
+            if (request.readyState === 4) {
+
+                if (request.status === 200) {
+                    callback.call(window, request.responseText, false);
+                } else {
+                    callback.call(window, "", true);
+                }
+
+            }
+
+        };
+
+        s = (url.indexOf("?") === -1) ? "?" : "&";
+
+        try {
+            request.open("GET", url + s + caching, true);
+            request.send();
+        } catch (e) {
+            // huh?
+        }
+
+    };
+
+};
+
 /**
  * @type {Terminal}
  * @debug

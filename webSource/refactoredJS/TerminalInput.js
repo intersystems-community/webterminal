@@ -158,14 +158,6 @@ TerminalInput.prototype.getCaretPosition = function () {
 };
 
 /**
- * @param {string} string
- * @returns {string}
- */
-TerminalInput.prototype.set = function (string) {
-    return this.TERMINAL.elements.input.value = string;
-};
-
-/**
  * @returns {string}
  */
 TerminalInput.prototype.get = function () {

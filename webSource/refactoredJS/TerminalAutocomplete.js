@@ -5,44 +5,83 @@
  */
 var TerminalAutocomplete = function () {
 
+    /**
+     * Main trie to complete in global "namespace".
+     *
+     * @private
+     */
     this._trie = {};
+
+    /**
+     * Holds data of type { namespace: trie, ns2: trie2, ... }
+     *
+     * @private
+     */
+    this._namespaceTries = {
+
+    };
+
+    /**
+     * Current namespace. Setting up namespace will cause autocomplete to search for corresponding
+     * property in this._namespaceTries.
+     *
+     * Autocomplete search will be performed for two tries: this._trie and
+     * this._namespaceTries[this.NAMESPACE].
+     *
+     * @type {string}
+     */
+    this.NAMESPACE = "";
 
 };
 
 /**
- * Types of autocomplete. Properties:
+ * Types of autocomplete. this.getEndings call will match each of this expressions and search for
+ * endings for matched part (that is between remembering brackets "(" and ")" in regular
+ * expression).
+ *
+ * Possible properties:
  *  revRegExp - defines reversed matcher for autocomplete. Remembering parentheses defines part
  *              to match.
  *              For example, string "do the ro" will become "or eht od" when matching.
  *  split - defines character to split autocomplete. E.g. "test.me" and "test.my" for "te" will
  *          bring "st", not "st.me" or "st.my".
- *
- * @type {{common: {revRegExp: RegExp}}} // do not change certain type
+ *  parents - Parent category that must trust his child. In this case engine will search for
+ *           third/fourth/... argument of match() function as for parents of lexeme.
+ *           Mask:  [match1,  match2   ..., matchN ] -> {lastMatch}
+ *           Order: [parent1, parent2, ..., parentN] -> {child}
  */
 TerminalAutocomplete.prototype.TYPES = {
     common: {
-        revRegExp: /^([a-zA-Z]+)/
+        regExp: /([a-zA-Z][a-z0-9A-Z]*)$/
     },
     class: {
-        revRegExp: /^(([a-zA-Z\.]*[a-zA-Z])?%?)\(ssalc##/,
+        regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)$/,
         split: "."
     },
-    classProp: {
-        revRegExp: /^([a-zA-Z]*%?)\.\)(([a-zA-Z\.]*[a-zA-Z])?%?)\(ssalc##/,
-        parent: "class" // todo
+    subclass: {
+        regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)\)\.(%?[a-zA-Z]*[a-zA-Z0-9]*)$/
+    },
+    globals: {
+        regExp: /^([a-z0-9A-Z]*%?)\^/
     }
+};
+
+/**
+ * @param {string} namespace
+ */
+TerminalAutocomplete.prototype.setNamespace = function (namespace) {
+    this.NAMESPACE = namespace;
 };
 
 /**
  * @param {object} append
  * @param {string} part
- * @param {TerminalAutocomplete.prototype.TYPES} [type]
+ * @param {object} type
  * @private
  */
 TerminalAutocomplete.prototype._appendEndings = function (append, part, type) {
 
-    var level = this._trie,
-        i;
+    var i;
 
     /**
      * @param {object} o
@@ -52,23 +91,35 @@ TerminalAutocomplete.prototype._appendEndings = function (append, part, type) {
 
         for (i in o) {
             if (i === type["split"] && ending !== "") {
-                append[ending] = 1; // todo: get lexeme relevance
+                append[ending] = Math.random(); // todo: get lexeme relevance
                 // continue
-            } else if (i !== "\n") {
+            } else if (i === "\n") {
+                if (ending !== "" && o[i].type === type) {
+                    append[ending] = Math.random(); // todo: get lexeme relevance
+                }
+                // continue
+            } else if (i !== "type") {
                 search(o[i], ending + i);
-            } else if (ending !== "" && o[i] === type) {
-                append[ending] = 1; // todo: get lexeme relevance
             }
         }
 
     };
 
-    for (i = 0; i < part.length; i++) {
-        level = level[part[i]];
-        if (!level) return;
-    }
+    var findLevel = function (rootLevel) {
 
-    search(level, "");
+        for (i = 0; i < part.length; i++) {
+            rootLevel = rootLevel[part[i]];
+            if (!rootLevel) {
+                return;
+            }
+        }
+
+        search(rootLevel, "");
+
+    };
+
+    findLevel(this._trie);
+    findLevel(this._namespaceTries[this.NAMESPACE] || {});
 
 };
 
@@ -78,17 +129,15 @@ TerminalAutocomplete.prototype._appendEndings = function (append, part, type) {
  */
 TerminalAutocomplete.prototype.getEndings = function (string) {
 
-    var i, matcher, wordPart,
+    var i, matcher, trieString,
         variants = {},
         array = [];
 
-    string = string.split("").reverse().join("");
-
     for (i in this.TYPES) {
-        matcher = this.TYPES[i].revRegExp || this.TYPES.common.revRegExp;
-        wordPart = (string.match(matcher) || [])[1];
-        if (wordPart) {
-            this._appendEndings(variants, wordPart.split("").reverse().join(""), this.TYPES[i]);
+        matcher = this.TYPES[i].regExp || this.TYPES.common.regExp;
+        trieString = (string.match(matcher) || []).slice(1).join("\n");
+        if (trieString) {
+            this._appendEndings(variants, trieString, this.TYPES[i]);
         }
     }
 
@@ -107,11 +156,19 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
 /**
  * @param {TerminalAutocomplete.prototype.TYPES} type
  * @param {string} lexeme
+ * @param {string} [namespace] - If not set, lexeme will be registered in global namespace.
+ * @param {string[]} [parents] - Parents to which child will be appended.
  */
-TerminalAutocomplete.prototype.register = function (type, lexeme) {
+TerminalAutocomplete.prototype.register = function (type, lexeme, namespace, parents) {
 
-    var level = this._trie,
+    var level = namespace
+            ? this._namespaceTries[namespace] || (this._namespaceTries[namespace] = {})
+            : this._trie,
         i;
+
+    if (parents) {
+        lexeme = (parents || []).join("\n") + "\n" + lexeme;
+    }
 
     for (i = 0; i < lexeme.length; i++) {
         if (level.hasOwnProperty(lexeme[i])) {
@@ -121,6 +178,6 @@ TerminalAutocomplete.prototype.register = function (type, lexeme) {
         }
     }
 
-    level["\n"] = type;
+    level["\n"] = { type: type };
 
 };
