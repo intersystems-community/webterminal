@@ -28,11 +28,13 @@ Property ConstServerActionExecute As %Char [ InitialExpression = "EXEC" ];
 
 Property ConstServerActionExecuteSQL As %Char [ InitialExpression = "SQL" ];
 
-Property ConstServerActionGenerateAutocomplete As %Char [ InitialExpression = "GAC" ];
+Property ConstServerActionGenerateAutocomplete As %Char [ InitialExpression = "AC" ];
 
-Property ConstServerActionWatch As %Char [ InitialExpression = "WATCH" ];
+Property ConstServerActionTrace As %Char [ InitialExpression = "TRACE" ];
 
-Property ConstServerActionCheckWatches As %Char [ InitialExpression = "CW" ];
+Property ConstServerActionStopTraceAll As %Char [ InitialExpression = "STOP_TRACE_ALL" ];
+
+Property ConstServerActionCheckTrace As %Char [ InitialExpression = "CT" ];
 
 Property ConstServerActionReset As %Char [ InitialExpression = "R" ];
 
@@ -58,7 +60,9 @@ Property ConstClientReadChar As %String [ InitialExpression = "RC#" ];
 
 Property ConstClientAuthorizationStatus As %String [ InitialExpression = "AUTH#" ];
 
-Property ConstClientWatch As %String [ InitialExpression = "WATCH#" ];
+Property ConstClientTrace As %String [ InitialExpression = "TRACE#" ];
+
+Property ConstClientStopTrace As %String [ InitialExpression = "STOP_TRACE#" ];
 
 Property ConstClientLoginInfo As %String [ InitialExpression = "I#" ];
 
@@ -67,6 +71,8 @@ Property ConstClientClearScreen As %String [ InitialExpression = "CLRSCR#" ];
 Property CurrentNamespace As %String;
 
 Property InitialZName As %String;
+
+Property InitialZNamespace As %String;
 
 /// Property is used to store watching files/globals. 
 Property Watches As %List;
@@ -193,12 +199,14 @@ rchr(timeout = 86400, data)
 
 Method OnPreServer() As %Status
 {
+    set ..InitialZName = $zname
+    set ..InitialZNamespace = $znspace
     quit $$$OK
 }
 
 /// Chechs for correct watch source and sets watch target to ..Watches
 /// Returns status of this operation
-Method AddWatch(name) As %Status
+Method Trace(name) As %Status
 {
     set s = $CHAR(0)
     set watches = s _ $LISTTOSTRING(..Watches, s) _ s
@@ -214,7 +222,7 @@ Method AddWatch(name) As %Status
             set ..Watches = ..Watches _ $LISTBUILD(name)
             set ..WatchesCaret(name,0) = $QUERY(@name@(""),-1) // last
             set ..WatchesCaret(name,1) = "?"
-            do ..SendData(name, ..ConstClientWatch)
+            do ..SendData(name, ..ConstClientTrace)
             q 1
         }
     } else { // watch file
@@ -223,7 +231,7 @@ Method AddWatch(name) As %Status
             set file = ##class(%File).%New(name)
             set ..WatchesCaret(name,0) = file.Size // current watch cursor position
             set ..WatchesCaret(name,1) = file.DateModified
-            do ..SendData(name, ..ConstClientWatch)
+            do ..SendData(name, ..ConstClientTrace)
             q 1
         }
     }
@@ -233,7 +241,7 @@ Method AddWatch(name) As %Status
 
 /// Removes watch from watches list
 /// Returns success status
-Method RemoveWatch(name) As %Status
+Method StopTracing(name) As %Status
 {
     // absurdly, but working
     set s = $CHAR(0)
@@ -242,7 +250,7 @@ Method RemoveWatch(name) As %Status
     set ..Watches = $LISTFROMSTRING($EXTRACT(newWatches, 2, *-1), s)
     if (watches '= newWatches) {
         k ..WatchesCaret(name) // really removed
-        do ..SendData(name, ..ConstClientWatch)
+        do ..SendData(name, ..ConstClientStopTrace)
     }
     quit watches '= newWatches
 }
@@ -261,11 +269,11 @@ Method ListWatches() As %String
 
 /// Return null string if global hadn't been updated
 /// This method watches only for tail of global and detects if global still alive
-Method GetWatchGlobalModified(watch) As %String
+Method GetTraceGlobalModified(watch) As %String
 {
     set data = ""
     if ($data(@watch)=0) {
-        do ..RemoveWatch(watch)
+        do ..StopTracing(watch)
         q "removed"
     }
     for {
@@ -273,12 +281,12 @@ Method GetWatchGlobalModified(watch) As %String
         quit:query=""
         if (data="") set data = "modified"
         set ..WatchesCaret(watch,0) = query
-        set data = data _ $CHAR(10) _ @query
+        set data = data _ $CHAR(13, 10) _ @query
     }
     q data
 }
 
-Method GetWatchFileModified(watch) As %String
+Method GetTraceFileModified(watch) As %String
 {
     set file=##class(%File).%New(watch)
     set size = file.Size
@@ -286,13 +294,13 @@ Method GetWatchFileModified(watch) As %String
     set output = ""
     if (size < 0) { // file had been deleted
          
-        do ..RemoveWatch(watch)
+        do ..StopTracing(watch)
         q "removed"
         
     }
     if (size > ..WatchesCaret(watch, 0)) {
         
-        set output = "updated" _ $CHAR(10)
+        set output = "updated" _ $CHAR(13, 10)
         set stream=##class(%Stream.FileBinary).%New()
         set sc=stream.LinkToFile(watch)
         do stream.MoveTo(..WatchesCaret(watch, 0) + 1)
@@ -303,7 +311,7 @@ Method GetWatchFileModified(watch) As %String
         
     } elseif ((size < ..WatchesCaret(watch, 0)) || (file.DateModified '= ..WatchesCaret(watch, 1))) {
         
-        set output = "modified" _ $CHAR(10)
+        set output = "modified" _ $CHAR(13, 10)
         set output = output _ "Bytes changed: " _ (size - ..WatchesCaret(watch, 0))
         set ..WatchesCaret(watch, 0) = size
         set ..WatchesCaret(watch, 1) = file.DateModified
@@ -312,7 +320,7 @@ Method GetWatchFileModified(watch) As %String
     q output
 }
 
-Method CheckWatches() As %String
+Method CheckTracing() As %String
 {
     set no = 0
     set data = ""
@@ -320,9 +328,9 @@ Method CheckWatches() As %String
     set watchList = ..Watches // do not remove or simplify: ..Watches can be modified
     while $LISTNEXT(watchList, no, value) {
         if ($EXTRACT(value, 1, 1) = "^") {
-            set data = ..GetWatchGlobalModified(value)
+            set data = ..GetTraceGlobalModified(value)
         } else {
-            set data = ..GetWatchFileModified(value)
+            set data = ..GetTraceFileModified(value)
         }
         if (data '= "") {
             set overal = $ZDATETIME($NOW(),1,1) _ " " _
@@ -353,13 +361,14 @@ ClassMethod GetJSAutocompleteFilePath(namespace As %String) As %String
     }
     
     set data = ##class(%Library.File).SubDirectoryName(data,
-        $ZCONVERT($REPLACE($namespace,"%",""),"l")
+        $ZCONVERT($REPLACE(namespace,"%",""),"l")
     )
     set data = ##class(%Library.File).SubDirectoryName(data, "WebTerminal")
     set data = ##class(%Library.File).SubDirectoryName(data, "js")
     set data = ##class(%Library.File).SubDirectoryName(data, "autocomplete")
     set data = ##class(%Library.File).SubDirectoryName(data, 
-        $REPLACE(namespace,"%","_") _ ".js"
+        //$REPLACE(namespace,"%","_") _ ".js"
+        namespace _ ".js"
     )
     
     //set data = data _ "CSP\sys\webTerminal\js\autocomplete\" _
@@ -397,52 +406,55 @@ ClassMethod getGlobalsJSON(namespace As %String) As %String
 Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %String
 {
     
-    set filename = ..GetJSAutocompleteFilePath($NAMESPACE)
+    set filename = ..GetJSAutocompleteFilePath(..InitialZNamespace)
     
-    set system = 0
-    if (namespace = "%") {
-        set namespace = "%SYS"
-        set filename = ..GetJSAutocompleteFilePath("_")
-        set system = 1
-    }
+    //set system = 0
+    //if (namespace = "%") {
+    //    set namespace = "%SYS"
+    //    set filename = ..GetJSAutocompleteFilePath("_")
+    //    set system = 1
+    //}
     
-    if (system) && (##class(%File).Exists(filename)) {
-        do ..SendData("_", ..ConstClientLoadAutocomplete)
-        quit $$$OK
-    }
+    //if (system) && (##class(%File).Exists(filename)) {
+    //    do ..SendData("_", ..ConstClientLoadAutocomplete)
+    //    quit $$$OK
+    //}
     
     do ..StartClearIO()
     
+    w "Start generating file ", filename, !
+    
     if ('##class(%SYS.Namespace).Exists(namespace)) {
         do ..EndClearIO()
-        do ..SendData("Wrong namespace: " _ namespace)
+        do ..SendData("Wrong namespace: " _ namespace _ $C(13,10))
         quit $$$NOTOK
     }
     
-    set namespace = $REPLACE(namespace,"%","_")
+    //set namespace = $REPLACE(namespace,"%","_")
     
-    if (##class(%File).Exists(filename)) && (newFile = 0) {
+    /*if (##class(%File).Exists(filename)) && (newFile = 0) {
         
+        w "File exists, exiting..."
         do ..EndClearIO()
         do ..SendData(namespace, ..ConstClientLoadAutocomplete)
         quit $$$OK
         
-    } elseif ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
+    } else*/if ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
         
         // try to create missed directory
         set result = ##class(%File).CreateDirectoryChain(##class(%File).GetDirectory(filename))
         
         if (result '= 1) {
+            w "Unable to create directory js/autocomplete.", !
             do ..EndClearIO()
-            do ..SendData("Autocomplete fail: can't create directory js/autocomplete.")
             quit $$$OK
         }
         
     }
 
-    set thisName = $REPLACE(namespace,"_","%")
-    if (system) { set thisName = "SYSTEM" }
-    do ..SendData("Generating language file for " _ thisName _ ", pleace, wait. ")
+    //set thisName = $REPLACE(namespace,"_","%")
+    //if (system) { set thisName = "SYSTEM" }
+    //do ..SendData("Generating language file for " _ thisName _ ", pleace, wait. ")
         
     // get all classes names
     set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
@@ -470,19 +482,25 @@ Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %S
     }
     */
     
+    w $C(13, 10), "Classes scanned:"
+    
     set file=##class(%File).%New(filename)
     do file.Open("WSN")
     
     // final data generation
     do file.Write("{""class"":{")
     set first = ""
+    set u = 1
     
     while (result.Next()) { // forming autocomplete for each class
     
+        w $C(27), "[20G", u
+        s u = u + 1
+    
         set className = result.Data("Name")
-        if (($EXTRACT(className,1)="%")'=system) {
-            continue
-        }
+        //if (($EXTRACT(className,1)="%")'=system) {
+        //    continue
+        //}
         do file.Write(first _ """" _ className _ """:{")
         if (first = "") set first = ","
         
@@ -517,18 +535,19 @@ Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %S
     }
     
     do file.Write("}")
-    if ('system) {
+    //if ('system) {
         do file.Write(",""global"":" _ ..getGlobalsJSON())  
-    }
+    //}
     do file.Write("}")
     do file.Close()
     
-    do ..SendData($c(10)_"Language file for " _ thisName _ " generated.")
+    w !, "Language file for " _ namespace _ " generated.", !
     
     do ..EndClearIO()
-    if (system) {
-        do ..SendData("_",..ConstClientLoadAutocomplete)
-    } else { do ..SendData(namespace,..ConstClientLoadAutocomplete) }
+    
+    //if (system) {
+    //    do ..SendData("_", ..ConstClientLoadAutocomplete)
+    do ..SendData(namespace, ..ConstClientLoadAutocomplete)
     
     quit $$$OK
 }
@@ -712,9 +731,10 @@ Method ClientLoop() As %Status
     
     kill // clear junk vars
     
+    do ..SendData($NAMESPACE, ..ConstClientPrompt)
+    
     for {
         
-        do ..SendData($NAMESPACE, ..ConstClientPrompt)
         set data = ..Read(,.status)
     
         if $$$ISERR(status) {
@@ -734,31 +754,41 @@ Method ClientLoop() As %Status
         if (action = ..ConstServerActionExecute) {
             
             do ..ExecuteCommand(data)
+            do ..SendData($NAMESPACE, ..ConstClientPrompt)
                 
-        } elseif (action = ..ConstServerActionCheckWatches) {
+        } elseif (action = ..ConstServerActionCheckTrace) {
         
-            set changes = ..CheckWatches()
+            set changes = ..CheckTracing()
             if (changes '= "") {
                 do ..SendData(changes)   
             }
           
-        } elseif (action = ..ConstServerActionWatch) { // add/remove
+        } elseif (action = ..ConstServerActionTrace) { // add/remove
         
-            set result = ..AddWatch(data)
+            set result = ..Trace(data)
             if ('$$$ISOK(result)) {
-                set result = ..RemoveWatch(data)
+                set result = ..StopTracing(data)
                 if ('$$$ISOK(result)) {
-                    do ..SendData("!" _ data, ..ConstClientWatch)
+                    do ..SendData("!" _ data, ..ConstClientTrace)
                 }
             }
+            do ..SendData($NAMESPACE, ..ConstClientPrompt)
+          
+        } elseif (action = ..ConstServerActionStopTraceAll) { // add/remove
+        
+            FOR i=1:1:$LISTLENGTH(..Watches) {
+                d ..StopTracing($LIST(..Watches, i))
+            }
+            do ..SendData($NAMESPACE, ..ConstClientPrompt)
           
         } elseif (action = ..ConstServerActionExecuteSQL) { // sql
         
             do ..ExecuteSQL(data)
+            do ..SendData($NAMESPACE, ..ConstClientPrompt)
           
         } elseif (action = ..ConstServerActionGenerateAutocomplete) {
             
-            do ..GenerateAutocompleteFile("%", data)
+            //do ..GenerateAutocompleteFile("%", data)
             do ..GenerateAutocompleteFile(..CurrentNamespace, data)
                     
         } elseif (action = ..ConstServerActionReset) {
@@ -768,16 +798,19 @@ Method ClientLoop() As %Status
             } else {
                 do ..SendData("Error while reseting terminal state.")
             }
+            do ..SendData($NAMESPACE, ..ConstClientPrompt)
                     
         } elseif (action = ..ConstServerActionEcho) {
               
             do ..StartClearIO()
             write data
             do ..EndClearIO()
+            do ..SendData($NAMESPACE, ..ConstClientPrompt)
                     
         } else { // something scary
                 
             do ..SendData("Client action unrecognised: " _ action)
+            do ..SendData($NAMESPACE, ..ConstClientPrompt)
                     
         }
             
@@ -800,7 +833,6 @@ Method Server() As %Status
     /*UNCOMMENT ON RELEASE!*/
     if (1/*$$$ISOK(..RequireAuthorization())*/) {
         
-        set ..InitialZName = $Zname
         set ..CurrentNamespace = $Znspace
         
         do ..SendData("1", ..ConstClientAuthorizationStatus)

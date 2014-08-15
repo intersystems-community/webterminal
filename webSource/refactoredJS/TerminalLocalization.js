@@ -38,7 +38,8 @@ var TerminalLocalization = function () {
     this._LOCALIZATION_BASE = {
         0: {
             en: "Terminal base ready. Type /help or /tip to get more information.",
-            ru: "Приложение терминала готово. Введите /help или /tip чтобы получить дополнительную информацию."
+            ru: "Приложение терминала готово. Введите /help или /tip чтобы получить " +
+                "дополнительную информацию."
         },
         1: {
             en: "Connecting to",
@@ -229,149 +230,18 @@ var TerminalLocalization = function () {
             ru: "Локальное HTML5 хранилище недоступно. Операции сохранения не будут успешными."
         },
         49: {
-            en: "<div class=\"normalWrap\">" +
-                "<div class=\"center\">" +
-                "<h3>Caché Web Terminal<span class=\"warning\"> v?</span></h3>" +
-                "</div>" +
-                "<div class=\"center\">" +
-                "<span class=\"syntax-_comment\">Global client command syntax</span><br>" +
-                "a r <span class=\"syntax-_string\">\"g u\"</span> m e n t №0 <span class=\"syntax-_client\">/{command}</span>" +
-                " argument1 <span class=\"syntax-_string\">\"argument2\"</span> ...<br>" +
-                "</div>" +
-                "<div>" +
-                "Some examples:<br>" +
-                "<span class=\"syntax-_client\">/define</span> &1 <span class=\"syntax-_string\">\"##class(%File)\"" +
-                "</span> <span class=\"syntax-_comment\"> To use something like &1.Exists(\"Name\")</span><br>" +
-                "<span class=\"syntax-_client\">/tail</span> <span class=\"syntax-_global\">^MyGlobal</span> " +
-                "<span class=\"syntax-_comment\">To watch for global changes.</span><br>" +
-                "<span class=\"syntax-_command\">do</span> <span class=\"syntax-_sysMacro\">##class</span><span class=\"" +
-                "syntax-_bracket\">(</span><span class=\"syntax-mysuperapplication\">MySuperApplication</span><span cla" +
-                "ss=\"syntax-_other\">.MySuperClass</span><span class=\"syntax-_bracket\">)</span><span class=\"syntax-" +
-                "_other\">.MySuperMethod</span><span class=\"syntax-_bracket\">(</span><span class=\"syntax-mysuperargu" +
-                "ments\">MySuperArguments</span><span class=\"syntax-_bracket\">)</span> <span class=\"syntax-_client\"" +
-                ">/favorite</span> <span class=\"syntax-_other\">1</span> " +
-                "<span class=\"syntax-_comment\">To save code before command into favorite slot 1.</span><br>&nbsp;" +
-                "</div>" +
-                "<table>" +
-                "<tr>" +
-                "<td class=\"hint\">Available client-side commands</td>" +
-                "<td class=\"hint\">Description</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/help</td>" +
-                "<td>Show help</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/tip [all]</td>" +
-                "<td>Show tips and detail usage information. If \"all\" isn't present, it will be a tutorial for " +
-                "you.</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/echo [*]</td>" +
-                "<td>Get back given arguments from server</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/save</td>" +
-                "<td>Save current command history, settings and dictionary to local storage</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/load</td>" +
-                "<td>Load current command history, settings and dictionary from local storage</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/reset</td>" +
-                "<td>Reset whole terminal application to default settings, including server autocomplete files," +
-                " client data, settings, etc.</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/connect</td>" +
-                "<td>Establish new connection to Caché server via <b>WebSocket</b> [deprecated]</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/disconnect</td>" +
-                "<td>Disconnecting from current server [deprecated]</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/reconnect</td>" +
-                "<td>Reopen server connection [deprecated]</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/clear</td>" +
-                "<td>Clear terminal command log</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/define {redefinition} {definition}</td>" +
-                "<td>Every occurrence of {definition} in input will be replaced with {redefinition}</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">{code} /favorite {slot}</td>" +
-                "<td>Add code to favorites. You can load code anytime by calling /favorite {slot}</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">{/tail|/watch} {fileFullPath|globalName}</td>" +
-                "<td>Watch for file/global changes. Execute command again to stop watching. This command without " +
-                "arguments will stop watching for everything defined before</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/sql</td>" +
-                "<td>Open/close integrated SQL shell</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/autocomplete [new]</td>" +
-                "<td>" +
-                "Load all class definitions for current namespace. This may take a while depending on your " +
-                "system settings. Normally it takes 20-30 seconds for first execution. Next executions will " +
-                "load already generated files or generate only namespace-specific language while new parameter given." +
-                "To regenerate system language file (one which generates only first time) you have " +
-                "to /reset whole terminal application." +
-                "</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/siege {iterations = 120} {serverDelay = 0.02}</td>" +
-                "<td>" +
-                "Test client/server connection. Executes loops with delay on server and measures time/packages transferred." +
-                "Be careful with serverDelay variable!" +
-                "</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">/settings</td>" +
-                "<td>Open panel with different application settings. Use &lt;ESC&gt; to hide panel.</td>" +
-                "</tr>" +
-                "</table>" +
-                "<div class=\"center\">" +
-                "<h3>Controls</h3>" +
-                "</div>" +
-                "<table>" +
-                "<tr>" +
-                "<td class=\"hint\">Key</td>" +
-                "<td class=\"hint\">Description</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">TAB</td>" +
-                "<td>Extend current input with suggested autocomplete option</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">CTRL</td>" +
-                "<td>If several autocomplete variants are present, change variant to next available</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">ALT</td>" +
-                "<td>If several autocomplete variants are present, change variant to to previous available</td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">UP/DOWN</td>" +
-                "<td>Access to command history. <i>Current command won't be saved.</i></td>" +
-                "</tr>" +
-                "<tr>" +
-                "<td class=\"info\">SHIFT/CTRL + ENTER</td>" +
-                "<td>Next line in current command stack.</td>" +
-                "</tr>"+
-                "<tr>" +
-                "<td class=\"info\">ESC</td>" +
-                "<td>Hide settings panel.</i></td>" +
-                "</tr>" +
-                "</table>" +
-                "</div>",
+            en: "Caché WEB Terminal v 2.-3.1\r\n\r\n" +
+                "Additional commands:\r\n" +
+                "/help\x1B[30GShow the help information you are reading now.\r\n" +
+                "/autocomplete [gen]\x1B[30GPerforms autocomplete data loading. The autocomplete" +
+                " files will be generated only the first time command executes. If you did some " +
+                "changes in your code and want to rebuild autocomplete database, use " +
+                "\x1B[1mgen\x1B[0m parameter.\r\n" +
+                "/echo [param1] [param2] ...\x1B[30GEcho each argument of this command." +
+                "\r\n/trace [global/filePath]\x1B[30GStart tracing global or file. To stop " +
+                "tracing, enter command without arguments. To stop tracing particular file or " +
+                "global, enter trace command again.\r\n" +
+                "/sql\x1B[30GEnter or exit SQL mode.\r\n",
             ru: "<div class=\"normalWrap\">" +
                 "<div class=\"center\">" +
                 "<h3>Caché Web Terminal<span class=\"warning\"> v?</span></h3>" +

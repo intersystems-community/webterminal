@@ -310,12 +310,14 @@ TerminalInput.prototype.keyDown = function (event) {
  */
 TerminalInput.prototype.submit = function () {
 
+    var value = this.TERMINAL.elements.input.value;
+
     this._disable();
-    this.TERMINAL.controller.terminalQuery(this.TERMINAL.elements.input.value);
-    this.history.save(this.TERMINAL.elements.input.value);
+    this.history.save(value);
     this.TERMINAL.elements.input.value = "";
     this.__inputLastLength = 0;
     this._autocompleteVariants = [];
+    this.TERMINAL.controller.terminalQuery(value);
     this._updateAutocompleteView();
 
 };

@@ -60,8 +60,6 @@ var TerminalController = function (TERMINAL) {
 
 /**
  * Processing mode constants.
- *
- * @type {{UNAUTHORIZED: number, EXECUTE: number, CLEAR_IO: number, SQL: number, MACRO: number}}
  */
 TerminalController.prototype.MODE = {
     UNAUTHORIZED: 0, // client not authorized, listening for CLIENT_ACTION.AUTHORIZATION_STATUS
@@ -116,7 +114,9 @@ TerminalController.prototype.setNamespace = function (namespace) {
 TerminalController.prototype.internalCommands = {
 
     help: function () {
+
         this.TERMINAL.output.print(this.TERMINAL.localization.get(49));
+
     },
 
     autocomplete: function (params) {
@@ -148,6 +148,12 @@ TerminalController.prototype.internalCommands = {
         }
 
         return false;
+
+    },
+
+    sql: function () {
+
+        this._mode = this._mode === this.MODE.SQL ? this.MODE.EXECUTE : this.MODE.SQL;
 
     }
 
@@ -192,17 +198,33 @@ TerminalController.prototype.internalCommand = function (query) {
  */
 TerminalController.prototype.terminalQuery = function (query) {
 
+    var internal;
+
+    internal = this.internalCommand(query);
+
     if (this.EXECUTION_IN_PROGRESS) {
         this.server.send(query);
     } else {
         this.TERMINAL.output.print("\r\n");
-        if (this.internalCommand(query) === -1) {
+        if (internal === -1) {
+
             // do not prompt
-        } else if (!this.internalCommand(query)) {
-            this.server.send(this.SERVER_ACTION.EXECUTE + query);
+
+        } else if (!internal) {
+
+            if (this._mode === this.MODE.SQL) {
+                this.server.send(this.SERVER_ACTION.EXECUTE_SQL + query);
+            } else if (this._mode === this.MODE.EXECUTE) {
+                this.server.send(this.SERVER_ACTION.EXECUTE + query);
+            } else {
+                console.warn("Unimplemented in mode " + this._mode + ": ", query);
+            }
+
         } else {
+
             this.TERMINAL.output.print("\r\n");
             this.clientAction["PROMPT"].call(this, this.NAMESPACE);
+
         }
     }
 
@@ -272,7 +294,7 @@ TerminalController.prototype.clientAction = {
     PROMPT: function (data) {
         this.setNamespace(data);
         this.TERMINAL.output.print("\r\n");
-        this.TERMINAL.input.prompt(data + " > ");
+        this.TERMINAL.input.prompt(data + (this._mode === this.MODE.SQL ? ":SQL" : "") + " > ");
     },
 
     /**
