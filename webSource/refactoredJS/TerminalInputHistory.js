@@ -27,9 +27,14 @@ var TerminalInputHistory = function (INPUT) {
 
 };
 
+TerminalInputHistory.prototype.STORAGE_NAME = "inputHistory";
+
+TerminalInputHistory.prototype.MAX_STACK_SIZE = 200;
+
 TerminalInputHistory.prototype.initialize = function () {
 
-    var _this = this;
+    var _this = this,
+        storage = this.INPUT.TERMINAL.storage.get(this.STORAGE_NAME);
 
     window.addEventListener("keydown", function (event) {
         if (event.keyCode === 38) { // UP
@@ -40,6 +45,15 @@ TerminalInputHistory.prototype.initialize = function () {
             _this.INPUT.set(_this.getCurrent());
         }
     });
+
+    window.addEventListener("beforeunload", function () {
+        _this.INPUT.TERMINAL.storage.set(_this.STORAGE_NAME, _this.exportJSON());
+    });
+
+    if (storage) {
+        this.importJSON(storage);
+        this._currentPosition = this._history.length - 1;
+    }
 
 };
 
@@ -68,7 +82,7 @@ TerminalInputHistory.prototype.importJSON = function (json) {
  * @returns {string}
  */
 TerminalInputHistory.prototype.exportJSON = function () {
-    return JSON.stringify(this);
+    return JSON.stringify({ _history: this._history });
 };
 
 /**
@@ -95,12 +109,18 @@ TerminalInputHistory.prototype.get = function (position) {
  * @param {string} text
  */
 TerminalInputHistory.prototype.save = function (text) {
+
     if (this._history[this._history.length - 2] === text || text === "") {
         return;
     }
+
     this._history[this._history.length - 1] = text;
     this._history.push("");
+
+    if (this._history.length > this.MAX_STACK_SIZE) this._history.splice(0, 1);
+
     this._currentPosition = this._history.length - 1;
+
 };
 
 /**
@@ -109,7 +129,9 @@ TerminalInputHistory.prototype.save = function (text) {
  * @returns {string}
  */
 TerminalInputHistory.prototype.getCurrent = function () {
+
     return this._history[this._currentPosition] || "";
+
 };
 
 /**
