@@ -64,6 +64,11 @@ var Terminal = function (setting) {
     this.storage = new TerminalStorage();
 
     /**
+     * @type {TerminalParser}
+     */
+    this.parser = new TerminalParser();
+
+    /**
      * @type {TerminalOutput}
      */
     this.output = new TerminalOutput(this);

@@ -247,7 +247,7 @@ TerminalInput.prototype._onInput = function () {
         );
 
     this.TERMINAL.output.printAtLine(
-        this.TERMINAL.elements.input.value,
+        this.TERMINAL.parser.highlightSyntax(this.TERMINAL.elements.input.value),
         this.INITIAL_POSITION.line,
         this.INITIAL_POSITION.position,
         false
