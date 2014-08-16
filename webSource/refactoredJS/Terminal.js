@@ -84,6 +84,11 @@ var Terminal = function (setting) {
     this.favorites = new TerminalFavorites(this);
 
     /**
+     * @type {TerminalDefinitions}
+     */
+    this.definitions = new TerminalDefinitions(this);
+
+    /**
      * @type {TerminalController|*}
      */
     this.controller = this.SETUP.controller;

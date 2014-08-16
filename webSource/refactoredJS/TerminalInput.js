@@ -312,6 +312,7 @@ TerminalInput.prototype.submit = function () {
 
     var value = this.TERMINAL.elements.input.value;
 
+    this.set(value = this.TERMINAL.definitions.replace(value));
     this._disable();
     this.history.save(value);
     this.TERMINAL.elements.input.value = "";

@@ -111,13 +111,13 @@ TerminalController.prototype.setNamespace = function (namespace) {
  */
 TerminalController.prototype.internalCommands = {
 
-    help: function () {
+    "help": function () {
 
         this.TERMINAL.output.print(this.TERMINAL.localization.get(49));
 
     },
 
-    autocomplete: function (args) {
+    "autocomplete": function (args) {
 
         if (args[0] === "gen") {
             this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
@@ -129,7 +129,7 @@ TerminalController.prototype.internalCommands = {
 
     },
 
-    echo: function (args) {
+    "echo": function (args) {
 
         this.server.send(this.SERVER_ACTION.ECHO + args.join("\r\n"));
 
@@ -137,7 +137,7 @@ TerminalController.prototype.internalCommands = {
 
     },
 
-    trace: function (args) {
+    "trace": function (args) {
 
         if (args[0]) {
             this.server.send(this.SERVER_ACTION.TRACE + args[0]);
@@ -149,19 +149,19 @@ TerminalController.prototype.internalCommands = {
 
     },
 
-    sql: function () {
+    "sql": function () {
 
         this._mode = this._mode === this.MODE.SQL ? this.MODE.EXECUTE : this.MODE.SQL;
 
     },
 
-    reset: function () {
+    "reset": function () {
 
         this.TERMINAL.reset();
 
     },
 
-    favorite: function (args) {
+    "favorite": function (args) {
 
         var _this = this,
             fav;
@@ -183,6 +183,34 @@ TerminalController.prototype.internalCommands = {
             }
         }
 
+    },
+
+    "define": function (args) {
+
+        if (args[0] && args[1] && args[0] !== "clear") {
+
+            this.TERMINAL.definitions.define(args[1], args[0]);
+            this.TERMINAL.output.print(args[0] + "\x1B[1m defined as\x1B[0m " + args[1]);
+
+        } else if (args[0] === "clear") {
+
+            this.TERMINAL.definitions.clear();
+            this.TERMINAL.output.print("Definitions removed.");
+
+        } else {
+
+            this.TERMINAL.output.print("\x1B[4mUsage:\x1B[0m\r\n\x1B[1m/define\x1B[0m {everything}" +
+                " {phrase}\x1B[35GTo define {phrase} as {everything}.\r\n\x1B[1m/define\x1B[0m " +
+                "clear\x1B[35GClears all definitions.\r\n\x1B[4mExample:\x1B[0m "
+                + "\x1B[2m##class(%Library.File).Exists( \x1B[0m\x1B[1m/define\x1B[0m \x1B[2m?f(\x1B[0m \r\n" +
+                "This will set shorten expression for checking if file exists. Then, " +
+                "commands like \x1B[2mw ?f(\"C:\")\x1B[0m will be automatically replaced with " +
+                "\x1B[2mw ##class(%Library.File).Exists(\"C:\")\x1B[0m when submitting. " +
+                "To clear definitions, give \"clear\" parameter.\r\n\x1B[4mList of definitions:\x1B[0m "
+                + this.TERMINAL.definitions.getList().join(", "));
+
+        }
+
     }
 
 };
@@ -197,7 +225,7 @@ TerminalController.prototype.internalCommands = {
 TerminalController.prototype.internalCommand = function (query) {
 
     var matched = query.match(/^\/([a-z]+)|\s\/([a-z]+)/),
-        args = [],
+        args = [], tempArgs = [],
         part, command;
 
     if (!matched) return false;
@@ -209,10 +237,16 @@ TerminalController.prototype.internalCommand = function (query) {
         part = query.substr(query.indexOf(matched[0]) + matched[0].length); // other arguments
     }
 
-    args = args.concat(part.match(/"([^"]*)"|([^\s]*)/g).filter(function(a, b, c) {
-        if (a.charAt(0) === "\"") c[b] = a.substr(1, a.length - 2); // remove parentheses
-        if (a) return true; // filter empty arguments
-    }));
+    tempArgs = part.match(/"([^"]*)"|([^\s]*)/g);
+
+    tempArgs.filter(function(a, b, c) {
+        if (a.charAt(0) === "\"") {
+            c[b] = a.substr(1, a.length - 2);
+        }
+        if (a) {
+            args.push(c[b]);
+        }
+    });
 
     if (!this.internalCommands.hasOwnProperty(command)) {
         this.TERMINAL.output.print("Unknown internal command: /" + command + "\r\n");
@@ -361,7 +395,7 @@ TerminalController.prototype.clientAction = {
         this.setNamespace(data);
     },
 
-    AC: function (data) { // todo: autocomplete
+    AC: function (data) {
 
         this.mergeAutocompleteFile(data);
 
