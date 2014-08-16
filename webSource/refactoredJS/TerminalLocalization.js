@@ -241,7 +241,10 @@ var TerminalLocalization = function () {
                 "\r\n/trace [global/filePath]\x1B[30GStart tracing global or file. To stop " +
                 "tracing, enter command without arguments. To stop tracing particular file or " +
                 "global, enter trace command again.\r\n" +
-                "/sql\x1B[30GEnter or exit SQL mode.\r\n",
+                "/sql\x1B[30GEnter or exit SQL mode.\r\n" +
+                "/reset\x1B[30GReset terminal application to defaults.\r\n" +
+                "{command} /favorite {phrase}\x1B[30GSave command for future use.\r\n" +
+                "/favorite {phrase}\x1B[30GLoad previously saved command.",
             ru: "<div class=\"normalWrap\">" +
                 "<div class=\"center\">" +
                 "<h3>Caché Web Terminal<span class=\"warning\"> v?</span></h3>" +

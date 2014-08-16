@@ -108,8 +108,6 @@ TerminalController.prototype.setNamespace = function (namespace) {
 /**
  * Internal terminal commands. Represented as a set of function with arguments. If function returns
  * false, user won't be prompted for input.
- *
- * @type {{command: function}}
  */
 TerminalController.prototype.internalCommands = {
 
@@ -119,9 +117,9 @@ TerminalController.prototype.internalCommands = {
 
     },
 
-    autocomplete: function (params) {
+    autocomplete: function (args) {
 
-        if (params[0] === "gen") {
+        if (args[0] === "gen") {
             this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
         } else {
             this.mergeAutocompleteFile(this.NAMESPACE);
@@ -131,18 +129,18 @@ TerminalController.prototype.internalCommands = {
 
     },
 
-    echo: function (params) {
+    echo: function (args) {
 
-        this.server.send(this.SERVER_ACTION.ECHO + params.join("\r\n"));
+        this.server.send(this.SERVER_ACTION.ECHO + args.join("\r\n"));
 
         return false;
 
     },
 
-    trace: function (params) {
+    trace: function (args) {
 
-        if (params[0]) {
-            this.server.send(this.SERVER_ACTION.TRACE + params[0]);
+        if (args[0]) {
+            this.server.send(this.SERVER_ACTION.TRACE + args[0]);
         } else {
             this.server.send(this.SERVER_ACTION.STOP_TRACE_ALL);
         }
@@ -155,6 +153,36 @@ TerminalController.prototype.internalCommands = {
 
         this._mode = this._mode === this.MODE.SQL ? this.MODE.EXECUTE : this.MODE.SQL;
 
+    },
+
+    reset: function () {
+
+        this.TERMINAL.reset();
+
+    },
+
+    favorite: function (args) {
+
+        var _this = this,
+            fav;
+
+        if (!args.length) {
+            this.TERMINAL.output.print("Usage:\r\n{your command} \x1B[1m/favorite\x1B[0m {name}" +
+                "\x1B[35GTo save command.\r\n\x1B[1m/favorite\x1B[0m {name} \x1B[35GTo load " +
+                "command.\r\nPreviously saved names: " +
+                this.TERMINAL.favorites.getList().join(", ") + "\r\n");
+        } else if (args[1]) {
+            this.TERMINAL.favorites.set(args[1], args[0]);
+        } else {
+            fav = this.TERMINAL.favorites.get(args[0]);
+            if (fav) {
+                setTimeout(function () { _this.TERMINAL.input.set(fav); }, 1);
+            } else {
+                this.TERMINAL.output.print("No favorites saved for \"" + args[0] + "\".\r\n" +
+                    "Previously saved: " + this.TERMINAL.favorites.getList().join(", ") + "\r\n");
+            }
+        }
+
     }
 
 };
@@ -163,31 +191,37 @@ TerminalController.prototype.internalCommands = {
  * Tries to execute command on client-side. If attempt was successful, returns true.
  *
  * @param {string} query
- * @return {boolean|number}
+ * @return {boolean|number} - Returns false if query has no internal commands. Returns -1 if
+ *                            user must not be prompted again.
  */
 TerminalController.prototype.internalCommand = function (query) {
 
-    var array = query.match(/("[^"]*")|[^\s"]+/g),
-        i, u, command, beforeCommand;
+    var matched = query.match(/^\/([a-z]+)|\s\/([a-z]+)/),
+        args = [],
+        part, command;
 
-    for (i in array) {
-        if (/^\/[a-z]+$/.test(array[i])) {
-            command = array[i].substr(1);
-            if (this.internalCommands.hasOwnProperty(command)) {
-                array.splice(0, i + 1);
-                beforeCommand = query.substring(0, query.indexOf("/" + command) - 1);
-                for (u = 0; u < array.length; u++) {
-                    array[u] = array[u].replace(/"/g,"");
-                }
-                if (beforeCommand !== "") array.splice(0, 0, beforeCommand);
-                if (this.internalCommands[command].call(this, array) === false) {
-                    return -1;
-                } else return true;
-            }
-        }
+    if (!matched) return false;
+
+    if (command = matched[1]) { // command at beginning
+        part = query.substr(matched[0].length);
+    } else if (command = matched[2]) { // not at beginning
+        args.push(query.substr(0, query.indexOf(matched[0]))); // argument before
+        part = query.substr(query.indexOf(matched[0]) + matched[0].length); // other arguments
     }
 
-    return false;
+    args = args.concat(part.match(/"([^"]*)"|([^\s]*)/g).filter(function(a, b, c) {
+        if (a.charAt(0) === "\"") c[b] = a.substr(1, a.length - 2); // remove parentheses
+        if (a) return true; // filter empty arguments
+    }));
+
+    if (!this.internalCommands.hasOwnProperty(command)) {
+        this.TERMINAL.output.print("Unknown internal command: /" + command + "\r\n");
+        return true;
+    }
+
+    if (this.internalCommands[command].call(this, args) === false) {
+        return -1;
+    } else return true;
 
 };
 
@@ -200,12 +234,15 @@ TerminalController.prototype.terminalQuery = function (query) {
 
     var internal;
 
-    internal = this.internalCommand(query);
-
     if (this.EXECUTION_IN_PROGRESS) {
+
         this.server.send(query);
+
     } else {
+
         this.TERMINAL.output.print("\r\n");
+        internal = this.internalCommand(query);
+
         if (internal === -1) {
 
             // do not prompt
@@ -222,10 +259,11 @@ TerminalController.prototype.terminalQuery = function (query) {
 
         } else {
 
-            this.TERMINAL.output.print("\r\n");
+            //this.TERMINAL.output.print("\r\n");
             this.clientAction["PROMPT"].call(this, this.NAMESPACE);
 
         }
+
     }
 
 };

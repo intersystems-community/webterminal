@@ -8,23 +8,26 @@
  *    Globals - Some global definitions.
  *       ║
  *       ║           {CacheWebTerminalServer} - Default server adapter for InterSystems Caché.
- *       ╔ {TerminalController} ╝ - Controller, object that implements terminalQuery function and
- *       ║                           uses terminal API for interaction with terminal application.
+ *       ║                      ║
+ *       ╔ {TerminalController} ╣ - Controller, object that implements terminalQuery function and
+ *       ║                      ║   uses terminal API for interaction with terminal application.
+ *       ║                      ║
+ *       ║                      ╚ {CacheTracing} - Mechanism that controls tracing.
  *       ║
  *   {Terminal}
- *       ║
- *    Modules
  *       ║
  *       ╠ {TerminalElements} - Handles terminal DOM elements and elements structure. Modules can
  *       ║                      access this elements.
  *       ╠ {TerminalLocalization} - Object-database that obtain localizations.
  *       ╠ {TerminalStorage} - Persistent storage adapter for saving data.
+ *       ╠ {TerminalFavorites} - Handles favored commands.
  *       ╠ {TerminalAutocomplete} - Holds autocomplete mechanism for terminal.
  *       ╠ {TerminalOutput} - Output mechanism of terminal.
- *       ║        ╚ {TerminalOutputLine} - Representation of one terminal line of text.
+ *       ║       ╚ {TerminalOutputLine} - Representation of one terminal line of text.
  *       ╠ {TerminalInput}
  *       ║       ╚ {TerminalInputCaret} - Visible caret.
  *       ║       ╚ {TerminalInputHistory} - Terminal command history.
+ *       ╠ {TerminalHint} - Represents a floating string of text inside terminal.
  *       ╠ {TerminalDictionary} - All lexemes that form autocomplete database.
  *       ╚ {TerminalFavorites} - Favorites storage.
  *
@@ -36,8 +39,9 @@
  */
 var Terminal = function (setting) {
 
-    if (!setting) setting = {
-        controller: new TerminalController(this)
+    this.SETUP = {
+        controller: setting["controller"] || new TerminalController(this),
+        container: setting["container"] || document.body
     };
 
     //                                      modules / plugins                                     \\
@@ -47,7 +51,7 @@ var Terminal = function (setting) {
      *
      * @type {TerminalElements}
      */
-    this.elements = new TerminalElements(setting.container || document.body);
+    this.elements = new TerminalElements(this.SETUP.container);
 
     /**
      * @type {TerminalLocalization}
@@ -77,12 +81,12 @@ var Terminal = function (setting) {
     /**
      * @type {TerminalFavorites}
      */
-    this.favorites = new TerminalFavorites();
+    this.favorites = new TerminalFavorites(this);
 
     /**
-     * @type {TerminalController}
+     * @type {TerminalController|*}
      */
-    this.controller = new TerminalController(this);
+    this.controller = this.SETUP.controller;
 
     /**
      * @type {TerminalAutocomplete}
@@ -110,43 +114,16 @@ Terminal.prototype.initialize = function () {
 };
 
 /**
- * Saves terminal state to local storage.
+ * Resets terminal settings.
  */
-Terminal.prototype.saveState = function () {
+Terminal.prototype.reset = function () {
 
-    // todo: refactor & uncomment
-    this.storage.set("history", this.input.history.exportJSON());
-    this.storage.set("dictionary", this.dictionary.exportJSON());
-    this.storage.set("favorites", terminal.favorites.exportJSON());
-    //this.storage.set("definitions", terminal.definitions.export());
-    //this.storage.set("settings", settings.export());
-    this.storage.setLastSaveDate(new Date());
-    terminal.output.write(this.localization.get(6));
+    var _this = this;
 
-};
+    this.output.printSync("Refresh window to apply reset.\r\n");
 
-/**
- * Loads terminal state from local storage.
- */
-Terminal.prototype.loadState = function () {
-
-    if (!this.storage.getLastSaveDate()) {
-        console.warn("Unable to load terminal state: it hasn't been saved before.");
-        return;
-    }
-
-    this.input.history.importJSON(this.storage.get("history"));
-    this.dictionary.importJSON(this.storage.get("dictionary"));
-    this.favorites.importJSON(this.storage.get("favorites"));
-
-};
-
-/**
- * Resets terminal state.
- */
-Terminal.prototype.resetState = function () {
-
-    this.storage.clear();
-    // todo: without refreshing page wipe data and reset settings
+    window.addEventListener("beforeunload", function () {
+        _this.storage.clear();
+    })
 
 };

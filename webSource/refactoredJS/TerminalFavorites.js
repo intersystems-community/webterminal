@@ -1,11 +1,36 @@
 /**
  * Stores and manipulates favorite commands data.
  *
+ * @param {Terminal} TERMINAL
  * @constructor
  */
-var TerminalFavorites = function () {
+var TerminalFavorites = function (TERMINAL) {
+
+    /**
+     * @type {Terminal}
+     */
+    this.TERMINAL = TERMINAL;
 
     this._storage = {};
+
+    this.initialize();
+
+};
+
+TerminalFavorites.prototype.STORAGE_NAME = "favorites";
+
+TerminalFavorites.prototype.initialize = function () {
+
+    var _this = this,
+        storage = this.TERMINAL.storage.get(this.STORAGE_NAME);
+
+    window.addEventListener("beforeunload", function () {
+        _this.TERMINAL.storage.set(_this.STORAGE_NAME, _this.exportJSON());
+    });
+
+    if (storage) {
+        this.importJSON(storage);
+    }
 
 };
 
@@ -25,6 +50,24 @@ TerminalFavorites.prototype.set = function (key, value) {
 TerminalFavorites.prototype.get = function (key) {
 
     return this._storage[key] || "";
+
+};
+
+/**
+ * Get list of saved favorites.
+ *
+ * @returns {string[]}
+ */
+TerminalFavorites.prototype.getList = function () {
+
+    var arr = [],
+        i;
+
+    for (i in this._storage) {
+        arr.push(i);
+    }
+
+    return arr;
 
 };
 
@@ -54,6 +97,6 @@ TerminalFavorites.prototype.importJSON = function (json) {
  */
 TerminalFavorites.prototype.exportJSON = function () {
 
-    return JSON.stringify(this);
+    return JSON.stringify({ _storage: this._storage });
 
 };
