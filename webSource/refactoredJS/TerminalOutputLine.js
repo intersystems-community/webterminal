@@ -1,5 +1,3 @@
-var WPC = 0;
-
 /**
  * Output line used as instance for rendering terminal content.
  *
@@ -69,7 +67,7 @@ TerminalOutputLine.prototype.render = function () {
     var positions = [],
         i,
         lineText = "",
-        temp;
+        temp, styled;
 
     for (i in this.graphicRenditionIndex) {
         positions.push(parseInt(i));
@@ -80,8 +78,14 @@ TerminalOutputLine.prototype.render = function () {
     if (positions[0] !== 0) positions.unshift(0);
 
     for (i = 0; i < positions.length; i++) {
-        temp = (this.graphicRenditionIndex[positions[i]] || []).join(" term-gri");
-        if (temp) temp = "<span class=\"term-gri" + temp + "\">";
+        temp = ""; styled = "";
+        this.graphicRenditionIndex[positions[i]].every(function(a) {
+            temp += "term-gri" + a.index + " ";
+            if (a.style) styled += (styled ? ";" : "") + a.style + " ";
+            return true;
+        }, this);
+        if (temp) temp = "<span class=\"" + temp + "\"" + (styled ? "style=\""
+            + styled.replace("\"", "&quot;") + "\"" : "") + ">";
         lineText += temp + this.linePlainText.substring(
                 positions[i] || 0,
                 positions[i + 1] || this.linePlainText.length
@@ -108,12 +112,6 @@ TerminalOutputLine.prototype.writePlain = function (text, position) {
     var i, writePart,
         _this = this;
 
-    WPC++;
-
-//    console.log("Writing plain text to " + position + ". GI: ");
-//    console.table(this.graphicRenditionIndex);
-//    console.log("\nText: " + text);
-
     if (typeof position === "undefined") position = this.linePlainText.length;
 
     writePart = text.substr(0, this.TERMINAL_OUTPUT.WIDTH - position);
@@ -127,7 +125,6 @@ TerminalOutputLine.prototype.writePlain = function (text, position) {
     // seek any graphic rendition indexes to the end of writable part
     for (i = position; i < position + writePart.length; i++) {
         if (this.graphicRenditionIndex.hasOwnProperty(i.toString())) {
-//            console.log("seeking " + i + " to " + (position + writePart.length));
             this.graphicRenditionIndex[position + writePart.length] =
                 (this.graphicRenditionIndex[position + writePart.length] || [])
                     .concat(this.graphicRenditionIndex[i]);
@@ -135,18 +132,20 @@ TerminalOutputLine.prototype.writePlain = function (text, position) {
         }
     }
 
-    // optimize array: exclude zeros. May be optimized.
+    // optimize array: exclude zeros. I believe that tactics may be optimized.
     if (this.graphicRenditionIndex[position + writePart.length] instanceof Array) {
         for (i = 0; i < this.graphicRenditionIndex[position + writePart.length].length; i++) {
-            if (this.graphicRenditionIndex[position + writePart.length][i] === 0) {
-//                console.log("Optimizing " + (position + writePart.length));
+            if (this.graphicRenditionIndex[position + writePart.length][i].index === 0) {
                 this.graphicRenditionIndex[position + writePart.length].splice(0, i + 1);
                 i = 0;
             }
         }
         this.graphicRenditionIndex[position + writePart.length] =
-            this.graphicRenditionIndex[position + writePart.length].filter(function(elem, pos) {
-            return _this.graphicRenditionIndex[position + writePart.length].indexOf(elem) === pos;
+            this.graphicRenditionIndex[position + writePart.length].filter(function(elem, pos, a) {
+            for (i = 0; i < pos; i++) {
+                if (a[pos].index === a[i].index) return false;
+            }
+            return true;
         });
     }
 
@@ -156,20 +155,19 @@ TerminalOutputLine.prototype.writePlain = function (text, position) {
 
         // set new attributes
         for (i in this.TERMINAL_OUTPUT.CURRENT_GRAPHIC_RENDITION) {
-            this.graphicRenditionIndex[position].push(i);
+            this.graphicRenditionIndex[position].push({
+                index: parseInt(i) || i,
+                style: this.TERMINAL_OUTPUT.CURRENT_GRAPHIC_RENDITION[i].style
+            });
         }
-
-//        console.log("GRI in " + position + " now ", this.graphicRenditionIndex);
 
     } else {
 
-        this.graphicRenditionIndex[position] = [0];
+        this.graphicRenditionIndex[position] = [{
+            index: 0
+        }];
 
     }
-
-//    console.log("After write GI: ");
-
-//    console.table(this.graphicRenditionIndex);
 
     if (!this.renderTimeout) {
         this.renderTimeout = setTimeout(function () {

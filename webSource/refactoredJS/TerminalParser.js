@@ -11,8 +11,8 @@ var TerminalParser = function () {
      * @type {string[]}
      */
     // ["symbol", "string", "className", "digit", "dollar", "global", "grid", "method", "word"];
-    this.TYPES = ["\x1B[33m", "\x1B[32m", "\x1B[36m", "\x1B[36m", "\x1B[34m", "\x1B[31m",
-        "\x1B[34m", "\x1B[34m", "\x1B[0m"];
+    this.TYPES = ["\x1B[38;5;226m", "\x1B[38;5;76m", "\x1B[38;5;39m", "\x1B[38;5;51m",
+        "\x1B[38;5;111m", "\x1B[38;5;9m", "\x1B[38;5;180m", "\x1B[38;5;51m", "\x1B[0m"];
 
     /**
      * Remembering parentheses here matching index in upper array.
