@@ -11,15 +11,15 @@ var TerminalParser = function () {
      * @type {string[]}
      */
     // ["symbol", "string", "className", "digit", "dollar", "global", "grid", "method", "word"];
-    this.TYPES = ["\x1B[43m", "\x1B[42m", "\x1B[46m", "\x1B[46m", "\x1B[44m", "\x1B[41m",
-        "\x1B[44m", "\x1B[44m", "\x1B[0m"];
+    this.TYPES = ["\x1B[33m", "\x1B[32m", "\x1B[36m", "\x1B[36m", "\x1B[34m", "\x1B[31m",
+        "\x1B[34m", "\x1B[34m", "\x1B[0m"];
 
     /**
      * Remembering parentheses here matching index in upper array.
      *
      * @type {RegExp}
      */
-    this.SYNTAX_REGULAR_EXPRESSION = /([\[\]\{\}\(\)\-\+\*\/_])|("[^"]")|(%?[\w\.]+)|([0-9]\.?[0-9]*)|(\${1,3}[\w]+)|(\^[\w]+)|(#{2,3}[\w]+)|(\.{2}[\w]+)|([\w]+)/g;
+    this.SYNTAX_REGULAR_EXPRESSION = /([\[\]\{\}\(\)\-\+\*\/_=])|("[^"]*")|(%?[\w\.]+)|([0-9]\.?[0-9]*)|(\${1,3}[\w]+)|(\^[\w]+)|(#{2,3}[\w]+)|(\.{2}[\w]+)|([\w]+)/g;
 
 };
 

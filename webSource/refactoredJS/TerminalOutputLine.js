@@ -1,3 +1,5 @@
+var WPC = 0;
+
 /**
  * Output line used as instance for rendering terminal content.
  *
@@ -30,9 +32,14 @@ var TerminalOutputLine = function (TERMINAL_OUTPUT) {
     this.linePlainText = "";
 
     /**
-     * @type {{positionInLinePlainText: Array[ofAttributes]}}
+     * @type {{positionInLinePlainText: Object[Attributes]}}
      */
     this.graphicRenditionIndex = {};
+
+    /**
+     * @type {number}
+     */
+    this.renderTimeout = 0;
 
     this.initialize();
 
@@ -98,23 +105,29 @@ TerminalOutputLine.prototype.render = function () {
  */
 TerminalOutputLine.prototype.writePlain = function (text, position) {
 
-    var i, writePart;
+    var i, writePart,
+        _this = this;
+
+    WPC++;
+
+//    console.log("Writing plain text to " + position + ". GI: ");
+//    console.table(this.graphicRenditionIndex);
+//    console.log("\nText: " + text);
 
     if (typeof position === "undefined") position = this.linePlainText.length;
 
     writePart = text.substr(0, this.TERMINAL_OUTPUT.WIDTH - position);
 
     if (position > this.linePlainText.length) {
-        for (i = this.linePlainText.length; i <= position; i++) {
-            this.linePlainText += " ";
-        }
+        this.linePlainText += (new Array(position - this.linePlainText.length + 1)).join(" ");
     }
 
     this.linePlainText = this.linePlainText.splice(position, writePart.length, writePart);
 
     // seek any graphic rendition indexes to the end of writable part
-    for (i = position; i < writePart.length; i++) {
+    for (i = position; i < position + writePart.length; i++) {
         if (this.graphicRenditionIndex.hasOwnProperty(i.toString())) {
+//            console.log("seeking " + i + " to " + (position + writePart.length));
             this.graphicRenditionIndex[position + writePart.length] =
                 (this.graphicRenditionIndex[position + writePart.length] || [])
                     .concat(this.graphicRenditionIndex[i]);
@@ -126,10 +139,15 @@ TerminalOutputLine.prototype.writePlain = function (text, position) {
     if (this.graphicRenditionIndex[position + writePart.length] instanceof Array) {
         for (i = 0; i < this.graphicRenditionIndex[position + writePart.length].length; i++) {
             if (this.graphicRenditionIndex[position + writePart.length][i] === 0) {
+//                console.log("Optimizing " + (position + writePart.length));
                 this.graphicRenditionIndex[position + writePart.length].splice(0, i + 1);
                 i = 0;
             }
         }
+        this.graphicRenditionIndex[position + writePart.length] =
+            this.graphicRenditionIndex[position + writePart.length].filter(function(elem, pos) {
+            return _this.graphicRenditionIndex[position + writePart.length].indexOf(elem) === pos;
+        });
     }
 
     if (this.TERMINAL_OUTPUT.anyGraphicRenditionSet()) {
@@ -141,13 +159,24 @@ TerminalOutputLine.prototype.writePlain = function (text, position) {
             this.graphicRenditionIndex[position].push(i);
         }
 
+//        console.log("GRI in " + position + " now ", this.graphicRenditionIndex);
+
     } else {
 
-        this.graphicRenditionIndex[position] = [];
+        this.graphicRenditionIndex[position] = [0];
 
     }
 
-    this.render();
+//    console.log("After write GI: ");
+
+//    console.table(this.graphicRenditionIndex);
+
+    if (!this.renderTimeout) {
+        this.renderTimeout = setTimeout(function () {
+            _this.render();
+            _this.renderTimeout = 0;
+        }, 25);
+    }
 
     return text.substr(writePart.length, text.length);
 

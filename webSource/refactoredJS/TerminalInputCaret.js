@@ -44,16 +44,13 @@ TerminalInputCaret.prototype.update = function () {
         return;
     }
 
-//    this._element.style.left = (this.INPUT.TERMINAL.output.getCaretX() - 1
-//    - this.INPUT.TERMINAL.elements.input.value.length
-//    + this.INPUT.TERMINAL.elements.input.selectionStart)
-//        * this.INPUT.TERMINAL.output.SYMBOL_PIXEL_WIDTH + "px";
-
     this._element.style.left = (this.INPUT.INITIAL_POSITION.position
         + this.INPUT.TERMINAL.elements.input.selectionStart) % this.INPUT.TERMINAL.output.WIDTH
         * this.INPUT.TERMINAL.output.SYMBOL_PIXEL_WIDTH + "px";
 
-    line.getElement().appendChild(this._element);
+
+    this._element.style.top = line.getElement().offsetTop + "px";
+    this.INPUT.TERMINAL.elements.output.appendChild(this._element);
 
 };
 
