@@ -154,7 +154,9 @@ TerminalInput.prototype._disable = function () {
  * Returns caret position from beginning of input.
  */
 TerminalInput.prototype.getCaretPosition = function () {
-    return this.TERMINAL.elements.input.selectionStart || this.TERMINAL.elements.input.value.length;
+    if (typeof this.TERMINAL.elements.input.selectionStart !== "undefined") {
+        return this.TERMINAL.elements.input.selectionStart;
+    } else return this.TERMINAL.elements.input.value.length;
 };
 
 /**
@@ -239,15 +241,16 @@ TerminalInput.prototype._onInput = function () {
 
     var i, cx, cy,
         string = "",
-        length = this.TERMINAL.elements.input.value.length;
+        value = this.TERMINAL.elements.input.value,
+        length = value.length;
 
     this._autocompleteVariants =
         this.TERMINAL.autocomplete.getEndings(
-            this.TERMINAL.elements.input.value.substring(0, this.getCaretPosition())
+            value.substring(0, this.getCaretPosition())
         );
 
     this.TERMINAL.output.printAtLine(
-        this.TERMINAL.parser.highlightSyntax(this.TERMINAL.elements.input.value),
+        this.TERMINAL.parser.highlightSyntax(value),
         this.INITIAL_POSITION.line,
         this.INITIAL_POSITION.position,
         false

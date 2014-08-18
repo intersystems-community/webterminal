@@ -45,15 +45,13 @@ var TerminalAutocomplete = function () {
  *              For example, string "do the ro" will become "or eht od" when matching.
  *  split - defines character to split autocomplete. E.g. "test.me" and "test.my" for "te" will
  *          bring "st", not "st.me" or "st.my".
- *  keepCase - makes autocomplete case matching to the last character.
  */
 TerminalAutocomplete.prototype.TYPES = {
     common: {
         regExp: /([a-zA-Z][a-z0-9A-Z]*)$/
     },
     keyword: {
-        regExp: /([\$\/]*[a-zA-Z]*[a-z0-9A-Z]*)$/i,
-        keepCase: true
+        regExp: /([\$\/]*[a-zA-Z]*[a-z0-9A-Z]*)$/i
     },
     class: {
         regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)$/,
@@ -63,7 +61,7 @@ TerminalAutocomplete.prototype.TYPES = {
         regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)\)\.(%?[a-zA-Z]*[a-zA-Z0-9]*)$/
     },
     globals: {
-        regExp: /^([a-z0-9A-Z]*%?)\^/
+        regExp: /\^(%?[a-z0-9A-Z]*)/
     }
 };
 
@@ -134,7 +132,11 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
 
     var i, matcher, trieString,
         variants = {},
-        array = [];
+        array = [],
+
+        MAX_LENGTH = 60; // limit the AC length for performance reasons
+
+    string = string.substr(string.length - MAX_LENGTH, MAX_LENGTH);
 
     for (i in this.TYPES) {
         matcher = this.TYPES[i].regExp || this.TYPES.common.regExp;
