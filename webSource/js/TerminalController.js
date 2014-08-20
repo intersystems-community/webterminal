@@ -195,7 +195,7 @@ TerminalController.prototype.internalCommands = {
         } else if (args[0] === "clear") {
 
             this.TERMINAL.definitions.clear();
-            this.TERMINAL.output.print("Definitions removed.");
+            this.TERMINAL.output.print("Definitions removed.\r\n");
 
         } else {
 
@@ -210,6 +210,12 @@ TerminalController.prototype.internalCommands = {
                 + this.TERMINAL.definitions.getList().join(", "));
 
         }
+
+    },
+
+    "version": function () {
+
+        this.TERMINAL.output.print(this.TERMINAL.VERSION + "\r\n");
 
     }
 

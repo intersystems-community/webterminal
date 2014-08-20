@@ -10,8 +10,8 @@ var TerminalParser = function () {
      *
      * @type {string[]}
      */
-    // ["symbol", "string", "className", "digit", "dollar", "global", "grid", "method", "word"];
-    this.TYPES = ["\x1B[38;5;226m", "\x1B[38;5;76m", "\x1B[38;5;39m", "\x1B[38;5;51m",
+    // ["symbol", "string", "digit", "className", "dollar", "global", "grid", "method", "word"];
+    this.TYPES = ["\x1B[38;5;226m", "\x1B[38;5;76m", "\x1B[38;5;51m", "\x1B[38;5;39m",
         "\x1B[38;5;111m", "\x1B[38;5;9m", "\x1B[38;5;180m", "\x1B[38;5;51m", "\x1B[0m"];
 
     /**
@@ -19,7 +19,7 @@ var TerminalParser = function () {
      *
      * @type {RegExp}
      */
-    this.SYNTAX_REGULAR_EXPRESSION = /([\[\]\{\}\(\)\-\+\*\/_=])|("[^"]*")|(%?[\w\.]+)|([0-9]\.?[0-9]*)|(\${1,3}[\w]+)|(\^[\w]+)|(#{2,3}[\w]+)|(\.{2}[\w]+)|([\w]+)/g;
+    this.SYNTAX_REGULAR_EXPRESSION = /([\[\]\{\}\(\)\-\+\*\/_=])|("[^"]*")|([0-9]\.?[0-9]*)|(%?[\w\.]+)|(\${1,3}[\w]+)|(\^[\w]+)|(#{2,3}[\w]+)|(\.{2}[\w]+)|([\w]+)/g;
 
 };
 

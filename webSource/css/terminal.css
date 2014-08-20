@@ -1,12 +1,15 @@
-.terminal-base {
-    position: absolute;
-    left: 0;
-    top: 0;
+.terminalContainer {
+    position: relative;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+    color: white;
+    background: black; /*url("../img/back.png") black;*/
+    font-family: FreeMono, monospace;
+    font-size: 16px;
 }
 
-.terminal-output-centralizer {
+.terminalContainer .terminalOutputCentralizer {
     position: absolute;
     left: 0;
     top: 0;
@@ -15,154 +18,64 @@
     display: table;
 }
 
-.terminal-output-centralizer > div {
+.terminalContainer .terminalOutputCentralizer > div {
     display: table-cell;
     text-align: center;
     vertical-align: middle;
 }
 
-.terminal-output-centralizer > div > div {
+.terminalContainer .terminalOutputCentralizer > div > div {
     display: inline-block;
     text-align: left;
     position: relative;
+    overflow-y: scroll;
 }
 
-.terminalLine {
-    overflow: hidden;
-    word-break: break-all;
-    word-wrap: break-word;
-    white-space: pre;
-}
-
-.terminal-base tr, td {
-    padding: 0 6px 6px 6px;
+.terminalContainer .terminalInput {
+    width: 100%;
     margin: 0;
-    border: 0;
-    border-spacing: 0;
-}
+    padding: 0;
+    opacity: 0;
 
-.terminal-output-block {
-    position: relative;
-    min-height: 100%;
-    overflow: hidden;
-    display: block;
-    white-space: pre;
-}
-
-.terminal-inputContainer {
-    position: relative;
-    overflow: hidden;
-}
-
-.terminal-outputContainer {
-    position: relative;
-    overflow: hidden;
-}
-
-.terminal-message-body {
-    position: relative;
-    overflow: hidden;
-}
-
-.terminal-output-body {
-    white-space: pre;
-    word-wrap: break-word;
-}
-
-.terminal-message-head {
-    display: inline-block;
-    float: left;
-}
-
-.terminal-message-head:after {
-    content: " >";
-    margin-right: 10px;
-}
-
-.terminal-input-visible {
-    min-height: 1em;
-    white-space: pre;
-    word-wrap: break-word;
-}
-
-/* fix white-space when \n is last */
-.terminal-input-visible:after {
-    content: " ";
-}
-
-/* textarea block */
-.terminal-input-hidden {
+    /* ie visible caret fix (except one annoying pixel, huh) */
     position: absolute;
-    top: 0;
-    left: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    margin: 0;
-    border: none;
-    outline: none;
-    text-decoration: none;
-    overflow: hidden;
-    background: none;
-    font: inherit;
-    color: rgba(0,0,0,0);
-    resize: none;
-    word-wrap: break-word;
+    height: 1em;
+    top: -1.5em;
+}
+
+.terminalContainer .terminalOutput {
     white-space: pre;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-x: hidden;
 }
 
-.terminal-suggestion {
-    color: gray;
-}
-
-/* control panel */
-
-#terminal-control-panel {
-    position: fixed;
-    left: -100%;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-    background: rgba(40,40,40,0.95);
-    color: white;
-    overflow: auto;
-
-    transition: left 0.2s ease;
-    -webkit-transition: left 0.2s ease;
-    -o-transition: left 0.2s ease;
-    -moz-transition: left 0.2s ease;
-}
-
-.terminal-control-content {
+.terminalContainer .terminalLine {
     position: relative;
-    margin: 20px;
+    overflow: hidden;
 }
 
-#terminal-control-table {
-    width: 100%;
+.terminalContainer .terminalCaret {
+    position: absolute;
+    left: 0;
+    top: 0;
+    animation: blink infinite 1s;
+    -o-animation: blink infinite 1s;
+    -ms-animation: blink infinite 1s;
+    -moz-animation: blink infinite 1s;
+    -webkit-animation: blink infinite 1s;
 }
 
-#terminal-control-table > tbody > tr > td:first-child {
-    color: #dadada;
-    font-size: 1.3em;
-    font-weight: 900;
-    padding-right: 20px;
-    white-space: nowrap;
-    padding-bottom: 20px;
+.terminalContainer .terminalCaret:after {
+    content: "_";
 }
 
-#terminal-control-table > tbody > tr:first-child {
-    height: 50px;
-}
-
-#terminal-control-table > tbody > tr > td:last-child {
-    padding: 0;
-    vertical-align: top;
-}
-
-#terminal-control-closeButton {
-    float: right;
-    cursor: pointer;
+.terminalContainer .terminalHint {
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: inherit;
+    opacity: 0.6;
+    text-shadow: 1px 1px 4px black;
+    z-index: 10;
 }

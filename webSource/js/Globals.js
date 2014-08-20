@@ -82,17 +82,11 @@ var AJAX = new function() {
 };
 
 /**
- * @type {Terminal}
- * @debug
+ * Initialization function. Exported after build.
  */
-var terminal;
+this.createTerminal = function () {
 
-/**
- * Initialization function.
- */
-var createTerminal = function () {
-
-    terminal = new Terminal({
+    return new Terminal({
         container: document.body
     });
 
