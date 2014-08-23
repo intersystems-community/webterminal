@@ -52,6 +52,14 @@ var TerminalInput = function (TERMINAL) {
     this.__inputLastLength = 0;
 
     /**
+     * If defined, input will be handled by function when submit.
+     *
+     * @type {function}
+     * @private
+     */
+    this._handler = null;
+
+    /**
      * Shows the input beginning position.
      *
      * @type {{line: number, position: number}}
@@ -299,7 +307,10 @@ TerminalInput.prototype.keyDown = function (event) {
             this.complete();
             event.preventDefault();
         } break; // tab
-        case 13: this.submit(); break; // enter
+        case 13: {
+            this.set(this.TERMINAL.definitions.replace(this.TERMINAL.elements.input.value));
+            this.submit();
+        } break; // enter
         case 35: setTimeout(function () { _this._onInput(); }, 1); break; // end
         case 36: setTimeout(function () { _this._onInput(); }, 1); break; // home
         case 37: setTimeout(function () { _this._onInput(); }, 1); break; // left arrow
@@ -313,15 +324,20 @@ TerminalInput.prototype.keyDown = function (event) {
  */
 TerminalInput.prototype.submit = function () {
 
-    var value = this.TERMINAL.elements.input.value;
+    var value = this.TERMINAL.elements.input.value,
+        handler = this._handler;
 
-    this.set(value = this.TERMINAL.definitions.replace(value));
     this._disable();
     this.history.save(value);
     this.TERMINAL.elements.input.value = "";
     this.__inputLastLength = 0;
     this._autocompleteVariants = [];
-    this.TERMINAL.controller.terminalQuery(value);
+    if (typeof handler === "function") {
+        this._handler = null;
+        handler.call(this, value);
+    } else {
+        this.TERMINAL.controller.terminalQuery(value);
+    }
     this._updateAutocompleteView();
 
 };
@@ -338,8 +354,14 @@ TerminalInput.prototype.limitLength = function (symbols) {
 /**
  * @param {string} [invitationMessage]
  * @param {number=32656} [length]
+ * @param {function} [handler] - Handle prompted string.
  */
-TerminalInput.prototype.prompt = function (invitationMessage, length) {
+TerminalInput.prototype.prompt = function (invitationMessage, length, handler) {
+
+    if (handler) {
+        if (this._handler) console.warn("Possible wrong handler usage.");
+        this._handler = handler;
+    }
 
     this.limitLength(length || 32656);
     this.TERMINAL.output.printSync(invitationMessage || "");

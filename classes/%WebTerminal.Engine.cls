@@ -40,7 +40,13 @@ Property ConstServerActionReset As %Char [ InitialExpression = "R" ];
 
 Property ConstServerActionEcho As %Char [ InitialExpression = "E" ];
 
+Property ConstServerActionCheckUpdate As %Char [ InitialExpression = "CU" ];
+
+Property ConstServerActionUpdate As %Char [ InitialExpression = "U" ];
+
 Parameter ConstServerActionExecuteStack = {$c(8)};
+
+// ?
 
 Property ConstClientPrompt As %String [ InitialExpression = "PROMPT#" ];
 
@@ -67,6 +73,8 @@ Property ConstClientStopTrace As %String [ InitialExpression = "STOP_TRACE#" ];
 Property ConstClientLoginInfo As %String [ InitialExpression = "I#" ];
 
 Property ConstClientClearScreen As %String [ InitialExpression = "CLRSCR#" ];
+
+Property ConstClientPromptUpdate As %String [ InitialExpression = "PROMPT_UPDATE#" ];
 
 Property CurrentNamespace As %String;
 
@@ -568,7 +576,7 @@ ClassMethod GetAuthKey() As %String
     quit ^|"%SYS"|%WebTerminal.AuthKey
 }
 
-/// Backs terminal to default state
+/// Returns terminal to default state
 ClassMethod Reset() As %Status
 {
     // delete autocompletion files
@@ -639,6 +647,70 @@ ClassMethod ParseError(string As %String) As %String
     set string = $REPLACE($REPLACE(string, ">", "<"), ".Engine.", "<")
     quit "ERROR: " _ $PIECE(string, "<", 2) _
         $EXTRACT($PIECE(string, "<", 4), 2, *)
+}
+
+Method Update(version) As %Status
+{
+    set httprequest = ##class(%Net.HttpRequest).%New()
+    set httprequest.Server = "intersystems-ru.github.io"
+    do ..SendData("Requesting http://intersystems-ru.github.io/webterminal/files/WebTerminal-"
+        _ version _ ".xml file... ")
+    do httprequest.Get("/webterminal/files/WebTerminal-" _ version _ ".xml") // TODO: handle 404
+    if (httprequest.HttpResponse.StatusCode '= 200) {
+        do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
+            _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
+        quit $$$NOTOK
+    }
+    if ($isobject(httprequest.HttpResponse.Data)) {
+        do ..SendData($C(13,10))
+        set data = ""
+        set path = ##class(%Library.File).SubDirectoryName(
+            ##class(%Library.File).ManagerDirectory(), "temp"
+        )
+        set filepath = ##class(%Library.File).SubDirectoryName(
+            path, "terminal_update.temp.xml"
+        )
+        do ..SendData("Reading file..." _ $C(13,10))
+        set file = ##class(%File).%New(filepath)
+        do file.Open("WSN")
+        while (httprequest.HttpResponse.Data.AtEnd = 0) {
+            do file.Write(httprequest.HttpResponse.Data.Read())
+        }
+        do file.Close()
+        do ..SendData("Importing and compilling new files..." _ $C(13,10))
+        set error = 0
+        do $System.OBJ.ImportDir(path, "terminal_update.temp.xml", "ckbu", .error, 1)
+        w *-3
+        if (error = 0) {
+            do ..SendData("OK!" _ $C(13,10))
+        } else {
+            do ..SendData("ERROR!" _ $C(13,10))
+        }
+        do ..SendData("Clearing temporary files... ")
+        if (##class(%Library.File).Delete(filepath) = 1) {
+            do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m" _ $C(13,10))
+        } else {
+            do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m" _ $C(13,10))
+            quit $$$NOTOK
+        }
+    }
+    quit $$$OK
+}
+
+Method CheckUpdate() As %Status
+{
+    set httprequest = ##class(%Net.HttpRequest).%New()
+    set httprequest.Server = "intersystems-ru.github.io"
+    do httprequest.Get("/webterminal/latestVersion")
+    if (httprequest.HttpResponse.StatusCode '= 200) {
+        do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
+            _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
+        quit $$$NOTOK
+    }
+    if ($isobject(httprequest.HttpResponse.Data)) {
+        do ..SendData(httprequest.HttpResponse.Data.Read(), ..ConstClientPromptUpdate)
+    }
+    quit $$$OK
 }
 
 /// The heart of terminal application
@@ -807,6 +879,15 @@ Method ClientLoop() As %Status
             do ..EndClearIO()
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
                     
+        } elseif (action = ..ConstServerActionCheckUpdate) {
+            
+            do ..CheckUpdate()
+            
+        } elseif (action = ..ConstServerActionUpdate) {
+            
+            do ..Update(data)
+            do ..SendData("Please, refresh the page to apply updates.")
+            
         } else { // something scary
                 
             do ..SendData("Client action unrecognised: " _ action)

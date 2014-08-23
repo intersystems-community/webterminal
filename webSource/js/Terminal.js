@@ -44,7 +44,15 @@ var Terminal = function (setting) {
         container: setting["container"] || document.body
     };
 
+    /**
+     * @type {string}
+     */
     this.VERSION = "".concat(/* @echo VERSION */) || "*-dev";
+
+    /**
+     * @type {number}
+     */
+    this.RELEASE_NUMBER = parseInt("".concat(/* @echo RELEASE_NUMBER */)) || 0;
 
     //                                      modules / plugins                                     \\
 

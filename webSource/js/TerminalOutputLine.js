@@ -79,7 +79,7 @@ TerminalOutputLine.prototype.render = function () {
 
     for (i = 0; i < positions.length; i++) {
         temp = ""; styled = "";
-        this.graphicRenditionIndex[positions[i]].every(function(a) {
+        (this.graphicRenditionIndex[positions[i]] || []).every(function(a) {
             temp += "term-gri" + a.index + " ";
             if (a.style) styled += (styled ? ";" : "") + a.style + " ";
             return true;

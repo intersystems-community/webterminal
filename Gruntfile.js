@@ -49,7 +49,8 @@ module.exports = function(grunt) {
         },
         preprocess: {
             context: {
-                VERSION: "<%= pkg.version %>"
+                VERSION: "<%= pkg.version %>",
+                RELEASE_NUMBER: "<%= pkg.releaseNumber %>"
             },
             html: {
                 src: "build/webSource/index.html",
@@ -60,7 +61,8 @@ module.exports = function(grunt) {
                 options: {
                     inline : true,
                     context: {
-                        VERSION: "\"<%= pkg.version %>\""
+                        VERSION: "\"<%= pkg.version %>\"",
+                        RELEASE_NUMBER: "<%= pkg.releaseNumber %>"
                     }
                 }
             }

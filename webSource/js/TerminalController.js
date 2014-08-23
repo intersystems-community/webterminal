@@ -80,7 +80,9 @@ TerminalController.prototype.SERVER_ACTION = {
     STOP_TRACE_ALL: "STOP_TRACE_ALL#",
     CHECK_TRACE: "CT#",
     RESET: "R#",
-    ECHO: "E#"
+    ECHO: "E#",
+    CHECK_UPDATE: "CU#",
+    UPDATE: "U#"
 };
 
 /**
@@ -216,6 +218,17 @@ TerminalController.prototype.internalCommands = {
     "version": function () {
 
         this.TERMINAL.output.print(this.TERMINAL.VERSION + "\r\n");
+
+    },
+
+    "update": function () {
+
+        this.TERMINAL.output.print("Caché WEB Terminal v" + this.TERMINAL.VERSION + "\r\n" +
+            "Checking for updates...\r\n");
+
+        this.server.send(this.SERVER_ACTION.CHECK_UPDATE);
+
+        return false;
 
     }
 
@@ -437,6 +450,38 @@ TerminalController.prototype.clientAction = {
 
     CLRSCR: function () {
         this.TERMINAL.output.clear();
+    },
+
+    PROMPT_UPDATE: function (data) {
+
+        var _this = this,
+            version,
+            releaseNumber = data.split("#");
+
+        version = releaseNumber[1];
+        releaseNumber = parseInt(releaseNumber[0]);
+
+        if (!version || !releaseNumber) {
+            console.error("Unable to parse version data: ", data);
+            return;
+        }
+
+        if (releaseNumber > this.TERMINAL.RELEASE_NUMBER) {
+            this.TERMINAL.output.print("A new version of Caché WEB Terminal available. Would you" +
+                "like to install it? (Y/N)\r\n");
+            this.TERMINAL.input.prompt("", 1, function (string) {
+                if (string.toLowerCase() === "y") {
+                    _this.TERMINAL.output.print(" Updating...\r\n");
+                    _this.server.send(_this.SERVER_ACTION.UPDATE + version);
+                } else {
+                    _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
+                }
+            });
+        } else {
+            this.TERMINAL.output.print("Caché WEB Terminal is up-to-date.\r\n");
+            this.clientAction["PROMPT"].call(this, this.NAMESPACE);
+        }
+
     }
 
 };
