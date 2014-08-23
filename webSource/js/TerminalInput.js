@@ -37,6 +37,12 @@ var TerminalInput = function (TERMINAL) {
     this._autocompleteVariants = [];
 
     /**
+     * @type {number}
+     * @private
+     */
+    this._currentAutocompleteVariant = 0;
+
+    /**
      * @type {TerminalHint}
      * @private
      */
@@ -203,7 +209,21 @@ TerminalInput.prototype.complete = function () {
  */
 TerminalInput.prototype.getCurrentAutocompleteVariant = function () {
 
-    return this._autocompleteVariants[0] || "";
+    return this._autocompleteVariants[this._currentAutocompleteVariant] || "";
+
+};
+
+/**
+ * @param {number} delta
+ * @private
+ */
+TerminalInput.prototype._changeAutocompleteVariant = function (delta) {
+
+    this._currentAutocompleteVariant = (this._currentAutocompleteVariant + delta)
+        % this._autocompleteVariants.length;
+    if (this._currentAutocompleteVariant < 0) this._currentAutocompleteVariant
+        += this._autocompleteVariants.length;
+    this._updateAutocompleteView();
 
 };
 
@@ -311,6 +331,16 @@ TerminalInput.prototype.keyDown = function (event) {
             this.set(this.TERMINAL.definitions.replace(this.TERMINAL.elements.input.value));
             this.submit();
         } break; // enter
+        case 16: {
+
+        } break; // shift
+        case 17: {
+            if (event["location"] !== 1) {
+                this._changeAutocompleteVariant(-1);
+            } else {
+                this._changeAutocompleteVariant(1);
+            }
+        } break; // ctrl
         case 35: setTimeout(function () { _this._onInput(); }, 1); break; // end
         case 36: setTimeout(function () { _this._onInput(); }, 1); break; // home
         case 37: setTimeout(function () { _this._onInput(); }, 1); break; // left arrow

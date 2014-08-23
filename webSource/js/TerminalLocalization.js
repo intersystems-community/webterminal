@@ -1,7 +1,12 @@
 /**
  * The instance of this object holds language constants for localizing whole terminal application.
+ *
+ * @param {Terminal} TERMINAL
+ * @constructor
  */
-var TerminalLocalization = function () {
+var TerminalLocalization = function (TERMINAL) {
+
+    var terminal = TERMINAL;
 
     /**
      * List of available languages in settings.
@@ -230,23 +235,27 @@ var TerminalLocalization = function () {
             ru: "Локальное HTML5 хранилище недоступно. Операции сохранения не будут успешными."
         },
         49: {
-            en: "Caché WEB Terminal v 2.-3.1\r\n\r\n" +
+            en: "Caché WEB Terminal v" + terminal.VERSION + "\r\n\r\n" +
                 "\x1B[4mAvailable commands:\x1B[0m\r\n" +
-                "\x1B[1m/help\x1B[0m\x1B[32GShow the help information you are reading now.\r\n" +
-                "\x1B[1m/autocomplete\x1B[0m [gen]\x1B[32GPerforms autocomplete data loading. The autocomplete" +
+                "\x1B[33m/help\x1B[0m\x1B[32GShow the help information you are reading now.\r\n" +
+                "\x1B[33m/autocomplete\x1B[0m [gen]\x1B[32GPerforms autocomplete data loading. The autocomplete" +
                 " files will be generated only the first time command execute. If you did some " +
                 "changes in your code and want to rebuild autocomplete database, use " +
                 "\x1B[1mgen\x1B[0m parameter.\r\n" +
-                "\x1B[1m/echo\x1B[0m [param1] [param2] ...\x1B[32GEcho each argument of this command." +
-                "\r\n\x1B[1m/trace\x1B[0m [global/filePath]\x1B[32GStart tracing global or file. To stop " +
+                "\x1B[33m/echo\x1B[0m [param1] [param2] ...\x1B[32GEcho each argument of this command." +
+                "\r\n\x1B[33m/trace\x1B[0m [global/filePath]\x1B[32GStart tracing global or file. To stop " +
                 "tracing, enter command without arguments. To stop tracing particular file or " +
                 "global, enter trace command again.\r\n" +
-                "\x1B[1m/sql\x1B[0m\x1B[32GEnter or exit SQL mode.\r\n" +
-                "\x1B[1m/reset\x1B[0m\x1B[32GReset terminal application to defaults.\r\n" +
-                "{command} \x1B[1m/favorite\x1B[0m {phrase}\x1B[32GSave command for future use.\r\n" +
-                "\x1B[1m/favorite\x1B[0m {phrase}\x1B[32GLoad previously saved command.\r\n" +
-                "{definition} \x1B[1m/define\x1B[0m {phrase}\x1B[32GReplace each next {phrase} with {definition}. To " +
-                "get more information, call command without parameters.",
+                "\x1B[33m/sql\x1B[0m\x1B[32GEnter or exit SQL mode.\r\n" +
+                "\x1B[33m/reset\x1B[0m\x1B[32GReset terminal application to defaults.\r\n" +
+                "{command} \x1B[33m/favorite\x1B[0m {phrase}\x1B[32GSave command for future use.\r\n" +
+                "\x1B[33m/favorite\x1B[0m {phrase}\x1B[32GLoad previously saved command.\r\n" +
+                "{definition} \x1B[33m/define\x1B[0m {phrase}\x1B[32GReplace each next {phrase} with {definition}. To " +
+                "get more information, call command without parameters.\r\n\r\n" +
+                "\x1B[4mControl keys:\x1B[0m\r\n" +
+                "\x1B[33mTAB\x1B[0m\x1B[32GComplete input if autocomplete variant available.\r\n" +
+                "\x1B[33mCTRL\x1B[0m\x1B[32GLeft/right control will switch next/previous available" +
+                " autocomplete variant.\r\n",
             ru: "<div class=\"normalWrap\">" +
                 "<div class=\"center\">" +
                 "<h3>Caché Web Terminal<span class=\"warning\"> v?</span></h3>" +

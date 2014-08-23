@@ -66,7 +66,7 @@ var Terminal = function (setting) {
     /**
      * @type {TerminalLocalization}
      */
-    this.localization = new TerminalLocalization();
+    this.localization = new TerminalLocalization(this);
 
     /**
      * @type {TerminalStorage}

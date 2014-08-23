@@ -45,6 +45,7 @@ var TerminalAutocomplete = function () {
  *              For example, string "do the ro" will become "or eht od" when matching.
  *  split - defines character to split autocomplete. E.g. "test.me" and "test.my" for "te" will
  *          bring "st", not "st.me" or "st.my".
+ *  priority - matched group except one with highest priority will be dismissed.
  */
 TerminalAutocomplete.prototype.TYPES = {
     common: {
@@ -55,10 +56,12 @@ TerminalAutocomplete.prototype.TYPES = {
     },
     class: {
         regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)$/,
+        priority: 1,
         split: "."
     },
     subclass: {
-        regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)\)\.(%?[a-zA-Z]*[a-zA-Z0-9]*)$/
+        regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)\)\.(%?[a-zA-Z]*[a-zA-Z0-9]*)$/,
+        priority: 1
     },
     globals: {
         regExp: /\^(%?[a-z0-9A-Z]*)/
@@ -76,6 +79,7 @@ TerminalAutocomplete.prototype.setNamespace = function (namespace) {
  * @param {object} append
  * @param {string} part
  * @param {object} type
+ * @returns {boolean} - If variants was found.
  * @private
  */
 TerminalAutocomplete.prototype._appendEndings = function (append, part, type) {
@@ -133,6 +137,7 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
     var i, matcher, trieString,
         variants = {},
         array = [],
+        priority = 0,
 
         MAX_LENGTH = 60; // limit the AC length for performance reasons
 
@@ -142,7 +147,13 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
         matcher = this.TYPES[i].regExp || this.TYPES.common.regExp;
         trieString = (string.match(matcher) || []).slice(1).join("\n");
         if (trieString) {
-            this._appendEndings(variants, trieString, this.TYPES[i]);
+            if (this.TYPES[i].priority > priority) {
+                variants = {};
+                priority = this.TYPES[i].priority;
+                this._appendEndings(variants, trieString, this.TYPES[i]);
+            } else if (this.TYPES[i].priority || 0 === priority) {
+                this._appendEndings(variants, trieString, this.TYPES[i]);
+            } // else do not append
         }
     }
 
