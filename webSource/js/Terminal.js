@@ -41,7 +41,8 @@ var Terminal = function (setting) {
 
     this.SETUP = {
         controller: setting["controller"] || new TerminalController(this),
-        container: setting["container"] || document.body
+        container: setting["container"] || document.body,
+        authKey: setting["authKey"] || null
     };
 
     /**

@@ -391,7 +391,7 @@ CacheDictionary.prototype.addGlobalTokens = function (tokens) {
  *
  * @param {string} string
  */
-CacheDictionary.prototype.parseForCachéTokens = function (string) {
+CacheDictionary.prototype.parseForCacheTokens = function (string) {
 
     var re = new RegExp(
             "[\\s\\{](set|s)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))\\s*=",

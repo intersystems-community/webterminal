@@ -35,7 +35,7 @@ var TerminalController = function (TERMINAL) {
      * @type {CacheWebTerminalServer}
      */
     this.server = new CacheWebTerminalServer(
-        this, (location.protocol === "https:" ? "wss:" : "ws:"), location.host, "57772"
+        this, (location.protocol === "https:" ? "wss:" : "ws:"), location.hostname, "57772"
     );
 
     /**

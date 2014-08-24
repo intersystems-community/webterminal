@@ -696,7 +696,7 @@ TerminalOutput.prototype.freeStack = function () {
     // ending (f.e. "m") separately.
     // Also I believe that this technique can be improved. If you have any suggestions, please,
     // comment this out.
-    if ((temp = this._stack.lastIndexOf("\x1B")) !== -1
+    if ((temp = this._stack.lastIndexOf(String.fromCharCode(27))) !== -1
         && (temp = this._stack.substring(temp, this._stack.length))
             .match(this.CONTROL_SEQUENCE_PATTERN)) {
         this._output(this._stack);

@@ -12,7 +12,7 @@ var CacheWebTerminalServer = function (CONTROLLER, WS_PROTOCOL, IP, PORT) {
     /**
      * @type {string}
      */
-    this.CACHÉ_CLASS_NAME = "%WebTerminal.Engine.cls";
+    this.CACHE_CLASS_NAME = "%WebTerminal.Engine.cls";
 
     /**
      * @type {string}
@@ -52,7 +52,7 @@ CacheWebTerminalServer.prototype.initialize = function () {
     try {
         this.socket = new WebSocket(
                 this.PROTOCOL + "//" + this.IP + (this.PORT ? ":" + this.PORT : "") + "/"
-                + this.CACHÉ_CLASS_NAME.replace(/%/g,"%25")
+                + encodeURIComponent(this.CACHE_CLASS_NAME)
         );
     } catch (e) {
         this.onError();
@@ -60,7 +60,7 @@ CacheWebTerminalServer.prototype.initialize = function () {
     }
 
     this.socket.onopen = function (event) {
-        _this.onConnect(event);
+        _this.onConnect.call(_this, event);
     };
 
     this.socket.onclose = function (event) {
@@ -129,7 +129,12 @@ CacheWebTerminalServer.prototype.send = function (string) {
  */
 CacheWebTerminalServer.prototype.onConnect = function () {
 
+    var key;
+
     this.CONTROLLER.TERMINAL.output.print("Connection to Caché Server established.\r\n");
+    if (key = this.CONTROLLER.TERMINAL.SETUP["authKey"]) {
+        this.send(key);
+    }
 
 };
 

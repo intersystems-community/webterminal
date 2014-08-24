@@ -83,11 +83,14 @@ var AJAX = new function() {
 
 /**
  * Initialization function. Exported after build.
+ *
+ * @param {string} authKey
  */
-this.createTerminal = function () {
+this.createTerminal = function (authKey) {
 
     return new Terminal({
-        container: document.body
+        container: document.body,
+        authKey: authKey || null
     });
 
 };

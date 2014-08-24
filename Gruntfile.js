@@ -78,7 +78,8 @@ module.exports = function(grunt) {
         },
         uglify: {
             options: {
-                wrap: "terminal"
+                wrap: "terminal",
+                beautify: true
             },
             dist: {
                 files: {
