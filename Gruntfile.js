@@ -1,7 +1,23 @@
 module.exports = function(grunt) {
 
+    var fs = require("fs"),
+        exportData = {};
+
+    if (grunt["cli"].tasks[0] === "export") {
+        exportData = {
+            BASE_CSS: fs.readFileSync("build/webSource/css/base.css"),
+            TERMINAL_CSS: fs.readFileSync("build/webSource/css/terminal.css"),
+            FAVICON_ICO: fs.readFileSync("build/webSource/favicon.ico").toString("base64"),
+            INDEX_CSP: fs.readFileSync("build/webSource/index.html").toString("utf-8")
+                .replace("createTerminal(", "createTerminal('#(%session.CSPSessionCookie)#'"),
+            TERMINAL_JS: fs.readFileSync("build/webSource/js/terminal.js").toString("utf-8")
+                .replace(/[\x1B]/g, function(s) { return "\\x" + s.charCodeAt(0).toString(16) })
+        };
+    }
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        EXPORT: exportData,
         clean: {
             build: {
                 src: [ "build" ]
@@ -65,6 +81,19 @@ module.exports = function(grunt) {
                         RELEASE_NUMBER: "<%= pkg.releaseNumber %>"
                     }
                 }
+            },
+            xml: {
+                src: "export/exportTemplate.xml",
+                dest: "build/CWTWebSource.xml",
+                options: {
+                    context: {
+                        BASE_CSS: "<%= EXPORT.BASE_CSS %>",
+                        TERMINAL_CSS: "<%= EXPORT.TERMINAL_CSS %>",
+                        FAVICON_ICO: "<%= EXPORT.FAVICON_ICO %>",
+                        INDEX_CSP: "<%= EXPORT.INDEX_CSP %>",
+                        TERMINAL_JS: "<%= EXPORT.TERMINAL_JS %>"
+                    }
+                }
             }
         },
         concat: {
@@ -79,6 +108,8 @@ module.exports = function(grunt) {
         uglify: {
             options: {
                 wrap: "terminal",
+                onlyASCII: true,
+                maxLineLen: 30000,
                 beautify: true
             },
             dist: {
@@ -95,7 +126,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-copy");
 
-    grunt.registerTask("default", ["clean:build", "copy", "preprocess",
+    grunt.registerTask("default", ["clean:build", "copy", "preprocess:html", "preprocess:js",
         "concat", "uglify", "clean:tempJS"]);
+
+    grunt.registerTask("export", ["preprocess:xml"]);
 
 };
