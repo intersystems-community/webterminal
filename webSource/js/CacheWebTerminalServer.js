@@ -10,6 +10,12 @@
 var CacheWebTerminalServer = function (CONTROLLER, WS_PROTOCOL, IP, PORT) {
 
     /**
+     * @type {TerminalLocalization}
+     * @private
+     */
+    this._lc = CONTROLLER.TERMINAL.localization;
+
+    /**
      * @type {string}
      */
     this.CACHE_CLASS_NAME = "%WebTerminal.Engine.cls";
@@ -118,7 +124,7 @@ CacheWebTerminalServer.prototype.send = function (string) {
         console.log("server << ", string);
         this.socket.send(string);
     } catch (e) {
-        this.CONTROLLER.TERMINAL.output.print("Unable to send data to server.\r\n");
+        this.CONTROLLER.TERMINAL.output.print(this._lc.get(3) + "\r\n");
         console.error(e);
     }
 
@@ -131,7 +137,7 @@ CacheWebTerminalServer.prototype.onConnect = function () {
 
     var key;
 
-    this.CONTROLLER.TERMINAL.output.print("Connection to Caché Server established.\r\n");
+    this.CONTROLLER.TERMINAL.output.print(this._lc.get(2) + "\r\n");
     if (key = this.CONTROLLER.TERMINAL.SETUP["authKey"]) {
         this.send(key);
     }
@@ -143,8 +149,8 @@ CacheWebTerminalServer.prototype.onConnect = function () {
  */
 CacheWebTerminalServer.prototype.onClose = function (event) {
 
-    this.CONTROLLER.TERMINAL.output.print("WebSocket connection closed. Code " + event["code"]
-        + (event["reason"] ? ", reason: " + event["reason"] : "") + ".\r\n");
+    this.CONTROLLER.TERMINAL.output.print(this._lc.get(4, event["code"], event["reason"])
+        + "\r\n");
 
 };
 
@@ -155,9 +161,9 @@ CacheWebTerminalServer.prototype.onError = function () {
 
     var _this = this;
 
-    this.CONTROLLER.TERMINAL.output.print("WebSocket (" + this.socket.url +
-        ") connection error! Trying to connect again in " + this.RECONNECTION_TIMEOUT/1000
-        + " seconds...\r\n");
+    this.CONTROLLER.TERMINAL.output.print(
+        this._lc.get(6, this.socket.url, this.RECONNECTION_TIMEOUT/1000)
+    );
 
     setTimeout(function () {
         _this.initialize();

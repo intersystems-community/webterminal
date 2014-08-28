@@ -9,6 +9,7 @@ module.exports = function(grunt) {
             TERMINAL_CSS: fs.readFileSync("build/webSource/css/terminal.css"),
             FAVICON_ICO: fs.readFileSync("build/webSource/favicon.ico").toString("base64"),
             INDEX_CSP: fs.readFileSync("build/webSource/index.html").toString("utf-8")
+                .replace("é", "&eacute;")
                 .replace("createTerminal(", "createTerminal('#(%session.CSPSessionCookie)#'"),
             TERMINAL_JS: fs.readFileSync("build/webSource/js/terminal.js").toString("utf-8")
                 .replace(/[\x1B]/g, function(s) { return "\\x" + s.charCodeAt(0).toString(16) })
@@ -110,6 +111,7 @@ module.exports = function(grunt) {
                 wrap: "terminal",
                 onlyASCII: true,
                 maxLineLen: 30000,
+                ASCIIOnly: true,
                 beautify: true
             },
             dist: {

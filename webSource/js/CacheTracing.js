@@ -6,6 +6,12 @@
 var CacheTracing = function (CONTROLLER) {
 
     /**
+     * @type {TerminalLocalization}
+     * @private
+     */
+    this._lc = CONTROLLER.TERMINAL.localization;
+
+    /**
      * @type {TerminalController}
      */
     this.CONTROLLER = CONTROLLER;
@@ -49,7 +55,7 @@ CacheTracing.prototype.start = function (name) {
     var _this = this;
 
     if (name.charAt(0) === "!") {
-        this.CONTROLLER.TERMINAL.output.print("Unable to trace " + name.substr(1) + ".");
+        this.CONTROLLER.TERMINAL.output.print(this._lc.get(5, name.substr(1)));
         return;
     }
 
@@ -60,7 +66,7 @@ CacheTracing.prototype.start = function (name) {
     }
 
     this._trace[name] = true;
-    this.CONTROLLER.TERMINAL.output.print("Start tracing " + name + ".");
+    this.CONTROLLER.TERMINAL.output.print(this._lc.get(7, name));
 
 };
 
@@ -75,7 +81,7 @@ CacheTracing.prototype.stop = function (name) {
 
     if (name) {
         delete this._trace[name];
-        this.CONTROLLER.TERMINAL.output.print("Stop tracing " + name + ".");
+        this.CONTROLLER.TERMINAL.output.print(this._lc.get(8, name));
     } else {
         for (empty in this._trace) {
             this.CONTROLLER.server.send(this.CONTROLLER.SERVER_ACTION.TRACE + empty);

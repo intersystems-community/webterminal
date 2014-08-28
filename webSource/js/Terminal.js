@@ -39,12 +39,6 @@
  */
 var Terminal = function (setting) {
 
-    this.SETUP = {
-        controller: setting["controller"] || new TerminalController(this),
-        container: setting["container"] || document.body,
-        authKey: setting["authKey"] || null
-    };
-
     /**
      * @type {string}
      */
@@ -58,21 +52,31 @@ var Terminal = function (setting) {
     //                                      modules / plugins                                     \\
 
     /**
-     * Keep on the top of other modules.
+     * Independent module. Keep on top.
      *
-     * @type {TerminalElements}
+     * @type {TerminalStorage}
      */
-    this.elements = new TerminalElements(this.SETUP.container);
+    this.storage = new TerminalStorage();
 
     /**
+     * Uses storage.
+     *
      * @type {TerminalLocalization}
      */
     this.localization = new TerminalLocalization(this);
 
+    this.SETUP = {
+        controller: setting["controller"] || new TerminalController(this),
+        container: setting["container"] || document.body,
+        authKey: setting["authKey"] || null
+    };
+
     /**
-     * @type {TerminalStorage}
+     * Keep on the top of other terminal-dependent modules.
+     *
+     * @type {TerminalElements}
      */
-    this.storage = new TerminalStorage();
+    this.elements = new TerminalElements(this.SETUP.container);
 
     /**
      * @type {TerminalParser}
@@ -141,7 +145,7 @@ Terminal.prototype.reset = function () {
 
     var _this = this;
 
-    this.output.printSync("Refresh window to apply reset.\r\n");
+    this.output.printSync(this.localization.get(9) + "\r\n");
 
     window.addEventListener("beforeunload", function () {
         _this.storage.clear();

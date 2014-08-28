@@ -6,6 +6,10 @@
     opacity: 0.8;
 }
 
+.term-gri3 {
+    font-style: italic;
+}
+
 .term-gri4 {
     text-decoration: underline;
 }

@@ -16,25 +16,6 @@ var TerminalStorage = function () {
 };
 
 /**
- * Returns last saved date or null if last date wasn't saved.
- *
- * @returns {Date|null}
- */
-TerminalStorage.prototype.getLastSaveDate = function () {
-    var d = localStorage.getItem("lastSaveDate");
-    return d?new Date(d):d;
-};
-
-/**
- * Forces to modify last save data.
- *
- * @param {Date} date
- */
-TerminalStorage.prototype.setLastSaveDate = function (date) {
-    localStorage.setItem("lastSaveDate", date.toJSON());
-};
-
-/**
  * Clears all stored data.
  */
 TerminalStorage.prototype.clear = function () {

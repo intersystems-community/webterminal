@@ -26,6 +26,12 @@ var TerminalController = function (TERMINAL) {
     this.TERMINAL = TERMINAL;
 
     /**
+     * @type {TerminalLocalization}
+     * @private
+     */
+    this._lc = TERMINAL.localization;
+
+    /**
      * @type {boolean}
      */
     this.EXECUTION_IN_PROGRESS = false;
@@ -35,7 +41,8 @@ var TerminalController = function (TERMINAL) {
      * @type {CacheWebTerminalServer}
      */
     this.server = new CacheWebTerminalServer(
-        this, (location.protocol === "https:" ? "wss:" : "ws:"), location.hostname, "57772"
+        this, (location.protocol === "https:" ? "wss:" : "ws:"), location.hostname,
+        "".concat(/* @echo "location.port || 80" */) || "57772"
     );
 
     /**
@@ -91,7 +98,7 @@ TerminalController.prototype.SERVER_ACTION = {
 TerminalController.prototype.authorized = function () {
 
     this._mode = this.MODE.EXECUTE;
-    this.TERMINAL.output.printSync("Authorization successful.\r\n");
+    this.TERMINAL.output.printSync(this._lc.get(10) + "\r\n");
 
 };
 
@@ -115,7 +122,7 @@ TerminalController.prototype.internalCommands = {
 
     "help": function () {
 
-        this.TERMINAL.output.print(this.TERMINAL.localization.get(49));
+        this.TERMINAL.output.print(this.TERMINAL.localization.get(1));
 
     },
 
@@ -161,6 +168,8 @@ TerminalController.prototype.internalCommands = {
 
         this.TERMINAL.reset();
 
+        return false;
+
     },
 
     "favorite": function (args) {
@@ -169,10 +178,9 @@ TerminalController.prototype.internalCommands = {
             fav;
 
         if (!args.length) {
-            this.TERMINAL.output.print("Usage:\r\n{your command} \x1B[1m/favorite\x1B[0m {name}" +
-                "\x1B[35GTo save command.\r\n\x1B[1m/favorite\x1B[0m {name} \x1B[35GTo load " +
-                "command.\r\nPreviously saved names: " +
-                this.TERMINAL.favorites.getList().join(", ") + "\r\n");
+            this.TERMINAL.output.print(
+                this._lc.get(11, this.TERMINAL.favorites.getList().join(", "))+ "\r\n"
+            );
         } else if (args[1]) {
             this.TERMINAL.favorites.set(args[1], args[0]);
         } else {
@@ -180,8 +188,11 @@ TerminalController.prototype.internalCommands = {
             if (fav) {
                 setTimeout(function () { _this.TERMINAL.input.set(fav); }, 1);
             } else {
-                this.TERMINAL.output.print("No favorites saved for \"" + args[0] + "\".\r\n" +
-                    "Previously saved: " + this.TERMINAL.favorites.getList().join(", ") + "\r\n");
+                this.TERMINAL.output.print(
+                    this._lc.get(
+                        12, args[0], this.TERMINAL.favorites.getList().join(", ")
+                    ) + "\r\n"
+                );
             }
         }
 
@@ -192,24 +203,18 @@ TerminalController.prototype.internalCommands = {
         if (args[0] && args[1] && args[0] !== "clear") {
 
             this.TERMINAL.definitions.define(args[1], args[0]);
-            this.TERMINAL.output.print(args[0] + "\x1B[1m defined as\x1B[0m " + args[1]);
+            this.TERMINAL.output.print(this._lc.get(13, args[0], args[1]));
 
         } else if (args[0] === "clear") {
 
             this.TERMINAL.definitions.clear();
-            this.TERMINAL.output.print("Definitions removed.\r\n");
+            this.TERMINAL.output.print(this._lc.get(14) + "\r\n");
 
         } else {
 
-            this.TERMINAL.output.print("\x1B[4mUsage:\x1B[0m\r\n\x1B[1m/define\x1B[0m {everything}" +
-                " {phrase}\x1B[35GTo define {phrase} as {everything}.\r\n\x1B[1m/define\x1B[0m " +
-                "clear\x1B[35GClears all definitions.\r\n\x1B[4mExample:\x1B[0m "
-                + "\x1B[2m##class(%Library.File).Exists( \x1B[0m\x1B[1m/define\x1B[0m \x1B[2m?f(\x1B[0m \r\n" +
-                "This will set shorten expression for checking if file exists. Then, " +
-                "commands like \x1B[2mw ?f(\"C:\")\x1B[0m will be automatically replaced with " +
-                "\x1B[2mw ##class(%Library.File).Exists(\"C:\")\x1B[0m when submitting. " +
-                "To clear definitions, give \"clear\" parameter.\r\n\x1B[4mList of definitions:\x1B[0m "
-                + this.TERMINAL.definitions.getList().join(", "));
+            this.TERMINAL.output.print(
+                this._lc.get(15, this.TERMINAL.definitions.getList().join(", "))
+            );
 
         }
 
@@ -223,12 +228,39 @@ TerminalController.prototype.internalCommands = {
 
     "update": function () {
 
-        this.TERMINAL.output.print("Caché WEB Terminal v" + this.TERMINAL.VERSION + "\r\n" +
-            "Checking for updates...\r\n");
+        this.TERMINAL.output.print(this._lc.get(16, this.TERMINAL.VERSION) + "\r\n");
 
         this.server.send(this.SERVER_ACTION.CHECK_UPDATE);
 
         return false;
+
+    },
+
+    "settings": function (args) {
+
+        var _this = this,
+            arg, name, value, option;
+
+        if ((arg = args.join("")).match(/[a-z]=[a-z0-9]/)) {
+            name = arg.substring(0, arg.indexOf("="));
+            value = arg.substr(name.length + 1);
+            option = ({
+                "locale": function(value) {
+                    if (_this.TERMINAL.localization.setLocale(value)) {
+                        _this.TERMINAL.output.print(_this._lc.get(27, value) + "\r\n");
+                    } else {
+                        _this.TERMINAL.output.print(_this._lc.get(28, value) + "\r\n");
+                    }
+                }
+            })[name];
+            if (option) option(value);
+        } else {
+            this.TERMINAL.output.print(
+                this._lc.get(26,
+                    "locale", this.TERMINAL.localization.getLocale()
+                ) + "\r\n"
+            )
+        }
 
     }
 
@@ -268,7 +300,7 @@ TerminalController.prototype.internalCommand = function (query) {
     });
 
     if (!this.internalCommands.hasOwnProperty(command)) {
-        this.TERMINAL.output.print("Unknown internal command: /" + command + "\r\n");
+        this.TERMINAL.output.print(this._lc.get(17, command) + "\r\n");
         return true;
     }
 
@@ -333,8 +365,7 @@ TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
         p, sp,
         i = 0;
 
-    _this.TERMINAL.output.printSync("Merging autocomplete database for " + namespace +
-        "...\r\n");
+    _this.TERMINAL.output.printSync(this._lc.get(18, namespace) + "\r\n");
 
     this.server.getAutocompleteFile(namespace, function (data, namespace) {
 
@@ -350,7 +381,7 @@ TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
                 }
             }
 
-            _this.TERMINAL.output.print("Classes merged: " + i + "\r\n");
+            _this.TERMINAL.output.print(_this._lc.get(19, i) + "\r\n");
             i = 0;
 
             if (data["global"]) {
@@ -360,13 +391,13 @@ TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
                 }
             }
 
-            _this.TERMINAL.output.print("Globals merged: " + i + "\r\n");
+            _this.TERMINAL.output.print(_this._lc.get(20, i) + "\r\n");
 
             _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
 
         } else {
 
-            _this.TERMINAL.output.print("No autocomplete file found on server. Requesting...\r\n");
+            _this.TERMINAL.output.print(_this._lc.get(21) + "\r\n");
             _this.server.send(_this.SERVER_ACTION.AUTOCOMPLETE);
 
         }
@@ -432,7 +463,7 @@ TerminalController.prototype.clientAction = {
         if (data === "1") {
             this.authorized();
         } else {
-            this.TERMINAL.output.printSync("Authorization failed.\r\n");
+            this.TERMINAL.output.printSync(this._lc.get(22) + "\r\n");
         }
     },
 
@@ -467,18 +498,17 @@ TerminalController.prototype.clientAction = {
         }
 
         if (releaseNumber > this.TERMINAL.RELEASE_NUMBER) {
-            this.TERMINAL.output.print("A new version of Caché WEB Terminal available. Would you" +
-                "like to install it? (Y/N)\r\n");
+            this.TERMINAL.output.print(this._lc.get(23) + "\r\n");
             this.TERMINAL.input.prompt("", 1, function (string) {
                 if (string.toLowerCase() === "y") {
-                    _this.TERMINAL.output.print(" Updating...\r\n");
+                    _this.TERMINAL.output.print(" " + _this._lc.get(24) + "\r\n");
                     _this.server.send(_this.SERVER_ACTION.UPDATE + version);
                 } else {
                     _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
                 }
             });
         } else {
-            this.TERMINAL.output.print("Caché WEB Terminal is up-to-date.\r\n");
+            this.TERMINAL.output.print(this._lc.get(24) + "\r\n");
             this.clientAction["PROMPT"].call(this, this.NAMESPACE);
         }
 
