@@ -328,6 +328,8 @@ TerminalOutput.prototype._controlCharacters = {
  */
 TerminalOutput.prototype._controlSequences = {
 
+    // todo: clear commands support, scroll support
+
     // GRAPHIC CONTROL
 
     "m": function (sequence, params) {
@@ -405,6 +407,33 @@ TerminalOutput.prototype._controlSequences = {
     "G": function (sequence, params) {
 
         this.setCaretX(parseInt(params) || 1);
+
+    },
+
+    "c": function (sequence) { // report device code
+
+        var code = 1;
+
+        if (sequence === "\x1B[c") { // query device code
+            this.TERMINAL.controller.terminalQuery("\x1B[" + code + "0c");
+        } else {
+            // todo: reset device settings
+        }
+
+    },
+
+    "n": function (sequence, params) {
+
+        switch (parseInt(params)) {
+            case 5: { // query device status
+                this.TERMINAL.controller.terminalQuery("\x1B[" + ( 1 ? 0 : 3 ) + "n");
+            } break;
+            case 6: { // query cursor position
+                this.TERMINAL.controller.terminalQuery(
+                    "\x1B[" + this.getCaretY() + ";" + this.getCaretX() + "R"
+                );
+            } break;
+        }
 
     }
 

@@ -89,7 +89,7 @@ Property Watches As %List;
 Property WatchesCaret As %Numeric [ MultiDimensional ];
 
 /// Public point entries, using when redirecting i/o
-Method redirects() [ Internal, Private, ProcedureBlock = 0 ]
+Method redirects() [ Private, ProcedureBlock = 0 ]
 {
 PrepareOutput(data)
     Try { Set data=$zconvert(data, "O", "UTF8") } Catch {  }
@@ -100,7 +100,7 @@ PrepareInput(data)
     quit data
     
 /// Routine from %CSP.WebSocket.cls
-Read(len = 32656, timeout = 86400, BytesAvailable, AtEnd, data, data1, header, size, type)
+ReadMessage(len = 32656, timeout = 86400, BytesAvailable, AtEnd, data, data1, header, size, type)
     Set $ZTrap="ReadError"
     If len<1 Set len=32656
     //If (..SharedConnection = 1) {
@@ -153,54 +153,58 @@ ReadError
 ReadHalt
     Halt
     
-//////////////////////////////////////////////
+/// Workaround for Caché 2015 (+ filtering <= 2014 on client)
+WriteMessage(data, data1, head)
+    try { Set data1 = $zconvert(data, "O", "UTF8") } Catch { Set data1 = data }
+    set head = $ZLChar($Length(data1))
+    set head = head _ "7"
+    write head _ data1, *-3
+    quit
     
+//////////////////////////////////////////////
+
 wstr(s)
     do ##class(%Device).ReDirectIO($$$NO)
-    w "O#", $$PrepareOutput(s), *-3 // ..ConstClientOutputMessage
+    do WriteMessage("O#"_s)
     do ##class(%Device).ReDirectIO($$$YES)
     quit
 
 wchr(c) 
     do ##class(%Device).ReDirectIO($$$NO)
-    w "O#", $$PrepareOutput($c(c)), *-3 // ..ConstClientOutputMessage
+    do WriteMessage("O#"_$c(c))
     do ##class(%Device).ReDirectIO($$$YES)
     quit
 
 wnl 
     do ##class(%Device).ReDirectIO($$$NO)
-    w "O#", $c(13, 10), *-3 // ..ConstClientOutputMessage
+    do WriteMessage("O#"_$c(13, 10))
     do ##class(%Device).ReDirectIO($$$YES)
     quit
 
 wff 
     do ##class(%Device).ReDirectIO($$$NO)
-    w "CLRSCR#", *-3 // ..ConstClientClearScreen
+    do WriteMessage("CLRSCR#")
     do ##class(%Device).ReDirectIO($$$YES)
     quit
     
 wtab(s)
     do ##class(%Device).ReDirectIO($$$NO)
-    w "O#", $$PrepareOutput($C(27) _ "[" _ (s + 1) _ "G"), *-3 // ..ConstClientOutputMessage
+    do WriteMessage("O#" _ $C(27) _ "[" _ (s + 1) _ "G")
     do ##class(%Device).ReDirectIO($$$YES)
     quit
     
 rstr(len = 32656, timeout = 86400, data)
     do ##class(%Device).ReDirectIO($$$NO)
-    w "R#", len, *-3 // ..ConstClientReadString
-    
-    s data = $$Read(len, timeout)
-    
+    do WriteMessage("R#" _ len)
+    s data = $$ReadMessage(len, timeout)
     do ##class(%Device).ReDirectIO($$$YES)
     quit data
     
 rchr(timeout = 86400, data)
     do ##class(%Device).ReDirectIO($$$NO)
-    w "RC#", *-3 // ..ConstClientReadChar
-    
-    set data = $$Read(1, timeout)
-    set data = $$PrepareInput($ASCII($EXTRACT(data,1,1)))
-    
+    do WriteMessage("RC#")
+    set data = $$ReadMessage(1, timeout)
+    set data = $ASCII($EXTRACT(data,1,1))
     do ##class(%Device).ReDirectIO($$$YES)
     quit data
 }
@@ -762,7 +766,7 @@ Method RequireAuthorization() As %Status
                 set loginStatus = ##class(%SYSTEM.Security).Login($LISTGET($LISTGET(lb, 16), 1)) // login user
                 
                 if ($$$ISOK(loginStatus)) { // alert client
-                    do ..SendData(user,..ConstClientLoginInfo)
+                    do ..SendData($SYSTEM _ ":" _ user, ..ConstClientLoginInfo)
                 } else {
                     do ..SendData("!",..ConstClientLoginInfo)
                 }
@@ -903,16 +907,16 @@ Method Server() As %Status
 {
     
     /*COMMENT ON RELEASE!*/
-    ZNSPACE "%SYS" // namespace
+    /*ZNSPACE "%SYS" // namespace
     set loginStatus = ##class(%SYSTEM.Security).Login("_SYSTEM") // login user
     if ($$$ISOK(loginStatus)) { // alert client
         do ..SendData($SYSTEM _ ":" _ $USERNAME, ..ConstClientLoginInfo)
     } else {
         do ..SendData("!",..ConstClientLoginInfo)
-    }
+    }*/
     
     /*UNCOMMENT ON RELEASE!*/
-    if (1/*$$$ISOK(..RequireAuthorization())*/) {
+    if ($$$ISOK(..RequireAuthorization())) {
         
         set ..CurrentNamespace = $Znspace
         

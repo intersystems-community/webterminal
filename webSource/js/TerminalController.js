@@ -63,6 +63,14 @@ var TerminalController = function (TERMINAL) {
      */
     this._mode = this.MODE.UNAUTHORIZED;
 
+    /**
+     * Function that handles read requests.
+     *
+     * @type {function}
+     * @private
+     */
+    this._readHandler = null;
+
 };
 
 /**
@@ -111,6 +119,15 @@ TerminalController.prototype.setNamespace = function (namespace) {
 
     this.TERMINAL.autocomplete.setNamespace(namespace);
     this.NAMESPACE = namespace;
+
+};
+
+/**
+ * @param {function} handler
+ */
+TerminalController.prototype.setReadHandler = function (handler) {
+
+    this._readHandler = handler;
 
 };
 
@@ -525,6 +542,9 @@ TerminalController.prototype.serverData = function (data) {
 
     var action = data.split("#", 1)[0],
         body = data.substr(action.length + 1);
+
+    // temporary fix for Caché 2014/2015+ versions
+    if (action.charAt(4) === "7") action = action.substr(5);
 
     if (this.clientAction.hasOwnProperty(action)) {
         this.clientAction[action].call(this, body);

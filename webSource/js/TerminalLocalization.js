@@ -62,7 +62,8 @@ var TerminalLocalization = function (TERMINAL) {
                 "{definition} \x1B[33m/define\x1B[0m {phrase}\x1B[32GReplace each next {phrase} with {definition}. To " +
                 "get more information, call command without parameters.\r\n" +
                 "\x1B[33m/version\x1B[0m\x1B[32GOutput terminal application version.\r\n" +
-                "\x1B[33m/update\x1B[0m\x1B[32GCheck for updates and prompt to update if new version available.\r\n\r\n" +
+                "\x1B[33m/update\x1B[0m\x1B[32GCheck for updates and prompt to update if new version available.\r\n" +
+                "\x1B[33m/settings\x1B[0m\x1B[32GShow or change terminal settings.\r\n\r\n" +
                 "\x1B[4mControl keys:\x1B[0m\r\n" +
                 "\x1B[33mTAB\x1B[0m\x1B[32GComplete input if autocomplete variant available.\r\n" +
                 "\x1B[33mCTRL\x1B[0m\x1B[32GLeft/right control will switch next/previous available" +
@@ -86,7 +87,8 @@ var TerminalLocalization = function (TERMINAL) {
                 "получить больше информации, вызовите комманду без аргументов.\r\n" +
                 "\x1B[33m/version\x1B[0m\x1B[32GВывести информацию о версии терминала.\r\n" +
                 "\x1B[33m/update\x1B[0m\x1B[32GПроверить наличие обновлений и спросить у пользователя, нужно" +
-                "ли выполнить обновление, если доступна новая версия.\r\n\r\n" +
+                "ли выполнить обновление, если доступна новая версия.\r\n" +
+                "\x1B[33m/settings\x1B[0m\x1B[32GПоказать или изменить настройки терминала.\r\n\r\n" +
                 "\x1B[4mУправляющие клавиши:\x1B[0m\r\n" +
                 "\x1B[33mTAB\x1B[0m\x1B[32GЗавершить ввод, если доступен вариант автодополнения.\r\n" +
                 "\x1B[33mCTRL\x1B[0m\x1B[32GЛевый/правый CTRL перейдёт к следующему/предыдущему" +
@@ -201,7 +203,7 @@ var TerminalLocalization = function (TERMINAL) {
             en: "A new version of Caché WEB Terminal available. Would you" +
                 "like to install it? (Make sure that user has write permission to CACHELIB " +
                 "database) (Y/N)",
-            ru: "Новая версия Caché WEB Terminal доступна. Хотите ли вы" +
+            ru: "Новая версия Caché WEB Terminal доступна. Хотите ли вы " +
                 "установить её? (Убедитесь, что пользователь имеет права на запись в базу " +
                 "данных CACHELIB) (Y/N)"
         },
