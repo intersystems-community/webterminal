@@ -628,8 +628,9 @@ Method Update(version) As %Status
         do ..SendData("36", ..ConstClientOutputLocalized)
         do ..SendData($C(13, 10))
         set error = 0
-        do $System.OBJ.ImportDir(path, "terminal_update.temp.xml", "ckbu", .error, 1)
-        w *-3
+        do ..StartClearIO()
+        do $System.OBJ.ImportDir(path, "terminal_update.temp.xml", "ckbud", .error, 1)
+        do ..EndClearIO()
         if (error = 0) {
             do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m" _ $C(13,10))
         } else {
