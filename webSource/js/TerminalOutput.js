@@ -1,6 +1,5 @@
 /**
  * Represents output and everything related to it.
- * todo: reorganise "animations" usage
  *
  * @param {Terminal} TERMINAL
  */

@@ -566,7 +566,7 @@ TerminalController.prototype.clientAction = {
                 }
             });
         } else {
-            this.TERMINAL.output.print(this._lc.get(24) + "\r\n");
+            this.TERMINAL.output.print(this._lc.get(25) + "\r\n");
             this.clientAction["PROMPT"].call(this, this.NAMESPACE);
         }
 

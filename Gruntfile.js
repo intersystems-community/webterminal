@@ -119,9 +119,8 @@ module.exports = function(grunt) {
             options: {
                 wrap: "terminal",
                 onlyASCII: true,
-                maxLineLen: 30000,
-                ASCIIOnly: true,
-                beautify: true
+                maxLineLen: 5000,
+                ASCIIOnly: true
             },
             dist: {
                 files: {

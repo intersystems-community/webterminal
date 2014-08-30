@@ -601,7 +601,7 @@ Method Update(version) As %Status
     do ..SendData("34", ..ConstClientOutputLocalized)
     do ..SendData("http://intersystems-ru.github.io/webterminal/files/WebTerminal-"
         _ version _ ".xml ")
-    do httprequest.Get("/webterminal/files/WebTerminal-" _ version _ ".xml") // TODO: handle 404
+    do httprequest.Get("/webterminal/files/WebTerminal-" _ version _ ".xml")
     if (httprequest.HttpResponse.StatusCode '= 200) {
         do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
             _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
