@@ -1,0 +1,60 @@
+.terminalContainer {
+    color: black;
+    background: white;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.terminalContainer .terminalHint {
+    text-shadow: 1px 1px 4px white;
+}
+
+.term-gri31 {
+    color: #c80000;
+}
+
+.term-gri32 {
+    color: #00c800;
+}
+
+.term-gri33 {
+    color: #c8c800;
+}
+
+.term-gri34 {
+    color: #0000c8;
+}
+
+.term-gri35 {
+    color: #c800c8;
+}
+
+.term-gri36 {
+    color: #00c8c8;
+}
+
+.term-gri41 {
+    background-color: #c80000;
+}
+
+.term-gri42 {
+    background-color: #00c800;
+}
+
+.term-gri43 {
+    background-color: #c8c800;
+}
+
+.term-gri44 {
+    background-color: #0000c8;
+}
+
+.term-gri45 {
+    background-color: #c800c8;
+}
+
+.term-gri46 {
+    background-color: #00c8c8;
+}
+
