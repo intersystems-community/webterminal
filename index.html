@@ -9,13 +9,12 @@
         <link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" type="text/css" href="css/main.css" media="screen"/>
         <link rel="stylesheet" type="text/css" href="css/content.css" media="screen"/>
-        <script type="text/javascript" src="js/main.js"></script>
     </head>
 
     <body>
         <div class="pageBody">
             <div class="pageHeader">
-                Caché Web Terminal <sup class="rainbowText">beta</sup>
+                Caché Web Terminal <sup class="rainbowText">v2 beta available!</sup>
             </div>
             <ul class="siteNavigator">
                 <li><a href="#main"><img src="img/icons/terminal.png"/></a></li>
@@ -27,46 +26,36 @@
 
             <div class="pageLayout center" id="showcase">
                 <h1 class="center">Showcase</h1>
-                <img class="imgFloatRight screenShoot" src="img/screenshoots/screen1.png"/>
+                <img style="max-width: 876px" class="imgFloatRight screenShoot" src="img/screenshoots/scr1.png"/>
                 <p>
                     Use full Caché syntax and all terminal supported commands. Change namespace, set variables - feel
-                    free as in common terminal!
+                    free as in common terminal! Additionally, here is a lot of new features and options. Also
+                    you can change theme to white-colored, as you wish.
                 </p>
                 <div class="clearHL"></div>
-                <img class="imgFloatLeft screenShoot" src="img/screenshoots/screen5.png"/>
+                <img style="max-width: 360px" style="max-width: 440px" class="imgFloatLeft screenShoot" src="img/screenshoots/scr6.png"/>
                 <p>
-                    Choose terminal look you wish. Change themes or make your own, unique theme.
+                    Compatible with mobile devices - control your Caché easily from anywhere!
                 </p>
                 <div class="clearHL"></div>
-                <img class="imgFloatRight screenShoot" src="img/screenshoots/screen2.png"/>
+                <img style="max-width: 416px" class="imgFloatRight screenShoot" src="img/screenshoots/scr2.png"/>
                 <p>
-                    Write any program right on terminal and execute it on server side. Use history to execute command
-                    (or program) again and again. Define any expression you like.
+                    Enter SQL mode and execute any SQL query simply.
                 </p>
                 <div class="clearHL"></div>
-                <img class="imgFloatLeft screenShoot" src="img/screenshoots/screen3.png"/>
+                <img style="max-width: 381px" class="imgFloatLeft screenShoot" src="img/screenshoots/scr3.png"/>
                 <p>
-                    Execute most of system utilities, routines, programs.
+                    Autocomplete feature will help you to complete you input faster.
                 </p>
                 <div class="clearHL"></div>
-                <img class="imgFloatRight screenShoot" src="img/screenshoots/screen6.png"/>
+                <img style="max-width: 355px" class="imgFloatRight screenShoot" src="img/screenshoots/scr4.png"/>
                 <p>
-                    Change terminal behaviour using different available settings. Further - more.
+                    Trace variables and files, watch for changes there.
                 </p>
                 <div class="clearHL"></div>
-                <img class="imgFloatLeft screenShoot" src="img/screenshoots/screen4.png"/>
+                <img style="max-width: 440px" class="imgFloatLeft screenShoot" src="img/screenshoots/scr5.png"/>
                 <p>
-                    Use simple sql-shell to quickly get required data from databases.
-                </p>
-                <div class="clearHL"></div>
-                <img class="imgFloatRight screenShoot" src="img/screenshoots/screen7.png"/>
-                <p>
-                    Monitor any changes in globals or files by using /tail command
-                </p>
-                <div class="clearHL"></div>
-                <p>
-                    And that's not all! Explore more by using /help command. Find usage of new browser-based
-                    terminal application comfortable.
+                    Change language, define or favorite commands and explore more with Caché, directly in your browser.
                 </p>
             </div>
 
@@ -79,6 +68,10 @@
                     download as):
                 </p>
                 <ul>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.xml">Caché Web Terminal v2.0.0-beta</a>
+                    </li>
+                    <div><br/>Older versions:</div>
                     <li>
                         <a href="files/WebTerminal-2.0.0-alpha.1.xml">Caché Web Terminal v2.0.0-alpha.1</a>
                     </li>
@@ -140,23 +133,35 @@
 		<h2>Installation</h2>
                 <img src="img/logos.png" style="width: 300px" class="imgFloatRight"/>
 		        <p>
-                    Just import xml to <b class="warn">%SYS</b> namespace. You can place /csp/ files in other namespace if you want.
+                    Just import xml to <b class="warn">%SYS</b> namespace.
+                    Do not place /csp/ files in other namespace. Also, setup /csp/sys/WebTerminal
+                    application manually to enable security barriers.
                 </p>
                 <h2>Usage</h2>
                 <p>
                     Open imported <b>index.csp</b> file. It must locate near
-                    <b>http://[host]:[port]/csp/[namespace]/webTerminal/index.csp</b>
+                    <b>http://[host]:[port]/csp/[namespace]/WebTerminal/index.csp</b>
                 </p>
                 <h2>Make sure that:</h2>
                 <ul>
                     <li>Your <b class="warn">Caché version at least 2013.1</b> (WebSockets support)</li>
-                    <li>You have write permissions to %CACHELIB</li>
-                    <li class="warn">Nobody can access your index.csp without Caché security</li>
+                    <li>You have write permissions to %CACHELIB database (to install or update terminal)</li>
+                    <li class="warn">Anyone who is able to authorize to index.csp will have control
+                    under your server!</li>
                 </ul>
             </div>
 
             <div class="pageLayout" id="history">
                 <h1 class="center">Changelog</h1>
+                <h1>v 2.0.0-beta</h1>
+                <ul>
+                    <li>Themes add, studio theme</li>
+                    <li>Set up progress indicator, autocomplete and highlighting options</li>
+                    <li>Font anti-aliasing fix</li>
+                    <li>Scrolling and erasing escape sequences support</li>
+                    <li>Caché 2015 full support</li>
+                    <li>Fixes and performance improvements</li>
+                </ul>
                 <h1>v 2.0.0-alpha.1 (preview)</h1>
                 <ul>
                     <li>Fully rewritten code, another project structure</li>
@@ -263,8 +268,8 @@
                 <h1 class="center">Feedback / contact me</h1>
                 <h1>Follow project on <a href="https://github.com/intersystems-ru/webterminal">GitHub</a>. </h1>
                 <p>
-                    We will be glad to hear any wishes, requests, comments and issues. If you have some extra
-                    information or questions - <a href="mailto:zitros.lab@gmail.com">contact me</a>, developer of this application, Nikita.
+                    We will be glad to hear any wishes, requests, and comments. Leave any issues and report bugs at <a href="https://github.com/intersystems-ru/webterminal/issues">GitHub issue tracker</a>. If you have some extra
+                    information or questions - <a href="mailto:zitros.lab@gmail.com">contact me</a>, the developer of this application, Nikita.
                 </p>
             </div>
 
@@ -272,8 +277,11 @@
                 <img src="img/terminal.png" class="imgFloatLeft"/>
                 <h1 class="center">Welcome to Caché Web Terminal homepage!</h1>
                 <p>
+                    This is first web-based Caché terminal emulator.
+                </p>
+                <p>
                     We're glad to introduce something new and convenient to Caché. Today it's a completely new terminal
-                    utility in your favourite browser with WebSocket support. Make your database easy-accessible
+                    utility in your favourite browser connected over WebSocket to your server. Make your database easy-accessible
                     wherever you are and change your viewpoint about classic gray terminal - future incomes!
                 </p>
                 <p>
@@ -283,6 +291,12 @@
                     which are not included in typical terminal application. Are you a system administrator or
                     just a Caché developer? Ready to change something in work with your favourite database? Try it
                     right now!
+                </p>
+                <h2 class="center">Great news!</h2>
+                <p>
+                    <b>Caché WEB Terminal v2 beta</b> is available now. The new version brings VT100 and Caché TERM escape sequences
+                    support, some new features like self-updating, lots of performance and security improvements
+                    and more stable work. Check it out in downloads!
                 </p>
                 <img src="img/control.png" class="imgFloatRight"/>
                 <p>
@@ -303,7 +317,7 @@
             </div>
 
             <div class="pageFooter">
-                Experimental tool for <a href="http://www.intersystems.com/">InterSystems</a> Caché database.
+                Tool for administering <a href="http://www.intersystems.com/">InterSystems</a> Caché database.
             </div>
         </div>
 		<a id="forkLink" target="_blank" href="https://github.com/intersystems-ru/webterminal">
