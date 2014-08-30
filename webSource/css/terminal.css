@@ -7,6 +7,9 @@
     background: black;
     font-family: FreeMono, monospace;
     font-size: 16px;
+
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
 }
 
 .terminalContainer .terminalOutputCentralizer {
