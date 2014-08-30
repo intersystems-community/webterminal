@@ -216,9 +216,11 @@ var TerminalLocalization = function (TERMINAL) {
             ru: "На данный момент установлена последняя версия Caché WEB Terminal."
         },
         26: {
-            en: "\x1B[4mCurrent settings:\x1B[0m\r\n%s = %s" +
+            en: "\x1B[4mCurrent settings:\x1B[0m\r\n%s = %s (available: %s)\r\n%s = %s " +
+                "(available: %s)" +
                 "\r\nTo change values, enter command with argument \x1B[3m{NAME}={VALUE}\x1B[0m.",
-            ru: "\x1B[4mТекущее настройки:\x1B[0m\r\n%s = %s" +
+            ru: "\x1B[4mТекущее настройки:\x1B[0m\r\n%s = %s (доступны: %s)\r\n%s = %s " +
+                "(доступны: %s)" +
                 "\r\nЧтобы изменить значения, введите комманду с аргументом \x1B[3m{ИМЯ}={ЗНАЧЕНИЕ}\x1B[0m."
         },
         27: {
@@ -228,6 +230,62 @@ var TerminalLocalization = function (TERMINAL) {
         28: {
             en: "Unable to change locale to %s.",
             ru: "Невозможно изменить язык на %s."
+        },
+        29: {
+            en: "Start generating file",
+            ru: "Начинается генерация файла"
+        },
+        30: {
+            en: "Wrong namespace:",
+            ru: "Неправильная область:"
+        },
+        31: {
+            en: "Unable to create directory csp/WebTerminal/js/autocomplete.",
+            ru: "Невозможно создать директорию csp/WebTerminal/js/autocomplete."
+        },
+        32: {
+            en: "Classes scanned:",
+            ru: "Сканировано классов:"
+        },
+        33: {
+            en: "Generation complete.",
+            ru: "Генерация завершена."
+        },
+        34: {
+            en: "Request",
+            ru: "Запрос"
+        },
+        35: {
+            en: "Reading file...",
+            ru: "Чтение файла..."
+        },
+        36: {
+            en: "Importing and compiling files...",
+            ru: "Импортирование и компиляция файлов..."
+        },
+        37: {
+            en: "Clearing temporary files...",
+            ru: "Очистка временных файлов..."
+        },
+        38: {
+            en: "Client query unrecognized:",
+            ru: "Запрос клиента не опознан:"
+        },
+        39: {
+            en: "Please, refresh the page to apply updates.",
+            ru: "Пожалуйста, обновите страницу чтобы изменения вступили в силу."
+        },
+        40: {
+            en: "An error occurred when reading data.",
+            ru: "Возникла ошибка при чтении данных."
+        },
+        41: {
+            en: "Theme changed to %s.",
+            ru: "Внешний вид терминала изменён на %s."
+        },
+        42: {
+            en: "Unable to change theme to %s.",
+            ru: "Невозможно изменить тему на %s."
         }
     };
 
@@ -235,7 +293,7 @@ var TerminalLocalization = function (TERMINAL) {
 
 };
 
-TerminalLocalization.prototype.STORAGE_NAME = "localization";
+TerminalLocalization.prototype.STORAGE_NAME = "terminal-localization";
 
 TerminalLocalization.prototype.initialize = function () {
 
@@ -249,6 +307,24 @@ TerminalLocalization.prototype.initialize = function () {
     }
 
     this.setLocale(lang);
+
+};
+
+/**
+ * Get list of available localizations.
+ *
+ * @returns {String[]}
+ */
+TerminalLocalization.prototype.getAvailableList = function () {
+
+    var array = [],
+        i;
+
+    for (i in this.AVAILABLE_LOCALIZATIONS) {
+        array.push(i);
+    }
+
+    return array;
 
 };
 
@@ -291,7 +367,7 @@ TerminalLocalization.prototype.setLocale = function (localizationCode) {
         return true;
     } else {
         console.error("No available translations for \"" + localizationCode + "\". Please, " +
-            "check available languages at CacheDictionary file.");
+            "check available languages at TerminalLocalization file.");
         return false;
     }
 

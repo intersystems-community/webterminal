@@ -17,7 +17,7 @@ var TerminalDefinitions = function (TERMINAL) {
 
 };
 
-TerminalDefinitions.prototype.STORAGE_NAME = "definitions";
+TerminalDefinitions.prototype.STORAGE_NAME = "terminal-definitions";
 
 TerminalDefinitions.prototype.initialize = function () {
 

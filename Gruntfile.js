@@ -7,6 +7,7 @@ module.exports = function(grunt) {
         exportData = {
             BASE_CSS: fs.readFileSync("build/webSource/css/base.css"),
             TERMINAL_CSS: fs.readFileSync("build/webSource/css/terminal.css"),
+            THEME_CACHE_CSS: fs.readFileSync("build/webSource/css/terminal-theme-cache.css"),
             FAVICON_ICO: fs.readFileSync("build/webSource/favicon.ico").toString("base64"),
             INDEX_CSP: fs.readFileSync("build/webSource/index.html").toString("utf-8")
                 .replace("é", "&eacute;")
@@ -90,6 +91,7 @@ module.exports = function(grunt) {
                     context: {
                         BASE_CSS: "<%= EXPORT.BASE_CSS %>",
                         TERMINAL_CSS: "<%= EXPORT.TERMINAL_CSS %>",
+                        THEME_CACHE_CSS: "<%= EXPORT.THEME_CACHE_CSS %>",
                         FAVICON_ICO: "<%= EXPORT.FAVICON_ICO %>",
                         INDEX_CSP: "<%= EXPORT.INDEX_CSP %>",
                         TERMINAL_JS: "<%= EXPORT.TERMINAL_JS %>"
@@ -102,7 +104,14 @@ module.exports = function(grunt) {
                 files: {
                     "build/webSource/js/terminal.js": ["build/webSource/js/temp/*.js"],
                     "build/webSource/css/base.css": ["webSource/css/base.css"],
-                    "build/webSource/css/terminal.css": ["webSource/css/terminal*.css"]
+                    "build/webSource/css/terminal.css": [
+                        "webSource/css/terminal.css",
+                        "webSource/css/terminal-extra.css",
+                        "webSource/css/terminal-graphic.css"
+                    ],
+                    "build/webSource/css/terminal-theme-cache.css": [
+                        "webSource/css/terminal-theme-cache.css"
+                    ]
                 }
             }
         },

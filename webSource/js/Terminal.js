@@ -16,6 +16,7 @@
  *       ║
  *   {Terminal}
  *       ║
+ *       ╠ {TerminalInitialDictionary} - Initial keywords of terminal.
  *       ╠ {TerminalElements} - Handles terminal DOM elements and elements structure. Modules can
  *       ║                      access this elements.
  *       ╠ {TerminalLocalization} - Object-database that obtain localizations.
@@ -29,6 +30,8 @@
  *       ║       ╚ {TerminalInputHistory} - Terminal command history.
  *       ╠ {TerminalHint} - Represents a floating string of text inside terminal.
  *       ╠ {TerminalDictionary} - All lexemes that form autocomplete database.
+ *       ╠ {TerminalTheme} - Appearance controller for terminal.
+ *       ╠ {TerminalParser} - Additional module highlighting the syntax.
  *       ╚ {TerminalFavorites} - Favorites storage.
  *
  *
@@ -79,9 +82,14 @@ var Terminal = function (setting) {
     this.elements = new TerminalElements(this.SETUP.container);
 
     /**
+     * @type {TerminalTheme}
+     */
+    this.theme = new TerminalTheme(this);
+
+    /**
      * @type {TerminalParser}
      */
-    this.parser = new TerminalParser();
+    this.parser = new TerminalParser(this);
 
     /**
      * @type {TerminalOutput}
@@ -94,9 +102,9 @@ var Terminal = function (setting) {
     this.input = new TerminalInput(this);
 
     /**
-     * @type {CacheDictionary}
+     * @type {TerminalInitialDictionary}
      */
-    this.dictionary = new CacheDictionary();
+    this.dictionary = new TerminalInitialDictionary();
 
     /**
      * @type {TerminalFavorites}
@@ -130,10 +138,10 @@ Terminal.prototype.initialize = function () {
         this.autocomplete.register(this.autocomplete.TYPES.keyword, "/" + i);
     }
 
-    for (i in this.dictionary.keywords) {
-        this.autocomplete.register(this.autocomplete.TYPES.keyword, this.dictionary.keywords[i]);
-        this.autocomplete.register(this.autocomplete.TYPES.keyword, this.dictionary.keywords[i]
-            .toUpperCase());
+    for (i in this.dictionary.KEYWORDS) {
+        if (i.length < 2) continue;
+        this.autocomplete.register(this.autocomplete.TYPES.keyword, i);
+        this.autocomplete.register(this.autocomplete.TYPES.keyword, i.toUpperCase());
     }
 
 };

@@ -1,28 +1,11 @@
 /// This class represents the core of web terminal.
-/// All operations with opened WebSocket placed here.
-/// 
-/// WARNING! Application under development. Security is not guaranteed.
-/// 
 Class %WebTerminal.Engine Extends (%CSP.WebSocket, %Library.Routine)
 {
 
-// USER CONSTANTS BEGIN
+// CONSTANTS BEGIN
 
 /// How long to wait for authorization key when connection established
 Parameter authorizationTimeout = 5;
-
-// USER CONSTANTS END
-
-/// This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
-/// connection or over a pool of shared connections.  It may be set to one of the following:
-/// <br><ul>
-/// <li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
-/// <li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
-/// </ul>
-Property SharedConnection As %Boolean [ InitialExpression = 0 ];
-
-/// Last joined client id
-Property lastClientId As %Numeric [ InitialExpression = 0 ];
 
 Property ConstServerActionExecute As %Char [ InitialExpression = "EXEC" ];
 
@@ -44,10 +27,6 @@ Property ConstServerActionCheckUpdate As %Char [ InitialExpression = "CU" ];
 
 Property ConstServerActionUpdate As %Char [ InitialExpression = "U" ];
 
-Parameter ConstServerActionExecuteStack = {$c(8)};
-
-// ?
-
 Property ConstClientPrompt As %String [ InitialExpression = "PROMPT#" ];
 
 Property ConstClientStartExec As %String [ InitialExpression = "EST#" ];
@@ -55,6 +34,8 @@ Property ConstClientStartExec As %String [ InitialExpression = "EST#" ];
 Property ConstClientEndExec As %String [ InitialExpression = "END#" ];
 
 Property ConstClientOutputMessage As %String [ InitialExpression = "O#" ];
+
+Property ConstClientOutputLocalized As %String [ InitialExpression = "OL#" ];
 
 Property ConstClientChangeNamespace As %String [ InitialExpression = "NS#" ];
 
@@ -75,6 +56,16 @@ Property ConstClientLoginInfo As %String [ InitialExpression = "I#" ];
 Property ConstClientClearScreen As %String [ InitialExpression = "CLRSCR#" ];
 
 Property ConstClientPromptUpdate As %String [ InitialExpression = "PROMPT_UPDATE#" ];
+
+// CONSTANTS END
+
+/// This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
+/// connection or over a pool of shared connections.  It may be set to one of the following:
+/// <br><ul>
+/// <li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
+/// <li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
+/// </ul>
+Property SharedConnection As %Boolean [ InitialExpression = 0 ];
 
 Property CurrentNamespace As %String;
 
@@ -152,13 +143,18 @@ ReadError
     Close 0
 ReadHalt
     Halt
-    
-/// Workaround for Caché 2015 (+ filtering <= 2014 on client)
+
+/// Workaround for Caché 2015
+#define WSProtocol (##class(%Dictionary.CompiledProperty).%OpenId("%CSP.WebSocket||WSClassProtocolVersion"))
 WriteMessage(data, data1, head)
-    try { Set data1 = $zconvert(data, "O", "UTF8") } Catch { Set data1 = data }
-    set head = $ZLChar($Length(data1))
-    set head = head _ "7"
-    write head _ data1, *-3
+    if ($$$WSProtocol) && ($$$WSProtocol.InitialExpression > 1) {
+        try { set data1 = $zconvert(data, "O", "UTF8") } catch { set data1 = data }
+        set head = $ZLChar($Length(data1))
+        set head = head _ "7"
+        write head _ data1, *-3
+    } else {
+        write $$PrepareOutput(data), *-3
+    }
     quit
     
 //////////////////////////////////////////////
@@ -310,6 +306,7 @@ Method GetTraceFileModified(watch) As %String
         q "removed"
         
     }
+    
     if (size > ..WatchesCaret(watch, 0)) {
         
         set output = "updated" _ $CHAR(13, 10)
@@ -373,19 +370,12 @@ ClassMethod GetJSAutocompleteFilePath(namespace As %String) As %String
     }
     
     set data = ##class(%Library.File).SubDirectoryName(data,
-        $ZCONVERT($REPLACE(namespace,"%",""),"l")
+        $ZCONVERT($REPLACE(namespace, "%", ""), "l")
     )
     set data = ##class(%Library.File).SubDirectoryName(data, "WebTerminal")
     set data = ##class(%Library.File).SubDirectoryName(data, "js")
     set data = ##class(%Library.File).SubDirectoryName(data, "autocomplete")
-    set data = ##class(%Library.File).SubDirectoryName(data, 
-        //$REPLACE(namespace,"%","_") _ ".js"
-        namespace _ ".js"
-    )
-    
-    //set data = data _ "CSP\sys\webTerminal\js\autocomplete\" _
-    //  $REPLACE(namespace,"%","_") _ ".js" // UNIX?
-    //set data = data _ $REPLACE(namespace,"%","_") _ ".js"
+    set data = ##class(%Library.File).SubDirectoryName(data, namespace _ ".js")
     
     quit data
 }
@@ -420,54 +410,28 @@ Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %S
     
     set filename = ..GetJSAutocompleteFilePath(..InitialZNamespace)
     
-    //set system = 0
-    //if (namespace = "%") {
-    //    set namespace = "%SYS"
-    //    set filename = ..GetJSAutocompleteFilePath("_")
-    //    set system = 1
-    //}
-    
-    //if (system) && (##class(%File).Exists(filename)) {
-    //    do ..SendData("_", ..ConstClientLoadAutocomplete)
-    //    quit $$$OK
-    //}
-    
-    do ..StartClearIO()
-    
-    w "Start generating file ", filename, !
+    do ..SendData("29", ..ConstClientOutputLocalized)
+    do ..SendData(" " _ filename _ $C(13, 10))
     
     if ('##class(%SYS.Namespace).Exists(namespace)) {
-        do ..EndClearIO()
-        do ..SendData("Wrong namespace: " _ namespace _ $C(13,10))
+        do ..SendData("30", ..ConstClientOutputLocalized)
+        do ..SendData(" " _ namespace _ $C(13, 10))
         quit $$$NOTOK
     }
     
-    //set namespace = $REPLACE(namespace,"%","_")
-    
-    /*if (##class(%File).Exists(filename)) && (newFile = 0) {
-        
-        w "File exists, exiting..."
-        do ..EndClearIO()
-        do ..SendData(namespace, ..ConstClientLoadAutocomplete)
-        quit $$$OK
-        
-    } else*/if ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
+    if ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
         
         // try to create missed directory
         set result = ##class(%File).CreateDirectoryChain(##class(%File).GetDirectory(filename))
         
         if (result '= 1) {
-            w "Unable to create directory js/autocomplete.", !
-            do ..EndClearIO()
+            do ..SendData("31", ..ConstClientOutputLocalized)
+            do ..SendData($C(13, 10))
             quit $$$OK
         }
         
     }
 
-    //set thisName = $REPLACE(namespace,"_","%")
-    //if (system) { set thisName = "SYSTEM" }
-    //do ..SendData("Generating language file for " _ thisName _ ", pleace, wait. ")
-        
     // get all classes names
     set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
     do result.Execute()
@@ -494,7 +458,8 @@ Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %S
     }
     */
     
-    w $C(13, 10), "Classes scanned:"
+    do ..SendData($C(13, 10))
+    do ..SendData("32", ..ConstClientOutputLocalized)
     
     set file=##class(%File).%New(filename)
     do file.Open("WSN")
@@ -506,13 +471,10 @@ Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %S
     
     while (result.Next()) { // forming autocomplete for each class
     
-        w $C(27), "[20G", u
+        do ..SendData($C(27) _ "[30G" _ u)
         s u = u + 1
     
         set className = result.Data("Name")
-        //if (($EXTRACT(className,1)="%")'=system) {
-        //    continue
-        //}
         do file.Write(first _ """" _ className _ """:{")
         if (first = "") set first = ","
         
@@ -547,37 +509,16 @@ Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %S
     }
     
     do file.Write("}")
-    //if ('system) {
-        do file.Write(",""global"":" _ ..getGlobalsJSON())  
-    //}
+    do file.Write(",""global"":" _ ..getGlobalsJSON())
     do file.Write("}")
     do file.Close()
     
-    w !, "Language file for " _ namespace _ " generated.", !
-    
-    do ..EndClearIO()
-    
-    //if (system) {
-    //    do ..SendData("_", ..ConstClientLoadAutocomplete)
+    do ..SendData($C(13, 10))
+    do ..SendData("33", ..ConstClientOutputLocalized)
+    do ..SendData($C(13, 10))
     do ..SendData(namespace, ..ConstClientLoadAutocomplete)
     
     quit $$$OK
-}
-
-/// Generating new authorization key
-ClassMethod GenerateAuthKey() As %String
-{
-    set ^|"%SYS"|%WebTerminal.AuthKey = $SYSTEM.Util.CreateGUID()
-}
-
-/// Returns key for client authorization.
-/// If the key is empty, generates new key value.
-ClassMethod GetAuthKey() As %String
-{
-    if ($get(^|"%SYS"|%WebTerminal.AuthKey) = "") {
-        Do ..GenerateAuthKey()
-    }
-    quit ^|"%SYS"|%WebTerminal.AuthKey
 }
 
 /// Returns terminal to default state
@@ -595,7 +536,7 @@ ClassMethod Reset() As %Status
 Method SendData(query As %String = "", action As %String = "") As %Status
 {
     if (action = "") { set action = ..ConstClientOutputMessage }
-    do ..Write(action _ query) // using CTWPv3
+    do ..Write(action _ query)
 }
 
 Method ExecuteSQL(query As %String = "") As %Status
@@ -606,7 +547,7 @@ Method ExecuteSQL(query As %String = "") As %Status
     set tStatement = ##class(%SQL.Statement).%New()
     set qStatus = tStatement.%Prepare(query)
     if qStatus'=1 {
-        write "SQL prepare error: ",$System.Status.DisplayError(qStatus)
+        write $System.Status.DisplayError(qStatus)
     } else {
         set rset = tStatement.%Execute()
         do rset.%Display()
@@ -657,14 +598,16 @@ Method Update(version) As %Status
 {
     set httprequest = ##class(%Net.HttpRequest).%New()
     set httprequest.Server = "intersystems-ru.github.io"
-    do ..SendData("Requesting http://intersystems-ru.github.io/webterminal/files/WebTerminal-"
-        _ version _ ".xml file... ")
+    do ..SendData("34", ..ConstClientOutputLocalized)
+    do ..SendData("http://intersystems-ru.github.io/webterminal/files/WebTerminal-"
+        _ version _ ".xml ")
     do httprequest.Get("/webterminal/files/WebTerminal-" _ version _ ".xml") // TODO: handle 404
     if (httprequest.HttpResponse.StatusCode '= 200) {
         do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
             _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
         quit $$$NOTOK
     }
+    do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m")
     if ($isobject(httprequest.HttpResponse.Data)) {
         do ..SendData($C(13,10))
         set data = ""
@@ -674,23 +617,25 @@ Method Update(version) As %Status
         set filepath = ##class(%Library.File).SubDirectoryName(
             path, "terminal_update.temp.xml"
         )
-        do ..SendData("Reading file..." _ $C(13,10))
+        do ..SendData("35", ..ConstClientOutputLocalized)
+        do ..SendData($C(13, 10))
         set file = ##class(%File).%New(filepath)
         do file.Open("WSN")
         while (httprequest.HttpResponse.Data.AtEnd = 0) {
             do file.Write(httprequest.HttpResponse.Data.Read())
         }
         do file.Close()
-        do ..SendData("Importing and compilling new files..." _ $C(13,10))
+        do ..SendData("36", ..ConstClientOutputLocalized)
+        do ..SendData($C(13, 10))
         set error = 0
         do $System.OBJ.ImportDir(path, "terminal_update.temp.xml", "ckbu", .error, 1)
         w *-3
         if (error = 0) {
-            do ..SendData("OK!" _ $C(13,10))
+            do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m" _ $C(13,10))
         } else {
-            do ..SendData("ERROR!" _ $C(13,10))
+            do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m" _ $C(13,10))
         }
-        do ..SendData("Clearing temporary files... ")
+        do ..SendData("37", ..ConstClientOutputLocalized)
         if (##class(%Library.File).Delete(filepath) = 1) {
             do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m" _ $C(13,10))
         } else {
@@ -747,11 +692,11 @@ Method ExecuteCommand(query As %String = "") As %Status
 /// the client - it includes authorization key.
 Method RequireAuthorization() As %Status
 {
-    set authKey = ..Read(,.status,..#authorizationTimeout) // wait for package
+    set authKey = ..Read(, .status, ..#authorizationTimeout) // wait for package
     set ok = $$$NOTOK
     
     /*
-     * Find given CSPSessionCookie in session list. If found, grant access
+     * Find given CSPSessionCookie in session list. If found, grant access.
      */
     SET key = $ORDER(^%cspSession(""))
     WHILE (key '= "") {
@@ -768,7 +713,7 @@ Method RequireAuthorization() As %Status
                 if ($$$ISOK(loginStatus)) { // alert client
                     do ..SendData($SYSTEM _ ":" _ user, ..ConstClientLoginInfo)
                 } else {
-                    do ..SendData("!",..ConstClientLoginInfo)
+                    do ..SendData("!", ..ConstClientLoginInfo)
                 }
                 
                 set ok = loginStatus
@@ -783,25 +728,6 @@ Method RequireAuthorization() As %Status
 }
 
 /// Main method for every new client.
-/// 
-/// Authorization process description:
-///     1.  Client requests cache server page called "WebTerminal.csp";
-///     2.  Server return this page with ClassMethod GetAuthKey() value;
-///     3.  After client receives page, it performs websocket connection;
-///         to same web-resource, but with next URL changes:
-///         "http://" -> "ws://", "WebTerminal.csp" -> "Webterminal.Engine.cls";
-///     4.  After connection established, client sends his AuthKey to server
-///         and removes it locally (because it needed only one time);
-///     5.  Server compares again received key with ..GetAuthKey() value and
-///         grants permission, if keys are equal.
-///     >>  As a result - there is no way to autorize via websocket without
-///         accessing WebTerminal.csp.
-/// 
-/// Method description:
-///     First, method requires from client 
-///     a key, which will be compared with ..GetAuthKey() (global). If 
-///     succeeded, method sets "authorized" flag to true and changes global
-///     key with ..GenerateAuthKey() for the next client.
 Method ClientLoop() As %Status
 {
     
@@ -816,8 +742,7 @@ Method ClientLoop() As %Status
         if $$$ISERR(status) {
        
             try {
-                do ..SendData("Error occured while reading data.",
-                ..ConstClientOutputMessage)
+                do ..SendData("40", ..ConstClientOutputLocalized)
             } catch e { }
             quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
             
@@ -864,16 +789,11 @@ Method ClientLoop() As %Status
           
         } elseif (action = ..ConstServerActionGenerateAutocomplete) {
             
-            //do ..GenerateAutocompleteFile("%", data)
             do ..GenerateAutocompleteFile(..CurrentNamespace, data)
                     
         } elseif (action = ..ConstServerActionReset) {
               
-            if ($$$ISOK(..Reset())) {
-                do ..SendData("Terminal state reseted.")
-            } else {
-                do ..SendData("Error while reseting terminal state.")
-            }
+            do ..Reset()
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
                     
         } elseif (action = ..ConstServerActionEcho) {
@@ -890,11 +810,12 @@ Method ClientLoop() As %Status
         } elseif (action = ..ConstServerActionUpdate) {
             
             do ..Update(data)
-            do ..SendData("Please, refresh the page to apply updates.")
+            do ..SendData("39", ..ConstClientOutputLocalized)
             
         } else { // something scary
                 
-            do ..SendData("Client action unrecognised: " _ action)
+            do ..SendData("38", ..ConstClientOutputLocalized)
+            do ..SendData(" " _ action)
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
                     
         }
@@ -902,18 +823,9 @@ Method ClientLoop() As %Status
     }
 }
 
-/// New connection established
+/// New connection established: require auth key, login and start client loop.
 Method Server() As %Status
 {
-    
-    /*COMMENT ON RELEASE!*/
-    /*ZNSPACE "%SYS" // namespace
-    set loginStatus = ##class(%SYSTEM.Security).Login("_SYSTEM") // login user
-    if ($$$ISOK(loginStatus)) { // alert client
-        do ..SendData($SYSTEM _ ":" _ $USERNAME, ..ConstClientLoginInfo)
-    } else {
-        do ..SendData("!",..ConstClientLoginInfo)
-    }*/
     
     /*UNCOMMENT ON RELEASE!*/
     if ($$$ISOK(..RequireAuthorization())) {

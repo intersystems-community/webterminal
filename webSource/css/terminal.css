@@ -4,7 +4,7 @@
     height: 100%;
     overflow: hidden;
     color: white;
-    background: black; /*url("../img/back.png") black;*/
+    background: black;
     font-family: FreeMono, monospace;
     font-size: 16px;
 }
@@ -50,7 +50,7 @@
     overflow-x: hidden;
 }
 
-.terminalContainer .terminalLine {
+.terminalContainer > div {
     position: relative;
     overflow: hidden;
 }
@@ -67,6 +67,8 @@
 }
 
 .terminalContainer .terminalCaret:after {
+    position: relative;
+    top: -1px;
     content: "_";
 }
 

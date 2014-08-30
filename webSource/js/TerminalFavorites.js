@@ -17,7 +17,7 @@ var TerminalFavorites = function (TERMINAL) {
 
 };
 
-TerminalFavorites.prototype.STORAGE_NAME = "favorites";
+TerminalFavorites.prototype.STORAGE_NAME = "terminal-favorites";
 
 TerminalFavorites.prototype.initialize = function () {
 

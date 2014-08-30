@@ -38,6 +38,11 @@ var TerminalElements = function (parentElement) {
      */
     this.input = document.createElement("input");
 
+    /**
+     * @type {HTMLElement}
+     */
+    this.themeLink = document.createElement("link");
+
     this._initialize(parentElement);
 
 };
@@ -63,5 +68,9 @@ TerminalElements.prototype._initialize = function (parentElement) {
     centralizer.appendChild(centralizerInner);
     this.terminal.appendChild(centralizer);
     parentElement.appendChild(this.terminal);
+
+    this.themeLink.id = "terminal-theme";
+    this.themeLink.setAttribute("rel", "stylesheet");
+    this.terminal.appendChild(this.themeLink);
 
 };

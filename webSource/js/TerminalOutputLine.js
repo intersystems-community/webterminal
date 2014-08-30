@@ -2,9 +2,10 @@
  * Output line used as instance for rendering terminal content.
  *
  * @param {TerminalOutput} TERMINAL_OUTPUT
+ * @param {HTMLElement} [insertBefore]
  * @constructor
  */
-var TerminalOutputLine = function (TERMINAL_OUTPUT) {
+var TerminalOutputLine = function (TERMINAL_OUTPUT, insertBefore) {
 
     /**
      * @type {Terminal}
@@ -25,9 +26,10 @@ var TerminalOutputLine = function (TERMINAL_OUTPUT) {
     /**
      * Text of line which will be rendered.
      *
+     * @private
      * @type {string}
      */
-    this.linePlainText = "";
+    this._linePlainText = "";
 
     /**
      * @type {{positionInLinePlainText: Object[Attributes]}}
@@ -39,16 +41,22 @@ var TerminalOutputLine = function (TERMINAL_OUTPUT) {
      */
     this.renderTimeout = 0;
 
-    this.initialize();
+    this.initialize(insertBefore);
 
 };
 
-TerminalOutputLine.prototype.initialize = function () {
+/**
+ * @param {HTMLElement} [insertBefore]
+ */
+TerminalOutputLine.prototype.initialize = function (insertBefore) {
 
-    this._lineElement.className = this.TERMINAL_OUTPUT.LINE_CLASSNAME;
     this._lineElement.style.height = this.TERMINAL_OUTPUT.SYMBOL_PIXEL_HEIGHT + "px";
 
-    this.TERMINAL.elements.output.appendChild(this._lineElement);
+    if (insertBefore) {
+        this.TERMINAL.elements.output.insertBefore(this._lineElement, insertBefore);
+    } else {
+        this.TERMINAL.elements.output.appendChild(this._lineElement);
+    }
 
 };
 
@@ -60,7 +68,7 @@ TerminalOutputLine.prototype.getElement = function () {
 };
 
 /**
- * Renders linePlainText to html.
+ * Renders _linePlainText to html.
  */
 TerminalOutputLine.prototype.render = function () {
 
@@ -86,13 +94,13 @@ TerminalOutputLine.prototype.render = function () {
         }, this);
         if (temp) temp = "<span class=\"" + temp + "\"" + (styled ? "style=\""
             + styled.replace("\"", "&quot;") + "\"" : "") + ">";
-        lineText += temp + this.linePlainText.substring(
+        lineText += temp + this._linePlainText.substring(
                 positions[i] || 0,
-                positions[i + 1] || this.linePlainText.length
+                positions[i + 1] || this._linePlainText.length
         ).replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span>";
     }
 
-    if (!lineText) lineText = this.linePlainText.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    if (!lineText) lineText = this._linePlainText.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
     this._lineElement.innerHTML = lineText;
 
@@ -112,15 +120,15 @@ TerminalOutputLine.prototype.writePlain = function (text, position) {
     var i, writePart,
         _this = this;
 
-    if (typeof position === "undefined") position = this.linePlainText.length;
+    if (typeof position === "undefined") position = this._linePlainText.length;
 
     writePart = text.substr(0, this.TERMINAL_OUTPUT.WIDTH - position);
 
-    if (position > this.linePlainText.length) {
-        this.linePlainText += (new Array(position - this.linePlainText.length + 1)).join(" ");
+    if (position > this._linePlainText.length) {
+        this._linePlainText += (new Array(position - this._linePlainText.length + 1)).join(" ");
     }
 
-    this.linePlainText = this.linePlainText.splice(position, writePart.length, writePart);
+    this._linePlainText = this._linePlainText.splice(position, writePart.length, writePart);
 
     // seek any graphic rendition indexes to the end of writable part
     for (i = position; i < position + writePart.length; i++) {
@@ -177,5 +185,24 @@ TerminalOutputLine.prototype.writePlain = function (text, position) {
     }
 
     return text.substr(writePart.length, text.length);
+
+};
+
+/**
+ * Erases line. This function is much faster than rendering line with whitespaces.
+ */
+TerminalOutputLine.prototype.clear = function () {
+
+    this._linePlainText = "";
+    this.graphicRenditionIndex = {};
+    this.render();
+
+};
+
+TerminalOutputLine.prototype.remove = function () {
+
+    if (this._lineElement.parentNode) {
+        this._lineElement.parentNode.removeChild(this._lineElement);
+    }
 
 };

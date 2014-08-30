@@ -8,6 +8,10 @@
 <!-- @echo TERMINAL_CSS -->]]></CSP>
 
 
+<CSP name="css/terminal-theme-cache.css" application="/csp/sys/webterminal/"><![CDATA[
+<!-- @echo THEME_CACHE_CSS -->]]></CSP>
+
+
 <CSPBase64 name="favicon.ico" application="/csp/sys/webterminal/">
 <!-- @echo FAVICON_ICO -->
 </CSPBase64>

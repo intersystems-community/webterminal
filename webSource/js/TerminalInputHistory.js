@@ -27,7 +27,7 @@ var TerminalInputHistory = function (INPUT) {
 
 };
 
-TerminalInputHistory.prototype.STORAGE_NAME = "inputHistory";
+TerminalInputHistory.prototype.STORAGE_NAME = "terminal-inputHistory";
 
 TerminalInputHistory.prototype.MAX_STACK_SIZE = 200;
 

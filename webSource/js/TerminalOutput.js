@@ -78,9 +78,18 @@ var TerminalOutput = function (TERMINAL) {
     };
 
     /**
+     * @private
+     */
+    this._scrolling = {
+        enabled: false,
+        lineStart: 0,
+        lineEnd: 0
+    };
+
+    /**
      * Holds the tab positions.
      *
-     * @type {{position: boolean}}
+     * type: {{positionIndex: boolean}}
      * @private
      */
     this._tabs = {};
@@ -118,11 +127,6 @@ var TerminalOutput = function (TERMINAL) {
     this.initialize();
 
 };
-
-/**
- * @type {string}
- */
-TerminalOutput.prototype.LINE_CLASSNAME = "terminalLine";
 
 TerminalOutput.prototype.COLOR_8BIT = {
      "0":   "#000000", "1":   "#800000", "2":   "#008000", "3":   "#808000", "4":   "#000080",
@@ -258,6 +262,78 @@ TerminalOutput.prototype.increaseTopLine = function (delta) {
 };
 
 /**
+ * Enables scrolling for display part.
+ *
+ * @param {number} lineStart
+ * @param {number} lineEnd
+ */
+TerminalOutput.prototype.enableScrolling = function (lineStart, lineEnd) {
+
+    if (lineEnd > this.HEIGHT || lineStart < 1 || lineEnd < lineStart) {
+        console.warn("Wrong scrolling borders: ", lineStart, lineEnd);
+        return;
+    }
+
+    this._scrolling.enabled = true;
+    this._scrolling.lineStart = lineStart;
+    this._scrolling.lineEnd = lineEnd;
+    this.setCaretX(1);
+    this.setCaretY(1);
+
+};
+
+/**
+ * Enables scrolling for entire display.
+ */
+TerminalOutput.prototype.disableScrolling = function () {
+
+    this._scrolling.enabled = false;
+
+};
+
+/**
+ * Scroll part of display. This function will erase lines that overflow scroll region.
+ *
+ * @param {number} lineFrom - Home line is 1.
+ * @param {number} lineTo - Home line is 1.
+ * @param {number} amount - Positive number will scroll display UP.
+ */
+TerminalOutput.prototype.scrollDisplayPart = function (lineFrom, lineTo, amount) {
+
+    var temp = this.getLineByIndex(this._TOP_LINE_INDEX + lineTo), // to ensure that line exists
+        affectiveLines = this._lines.slice(
+            this._TOP_LINE_INDEX + lineFrom - 1, this._TOP_LINE_INDEX + lineTo
+        ),
+        nullF = {getElement: function () { return null; }},
+        len = affectiveLines.length,
+        aliveLines = affectiveLines.
+            slice(Math.min(Math.max(0, amount), len), Math.max(Math.min(len, len + amount), 0)),
+        appendBeforeLine = amount > 0
+            ? (this._lines[this._TOP_LINE_INDEX + lineTo] || nullF).getElement() || null
+            : (aliveLines[0] || nullF).getElement()
+            || (this._lines[this._TOP_LINE_INDEX + lineTo] || nullF).getElement() || null,
+        linesToAppend = affectiveLines.length - aliveLines.length,
+        i;
+
+    //console.log(affectiveLines.slice(), aliveLines.slice(), appendBeforeLine, linesToAppend);
+    for (i = 0; i < linesToAppend; i++) { // lines to append === lines to kill
+        affectiveLines[amount > 0 ? "shift" : "pop"]().remove();
+    }
+
+    for (i = 0; i < linesToAppend; i++) {
+        aliveLines[amount > 0 ? "push" : "unshift"].apply(aliveLines, [
+            new TerminalOutputLine(this, appendBeforeLine)
+        ]);
+    }
+    //console.log(affectiveLines.slice(), aliveLines.slice(), appendBeforeLine, linesToAppend);
+
+    this._lines.splice.apply(this._lines,
+        [this._TOP_LINE_INDEX + lineFrom - 1, aliveLines.length].concat(aliveLines)
+    );
+
+};
+
+/**
  * @returns {number}
  */
 TerminalOutput.prototype.getCaretX = function () {
@@ -299,11 +375,14 @@ TerminalOutput.prototype._controlCharacters = {
     // \n
     "\x0A": function () {
 
-        if (this._caret.y === this.HEIGHT) {
-            this.scrollDisplay(1);
+        if (this._scrolling.enabled && this._caret.y === this._scrolling.lineEnd) {
+            this.scrollDisplayPart(this._scrolling.lineStart, this._scrolling.lineEnd, 1);
+        } else {
+            if (this._caret.y === this.HEIGHT) {
+                this.scrollDisplay(1);
+            }
+            this.setCaretY(this._caret.y + 1);
         }
-
-        this.setCaretY(this._caret.y + 1);
 
     },
 
@@ -366,7 +445,19 @@ TerminalOutput.prototype._controlSequences = {
     },
 
     "D": function (sequence, params) {
-        this.setCaretX(this.getCaretX() - (parseInt(params) || 1));
+        if (sequence.charAt(1) === "[") {
+            this.setCaretX(this.getCaretX() - (parseInt(params) || 1));
+        } else { // scroll down
+            if (this._scrolling.enabled) {
+                this.scrollDisplayPart(this._scrolling.lineStart, this._scrolling.lineEnd, -1);
+            }
+        }
+    },
+
+    "M": function () { // scroll up
+        if (this._scrolling.enabled) {
+            this.scrollDisplayPart(this._scrolling.lineStart, this._scrolling.lineEnd, 1);
+        }
     },
 
     "f": function (sequence, params) {
@@ -410,6 +501,8 @@ TerminalOutput.prototype._controlSequences = {
 
     },
 
+    // device
+
     "c": function (sequence) { // report device code
 
         var code = 1;
@@ -433,6 +526,66 @@ TerminalOutput.prototype._controlSequences = {
                     "\x1B[" + this.getCaretY() + ";" + this.getCaretX() + "R"
                 );
             } break;
+        }
+
+    },
+
+    // SCROLLING
+
+    "r": function (sequence, params) {
+
+        var codes;
+
+        if (params) {
+            codes = params.split(";").map(function(item) {
+                return parseInt(item, 10);
+            });
+            if (codes.length > 1) {
+                this.enableScrolling(codes[0], codes[1]);
+            }
+        } else {
+            this.disableScrolling();
+        }
+
+    },
+
+    // ERAZING
+
+    "K": function (sequence, params) {
+
+        if (params == 1) { // @tested OK
+            this.getCurrentLine().writePlain(
+                (new Array(this.getCaretX())).join(" "), 0
+            );
+        } else if (params == 2) { // @tested OK
+            this.getCurrentLine().writePlain(
+                (new Array(this.WIDTH + 1)).join(" "), 0
+            );
+        } else { // @tested OK
+            this.getCurrentLine().writePlain(
+                (new Array(this.WIDTH - this.getCaretX() + 2)).join(" "), this.getCaretX() - 1
+            );
+        }
+
+    },
+
+    "J": function (sequence, params) {
+
+        var i;
+
+        if (params == 1) {
+            for (i = this.getCaretY() /* - 1 @question Cache TERM standard wrong? */; i > 0; i--) {
+                this.getLineByCursorY(i).clear();
+            }
+        } else if (params == 2) {
+            for (i = 1; i < this.WIDTH; i++) {
+                this.getLineByCursorY(i).clear();
+                /* @question Return to cursor home: Cache TERM standard wrong? */
+            }
+        } else {
+            for (i = this.getCaretY() + 1; i < this.HEIGHT; i++) {
+                this.getLineByCursorY(i).clear();
+            }
         }
 
     }
@@ -646,6 +799,8 @@ TerminalOutput.prototype.print = function (text) {
 };
 
 /**
+ * Get line object by it's index. This function MUST spawn lines if there's no line with such index.
+ *
  * @param {number} index
  * @returns {TerminalOutputLine}
  */
@@ -768,7 +923,8 @@ TerminalOutput.prototype.sizeChanged = function () {
     var tel = document.createElement("span"),
         testScrollbar = document.createElement("div"),
         scrollBarWidth,
-        lastProperty = this.TERMINAL.elements.output.style.overflowY;
+        lastProperty = this.TERMINAL.elements.output.style.overflowY,
+        LR_MARGIN = 6;
 
     this.TERMINAL.elements.output.style.overflowY = "scroll";
 
@@ -784,7 +940,8 @@ TerminalOutput.prototype.sizeChanged = function () {
     this.SYMBOL_PIXEL_HEIGHT = tel.offsetHeight;
 
     this.WIDTH = Math.floor(
-            (this.TERMINAL.elements.terminal.offsetWidth - scrollBarWidth) / this.SYMBOL_PIXEL_WIDTH
+            (this.TERMINAL.elements.terminal.offsetWidth - scrollBarWidth - LR_MARGIN)
+                / this.SYMBOL_PIXEL_WIDTH
     );
     this.HEIGHT = Math.floor(
             this.TERMINAL.elements.terminal.offsetHeight / this.SYMBOL_PIXEL_HEIGHT

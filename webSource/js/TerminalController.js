@@ -262,11 +262,18 @@ TerminalController.prototype.internalCommands = {
             name = arg.substring(0, arg.indexOf("="));
             value = arg.substr(name.length + 1);
             option = ({
-                "locale": function(value) {
+                "locale": function (value) {
                     if (_this.TERMINAL.localization.setLocale(value)) {
                         _this.TERMINAL.output.print(_this._lc.get(27, value) + "\r\n");
                     } else {
                         _this.TERMINAL.output.print(_this._lc.get(28, value) + "\r\n");
+                    }
+                },
+                "theme": function (value) {
+                    if (_this.TERMINAL.theme.setTheme(value)) {
+                        _this.TERMINAL.output.print(_this._lc.get(41, value) + "\r\n");
+                    } else {
+                        _this.TERMINAL.output.print(_this._lc.get(42, value) + "\r\n");
                     }
                 }
             })[name];
@@ -274,7 +281,10 @@ TerminalController.prototype.internalCommands = {
         } else {
             this.TERMINAL.output.print(
                 this._lc.get(26,
-                    "locale", this.TERMINAL.localization.getLocale()
+                    "locale", this.TERMINAL.localization.getLocale(),
+                        this.TERMINAL.localization.getAvailableList().join(", "),
+                    "theme", this.TERMINAL.theme.getCurrentTheme(),
+                        this.TERMINAL.theme.getAvailableList().join(", ")
                 ) + "\r\n"
             )
         }
@@ -403,7 +413,7 @@ TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
 
             if (data["global"]) {
                 for (p in data["global"]) {
-                    autocomplete.register(autocomplete.TYPES.globals, "^" + p, namespace);
+                    autocomplete.register(autocomplete.TYPES.globals, p, namespace);
                     ++i;
                 }
             }
@@ -453,6 +463,10 @@ TerminalController.prototype.clientAction = {
      */
     O: function (data) {
         this.TERMINAL.output.print(data);
+    },
+
+    OL: function (data) {
+        this.TERMINAL.output.print(this._lc.get(data));
     },
 
     /**
@@ -542,9 +556,6 @@ TerminalController.prototype.serverData = function (data) {
 
     var action = data.split("#", 1)[0],
         body = data.substr(action.length + 1);
-
-    // temporary fix for Caché 2014/2015+ versions
-    if (action.charAt(4) === "7") action = action.substr(5);
 
     if (this.clientAction.hasOwnProperty(action)) {
         this.clientAction[action].call(this, body);
