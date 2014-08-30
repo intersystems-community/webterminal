@@ -63,7 +63,8 @@ var TerminalLocalization = function (TERMINAL) {
                 "get more information, call command without parameters.\r\n" +
                 "\x1B[33m/version\x1B[0m\x1B[32GOutput terminal application version.\r\n" +
                 "\x1B[33m/update\x1B[0m\x1B[32GCheck for updates and prompt to update if new version available.\r\n" +
-                "\x1B[33m/settings\x1B[0m\x1B[32GShow or change terminal settings.\r\n\r\n" +
+                "\x1B[33m/settings\x1B[0m\x1B[32GShow or change terminal settings.\r\n" +
+                "\x1B[33m/about\x1B[0m\x1B[32GProject information.\r\n\r\n" +
                 "\x1B[4mControl keys:\x1B[0m\r\n" +
                 "\x1B[33mTAB\x1B[0m\x1B[32GComplete input if autocomplete variant available.\r\n" +
                 "\x1B[33mCTRL\x1B[0m\x1B[32GLeft/right control will switch next/previous available" +
@@ -88,7 +89,8 @@ var TerminalLocalization = function (TERMINAL) {
                 "\x1B[33m/version\x1B[0m\x1B[32GВывести информацию о версии терминала.\r\n" +
                 "\x1B[33m/update\x1B[0m\x1B[32GПроверить наличие обновлений и спросить у пользователя, нужно" +
                 "ли выполнить обновление, если доступна новая версия.\r\n" +
-                "\x1B[33m/settings\x1B[0m\x1B[32GПоказать или изменить настройки терминала.\r\n\r\n" +
+                "\x1B[33m/settings\x1B[0m\x1B[32GПоказать или изменить настройки терминала.\r\n" +
+                "\x1B[33m/about\x1B[0m\x1B[32GИнформация о проекте.\r\n\r\n" +
                 "\x1B[4mУправляющие клавиши:\x1B[0m\r\n" +
                 "\x1B[33mTAB\x1B[0m\x1B[32GЗавершить ввод, если доступен вариант автодополнения.\r\n" +
                 "\x1B[33mCTRL\x1B[0m\x1B[32GЛевый/правый CTRL перейдёт к следующему/предыдущему" +
@@ -216,11 +218,11 @@ var TerminalLocalization = function (TERMINAL) {
             ru: "На данный момент установлена последняя версия Caché WEB Terminal."
         },
         26: {
-            en: "\x1B[4mCurrent settings:\x1B[0m\r\n%s = %s (available: %s)\r\n%s = %s " +
-                "(available: %s)" +
+            en: "\x1B[4mCurrent settings:\x1B[0m\r\n%s \x1B[25G= %s (available: %s)\r\n%s \x1B[25G= %s " +
+                "(available: %s)\r\n%s \x1B[25G= %s\r\n%s \x1B[25G= %s\r\n%s \x1B[25G= %s" +
                 "\r\nTo change values, enter command with argument \x1B[3m{NAME}={VALUE}\x1B[0m.",
-            ru: "\x1B[4mТекущее настройки:\x1B[0m\r\n%s = %s (доступны: %s)\r\n%s = %s " +
-                "(доступны: %s)" +
+            ru: "\x1B[4mТекущие настройки:\x1B[0m\r\n%s \x1B[25G= %s (доступны: %s)\r\n%s \x1B[25G= %s " +
+                "(доступны: %s)\r\n%s \x1B[25G= %s\r\n%s \x1B[25G= %s\r\n%s \x1B[25G= %s" +
                 "\r\nЧтобы изменить значения, введите комманду с аргументом \x1B[3m{ИМЯ}={ЗНАЧЕНИЕ}\x1B[0m."
         },
         27: {
@@ -286,6 +288,48 @@ var TerminalLocalization = function (TERMINAL) {
         42: {
             en: "Unable to change theme to %s.",
             ru: "Невозможно изменить тему на %s."
+        },
+        43: {
+            en: "Caché WEB Terminal v" + terminal.VERSION + "\r\nAuthor:\x1B[20GZitRo " +
+                "(+NikitaSavchenko)\r\nProject:\x1B[20Ghttp://intersystems-ru.github.io/" +
+                "webterminal\r\nRepository:\x1B[20Ghttps://github.com/intersystems-ru/" +
+                "webterminal\r\n2013-2014 ©",
+            ru: "Caché WEB Terminal v" + terminal.VERSION + "\r\nАвтор:\x1B[20GZitRo " +
+                "(+NikitaSavchenko)\r\nПроект:\x1B[20Ghttp://intersystems-ru.github.io/" +
+                "webterminal\r\nРепозиторий:\x1B[20Ghttps://github.com/intersystems-ru/" +
+                "webterminal\r\n2013-2014 ©"
+        },
+        44: {
+            en: "Syntax highlighting enabled.",
+            ru: "Подсветка синтаксиса включена."
+        },
+        45: {
+            en: "Syntax highlighting disabled.",
+            ru: "Подсветка синтаксиса выключена."
+        },
+        46: {
+            en: "Progress indicator enabled.",
+            ru: "Индикатор выполнения включён."
+        },
+        47: {
+            en: "Progress indicator disabled.",
+            ru: "Индикатор выполнения выключен."
+        },
+        48: {
+            en: "Autocomplete enabled.",
+            ru: "Автодополнение включено."
+        },
+        49: {
+            en: "Autocomplete disabled.",
+            ru: "Автодополнение выключено."
+        },
+        50: {
+            en: "Useless :)\r\nEnable autocomplete first.",
+            ru: "Бесполезно :)\r\nВключите сперва автодополнение."
+        },
+        51: {
+            en: "Unknown option: %s.",
+            ru: "Неизвестная опция: %s."
         }
     };
 

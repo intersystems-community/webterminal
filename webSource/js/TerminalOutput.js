@@ -1,7 +1,6 @@
 /**
  * Represents output and everything related to it.
  * todo: reorganise "animations" usage
- * todo: remove "highlight output" option
  *
  * @param {Terminal} TERMINAL
  */
@@ -89,7 +88,8 @@ var TerminalOutput = function (TERMINAL) {
     /**
      * Holds the tab positions.
      *
-     * type: {{positionIndex: boolean}}
+     * @type {Object}
+     *        tabPosition: boolean
      * @private
      */
     this._tabs = {};
@@ -300,7 +300,7 @@ TerminalOutput.prototype.disableScrolling = function () {
  */
 TerminalOutput.prototype.scrollDisplayPart = function (lineFrom, lineTo, amount) {
 
-    var temp = this.getLineByIndex(this._TOP_LINE_INDEX + lineTo), // to ensure that line exists
+    var lastLine = this.getLineByIndex(this._TOP_LINE_INDEX + lineTo), // to ensure that line exists
         affectiveLines = this._lines.slice(
             this._TOP_LINE_INDEX + lineFrom - 1, this._TOP_LINE_INDEX + lineTo
         ),
@@ -309,13 +309,12 @@ TerminalOutput.prototype.scrollDisplayPart = function (lineFrom, lineTo, amount)
         aliveLines = affectiveLines.
             slice(Math.min(Math.max(0, amount), len), Math.max(Math.min(len, len + amount), 0)),
         appendBeforeLine = amount > 0
-            ? (this._lines[this._TOP_LINE_INDEX + lineTo] || nullF).getElement() || null
+            ? (lastLine || nullF).getElement() || null
             : (aliveLines[0] || nullF).getElement()
-            || (this._lines[this._TOP_LINE_INDEX + lineTo] || nullF).getElement() || null,
+            || (lastLine || nullF).getElement() || null,
         linesToAppend = affectiveLines.length - aliveLines.length,
         i;
 
-    //console.log(affectiveLines.slice(), aliveLines.slice(), appendBeforeLine, linesToAppend);
     for (i = 0; i < linesToAppend; i++) { // lines to append === lines to kill
         affectiveLines[amount > 0 ? "shift" : "pop"]().remove();
     }
@@ -325,7 +324,6 @@ TerminalOutput.prototype.scrollDisplayPart = function (lineFrom, lineTo, amount)
             new TerminalOutputLine(this, appendBeforeLine)
         ]);
     }
-    //console.log(affectiveLines.slice(), aliveLines.slice(), appendBeforeLine, linesToAppend);
 
     this._lines.splice.apply(this._lines,
         [this._TOP_LINE_INDEX + lineFrom - 1, aliveLines.length].concat(aliveLines)
@@ -406,8 +404,6 @@ TerminalOutput.prototype._controlCharacters = {
  * @private
  */
 TerminalOutput.prototype._controlSequences = {
-
-    // todo: clear commands support, scroll support
 
     // GRAPHIC CONTROL
 
@@ -510,7 +506,7 @@ TerminalOutput.prototype._controlSequences = {
         if (sequence === "\x1B[c") { // query device code
             this.TERMINAL.controller.terminalQuery("\x1B[" + code + "0c");
         } else {
-            // todo: reset device settings
+            // @question Cache TERM does not reset settings
         }
 
     },
@@ -870,7 +866,8 @@ TerminalOutput.prototype.printSync = function (text) {
 
 TerminalOutput.prototype.freeStack = function () {
 
-    var temp;
+    var temp,
+        temp2;
 
     if (!this._stack) return;
 
@@ -881,8 +878,8 @@ TerminalOutput.prototype.freeStack = function () {
     // Also I believe that this technique can be improved. If you have any suggestions, please,
     // comment this out.
     if ((temp = this._stack.lastIndexOf(String.fromCharCode(27))) !== -1
-        && (temp = this._stack.substring(temp, this._stack.length))
-            .match(this.CONTROL_SEQUENCE_PATTERN)) {
+        && (temp2 = (temp = this._stack.substring(temp, this._stack.length))
+            .match(this.CONTROL_SEQUENCE_PATTERN)) && temp2[0] !== "\x1b[") {
         this._output(this._stack);
         this._stack = "";
     } else {

@@ -2,19 +2,6 @@
  * Terminal controller instance handles input from terminal and converts data between server and
  * terminal application.
  *
- * The main messaging rules:
- *
- * Package body      Description                       Package body     Description
- * --<-- Server listens from client --<--              -->-- Client receives from server -->--
- * EXEC#{body}       Execute the {body}                AUTH#{s}         {s}==1 => client authorized
- *                                                     EST#             Execution started
- *                                                     END#             Execution ended
- *                                                     O#{data}         Output {data}
- *                                                     NS#{ns}          Change namespace to {ns}
- *                                                     R#{chars}        Read {chars} characters
- *                                                     PROMPT#{mess}    Ask user input with {mess}
- *                                                     I#{data}         Same as O
- *
  * @param {Terminal} TERMINAL
  * @constructor
  */
@@ -37,7 +24,6 @@ var TerminalController = function (TERMINAL) {
     this.EXECUTION_IN_PROGRESS = false;
 
     /**
-     * todo: remove debug parameter - port 57772
      * @type {CacheWebTerminalServer}
      */
     this.server = new CacheWebTerminalServer(
@@ -63,14 +49,6 @@ var TerminalController = function (TERMINAL) {
      */
     this._mode = this.MODE.UNAUTHORIZED;
 
-    /**
-     * Function that handles read requests.
-     *
-     * @type {function}
-     * @private
-     */
-    this._readHandler = null;
-
 };
 
 /**
@@ -85,7 +63,7 @@ TerminalController.prototype.MODE = {
 };
 
 /**
- * Server action constants for client's first byte in message.
+ * Server action constants for client's message. This must be in a head of each WebSocket message.
  */
 TerminalController.prototype.SERVER_ACTION = {
     EXECUTE: "EXEC#",
@@ -123,15 +101,6 @@ TerminalController.prototype.setNamespace = function (namespace) {
 };
 
 /**
- * @param {function} handler
- */
-TerminalController.prototype.setReadHandler = function (handler) {
-
-    this._readHandler = handler;
-
-};
-
-/**
  * Internal terminal commands. Represented as a set of function with arguments. If function returns
  * false, user won't be prompted for input.
  */
@@ -144,6 +113,11 @@ TerminalController.prototype.internalCommands = {
     },
 
     "autocomplete": function (args) {
+
+        if (!this.TERMINAL.settings.AUTOCOMPLETE) {
+            this.TERMINAL.output.print(this._lc.get(50) + "\r\n");
+            return;
+        }
 
         if (args[0] === "gen") {
             this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
@@ -275,19 +249,73 @@ TerminalController.prototype.internalCommands = {
                     } else {
                         _this.TERMINAL.output.print(_this._lc.get(42, value) + "\r\n");
                     }
+                },
+                "highlightInput": function (value) {
+                    if (_this.TERMINAL.settings.setHighlightInput(value.toLowerCase() === "true")) {
+                        _this.TERMINAL.output.print(_this._lc.get(44) + "\r\n");
+                    } else {
+                        _this.TERMINAL.output.print(_this._lc.get(45) + "\r\n");
+                    }
+                },
+                "showProgressIndicator": function (value) {
+                    if (_this.TERMINAL.settings.setShowProgressIndicator(
+                            value.toLowerCase() === "true")) {
+                        _this.TERMINAL.output.print(_this._lc.get(46) + "\r\n");
+                    } else {
+                        _this.TERMINAL.output.print(_this._lc.get(47) + "\r\n");
+                    }
+                },
+                "autocomplete": function (value) {
+                    if (_this.TERMINAL.settings.setAutocomplete(
+                            value.toLowerCase() === "true")) {
+                        _this.TERMINAL.output.print(_this._lc.get(48) + "\r\n");
+                    } else {
+                        _this.TERMINAL.input.clearAutocompleteVariants();
+                        _this.TERMINAL.output.print(_this._lc.get(49) + "\r\n");
+                    }
                 }
             })[name];
-            if (option) option(value);
+            if (option) {
+                option(value);
+            } else {
+                this.TERMINAL.output.print(this._lc.get(51, name) + "\r\n");
+            }
         } else {
             this.TERMINAL.output.print(
                 this._lc.get(26,
                     "locale", this.TERMINAL.localization.getLocale(),
                         this.TERMINAL.localization.getAvailableList().join(", "),
                     "theme", this.TERMINAL.theme.getCurrentTheme(),
-                        this.TERMINAL.theme.getAvailableList().join(", ")
+                        this.TERMINAL.theme.getAvailableList().join(", "),
+                    "highlightInput", this.TERMINAL.settings.HIGHLIGHT_INPUT,
+                    "showProgressIndicator", this.TERMINAL.settings.SHOW_PROGRESS_INDICATOR,
+                    "autocomplete", this.TERMINAL.settings.AUTOCOMPLETE
                 ) + "\r\n"
             )
         }
+
+    },
+
+    "about": function () {
+
+        var interval,
+            phrase = this._lc.get(43),
+            pos = 0,
+            _this = this;
+
+        var colorPrint = function () {
+            if (pos < phrase.length) {
+                _this.TERMINAL.output.print(phrase[pos]);
+                pos++;
+            } else {
+                clearInterval(interval);
+                _this.clientAction.PROMPT.call(_this, _this.NAMESPACE);
+            }
+        };
+
+        interval = setInterval(colorPrint, 25);
+
+        return false;
 
     }
 
@@ -303,7 +331,7 @@ TerminalController.prototype.internalCommands = {
 TerminalController.prototype.internalCommand = function (query) {
 
     var matched = query.match(/^\/([a-z]+)|\s\/([a-z]+)/),
-        args = [], tempArgs = [],
+        args = [], tempArgs,
         part, command;
 
     if (!matched) return false;
@@ -371,7 +399,6 @@ TerminalController.prototype.terminalQuery = function (query) {
 
         } else {
 
-            //this.TERMINAL.output.print("\r\n");
             this.clientAction["PROMPT"].call(this, this.NAMESPACE);
 
         }

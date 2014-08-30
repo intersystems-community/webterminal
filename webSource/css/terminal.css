@@ -53,13 +53,13 @@
     overflow-x: hidden;
 }
 
-.terminalContainer > div {
+.terminalContainer .terminalOutput > div {
     position: relative;
     overflow: hidden;
 }
 
 .terminalContainer .terminalCaret {
-    position: absolute;
+    position: absolute !important;
     left: 0;
     top: 0;
     animation: blink infinite 1s;
@@ -76,11 +76,28 @@
 }
 
 .terminalContainer .terminalHint {
-    position: absolute;
+    position: absolute !important;
     left: 0;
     top: 0;
     color: inherit;
     opacity: 0.6;
     text-shadow: 1px 1px 4px black;
     z-index: 10;
+}
+
+.terminalContainer .terminalIndicator {
+    position: absolute !important;
+    right: -7px;
+    top: 7px;
+    border: 3px solid #fff;
+    border-radius: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    opacity: 0;
+    width: 30px;
+    animation: pulsate infinite 1s;
+    -o-animation: pulsate infinite 1s;
+    -ms-animation: pulsate infinite 1s;
+    -moz-animation: pulsate infinite 1s;
+    -webkit-animation: pulsate infinite 1s;
 }

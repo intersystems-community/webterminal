@@ -37,6 +37,8 @@
     <script type="text/javascript" src="js/TerminalOutputLine.js"></script>
     <script type="text/javascript" src="js/TerminalStorage.js"></script>
     <script type="text/javascript" src="js/TerminalTheme.js"></script>
+    <script type="text/javascript" src="js/TerminalIndicator.js"></script>
+    <script type="text/javascript" src="js/TerminalSettings.js"></script>
     <!-- @endif -->
     <!-- @ifndef DEBUG -->
     <link rel="stylesheet" href="css/base.css"/>
@@ -44,7 +46,7 @@
     <script type="text/javascript" src="js/terminal.js"></script>
     <!-- @endif -->
 </head>
-<body onload="this.terminal = createTerminal();">
+<body onload="this.terminal = createTerminal(); document.body.removeAttribute('onload');">
 
 </body>
 </html>

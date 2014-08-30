@@ -252,6 +252,12 @@ TerminalInput.prototype._updateAutocompleteView = function () {
 
 };
 
+TerminalInput.prototype.clearAutocompleteVariants = function () {
+
+    this._autocompleteVariants = [];
+
+};
+
 /**
  * Terminal input handler. Fires when hidden input changes.
  *
@@ -272,13 +278,17 @@ TerminalInput.prototype._onInput = function () {
         value = this.TERMINAL.elements.input.value,
         length = value.length;
 
-    this._autocompleteVariants =
-        this.TERMINAL.autocomplete.getEndings(
-            value.substring(0, this.getCaretPosition())
-        );
+    if (this.TERMINAL.settings.AUTOCOMPLETE) {
+        this._autocompleteVariants =
+            this.TERMINAL.autocomplete.getEndings(
+                value.substring(0, this.getCaretPosition())
+            );
+    }
 
     this.TERMINAL.output.printAtLine(
-        this.TERMINAL.parser.highlightSyntax(value, this.TERMINAL.theme.getCurrentTheme()),
+        this.TERMINAL.settings.HIGHLIGHT_INPUT
+            ? this.TERMINAL.parser.highlightSyntax(value, this.TERMINAL.theme.getCurrentTheme())
+            : value,
         this.INITIAL_POSITION.line,
         this.INITIAL_POSITION.position,
         false
@@ -357,6 +367,9 @@ TerminalInput.prototype.submit = function () {
     var value = this.TERMINAL.elements.input.value,
         handler = this._handler;
 
+    if (this.TERMINAL.settings.SHOW_PROGRESS_INDICATOR) {
+        this.TERMINAL.progressIndicator.show();
+    }
     this._disable();
     this.history.save(value);
     this.TERMINAL.elements.input.value = "";
@@ -392,6 +405,8 @@ TerminalInput.prototype.prompt = function (invitationMessage, length, handler) {
         if (this._handler) console.warn("Possible wrong handler usage.");
         this._handler = handler;
     }
+
+    this.TERMINAL.progressIndicator.hide();
 
     this.limitLength(length || 32656);
     this.TERMINAL.output.printSync(invitationMessage || "");

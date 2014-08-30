@@ -45,7 +45,7 @@ TerminalStorage.prototype.remove = function (key) {
  * Gets local storage key value.
  *
  * @param {string} key
- * @returns {string}
+ * @returns {string|null}
  */
 TerminalStorage.prototype.get = function (key) {
     return localStorage.getItem(key);

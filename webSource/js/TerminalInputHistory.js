@@ -111,6 +111,7 @@ TerminalInputHistory.prototype.get = function (position) {
 TerminalInputHistory.prototype.save = function (text) {
 
     if (this._history[this._history.length - 2] === text || text === "") {
+        this._currentPosition = this._history.length - 1;
         return;
     }
 

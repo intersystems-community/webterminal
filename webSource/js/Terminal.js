@@ -32,6 +32,7 @@
  *       ╠ {TerminalDictionary} - All lexemes that form autocomplete database.
  *       ╠ {TerminalTheme} - Appearance controller for terminal.
  *       ╠ {TerminalParser} - Additional module highlighting the syntax.
+ *       ╠ {TerminalIndicator} - Indicates command execution progress.
  *       ╚ {TerminalFavorites} - Favorites storage.
  *
  *
@@ -80,6 +81,16 @@ var Terminal = function (setting) {
      * @type {TerminalElements}
      */
     this.elements = new TerminalElements(this.SETUP.container);
+
+    /**
+     * @type {TerminalSettings}
+     */
+    this.settings = new TerminalSettings(this);
+
+    /**
+     * @type {TerminalIndicator}
+     */
+    this.progressIndicator = new TerminalIndicator(this);
 
     /**
      * @type {TerminalTheme}

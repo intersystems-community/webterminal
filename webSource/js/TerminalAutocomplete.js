@@ -87,7 +87,7 @@ TerminalAutocomplete.prototype._appendEndings = function (append, part, type) {
     var i;
 
     var addVariant = function (variant, relevance) {
-        append[variant] = relevance; // todo: get lexeme relevance
+        append[variant] = relevance;
     };
 
     /**
