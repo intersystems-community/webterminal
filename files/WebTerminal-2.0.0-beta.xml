@@ -8,7 +8,7 @@ This class represents the core of web terminal.</Description>
 
 <UDLText name="T">
 <Content><![CDATA[
-//  CONSTANTS BEGIN
+// CONSTANTS BEGIN
 
 ]]></Content>
 </UDLText>
@@ -797,16 +797,15 @@ This method transforms error </Description>
         do ..SendData("35", ..ConstClientOutputLocalized)
         do ..SendData($C(13, 10))
         set file = ##class(%File).%New(filepath)
-        do file.Open("WSN")
-        while (httprequest.HttpResponse.Data.AtEnd = 0) {
-            do file.Write(httprequest.HttpResponse.Data.Read())
-        }
+        do file.Open("W")
+        do file.CopyFrom(httprequest.HttpResponse.Data)
         do file.Close()
         do ..SendData("36", ..ConstClientOutputLocalized)
         do ..SendData($C(13, 10))
         set error = 0
-        do $System.OBJ.ImportDir(path, "terminal_update.temp.xml", "ckbu", .error, 1)
-        w *-3
+        do ..StartClearIO()
+        do $System.OBJ.ImportDir(path, "terminal_update.temp.xml", "ckbud", .error, 1)
+        do ..EndClearIO()
         if (error = 0) {
             do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m" _ $C(13,10))
         } else {
