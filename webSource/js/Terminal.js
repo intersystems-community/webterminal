@@ -12,6 +12,7 @@
  *       ╔ {TerminalController} ╣ - Controller, object that implements terminalQuery function and
  *       ║                      ║   uses terminal API for interaction with terminal application.
  *       ║                      ║
+ *       ║                      ╠ {CacheAutocompleteController} - Stores and controls autocomplete.
  *       ║                      ╚ {CacheTracing} - Mechanism that controls tracing.
  *       ║
  *   {Terminal}
@@ -69,6 +70,21 @@ var Terminal = function (setting) {
      */
     this.localization = new TerminalLocalization(this);
 
+    /**
+     * @type {TerminalInitialDictionary}
+     */
+    this.dictionary = new TerminalInitialDictionary();
+
+    /**
+     * @type {TerminalSettings}
+     */
+    this.settings = new TerminalSettings(this);
+
+    /**
+     * @type {TerminalAutocomplete}
+     */
+    this.autocomplete = new TerminalAutocomplete();
+
     this.SETUP = {
         controller: setting["controller"] || new TerminalController(this),
         container: setting["container"] || document.body,
@@ -81,11 +97,6 @@ var Terminal = function (setting) {
      * @type {TerminalElements}
      */
     this.elements = new TerminalElements(this.SETUP.container);
-
-    /**
-     * @type {TerminalSettings}
-     */
-    this.settings = new TerminalSettings(this);
 
     /**
      * @type {TerminalIndicator}
@@ -113,11 +124,6 @@ var Terminal = function (setting) {
     this.input = new TerminalInput(this);
 
     /**
-     * @type {TerminalInitialDictionary}
-     */
-    this.dictionary = new TerminalInitialDictionary();
-
-    /**
      * @type {TerminalFavorites}
      */
     this.favorites = new TerminalFavorites(this);
@@ -131,11 +137,6 @@ var Terminal = function (setting) {
      * @type {TerminalController|*}
      */
     this.controller = this.SETUP.controller;
-
-    /**
-     * @type {TerminalAutocomplete}
-     */
-    this.autocomplete = new TerminalAutocomplete();
 
     this.initialize();
 

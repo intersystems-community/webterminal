@@ -36,6 +36,8 @@ var TerminalController = function (TERMINAL) {
      */
     this.trace = new CacheTracing(this);
 
+    this.autocompleteController = new CacheAutocompleteController(this);
+
     /**
      * @type {string}
      */
@@ -119,11 +121,17 @@ TerminalController.prototype.internalCommands = {
             return;
         }
 
-        if (args[0] === "gen") {
-            this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
-        } else {
-            this.mergeAutocompleteFile(this.NAMESPACE);
-        }
+//        if (args[0] === "gen") {
+//            this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
+//        } else {
+//            this.mergeAutocompleteFile(this.NAMESPACE);
+//        }
+//
+//        return false;
+
+        this.server.send(this.SERVER_ACTION.AUTOCOMPLETE
+            + (!this.autocompleteController.SYSTEM_CLASSES_LOADED
+                || args[0] === "sys" ? "1" : "0"));
 
         return false;
 
@@ -425,34 +433,37 @@ TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
 
         if (data) {
 
-            if (data["class"]) {
-                for (p in data["class"]) {
-                    autocomplete.register(autocomplete.TYPES.class, p, namespace);
-                    for (sp in data["class"][p]) {
-                        autocomplete.register(autocomplete.TYPES.subclass, sp, namespace, [p]);
-                    }
-                    ++i;
-                }
-            }
+            _this.autocompleteController.registerObject(namespace, data);
 
-            _this.TERMINAL.output.print(_this._lc.get(19, i) + "\r\n");
-            i = 0;
-
-            if (data["global"]) {
-                for (p in data["global"]) {
-                    autocomplete.register(autocomplete.TYPES.globals, p, namespace);
-                    ++i;
-                }
-            }
-
-            _this.TERMINAL.output.print(_this._lc.get(20, i) + "\r\n");
+//            if (data["class"]) {
+//                for (p in data["class"]) {
+//                    autocomplete.register(autocomplete.TYPES.class, p, namespace);
+//                    for (sp in data["class"][p]) {
+//                        autocomplete.register(autocomplete.TYPES.subclass, sp, namespace, [p]);
+//                    }
+//                    ++i;
+//                }
+//            }
+//
+//            _this.TERMINAL.output.print(_this._lc.get(19, i) + "\r\n");
+//            i = 0;
+//
+//            if (data["global"]) {
+//                for (p in data["global"]) {
+//                    autocomplete.register(autocomplete.TYPES.globals, p, namespace);
+//                    ++i;
+//                }
+//            }
+//
+//            _this.TERMINAL.output.print(_this._lc.get(20, i) + "\r\n");
 
             _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
 
         } else {
 
             _this.TERMINAL.output.print(_this._lc.get(21) + "\r\n");
-            _this.server.send(_this.SERVER_ACTION.AUTOCOMPLETE);
+            _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
+            //_this.server.send(_this.SERVER_ACTION.AUTOCOMPLETE);
 
         }
 

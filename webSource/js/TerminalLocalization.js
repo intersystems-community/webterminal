@@ -330,6 +330,14 @@ var TerminalLocalization = function (TERMINAL) {
         51: {
             en: "Unknown option: %s.",
             ru: "Неизвестная опция: %s."
+        },
+        52: {
+            en: "Loading autocomplete from local storage...",
+            ru: "Загрузка автодополнения из локального хранилища..."
+        },
+        53: {
+            en: "Loaded.",
+            ru: "Загружено."
         }
     };
 

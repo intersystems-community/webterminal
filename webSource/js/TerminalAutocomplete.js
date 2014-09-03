@@ -172,7 +172,8 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
 /**
  * @param {TerminalAutocomplete.prototype.TYPES} type
  * @param {string} lexeme
- * @param {string} [namespace] - If not set, lexeme will be registered in global namespace.
+ * @param {string|undefined} [namespace] - If set to undefined, lexeme will be registered in global
+ *                                         namespace.
  * @param {string[]} [parents] - Parents to which child will be appended.
  */
 TerminalAutocomplete.prototype.register = function (type, lexeme, namespace, parents) {
@@ -181,6 +182,8 @@ TerminalAutocomplete.prototype.register = function (type, lexeme, namespace, par
             ? this._namespaceTries[namespace] || (this._namespaceTries[namespace] = {})
             : this._trie,
         i;
+
+    //console.log("Registering", lexeme, "in", namespace || "%", "withing", parents);
 
     if (parents) {
         lexeme = (parents || []).join("\n") + "\n" + lexeme;

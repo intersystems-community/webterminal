@@ -358,7 +358,6 @@ Method OnPostServer() As %Status
 
 ClassMethod GetJSAutocompleteFilePath(namespace As %String) As %String
 {
-    
     set data = ##class(%Library.File).ManagerDirectory()
     set data = ##class(%Library.File).ParentDirectoryName(data)
     
@@ -370,7 +369,7 @@ ClassMethod GetJSAutocompleteFilePath(namespace As %String) As %String
     }
     
     set data = ##class(%Library.File).SubDirectoryName(data,
-        $ZCONVERT($REPLACE(namespace, "%", ""), "l")
+        $ZCONVERT($REPLACE("%SYS", "%", ""), "l")
     )
     set data = ##class(%Library.File).SubDirectoryName(data, "WebTerminal")
     set data = ##class(%Library.File).SubDirectoryName(data, "js")
@@ -404,11 +403,16 @@ ClassMethod getGlobalsJSON(namespace As %String) As %String
 /// Generates autocomplete file for namespace. Second parameter deсides if
 /// it will be regenerated again. But if namespace equals to "%" - generates
 /// autocomplete file for system classes. Make sure that autocomplete for
-/// system classes generates one time and forever. 
-Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %String
+/// system classes generates one time and forever.
+/// @param genSystem - Shows if system classes need to be generated. 
+Method GenerateAutocompleteFile(namespace As %String, genSystem As %Boolean) As %String
 {
     
-    set filename = ..GetJSAutocompleteFilePath(..InitialZNamespace)
+    if (genSystem) {
+        set filename = ..GetJSAutocompleteFilePath("%")
+    } else {
+        set filename = ..GetJSAutocompleteFilePath(namespace)
+    }
     
     do ..SendData("29", ..ConstClientOutputLocalized)
     do ..SendData(" " _ filename _ $C(13, 10))
@@ -471,10 +475,15 @@ Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %S
     
     while (result.Next()) { // forming autocomplete for each class
     
-        do ..SendData($C(27) _ "[30G" _ u)
-        s u = u + 1
+        if (genSystem) '= ($Extract(result.Data("Name"), 1) = "%") {
+            continue
+        }
     
         set className = result.Data("Name")
+        
+        do ..SendData($C(27) _ "[30G" _ u)
+        s u = u + 1
+        
         do file.Write(first _ """" _ className _ """:{")
         if (first = "") set first = ","
         
@@ -509,14 +518,14 @@ Method GenerateAutocompleteFile(namespace As %String, newFile As %Boolean) As %S
     }
     
     do file.Write("}")
-    do file.Write(",""global"":" _ ..getGlobalsJSON())
+    if ('genSystem) do file.Write(",""global"":" _ ..getGlobalsJSON())
     do file.Write("}")
     do file.Close()
     
     do ..SendData($C(13, 10))
     do ..SendData("33", ..ConstClientOutputLocalized)
     do ..SendData($C(13, 10))
-    do ..SendData(namespace, ..ConstClientLoadAutocomplete)
+    //do ..SendData(namespace, ..ConstClientLoadAutocomplete)
     
     quit $$$OK
 }
@@ -620,10 +629,8 @@ Method Update(version) As %Status
         do ..SendData("35", ..ConstClientOutputLocalized)
         do ..SendData($C(13, 10))
         set file = ##class(%File).%New(filepath)
-        do file.Open("WSN")
-        while (httprequest.HttpResponse.Data.AtEnd = 0) {
-            do file.Write(httprequest.HttpResponse.Data.Read())
-        }
+        do file.Open("W")
+        do file.CopyFrom(httprequest.HttpResponse.Data)
         do file.Close()
         do ..SendData("36", ..ConstClientOutputLocalized)
         do ..SendData($C(13, 10))
@@ -790,7 +797,15 @@ Method ClientLoop() As %Status
           
         } elseif (action = ..ConstServerActionGenerateAutocomplete) {
             
-            do ..GenerateAutocompleteFile(..CurrentNamespace, data)
+            // data shows if system classes required
+            
+            if ('##class("%Library.File").Exists(..GetJSAutocompleteFilePath("%")))
+                || (data = "1") {
+                do ..GenerateAutocompleteFile("%SYS", 1)
+                do ..SendData("%", ..ConstClientLoadAutocomplete)
+            }
+            do ..GenerateAutocompleteFile(..CurrentNamespace, 0)
+            do ..SendData(..CurrentNamespace, ..ConstClientLoadAutocomplete)
                     
         } elseif (action = ..ConstServerActionReset) {
               
@@ -829,7 +844,7 @@ Method Server() As %Status
 {
     
     /*UNCOMMENT ON RELEASE!*/
-    if ($$$ISOK(..RequireAuthorization())) {
+    if (1/*$$$ISOK(..RequireAuthorization())*/) {
         
         set ..CurrentNamespace = $Znspace
         
