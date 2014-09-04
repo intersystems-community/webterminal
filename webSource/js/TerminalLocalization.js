@@ -47,10 +47,10 @@ var TerminalLocalization = function (TERMINAL) {
             en: "Caché WEB Terminal v" + terminal.VERSION + "\r\n\r\n" +
                 "\x1B[4mAvailable commands:\x1B[0m\r\n" +
                 "\x1B[33m/help\x1B[0m\x1B[32GShow the help information you are reading now.\r\n" +
-                "\x1B[33m/autocomplete\x1B[0m [gen]\x1B[32GPerforms autocomplete data loading. The autocomplete" +
-                " files will be generated only the first time command execute. If you did some " +
-                "changes in your code and want to rebuild autocomplete database, use " +
-                "\x1B[1mgen\x1B[0m parameter.\r\n" +
+                "\x1B[33m/autocomplete\x1B[0m [sys]\x1B[32GPerforms autocomplete data loading. The system autocomplete" +
+                " file will be generated only the first time command execute. To generate system " +
+                "autocomplete again, use " +
+                "\x1B[1msys\x1B[0m parameter.\r\n" +
                 "\x1B[33m/echo\x1B[0m [param1] [param2] ...\x1B[32GEcho each argument of this command." +
                 "\r\n\x1B[33m/trace\x1B[0m [global/filePath]\x1B[32GStart tracing global or file. To stop " +
                 "tracing, enter command without arguments. To stop tracing particular file or " +
@@ -72,10 +72,10 @@ var TerminalLocalization = function (TERMINAL) {
             ru: "Caché WEB Terminal v" + terminal.VERSION + "\r\n\r\n" +
                 "\x1B[4mДоступные комманды:\x1B[0m\r\n" +
                 "\x1B[33m/help\x1B[0m\x1B[32GПоказать вспомагательную информацию, которую вы сейчас читаете.\r\n" +
-                "\x1B[33m/autocomplete\x1B[0m [gen]\x1B[32GПодгружает данные для автодополнения. Файлы автодополнения" +
+                "\x1B[33m/autocomplete\x1B[0m [sys]\x1B[32GПодгружает данные для автодополнения. Файлы системного автодополнения" +
                 " будут сгенерированы только при первом вызове комманды. Если вы внесли изменения " +
-                "в ваш код или хотите перестроить файл автодополнения, используйте параметр " +
-                "\x1B[1mgen\x1B[0m.\r\n" +
+                "в ваш код или хотите обновить автодополнение системных классов, воспользуйтесь параметром " +
+                "\x1B[1msys\x1B[0m.\r\n" +
                 "\x1B[33m/echo\x1B[0m [параметр1] [второй] ...\x1B[32GОтображает каждый аргумент комманды." +
                 "\r\n\x1B[33m/trace\x1B[0m [глобал/путь]\x1B[32GНаблюдать за изменениями в файле или глобале. Чтобы " +
                 "перестать наблюдать за изменениями, введите комманду ещё раз. Комманда без аргументов" +
@@ -87,7 +87,7 @@ var TerminalLocalization = function (TERMINAL) {
                 "{определение} \x1B[33m/define\x1B[0m {фраза}\x1B[32GЗаменять куждую {фразу} {определением}. Чтобы " +
                 "получить больше информации, вызовите комманду без аргументов.\r\n" +
                 "\x1B[33m/version\x1B[0m\x1B[32GВывести информацию о версии терминала.\r\n" +
-                "\x1B[33m/update\x1B[0m\x1B[32GПроверить наличие обновлений и спросить у пользователя, нужно" +
+                "\x1B[33m/update\x1B[0m\x1B[32GПроверить наличие обновлений и спросить у пользователя, нужно " +
                 "ли выполнить обновление, если доступна новая версия.\r\n" +
                 "\x1B[33m/settings\x1B[0m\x1B[32GПоказать или изменить настройки терминала.\r\n" +
                 "\x1B[33m/about\x1B[0m\x1B[32GИнформация о проекте.\r\n\r\n" +

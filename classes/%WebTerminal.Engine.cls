@@ -844,7 +844,7 @@ Method Server() As %Status
 {
     
     /*UNCOMMENT ON RELEASE!*/
-    if (1/*$$$ISOK(..RequireAuthorization())*/) {
+    if ($$$ISOK(..RequireAuthorization())) {
         
         set ..CurrentNamespace = $Znspace
         

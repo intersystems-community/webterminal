@@ -52,7 +52,7 @@ TerminalAutocomplete.prototype.TYPES = {
         regExp: /([a-zA-Z][a-z0-9A-Z]*)$/
     },
     keyword: {
-        regExp: /([\$\/]*[a-zA-Z]*[a-z0-9A-Z]*)$/i
+        regExp: /([\$#\/]*[a-zA-Z]*[a-z0-9A-Z]*)$/i
     },
     class: {
         regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)$/,

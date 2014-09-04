@@ -54,6 +54,12 @@ var Terminal = function (setting) {
      */
     this.RELEASE_NUMBER = parseInt("".concat(/* @echo RELEASE_NUMBER */)) || 0;
 
+    /**
+     * @type {Array} of { function: function () {}, this: Object, args: Array }
+     * @private
+     */
+    this._execReady = [];
+
     //                                      modules / plugins                                     \\
 
     /**
@@ -155,6 +161,28 @@ Terminal.prototype.initialize = function () {
         this.autocomplete.register(this.autocomplete.TYPES.keyword, i);
         this.autocomplete.register(this.autocomplete.TYPES.keyword, i.toUpperCase());
     }
+
+    for (i = 0; i < this._execReady.length; i++) {
+        this._execReady[i].function.apply(this._execReady[i].this, this._execReady[i].args);
+    }
+
+};
+
+/**
+ * Function to register execution of other functions when terminal in ready state. (when all
+ * modules loaded)
+ *
+ * @param thisArg
+ * @param {function} callback
+ * @param {Array} [args]
+ */
+Terminal.prototype.execReady = function (thisArg, callback, args) {
+
+    this._execReady.push({
+        function: callback,
+        this: thisArg,
+        args: args
+    });
 
 };
 

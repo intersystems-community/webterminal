@@ -262,7 +262,8 @@ var TerminalInitialDictionary = function () {
         "$ztimestamp": 0,
         "$ztimezone": 0,
         "$ztrap": 0,
-        "$zversion": 0
+        "$zversion": 0,
+        "##class": 0
     };
 
 };
