@@ -551,7 +551,7 @@ This method watches only for tail of global and detects if global still alive</D
 
 <Method name="GenerateAutocompleteFile">
 <Description>
-Generates autocomplete file for namespace. Second parameter deсides if
+Generates autocomplete file for namespace. Second parameter decides if
 it will be regenerated again. But if namespace equals to "%" - generates
 autocomplete file for system classes. Make sure that autocomplete for
 system classes generates one time and forever.
