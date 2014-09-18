@@ -525,7 +525,13 @@ TerminalController.prototype.clientAction = {
     },
 
     RC: function () {
-        this.TERMINAL.input.prompt("", 1);
+
+        var _this = this;
+
+        this.TERMINAL.input.getChar(function (char) {
+            _this.server.send(char);
+        });
+
     },
 
     AUTH: function (data) {

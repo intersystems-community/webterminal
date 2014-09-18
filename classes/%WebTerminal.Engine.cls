@@ -163,30 +163,36 @@ wstr(s)
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("O#"_s)
     do ##class(%Device).ReDirectIO($$$YES)
+    set $X = $X + $LENGTH(s)
     quit
 
 wchr(c) 
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("O#"_$c(c))
     do ##class(%Device).ReDirectIO($$$YES)
+    set $X = $X + 1
     quit
 
 wnl 
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("O#"_$c(13, 10))
     do ##class(%Device).ReDirectIO($$$YES)
+    set $X = 0
     quit
 
 wff 
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("CLRSCR#")
     do ##class(%Device).ReDirectIO($$$YES)
+    set $Y = 0
+    set $X = 0
     quit
     
 wtab(s)
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("O#" _ $C(27) _ "[" _ (s + 1) _ "G")
     do ##class(%Device).ReDirectIO($$$YES)
+    set $X = s
     quit
     
 rstr(len = 32656, timeout = 86400, data)
@@ -199,8 +205,8 @@ rstr(len = 32656, timeout = 86400, data)
 rchr(timeout = 86400, data)
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("RC#")
-    set data = $$ReadMessage(1, timeout)
-    set data = $ASCII($EXTRACT(data,1,1))
+    set data = $$ReadMessage(, timeout)
+    set data = data * 1 // $ASCII($EXTRACT(data,1,1))
     do ##class(%Device).ReDirectIO($$$YES)
     quit data
 }
@@ -397,10 +403,15 @@ ClassMethod getGlobalsJSON(namespace As %String) As %String
         set out = out _ """" _ $Piece(rset.GetData(1),"(",1) _ """:0,"
     }
     set out = $EXTRACT(out,1,$LENGTH(out)-1) _ "}"
+    
+    // todo:
+    // Set Rset = ##class(%Library.ResultSet).%New("%SYS.GlobalQuery:NameSpaceListChui")
+    // s Status=Rset.Execute(NameSpace,Mask,SystemGlobals,.UnavailableDatabases)
+    
     q out
 }
 
-/// Generates autocomplete file for namespace. Second parameter deсides if
+/// Generates autocomplete file for namespace. Second parameter decides if
 /// it will be regenerated again. But if namespace equals to "%" - generates
 /// autocomplete file for system classes. Make sure that autocomplete for
 /// system classes generates one time and forever.
@@ -851,7 +862,10 @@ Method Server() As %Status
         do ..SendData("1", ..ConstClientAuthorizationStatus)
         do ..SendData(..CurrentNamespace, ..ConstClientChangeNamespace)
            
-        use $io::("^" _ ..InitialZName) // switch to routine
+        //open $io:(/NOXY:/BREAK):"^" _ ..InitialZName // switch to routine
+        use $io:(/NOXY:/BREAK):"^" _ ..InitialZName
+        //OPEN $IO:(80:"BFU":$CHAR(13)) // :"^" _ ..InitialZName
+        //USE $IO:(80:"BFU":$CHAR(13)):"^" _ ..InitialZName
         do ..ClientLoop()
         
     } else {

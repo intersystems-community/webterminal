@@ -162,7 +162,7 @@ CacheWebTerminalServer.prototype.onError = function () {
     var _this = this;
 
     this.CONTROLLER.TERMINAL.output.print(
-        this._lc.get(6, this.socket.url, this.RECONNECTION_TIMEOUT/1000)
+        this._lc.get(6, this.socket.url, this.RECONNECTION_TIMEOUT/1000) + "\r\n"
     );
 
     setTimeout(function () {

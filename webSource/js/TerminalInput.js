@@ -66,6 +66,12 @@ var TerminalInput = function (TERMINAL) {
     this._handler = null;
 
     /**
+     * @type {boolean}
+     * @private
+     */
+    this.__readingChar = false;
+
+    /**
      * Shows the input beginning position.
      *
      * @type {{line: number, position: number}}
@@ -415,5 +421,58 @@ TerminalInput.prototype.prompt = function (invitationMessage, length, handler) {
     this.INITIAL_POSITION.position = this.TERMINAL.output.getCaretX() - 1;
 
     this._enable();
+
+};
+
+/**
+ * Get character from keyboard. This works for all keys.
+ *
+ * @param {function} callback
+ */
+TerminalInput.prototype.getChar = function (callback) {
+
+    var _this = this,
+        shift = false;
+
+    if (this.__readingChar) return false;
+
+    this.__readingChar = true;
+
+    this.TERMINAL.progressIndicator.hide();
+
+    var listener = function (e) {
+
+        var code = e.keyCode,
+            char = String.fromCharCode(code);
+
+        if (code === 16) shift = true;
+        if (code === 16 || code === 17 || code === 18) return;
+
+        if (shift) {
+            char = char.toUpperCase();
+        } else {
+            char = char.toLowerCase();
+        }
+
+        _this.TERMINAL.output.print(char);
+
+        window.removeEventListener("keydown", listener, true);
+        window.removeEventListener("keyup", upListener, true);
+        e.preventDefault();
+        e.cancelBubble = true;
+
+        _this.__readingChar = false;
+        callback.call(_this, char.charCodeAt(0).toString());
+
+    };
+
+    var upListener = function (e) {
+
+        if (e.keyCode === 16) shift = false;
+
+    };
+
+    window.addEventListener("keydown", listener, true);
+    window.addEventListener("keyup", upListener, true);
 
 };
