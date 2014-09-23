@@ -82,6 +82,86 @@ Property WatchesCaret As %Numeric [ MultiDimensional ];
 /// Public point entries, using when redirecting i/o
 Method redirects() [ Private, ProcedureBlock = 0 ]
 {
+/// Mnemonics
+APC d APC^%X364 q
+BEL d BEL^%X364 q
+CBT(%1) d CBT^%X364(%1) q
+CCH d CCH^%X364 q
+CHA(%1) d CHA^%X364(%1) q
+CHT(%1) d CHT^%X364(%1) q
+CNL(%1) d CNL^%X364(%1) q
+CPL(%1) d CPL^%X364(%1) q
+CPR d CPR^%X364 q
+CTC(%1,%2,%3,%4,%5,%6,%7,%8,%9) d CTC^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+CUB(%1) d CUB^%X364(%1) q
+CUD(%1) d CUD^%X364(%1) q
+CUF(%1) d CUF^%X364(%1) q
+CUP(%2,%1) d CUP^%X364(%2,%1) q
+CUU(%1) d CUU^%X364(%1) q
+CVT(%1) d CVT^%X364(%1) q
+DA d DA^%X364 q
+DAQ(%1,%2,%3,%4,%5,%6,%7,%8,%9) d DAQ^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+DCH(%1) d DCH^%X364(%1) q
+DCS d DCS^%X364 q
+DL(%1) d DL^%X364(%1) q
+DMI d DMI^%X364 q
+DSR(%1) d DSR^%X364(%1) q
+EA(%1) d EA^%X364(%1) q
+ECH(%1) d ECH^%X364(%1) q
+ED(%1) d ED^%X364(%1) q
+EF(%1) d EF^%X364(%1) q
+EL(%1) d EL^%X364(%1) q
+EMI d EMI^%X364 q
+EPA d EPA^%X364 q
+ESA d ESA^%X364 q
+FNT d DNT^%X364 q
+GSM d GSM^%X364 q
+GSS d GSS^%X364 q
+HPA(%1) d HPA^%X364(%1) q
+HPR(%1) d HPR^%X364(%1) q
+HTJ d HTJ^%X364 q
+HTS d HTS^%X364 q
+HVP(%1,%2) d HVP^%X364(%1,%2) q
+ICH(%1) d ICH^%X364(%1) q
+IL(%1) d IL^%X364(%1) q
+IND d IND^%X364 q
+INT d INT^%X364 q
+JFY d JFY^%X364 q
+MC d MC^%X364 q
+MW d MW^%X364 q
+NEL d NEL^%X364 q
+NP(%1) d NP^%X364(%1) q
+OSC d OSC^%X364 q
+PLD d PLD^%X364 q
+PLU d PLU^%X364 q
+PM d PM^%X364 q
+PP(%1) d PP^%X364(%1) q
+PU1 d PU1^%X364 q
+PU2 d PU2^%X364 q
+QUAD d QUAD^%X364 q
+REP d REP^%X364 q
+RI d RI^%X364 q
+RIS d RIS^%X364 q
+RM(%1,%2,%3,%4,%5,%6,%7,%8,%9) d RM^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+SEM d SEM^%X364 q
+SGR(%1,%2,%3,%4,%5,%6,%7,%8,%9) d SGR^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+SL d SL^%X364 q
+SM(%1,%2,%3,%4,%5,%6,%7,%8,%9) d SM^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+SPA d SPA^%X364 q
+SPI d SPI^%X364 q
+SR d SR^%X364 q
+SS2 d SS2^%X364 q
+SS3 d SS3^%X364 q
+SSA d SSA^%X364 q
+ST d ST^%X364 q
+STS d STS^%X364 q
+SU d SU^%X364 q
+TBC d TBC^%X364 q
+TSS d TSS^%X364 q
+VPA(%1) d VPA^%X364(%1) q
+VPR(%1) d VPR^%X364(%1) q
+VTS d VTS^%X364 q
+    
 PrepareOutput(data)
     Try { Set data=$zconvert(data, "O", "UTF8") } Catch {  }
     quit data
@@ -164,6 +244,7 @@ wstr(s)
     do WriteMessage("O#"_s)
     do ##class(%Device).ReDirectIO($$$YES)
     set $X = $X + $LENGTH(s)
+    set $Y = $Y - 1
     quit
 
 wchr(c) 
@@ -171,6 +252,7 @@ wchr(c)
     do WriteMessage("O#"_$c(c))
     do ##class(%Device).ReDirectIO($$$YES)
     set $X = $X + 1
+    set $Y = $Y - 1
     quit
 
 wnl 
@@ -861,11 +943,8 @@ Method Server() As %Status
         
         do ..SendData("1", ..ConstClientAuthorizationStatus)
         do ..SendData(..CurrentNamespace, ..ConstClientChangeNamespace)
-           
-        //open $io:(/NOXY:/BREAK):"^" _ ..InitialZName // switch to routine
+        
         use $io:(/NOXY:/BREAK):"^" _ ..InitialZName
-        //OPEN $IO:(80:"BFU":$CHAR(13)) // :"^" _ ..InitialZName
-        //USE $IO:(80:"BFU":$CHAR(13)):"^" _ ..InitialZName
         do ..ClientLoop()
         
     } else {

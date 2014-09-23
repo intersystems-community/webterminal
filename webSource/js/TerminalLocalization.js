@@ -178,8 +178,8 @@ var TerminalLocalization = function (TERMINAL) {
             ru: "Caché WEB Terminal v%s\r\nПроверка обновлений..."
         },
         17: {
-            en: "Unknown internal command \"%s\".",
-            ru: "Неизвестная внутренняя комманда \"%s\"."
+            en: "",
+            ru: ""
         },
         18: {
             en: "Merging autocomplete database for %s...",

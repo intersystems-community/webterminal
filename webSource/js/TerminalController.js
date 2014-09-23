@@ -363,8 +363,7 @@ TerminalController.prototype.internalCommand = function (query) {
     });
 
     if (!this.internalCommands.hasOwnProperty(command)) {
-        this.TERMINAL.output.print(this._lc.get(17, command) + "\r\n");
-        return true;
+        return false;
     }
 
     if (this.internalCommands[command].call(this, args) === false) {
@@ -422,10 +421,7 @@ TerminalController.prototype.terminalQuery = function (query) {
  */
 TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
 
-    var autocomplete = this.TERMINAL.autocomplete,
-        _this = this,
-        p, sp,
-        i = 0;
+    var _this = this;
 
     _this.TERMINAL.output.printSync(this._lc.get(18, namespace) + "\r\n");
 
@@ -434,36 +430,12 @@ TerminalController.prototype.mergeAutocompleteFile = function (namespace) {
         if (data) {
 
             _this.autocompleteController.registerObject(namespace, data);
-
-//            if (data["class"]) {
-//                for (p in data["class"]) {
-//                    autocomplete.register(autocomplete.TYPES.class, p, namespace);
-//                    for (sp in data["class"][p]) {
-//                        autocomplete.register(autocomplete.TYPES.subclass, sp, namespace, [p]);
-//                    }
-//                    ++i;
-//                }
-//            }
-//
-//            _this.TERMINAL.output.print(_this._lc.get(19, i) + "\r\n");
-//            i = 0;
-//
-//            if (data["global"]) {
-//                for (p in data["global"]) {
-//                    autocomplete.register(autocomplete.TYPES.globals, p, namespace);
-//                    ++i;
-//                }
-//            }
-//
-//            _this.TERMINAL.output.print(_this._lc.get(20, i) + "\r\n");
-
             _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
 
         } else {
 
             _this.TERMINAL.output.print(_this._lc.get(21) + "\r\n");
             _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
-            //_this.server.send(_this.SERVER_ACTION.AUTOCOMPLETE);
 
         }
 
