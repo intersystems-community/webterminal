@@ -1,13 +1,13 @@
-# Cache Web Terminal
-Web-based terminal application for InterSystems Cach&eacute; database. Access your database from everywhere!
+# Caché Web Terminal
+Web-based terminal application for InterSystems Caché database. Access your database from everywhere!
 
 Visit [project page](http://intersystems-ru.github.io/webterminal) for more details.
 
 ### Installation
-Download latest version from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import XML file into %SYS namespace. Make sure that you have enabled write access to CACHELIB database during installation process.
+Download latest version from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import XML file into %SYS namespace. Make sure that you have enabled write access to CACHELIB database during installation process. Later you can update application by typing "/update" command.
 
 ### Usage
-After installation, you will be able to access application at http://[host]:[port]/csp/sys/WebTerminal/index.csp. Type "/help" there to get more information.
+After installation, you will be able to access application at http://[host]:[port]/csp/sys/WebTerminal/index.csp. Type "/help" there to get more information. Enable authorization manually over index.csp page.
 
 ### Features
 <table>
