@@ -796,6 +796,13 @@ Method RequireAuthorization() As %Status
     set authKey = ..Read(, .status, ..#authorizationTimeout) // wait for package
     set ok = $$$NOTOK
     
+    set namespace = ""
+    set pos = $FIND(authKey, "#")
+    if pos '= 0 {
+        set namespace = $EXTRACT(authKey, pos, *)
+        set authKey = $EXTRACT(authKey, 1, pos-2)
+    }
+    
     /*
      * Find given CSPSessionCookie in session list. If found, grant access.
      */
@@ -815,6 +822,12 @@ Method RequireAuthorization() As %Status
                     do ..SendData($SYSTEM _ ":" _ user, ..ConstClientLoginInfo)
                 } else {
                     do ..SendData("!", ..ConstClientLoginInfo)
+                }
+                
+                if (namespace '= "") {
+                    try {
+                        zn namespace
+                    } catch (e) { }
                 }
                 
                 set ok = loginStatus

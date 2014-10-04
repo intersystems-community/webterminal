@@ -17,3 +17,9 @@ Contributing
     3. Find build/CWTWebSource.xml file and import it to the studio.
 3. By making changes in studio files (*.cls, *.mac) just copy source code into appropriate files in repository.
 4. If you commented line as the first step says, DO NOT FORGET to uncomment it.
+
+## Applications Integration
+If you want to integrate WebTerminal with your application, follow the next tips & tricks:
+   * An <code>NS</code> parameter of GET request can set default namespace. For example, URL <code>../WebTerminal/index.csp?NS=USER</code> will open terminal in USER namespace.
+   * In order to use IFrame to insert terminal on page, you may need to add <code>sandbox="allow-same-origin allow-scripts"</code> attribute to IFrame tag to enable storage and scripts which are required.
+   * To get latest version of terminal, you can parse [latestVersion](http://intersystems-ru.github.io/webterminal/latestVersion) file which is always available on WEB and then request XML to import from <code>http://intersystems-ru.github.io/webterminal/files/WebTerminal-<b>{FILE PART}</b>.xml</code>.

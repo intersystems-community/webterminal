@@ -17,7 +17,7 @@
 </CSPBase64>
 
 
-<CSP name="index.CSP" application="/csp/sys/webterminal/"><![CDATA[
+<CSP name="index.csp" application="/csp/sys/webterminal/"><![CDATA[
 <!-- @echo INDEX_CSP -->]]></CSP>
 
 

@@ -39,7 +39,8 @@
  *
  * @param setting {{
  *     controller: TerminalController,
- *     [container]: HTMLElement
+ *     [container]: HTMLElement,
+ *     defaultNamespace: string
  * }}
  */
 var Terminal = function (setting) {
@@ -92,6 +93,7 @@ var Terminal = function (setting) {
     this.autocomplete = new TerminalAutocomplete();
 
     this.SETUP = {
+        defaultNamespace: setting["defaultNamespace"] || "",
         controller: setting["controller"] || new TerminalController(this),
         container: setting["container"] || document.body,
         authKey: setting["authKey"] || null

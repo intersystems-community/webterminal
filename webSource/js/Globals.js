@@ -65,12 +65,16 @@ var AJAX = new function() {
  * Initialization function. Exported after build.
  *
  * @param {string} authKey
+ * @param {string} namespace
  */
-this.createTerminal = function (authKey) {
+this.createTerminal = function (authKey, namespace) {
+
+    console.log(namespace);
 
     return new Terminal({
         container: document.body,
-        authKey: authKey || null
+        authKey: authKey || null,
+        defaultNamespace: namespace
     });
 
 };

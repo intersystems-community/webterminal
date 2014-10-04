@@ -135,11 +135,11 @@ CacheWebTerminalServer.prototype.send = function (string) {
  */
 CacheWebTerminalServer.prototype.onConnect = function () {
 
-    var key;
+    var key, ns;
 
     this.CONTROLLER.TERMINAL.output.print(this._lc.get(2) + "\r\n");
     if (key = this.CONTROLLER.TERMINAL.SETUP["authKey"]) {
-        this.send(key);
+        this.send(key + ((ns = this.CONTROLLER.TERMINAL.SETUP.defaultNamespace) ? "#" + ns : ""));
     }
 
 };
