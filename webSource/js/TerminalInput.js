@@ -226,7 +226,7 @@ TerminalInput.prototype.getCurrentAutocompleteVariant = function () {
 TerminalInput.prototype._changeAutocompleteVariant = function (delta) {
 
     this._currentAutocompleteVariant = (this._currentAutocompleteVariant + delta)
-        % this._autocompleteVariants.length;
+        % this._autocompleteVariants.length || 0;
     if (this._currentAutocompleteVariant < 0) this._currentAutocompleteVariant
         += this._autocompleteVariants.length;
     this._updateAutocompleteView();
@@ -242,6 +242,8 @@ TerminalInput.prototype._changeAutocompleteVariant = function (delta) {
 TerminalInput.prototype._updateAutocompleteView = function () {
 
     var variant = this.getCurrentAutocompleteVariant();
+
+    console.log(variant, this._autocompleteHint);
 
     if (!variant) {
         this._autocompleteHint.hide();
