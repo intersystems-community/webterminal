@@ -119,7 +119,6 @@ module.exports = function(grunt) {
         uglify: {
             options: {
                 wrap: "terminal",
-                onlyASCII: true,
                 maxLineLen: 5000,
                 ASCIIOnly: true
             },

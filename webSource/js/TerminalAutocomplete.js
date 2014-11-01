@@ -143,6 +143,9 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
 
     string = string.substr(string.length - MAX_LENGTH, MAX_LENGTH);
 
+    // skip strings
+    if ((string.match(/"/g) || []).length % 2 === 1) return [];
+
     for (i in this.TYPES) {
         matcher = this.TYPES[i].regExp || this.TYPES.common.regExp;
         trieString = (string.match(matcher) || []).slice(1).join("\n");
