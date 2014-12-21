@@ -138,8 +138,9 @@ TerminalInput.prototype.set = function (text) {
 
     element.value = text;
     length = element.value.length;
+    this.setCaretPosition(length);
+    //setTimeout(function() { _._onInput(); }, 1);
     this._onInput();
-    setTimeout(function() { element.setSelectionRange(length, length); }, 1);
 
 };
 
