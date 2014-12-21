@@ -69,12 +69,23 @@ var AJAX = new function() {
  */
 this.createTerminal = function (authKey, namespace) {
 
-    console.log(namespace);
+    var term;
 
-    return new Terminal({
+    term = new Terminal({
         container: document.body,
         authKey: authKey || null,
         defaultNamespace: namespace
     });
+
+    // fix for not active input on terminal window (fix placed here, because whole terminal app
+    // can be embedded into another app and input focus can cause by-effect)
+    window.addEventListener("keydown", function (e) {
+        if (!e.ctrlKey && !e.shiftKey && !e.altKey
+            && term.elements.input !== document.activeElement) {
+            term.input.focus();
+        }
+    });
+
+    return term;
 
 };
