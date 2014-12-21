@@ -75,7 +75,6 @@ var TerminalInput = function (TERMINAL) {
      * Shows the input beginning position.
      *
      * @type {{line: number, position: number}}
-     * @private
      */
     this.INITIAL_POSITION = {
         line: 0,
@@ -133,13 +132,10 @@ TerminalInput.prototype.focus = function () {
  */
 TerminalInput.prototype.set = function (text) {
 
-    var element = this.TERMINAL.elements.input,
-        length;
+    var element = this.TERMINAL.elements.input;
 
     element.value = text;
-    length = element.value.length;
-    this.setCaretPosition(length);
-    //setTimeout(function() { _._onInput(); }, 1);
+    this.setCaretPosition(element.value.length);
     this._onInput();
 
 };
@@ -229,7 +225,7 @@ TerminalInput.prototype._changeAutocompleteVariant = function (delta) {
     this._currentAutocompleteVariant = (this._currentAutocompleteVariant + delta)
         % this._autocompleteVariants.length || 0;
     if (this._currentAutocompleteVariant < 0) this._currentAutocompleteVariant
-        += this._autocompleteVariants.length;
+        += this._autocompleteVariants.length || 0;
     this._updateAutocompleteView();
 
 };
@@ -262,6 +258,7 @@ TerminalInput.prototype._updateAutocompleteView = function () {
 TerminalInput.prototype.clearAutocompleteVariants = function () {
 
     this._autocompleteVariants = [];
+    this._currentAutocompleteVariant = 0;
 
 };
 
@@ -290,6 +287,7 @@ TerminalInput.prototype._onInput = function () {
             this.TERMINAL.autocomplete.getEndings(
                 value.substring(0, this.getCaretPosition())
             );
+        this._changeAutocompleteVariant(0);
     }
 
     this.TERMINAL.output.printAtLine(

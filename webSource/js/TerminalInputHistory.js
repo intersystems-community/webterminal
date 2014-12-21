@@ -40,9 +40,13 @@ TerminalInputHistory.prototype.initialize = function () {
         if (event.keyCode === 38) { // UP
             _this.seek(-1);
             _this.INPUT.set(_this.getCurrent());
+            event.preventDefault();
+            event.cancelBubble();
         } else if (event.keyCode === 40) { // DOWN
             _this.seek(1);
             _this.INPUT.set(_this.getCurrent());
+            event.preventDefault();
+            event.cancelBubble();
         }
     });
 

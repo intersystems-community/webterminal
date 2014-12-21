@@ -61,7 +61,7 @@ TerminalAutocomplete.prototype.TYPES = {
     },
     subclass: {
         regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)\)\.(%?[a-zA-Z]*[a-zA-Z0-9]*)$/,
-        priority: 1
+        priority: 2
     },
     globals: {
         regExp: /\^(%?[a-z0-9A-Z]*)/
@@ -141,10 +141,13 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
 
         MAX_LENGTH = 60; // limit the AC length for performance reasons
 
-    string = string.substr(string.length - MAX_LENGTH, MAX_LENGTH);
-
-    // skip strings
+    // skip autocomplete in strings
     if ((string.match(/"/g) || []).length % 2 === 1) return [];
+
+    string = string.substr(
+        Math.max(string.length - MAX_LENGTH, 0),
+        Math.min(MAX_LENGTH, string.length)
+    );
 
     for (i in this.TYPES) {
         matcher = this.TYPES[i].regExp || this.TYPES.common.regExp;
@@ -154,7 +157,7 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
                 variants = {};
                 priority = this.TYPES[i].priority;
                 this._appendEndings(variants, trieString, this.TYPES[i]);
-            } else if (this.TYPES[i].priority || 0 === priority) {
+            } else if ((this.TYPES[i].priority || 0) === priority) {
                 this._appendEndings(variants, trieString, this.TYPES[i]);
             } // else do not append
         }
