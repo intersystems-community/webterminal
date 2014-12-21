@@ -41,12 +41,12 @@ TerminalInputHistory.prototype.initialize = function () {
             _this.seek(-1);
             _this.INPUT.set(_this.getCurrent());
             event.preventDefault();
-            event.cancelBubble();
+            event.cancelBubble = true;
         } else if (event.keyCode === 40) { // DOWN
             _this.seek(1);
             _this.INPUT.set(_this.getCurrent());
             event.preventDefault();
-            event.cancelBubble();
+            event.cancelBubble = true;
         }
     });
 
