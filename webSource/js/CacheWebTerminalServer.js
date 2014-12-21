@@ -78,7 +78,7 @@ CacheWebTerminalServer.prototype.initialize = function () {
     };
 
     this.socket.onmessage = function (event) {
-        console.log("server >> ", event.data);
+        //console.log("server >> ", event.data);
         _this.CONTROLLER.serverData(event.data);
     };
 
@@ -121,7 +121,7 @@ CacheWebTerminalServer.prototype.getAutocompleteFile = function (namespace, call
 CacheWebTerminalServer.prototype.send = function (string) {
 
     try {
-        console.log("server << ", string);
+        //console.log("server << ", string);
         this.socket.send(string);
     } catch (e) {
         this.CONTROLLER.TERMINAL.output.print(this._lc.get(3) + "\r\n");

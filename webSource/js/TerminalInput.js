@@ -243,8 +243,6 @@ TerminalInput.prototype._updateAutocompleteView = function () {
 
     var variant = this.getCurrentAutocompleteVariant();
 
-    console.log(variant, this._autocompleteHint);
-
     if (!variant) {
         this._autocompleteHint.hide();
         return;
