@@ -224,7 +224,7 @@ ReadError
 ReadHalt
     Halt
 
-/// Workaround for Caché 2015
+/// Workaround for Cache 2015
 #define WSProtocol (##class(%Dictionary.CompiledProperty).%OpenId("%CSP.WebSocket||WSClassProtocolVersion"))
 WriteMessage(data, data1, head)
     if ($$$WSProtocol) && ($$$WSProtocol.InitialExpression > 1) {
@@ -459,7 +459,7 @@ ClassMethod GetJSAutocompleteFilePath(namespace As %String) As %String
     set data = ##class(%Library.File).SubDirectoryName(data,
         $ZCONVERT($REPLACE("%SYS", "%", ""), "l")
     )
-    set data = ##class(%Library.File).SubDirectoryName(data, "WebTerminal")
+    set data = ##class(%Library.File).SubDirectoryName(data, "webterminal")
     set data = ##class(%Library.File).SubDirectoryName(data, "js")
     set data = ##class(%Library.File).SubDirectoryName(data, "autocomplete")
     set data = ##class(%Library.File).SubDirectoryName(data, namespace _ ".js")
