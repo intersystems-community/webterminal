@@ -701,7 +701,7 @@ Method Update(version) As %Status
     set httprequest = ##class(%Net.HttpRequest).%New()
     set httprequest.Server = "intersystems-ru.github.io"
     do ..SendData("34", ..ConstClientOutputLocalized)
-    do ..SendData("http://intersystems-ru.github.io/webterminal/files/WebTerminal-"
+    do ..SendData(" http://intersystems-ru.github.io/webterminal/files/WebTerminal-"
         _ version _ ".xml ")
     do httprequest.Get("/webterminal/files/WebTerminal-" _ version _ ".xml")
     if (httprequest.HttpResponse.StatusCode '= 200) {
@@ -712,35 +712,10 @@ Method Update(version) As %Status
     do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m")
     if ($isobject(httprequest.HttpResponse.Data)) {
         do ..SendData($C(13,10))
-        set data = ""
-        set path = ##class(%Library.File).SubDirectoryName(
-            ##class(%Library.File).ManagerDirectory(), "temp"
-        )
-        set filepath = ##class(%Library.File).SubDirectoryName(
-            path, "terminal_update.temp.xml"
-        )
         do ..SendData("35", ..ConstClientOutputLocalized)
-        do ..SendData($C(13, 10))
-        set file = ##class(%File).%New(filepath)
-        do file.Open("W")
-        do file.CopyFrom(httprequest.HttpResponse.Data)
-        do file.Close()
-        do ..SendData("36", ..ConstClientOutputLocalized)
-        do ..SendData($C(13, 10))
-        set error = 0
-        do ..StartClearIO()
-        do $System.OBJ.ImportDir(path, "terminal_update.temp.xml", "ckbud", .error, 1)
-        do ..EndClearIO()
-        if (error = 0) {
-            do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m" _ $C(13,10))
-        } else {
-            do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m" _ $C(13,10))
-        }
-        do ..SendData("37", ..ConstClientOutputLocalized)
-        if (##class(%Library.File).Delete(filepath) = 1) {
-            do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m" _ $C(13,10))
-        } else {
-            do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m" _ $C(13,10))
+        do $system.OBJ.LoadStream(httprequest.HttpResponse.Data,"",.error,.items)
+        if (error) {
+            do ..SendData($C(27)_"[31mFAILED" _ $C(27) _ "[0m" _ $C(13,10))
             quit $$$NOTOK
         }
     }

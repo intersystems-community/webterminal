@@ -258,14 +258,14 @@ var TerminalLocalization = function (TERMINAL) {
             ru: "Запрос"
         },
         35: {
-            en: "Reading file...",
-            ru: "Чтение файла..."
+            en: "Updating terminal... Connection will be lost, so just reload terminal.",
+            ru: "Обновление терминала... Соединение будет разорвано, потому просто перезагрузите терминал."
         },
-        36: {
+        36: { // free
             en: "Importing and compiling files...",
             ru: "Импортирование и компиляция файлов..."
         },
-        37: {
+        37: { // free
             en: "Clearing temporary files...",
             ru: "Очистка временных файлов..."
         },
