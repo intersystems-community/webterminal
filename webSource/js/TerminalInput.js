@@ -384,6 +384,7 @@ TerminalInput.prototype.submit = function () {
         this._handler = null;
         handler.call(this, value);
     } else {
+        this.TERMINAL.autocomplete.parseForCacheTokens(value);
         this.TERMINAL.controller.terminalQuery(value);
     }
     this._updateAutocompleteView();

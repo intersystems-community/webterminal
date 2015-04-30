@@ -713,6 +713,7 @@ Method Update(version) As %Status
     if ($isobject(httprequest.HttpResponse.Data)) {
         do ..SendData($C(13,10))
         do ..SendData("35", ..ConstClientOutputLocalized)
+        do ..SendData($C(13,10))
         do $system.OBJ.LoadStream(httprequest.HttpResponse.Data,"",.error,.items)
         if (error) {
             do ..SendData($C(27)_"[31mFAILED" _ $C(27) _ "[0m" _ $C(13,10))

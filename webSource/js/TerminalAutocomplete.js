@@ -176,7 +176,9 @@ TerminalAutocomplete.prototype.getEndings = function (string) {
 };
 
 /**
- * @param {TerminalAutocomplete.prototype.TYPES} type
+ * Register new autocomplete variant.
+ *
+ * @param type - TerminalAutocomplete.TYPES.*
  * @param {string} lexeme
  * @param {string|undefined} [namespace] - If set to undefined, lexeme will be registered in global
  *                                         namespace.
@@ -188,8 +190,6 @@ TerminalAutocomplete.prototype.register = function (type, lexeme, namespace, par
             ? this._namespaceTries[namespace] || (this._namespaceTries[namespace] = {})
             : this._trie,
         i;
-
-    //console.log("Registering", lexeme, "in", namespace || "%", "withing", parents);
 
     if (parents) {
         lexeme = (parents || []).join("\n") + "\n" + lexeme;
@@ -204,5 +204,68 @@ TerminalAutocomplete.prototype.register = function (type, lexeme, namespace, par
     }
 
     level["\n"] = { type: type };
+
+};
+
+/**
+ * @param {string} lexeme
+ * @param {string} [namespace]  - If set to undefined, lexeme will be registered in global
+ *                                namespace.
+ * @param {string[]} [parents] - Parents to which child was appended.
+ */
+TerminalAutocomplete.prototype.clear = function (lexeme, namespace, parents) {
+
+    var level = namespace
+            ? this._namespaceTries[namespace] || (this._namespaceTries[namespace] = {})
+            : this._trie,
+        i;
+
+    if (parents) {
+        lexeme = (parents || []).join("\n") + "\n" + lexeme;
+    }
+
+    for (i = 0; i < lexeme.length; i++) {
+        if (level.hasOwnProperty(lexeme[i])) {
+            level = level[lexeme[i]];
+        } else {
+            level = level[lexeme[i]] = {};
+        }
+    }
+
+    if (level.hasOwnProperty("\n") && level["\n"].type) {
+        delete level["\n"].type;
+    }
+
+};
+
+TerminalAutocomplete.prototype.parseForCacheTokens = function (string) {
+
+    string = " " + string + "  "; // keep two spaces
+
+    var re = new RegExp(
+            "[\\s\\{](set|s)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))\\s*=",
+            "ig"
+        ),
+        result = re.exec(string);
+
+    if (result && result[2]) {
+        if (result[2].charAt(0) === "^") {
+            this.register(this.TYPES.globals, result[2].substr(1), this.NAMESPACE);
+        } else {
+            this.register(this.TYPES.common, result[2], this.NAMESPACE);
+        }
+    }
+
+    re = new RegExp(
+        "[\\s\\{](k|kill)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))[\\s\\}]",
+        "ig"
+    );
+    result = re.exec(string);
+
+    if (result && result[2]) {
+        if (result[2].charAt(0) === "^") {
+            this.clear(result[2].substr(1), this.NAMESPACE);
+        } else this.clear(result[2], this.NAMESPACE);
+    }
 
 };
