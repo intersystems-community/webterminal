@@ -64,12 +64,14 @@ var AJAX = new function() {
 /**
  * Initialization function. Exported after build.
  *
- * @param {string} authKey
+ * @param {string} [authKey]
  * @param {string} namespace
  */
-this.createTerminal = function (authKey, namespace) {
+window.createTerminal = function (authKey, namespace) {
 
     var term;
+
+    console.log(authKey, namespace);
 
     term = new Terminal({
         container: document.body,
