@@ -7,10 +7,11 @@ Contributing
 
 ## Building tips
 0. Ensure that you have NodeJS (npm) installed, and executed the following:
-    * <code>npm install</code> (to install all required dependencies).
+    1. <code>npm install</code> (to install all required dependencies).
 1. To test your changes in sources without exporting:
     1. Comment/replace <code>$$$ISOK(..RequireAuthorization())</code> in %WebTerminal.Engine studio class;
-    2. Open <code>index.html</code> file from local server (execute `node localServer/run.js`). You may also need to change the debug port 57772 in TerminalController.js. 
+    2. Open <code>index.html</code> file from local server (execute `node localServer/run.js`). You may also need to change the debug port 57772 in TerminalController.js.
+    3. OR, just build & import terminal application into Cach? each time you make change.
 2. After changes tested, export the project to studio:
     1. Run <code>gulp</code> command to build the project;
     3. Find build/CacheWebTerminal-v*.xml file and import it to the studio.

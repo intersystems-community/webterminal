@@ -10,16 +10,19 @@ var gulp = require("gulp"),
 
     pkg = require("./package.json"),
     source = "webSource",
-    buildTo = "build2";
+    buildTo = "build";
 
-var themes = fs.readdirSync("./" + buildTo + "/web/css/terminal-theme");
+var themes = [],
+    extra = {
+        themes: ""
+    };
 
-var extra = {
-    themes:
-        themes.map(function (n) {
-            return ', "' + n.replace(/\..*$/, "") + '": "css/terminal-theme/' + n + '"';
-        }).join("")
-};
+function readyToExport () { // triggered when build is done
+    themes = fs.readdirSync("./" + buildTo + "/web/css/terminal-theme");
+    extra.themes = themes.map(function (n) {
+        return ', "' + n.replace(/\..*$/, "") + '": "css/terminal-theme/' + n + '"';
+    }).join("")
+}
 
 var specialReplace = function () {
     return replace(/[^\s]*\/\*build\.replace:(.*)\*\//g, function (part, match) {
@@ -81,6 +84,7 @@ gulp.task("copy-export", ["clean"], function () {
 });
 
 gulp.task("export", ["copy-html", "copy-js", "copy-css-themes", "copy-css-basic" ], function () {
+    readyToExport();
     return gulp.src("export/template.xml")
         .pipe(specialReplace())
         .pipe(replace(
