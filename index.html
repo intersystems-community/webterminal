@@ -9,9 +9,16 @@
         <link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" type="text/css" href="css/main.css" media="screen"/>
         <link rel="stylesheet" type="text/css" href="css/content.css" media="screen"/>
+        <script type="text/javascript">
+            function init () {
+                [].slice.call(document.querySelectorAll("#downloadLinks a")).forEach(function (l) {
+                    l.setAttribute("download", l.textContent.replace(/\s+/g, " "));
+                });
+            }
+        </script>
     </head>
 
-    <body>
+    <body onload="init();">
         <div class="pageBody">
             <div class="pageHeader">
                 Caché Web Terminal <sup class="rainbowText">v3 is coming soon!</sup>
@@ -62,12 +69,21 @@
             <div class="pageLayout" id="downloads">
                 <h1 class="center">Downloads</h1>
                 <p>
-                    Use better <code>/update</code> command (CWTv2 only) to update terminal application.
+                    Use better <b>/update</b> terminal command (from CWT v2.0 only) to update terminal application.
                 </p>
-                <p>
-                    Also, here is the list of stable builds ready to install (right click, download as):
-                </p>
-                <ul>
+                <ul id="downloadLinks">
+                    <h2>Actual Versions:</h2>
+                    <li>
+                        <a href="files/WebTerminal-3.0.0-alpha.5.xml">Caché Web Terminal
+                            v3.0.0-alpha.5</a> - Caché WEB Terminal now RESTful! Minor fixes also included. This is a <b>test release.</b>
+                    </li>
+                    <h3>Versions 1-2.* to 3.* Migration Note</h3>
+                    <p>
+                        After version 3.0 <u>successful</u> install, please, remove <b>/csp/sys/webterminal</b> directory
+                        manually - these files won't work anymore. Now use <b>http://[host]:[port]/terminal/</b>
+                        WEB application (slash at the end of the URL is required).
+                    </p>
+                    <h2>Old Versions:</h2>
                     <li>
                         <a href="files/WebTerminal-2.0.0-beta.8.xml">Caché Web Terminal
                             v2.0.0-beta.8</a> - fixed local autocomplete for set/kill commands
@@ -102,7 +118,7 @@
                     <li>
                         <a href="files/WebTerminal-2.0.0-beta.xml">Caché Web Terminal v2.0.0-beta</a>
                     </li>
-                    <div><br/>Older versions:</div>
+                    <h2>Very Old Versions:</h2>
                     <li>
                         <a href="files/WebTerminal-2.0.0-alpha.1.xml">Caché Web Terminal v2.0.0-alpha.1</a>
                     </li>
@@ -164,26 +180,40 @@
 		<h2>Installation</h2>
                 <img src="img/logos.png" style="width: 300px" class="imgFloatRight"/>
 		        <p>
-                    Just import xml to <b class="warn">%SYS</b> namespace.
-                    Do not place /csp/ files in other namespace. Also, setup /csp/sys/WebTerminal
-                    application manually to enable security barriers.
+                    Just import xml file to <b class="warn">%SYS</b> namespace.
+                </p>
+                <p>
+                    Importing %WebTerminal.Installer class will also create /terminal WEB-application. (since version 3.0)
+                    The WEB-application will be protected with a password authorization by default.
                 </p>
                 <h2>Usage</h2>
                 <p>
-                    Open imported <b>index.csp</b> file. It must locate near
-                    <b>http://[host]:[port]/csp/[namespace]/WebTerminal/index.csp</b>
+                    Open <b>http://[host]:[port]/terminal/</b> (slash at end is required!).
+                </p>
+                <b>For Terminal Versions Under 3.0:</b>
+                <p>
+                    Open <b>http://[host]:[port]/csp/sys/webterminal/index.csp</b>.
                 </p>
                 <h2>Ensure that:</h2>
                 <ul>
-                    <li>Your <b class="warn">Caché version at least 2013.1</b> (WebSockets support)</li>
-                    <li>You have write permissions to %CACHELIB database (to install or update terminal)</li>
-                    <li class="warn">Anyone who is able to authorize to index.csp will have full control
-                    under your server!</li>
+                    <li>Your <b class="warn">Caché version at least 2013.1</b> (WebSockets support);</li>
+                    <li>You have write permissions to %CACHELIB database (to install or update terminal);
+                        <a href="http://stackoverflow.com/questions/34183646/how-to-enable-write-access-to-cachelib-database" target="_blank">How to enable?</a></li>
+                    <li class="warn">Anyone who is able to authorize on /terminal/ web application
+                        (index.csp page for terminal versions before 3.0) will have full control
+                    under your machine!</li>
                 </ul>
             </div>
 
             <div class="pageLayout" id="history">
                 <h1 class="center">Changelog</h1>
+                <h1>v 3.0.0-alpha.5</h1>
+                <ul>
+                    <li>Now WebTerminal is a RESTful application. User <b>/terminal/</b> WEB application</li>
+                    <li>Authorization enhance</li>
+                    <li>Build system change</li>
+                    <li>Some minor fixes</li>
+                </ul>
                 <h1>v 2.0.0-beta.7</h1>
                 <ul>
                     <li>Lots of fixes reported by CWT users:</li>
