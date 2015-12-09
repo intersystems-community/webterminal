@@ -848,8 +848,11 @@ This method transforms error </Description>
         do ..SendData($C(13,10))
         do ..SendData("35", ..ConstClientOutputLocalized)
         do ..SendData($C(13,10))
-        do $system.OBJ.LoadStream(httprequest.HttpResponse.Data,"",.error,.items)
-        if (error) {
+        set stload = $system.OBJ.LoadStream(httprequest.HttpResponse.Data,"",.error,.items)
+        if $$$ISERR(stload) { do ..SendData(System.Status.GetErrorText(stload)) quit $$$NOTOK }
+        set st2 = $system.OBJ.CompileList(.items)
+        if $$$ISERR(st2) { do ..SendData(System.Status.GetErrorText(st2)) quit $$$NOTOK }
+        if $$$ISERR(error) {
             do ..SendData($C(27)_"[31mFAILED" _ $C(27) _ "[0m" _ $C(13,10))
             quit $$$NOTOK
         }
