@@ -86,8 +86,8 @@
 }
 
 .terminalContainer .terminalIndicator {
-    position: absolute !important;
-    right: -7px;
+    position: fixed !important;
+    right: 13px;
     top: 7px;
     border: 3px solid #fff;
     border-radius: 30px;
