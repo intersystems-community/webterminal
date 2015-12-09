@@ -1,6 +1,10 @@
 /**
  * Terminal themes controller.
  *
+ * Any new styles can be added in the next way:
+ *  1. Create CSS file in the following path: webSource/css/terminal-theme/THEME_NAME.css
+ *  2. Build project and test.
+ *
  * @param {Terminal} TERMINAL
  * @constructor
  */
@@ -13,8 +17,8 @@ var TerminalTheme = function (TERMINAL) {
 
     this.AVAILABLE_THEMES = {
         "": "", // also default - keep
-        "default": "",
-        "cache": "css/terminal-theme-cache.css"
+        "default": "" // , "cache": "css/terminal-theme-cache.css"
+        /**//*build.replace:extra.themes*/
     };
 
     /**
@@ -68,13 +72,6 @@ TerminalTheme.prototype.getAvailableList = function () {
 
 /**
  * Set theme of the terminal.
- *
- * Any new styles can be added in the next way:
- *  1. Create CSS file in the following path: webSource/css/terminal-theme-THEME_NAME.css
- *  2. Add file to build: modify Gruntfile.js (ConCat task and export)
- *  3. Add file to export: create sign in /export/exportTemplate.xml
- *  4. Add sign to the AVAILABLE_THEMES constant.
- *  5. Build project and test.
  *
  * @param {string} themeName
  * @returns {boolean}

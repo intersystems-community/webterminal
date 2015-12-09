@@ -3,11 +3,14 @@
   "title": "Cache WEB Terminal",
   "description": "Web-based terminal emulator for Caché administering.",
   "author": "ZitRo",
-  "version": "3.0.0-alpha.1",
-  "releaseNumber": "10",
+  "version": "3.0.0-alpha.2",
+  "releaseNumber": 11,
   "repository": {
     "type": "git",
     "url": "https://github.com/intersystems-ru/webterminal.git"
+  },
+  "scripts": {
+    "test": "node localServer/run.js"
   },
   "devDependencies": {
     "express": "^4.13.3",

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<Class name="WebTerminal.Engine">
+<Class name="%WebTerminal.Engine">
 <Description>
-Caché WEB Terminal vX.X.X/*build.replace:pkg.version*/
-The core of Cache WebTerminal application.</Description>
+Cache WEB Terminal vX.X.X/*build.replace:pkg.version*/
+This class is the core of web terminal application.</Description>
 <Super>%CSP.WebSocket,%Library.Routine</Super>
-<TimeCreated>63890,76705.989029</TimeCreated>
+<TimeCreated>63891,56786.028532</TimeCreated>
 
 <UDLText name="T">
 <Content><![CDATA[
@@ -274,15 +274,15 @@ TSS d TSS^%X364 q
 VPA(%1) d VPA^%X364(%1) q
 VPR(%1) d VPR^%X364(%1) q
 VTS d VTS^%X364 q
-    
+
 PrepareOutput(data)
     Try { Set data=$zconvert(data, "O", "UTF8") } Catch {  }
     quit data
-    
+
 PrepareInput(data)
     Try { Set data=$zconvert(data, "I", "UTF8") } Catch {  }
     quit data
-    
+
 /// Routine from %CSP.WebSocket.cls
 ReadMessage(len = 32656, timeout = 86400, BytesAvailable, AtEnd, data, data1, header, size, type)
     Set $ZTrap="ReadError"
@@ -328,7 +328,7 @@ ReadData
     Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
     Set len=$Length(data1)
     Quit data1
-ReadError   
+ReadError
     #; No interrupts during cleanup or error processing
     $$$SetExternalInterrupts(0)
     Set $ZTrap="ReadHalt"
@@ -349,7 +349,7 @@ WriteMessage(data, data1, head)
         write $$PrepareOutput(data), *-3
     }
     quit
-    
+
 //////////////////////////////////////////////
 
 wstr(s)
@@ -360,7 +360,7 @@ wstr(s)
     set $Y = $Y - 1
     quit
 
-wchr(c) 
+wchr(c)
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("O#"_$c(c))
     do ##class(%Device).ReDirectIO($$$YES)
@@ -368,35 +368,35 @@ wchr(c)
     set $Y = $Y - 1
     quit
 
-wnl 
+wnl
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("O#"_$c(13, 10))
     do ##class(%Device).ReDirectIO($$$YES)
     set $X = 0
     quit
 
-wff 
+wff
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("CLRSCR#")
     do ##class(%Device).ReDirectIO($$$YES)
     set $Y = 0
     set $X = 0
     quit
-    
+
 wtab(s)
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("O#" _ $C(27) _ "[" _ (s + 1) _ "G")
     do ##class(%Device).ReDirectIO($$$YES)
     set $X = s
     quit
-    
+
 rstr(len = 32656, timeout = 86400, data)
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("R#" _ len)
     s data = $$ReadMessage(len, timeout)
     do ##class(%Device).ReDirectIO($$$YES)
     quit data
-    
+
 rchr(timeout = 86400, data)
     do ##class(%Device).ReDirectIO($$$NO)
     do WriteMessage("RC#")
@@ -426,7 +426,7 @@ Returns status of this operation</Description>
     set s = $CHAR(0)
     set watches = s _ $LISTTOSTRING(..Watches, s) _ s
     if ($FIND(watches, s_name_s) '= 0) q 0 // if watch already defined
-    
+
     if ($EXTRACT(name,1,1) = "^") { // watching global
         s g = 0
         try {
@@ -450,7 +450,7 @@ Returns status of this operation</Description>
             q 1
         }
     }
-    
+
     q 0
 ]]></Implementation>
 </Method>
@@ -522,14 +522,14 @@ This method watches only for tail of global and detects if global still alive</D
     set modDate = file.DateModified
     set output = ""
     if (size < 0) { // file had been deleted
-         
+
         do ..StopTracing(watch)
         q "removed"
-        
+
     }
-    
+
     if (size > ..WatchesCaret(watch, 0)) {
-        
+
         set output = "updated" _ $CHAR(13, 10)
         set stream=##class(%Stream.FileBinary).%New()
         set sc=stream.LinkToFile(watch)
@@ -538,14 +538,14 @@ This method watches only for tail of global and detects if global still alive</D
         set output=output_readed
         set ..WatchesCaret(watch, 0) = size
         set ..WatchesCaret(watch, 1) = file.DateModified
-        
+
     } elseif ((size < ..WatchesCaret(watch, 0)) || (file.DateModified '= ..WatchesCaret(watch, 1))) {
-        
+
         set output = "modified" _ $CHAR(13, 10)
         set output = output _ "Bytes changed: " _ (size - ..WatchesCaret(watch, 0))
         set ..WatchesCaret(watch, 0) = size
         set ..WatchesCaret(watch, 1) = file.DateModified
-        
+
     } // else file not changed
     q output
 ]]></Implementation>
@@ -566,7 +566,7 @@ This method watches only for tail of global and detects if global still alive</D
         }
         if (data '= "") {
             set overal = $ZDATETIME($NOW(),1,1) _ " " _
-            value _ ": " _ data _ $CHAR(10) 
+            value _ ": " _ data _ $CHAR(10)
         }
         set data = ""
     }
@@ -589,14 +589,14 @@ This method watches only for tail of global and detects if global still alive</D
 <Implementation><![CDATA[
     set data = ##class(%Library.File).ManagerDirectory()
     set data = ##class(%Library.File).ParentDirectoryName(data)
-    
+
     set dataTest = ##class(%Library.File).SubDirectoryName(data, "CSP")
     if (##class(%Library.File).DirectoryExists(dataTest)) {
         set data = ##class(%Library.File).SubDirectoryName(data, "CSP")
     } else {
         set data = ##class(%Library.File).SubDirectoryName(data, "csp")
     }
-    
+
     set data = ##class(%Library.File).SubDirectoryName(data,
         $ZCONVERT($REPLACE("%SYS", "%", ""), "l")
     )
@@ -604,7 +604,7 @@ This method watches only for tail of global and detects if global still alive</D
     set data = ##class(%Library.File).SubDirectoryName(data, "js")
     set data = ##class(%Library.File).SubDirectoryName(data, "autocomplete")
     set data = ##class(%Library.File).SubDirectoryName(data, namespace _ ".js")
-    
+
     quit data
 ]]></Implementation>
 </Method>
@@ -634,11 +634,11 @@ This method watches only for tail of global and detects if global still alive</D
         set out = out _ """" _ $Piece(rset.GetData(1),"(",1) _ """:0,"
     }
     set out = $EXTRACT(out,1,$LENGTH(out)-1) _ "}"
-    
+
     // todo:
     // Set Rset = ##class(%Library.ResultSet).%New("%SYS.GlobalQuery:NameSpaceListChui")
     // s Status=Rset.Execute(NameSpace,Mask,SystemGlobals,.UnavailableDatabases)
-    
+
     q out
 ]]></Implementation>
 </Method>
@@ -653,40 +653,40 @@ system classes generates one time and forever.
 <FormalSpec>namespace:%String,genSystem:%Boolean</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-    
+
     if (genSystem) {
         set filename = ..GetJSAutocompleteFilePath("%")
     } else {
         set filename = ..GetJSAutocompleteFilePath(namespace)
     }
-    
+
     do ..SendData("29", ..ConstClientOutputLocalized)
     do ..SendData(" " _ filename _ $C(13, 10))
-    
+
     if ('##class(%SYS.Namespace).Exists(namespace)) {
         do ..SendData("30", ..ConstClientOutputLocalized)
         do ..SendData(" " _ namespace _ $C(13, 10))
         quit $$$NOTOK
     }
-    
+
     if ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
-        
+
         // try to create missed directory
         set result = ##class(%File).CreateDirectoryChain(##class(%File).GetDirectory(filename))
-        
+
         if (result '= 1) {
             do ..SendData("31", ..ConstClientOutputLocalized)
             do ..SendData($C(13, 10))
             quit $$$OK
         }
-        
+
     }
 
     // get all classes names
     set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
     do result.Execute()
-    
-    /*  
+
+    /*
     The next COULD BE IMPROVED FOR SPEED, I beleive.
     Generates compressed JSON string of type:
     {
@@ -707,72 +707,72 @@ system classes generates one time and forever.
         }
     }
     */
-    
+
     do ..SendData($C(13, 10))
     do ..SendData("32", ..ConstClientOutputLocalized)
-    
+
     set file=##class(%File).%New(filename)
     do file.Open("WSN")
-    
+
     // final data generation
     do file.Write("{""class"":{")
     set first = ""
     set u = 1
-    
+
     while (result.Next()) { // forming autocomplete for each class
-    
+
         if (genSystem) '= ($Extract(result.Data("Name"), 1) = "%") {
             continue
         }
-    
+
         set className = result.Data("Name")
-        
+
         do ..SendData($C(27) _ "[30G" _ u)
         s u = u + 1
-        
+
         do file.Write(first _ """" _ className _ """:{")
         if (first = "") set first = ","
-        
+
         set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
-        
+
         set countMethods = cdefs.Methods.Count()
         set countParameters = cdefs.Parameters.Count()
         set countProperties = cdefs.Properties.Count()
         set total = countMethods + countParameters + countProperties
         set current = 0
-        
+
         for i=1:1:countMethods {
             set current = current + 1
             do file.Write("""" _ cdefs.Methods.GetAt(i).Name _ """:0")
             if (current'=total) do file.Write(",")
         }
-        
+
         for i=1:1:countProperties {
             set current = current + 1
             do file.Write("""" _ cdefs.Properties.GetAt(i).Name _ """:0")
             if (current'=total) do file.Write(",")
         }
-        
+
         for i=1:1:countParameters {
             set current = current + 1
             do file.Write("""" _ cdefs.Parameters.GetAt(i).Name _ """:0")
             if (current'=total) do file.Write(",")
         }
-        
+
         do file.Write("}")
-        
+
     }
-    
+
     do file.Write("}")
     if ('genSystem) do file.Write(",""global"":" _ ..getGlobalsJSON())
     do file.Write("}")
     do file.Close()
-    
+
     do ..SendData($C(13, 10))
     do ..SendData("33", ..ConstClientOutputLocalized)
     do ..SendData($C(13, 10))
     //do ..SendData(namespace, ..ConstClientLoadAutocomplete)
-    
+
     quit $$$OK
 ]]></Implementation>
 </Method>
@@ -809,7 +809,7 @@ Function sends data derectly to server with specified action</Description>
 <Implementation><![CDATA[
     do ..StartClearIO()
     do ##class(%Device).ReDirectIO($$$YES)
-    
+
     set tStatement = ##class(%SQL.Statement).%New()
     set qStatus = tStatement.%Prepare(query)
     if qStatus'=1 {
@@ -818,10 +818,10 @@ Function sends data derectly to server with specified action</Description>
         set rset = tStatement.%Execute()
         do rset.%Display()
     }
-    
+
     do ##class(%Device).ReDirectIO($$$NO)
     do ..EndClearIO()
-    
+
     quit $$$OK
 ]]></Implementation>
 </Method>
@@ -832,7 +832,7 @@ Sends to client new namespace if last was changed</Description>
 <Implementation><![CDATA[
     if (..CurrentNamespace '= $Znspace) { // change client namespace
         set ..CurrentNamespace = $Znspace
-        do ..SendData(..CurrentNamespace,..ConstClientChangeNamespace) 
+        do ..SendData(..CurrentNamespace,..ConstClientChangeNamespace)
     }
 ]]></Implementation>
 </Method>
@@ -927,25 +927,25 @@ The heart of terminal application</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
     if (query = "") quit $$$OK
-    
+
     #dim exception as %Exception.AbstractException
     set value = $Replace(query, $CHAR(10), " ")
-    
+
     do ..StartClearIO() // execute session start
-    
+
     set $ZERROR = ""
-    
+
     try { xecute value } catch exception {
         set $ZERROR = exception.DisplayString()
     }
-    
+
     if ($ZERROR '= "") {
         w $ZERROR, *-3
     }
-    
+
     do ..EndClearIO() // execute session end
     do ..ClientAlertNamespace() // check namespace change
-    
+
     quit $$$OK
 ]]></Implementation>
 </Method>
@@ -958,49 +958,51 @@ the client - it includes authorization key.</Description>
 <Implementation><![CDATA[
     set authKey = ..Read(, .status, ..#authorizationTimeout) // wait for package
     set ok = $$$NOTOK
-    
+
     set namespace = ""
     set pos = $FIND(authKey, "#")
     if pos '= 0 {
         set namespace = $EXTRACT(authKey, pos, *)
         set authKey = $EXTRACT(authKey, 1, pos-2)
     }
-    
+
     /*
-     * Find given CSPSessionCookie in session list. If found, grant access.
+     * Find given CSPSessionCookie in WebTerminal auth global. If found, grant access.
      */
-    SET key = $ORDER(^%cspSession(""))
+    SET key = $ORDER(^WebTerminal.AuthUser(""))
     WHILE (key '= "") {
-        set lb = $GET(^%cspSession(key))
-        if (lb '= "") {
-            if ($LISTGET(lb, 8) = authKey) {
-                
-                // setup privileges
-                ZNSPACE $LISTGET(lb, 7) // namespace
-                
-                set user = $LISTGET($LISTGET(lb, 16), 1) // user
-                set loginStatus = ##class(%SYSTEM.Security).Login($LISTGET($LISTGET(lb, 16), 1)) // login user
-                
-                if ($$$ISOK(loginStatus)) { // alert client
-                    do ..SendData($SYSTEM _ ":" _ user, ..ConstClientLoginInfo)
-                } else {
-                    do ..SendData("!", ..ConstClientLoginInfo)
-                }
-                
-                if (namespace '= "") {
-                    try {
-                        zn namespace
-                    } catch (e) { }
-                }
-                
-                set ok = loginStatus
-                QUIT
-                
-            }
+        set lb = $GET(^WebTerminal.AuthUser(key))
+        if ((lb '= "") && (key = authKey)) {
+
+            // setup privileges
+            set username = $LISTGET(lb, 1) // user name
+            do ##class(Security.Users).Get(username, .userProps)
+            continue:($order(userProps("")) = "")
+
+            set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
+            set loginStatus = ##class(%SYSTEM.Security).Login(username) // login user
+
+            kill ^WebTerminal.AuthUser(key)
+
+            set ok = loginStatus
+
         }
-        SET key = $ORDER(^%cspSession(key))
+
+        // kill "old" auth tickets
+        set time = $LISTGET(lb, 2)
+        if (time '= "") && ($SYSTEM.SQL.DATEDIFF("s", time, $h) > 100) { // if older than 100 sec
+            kill ^WebTerminal.AuthUser(key)
+        }
+
+        SET key = $ORDER(^WebTerminal.AuthUser(key))
     }
-    
+
+    if (namespace '= "") {
+        try { // in case user may specify namespace that does not exists
+            znspace namespace
+        } catch (e) {  }
+    }
+
     quit ok
 ]]></Implementation>
 </Method>
@@ -1010,42 +1012,42 @@ the client - it includes authorization key.</Description>
 Main method for every new client.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    
+
     kill // clear junk vars
-    
+
     do ..SendData($NAMESPACE, ..ConstClientPrompt)
-    
+
     for {
-        
+
         set data = ..Read(,.status)
-    
+
         if $$$ISERR(status) {
-       
+
             try {
                 do ..SendData("40", ..ConstClientOutputLocalized)
             } catch e { }
             quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
-            
+
         }
-        
+
         set pos = $FIND(data, "#")
         set action = $EXTRACT(data, 1, pos-2)
         set data = $EXTRACT(data, pos, *)
-            
+
         if (action = ..ConstServerActionExecute) {
-            
+
             do ..ExecuteCommand(data)
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
-                
+
         } elseif (action = ..ConstServerActionCheckTrace) {
-        
+
             set changes = ..CheckTracing()
             if (changes '= "") {
-                do ..SendData(changes)   
+                do ..SendData(changes)
             }
-          
+
         } elseif (action = ..ConstServerActionTrace) { // add/remove
-        
+
             set result = ..Trace(data)
             if ('$$$ISOK(result)) {
                 set result = ..StopTracing(data)
@@ -1054,23 +1056,23 @@ Main method for every new client.</Description>
                 }
             }
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
-          
+
         } elseif (action = ..ConstServerActionStopTraceAll) { // add/remove
-        
+
             FOR i=1:1:$LISTLENGTH(..Watches) {
                 d ..StopTracing($LIST(..Watches, i))
             }
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
-          
+
         } elseif (action = ..ConstServerActionExecuteSQL) { // sql
-        
+
             do ..ExecuteSQL(data)
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
-          
+
         } elseif (action = ..ConstServerActionGenerateAutocomplete) {
-            
+
             // data shows if system classes required
-            
+
             if ('##class("%Library.File").Exists(..GetJSAutocompleteFilePath("%")))
                 || (data = "1") {
                 do ..GenerateAutocompleteFile("%SYS", 1)
@@ -1078,36 +1080,36 @@ Main method for every new client.</Description>
             }
             do ..GenerateAutocompleteFile(..CurrentNamespace, 0)
             do ..SendData(..CurrentNamespace, ..ConstClientLoadAutocomplete)
-                    
+
         } elseif (action = ..ConstServerActionReset) {
-              
+
             do ..Reset()
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
-                    
+
         } elseif (action = ..ConstServerActionEcho) {
-              
+
             do ..StartClearIO()
             write data
             do ..EndClearIO()
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
-                    
+
         } elseif (action = ..ConstServerActionCheckUpdate) {
-            
+
             do ..CheckUpdate()
-            
+
         } elseif (action = ..ConstServerActionUpdate) {
-            
+
             do ..Update(data)
             do ..SendData("39", ..ConstClientOutputLocalized)
-            
+
         } else { // something scary
-                
+
             do ..SendData("38", ..ConstClientOutputLocalized)
             do ..SendData(" " _ action)
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
-                    
+
         }
-            
+
     }
 ]]></Implementation>
 </Method>
@@ -1117,40 +1119,39 @@ Main method for every new client.</Description>
 New connection established: require auth key, login and start client loop.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    
+
     /*UNCOMMENT ON RELEASE!*/
     if ($$$ISOK(..RequireAuthorization())) {
-        
+
         set ..CurrentNamespace = $Znspace
-        
+
         do ..SendData("1", ..ConstClientAuthorizationStatus)
         do ..SendData(..CurrentNamespace, ..ConstClientChangeNamespace)
-        
+
         use $io:(/NOXY:/BREAK):"^" _ ..InitialZName
         do ..ClientLoop()
-        
+
     } else {
-        
+
         do ..SendData("0", ..ConstClientAuthorizationStatus)
         do ..EndServer()
-            
+
     }
-    
+
     quit $$$OK
 ]]></Implementation>
 </Method>
 </Class>
 
 
-<Class name="WebTerminal.Installer">
+<Class name="%WebTerminal.Installer">
 <Description>
-This class installs WEB terminal application properly.
-Compile the class to re-install application.</Description>
+Importing this class will install Cache WEB Terminal properly.</Description>
 <Super>%Projection.AbstractProjection</Super>
-<TimeCreated>63890,72438.153812</TimeCreated>
+<TimeCreated>63890,71053.144208</TimeCreated>
 
 <Parameter name="DispatchClass">
-<Default>WebTerminal.Router</Default>
+<Default>%WebTerminal.Router</Default>
 </Parameter>
 
 <Projection name="Reference">
@@ -1168,7 +1169,7 @@ This method is invoked when a class is compiled.</Description>
     zn:ns'="%SYS" "%SYS"
     do ##class(Security.System).GetInstallationSecuritySetting(.security)
     set cspProperties("AutheEnabled") = 32 // password by default, 64 for no password
-    set cspProperties("NameSpace") = "%SYS" // terminal works only in %SYS namespace
+    set cspProperties("NameSpace") = "%SYS" // terminal works only in %SYS namespace, only in % package
     set cspProperties("Description") = "A WEB application for Cache WEB Terminal."
     set cspProperties("IsNameSpaceDefault") = 0
     set cspProperties("DispatchClass") = ..#DispatchClass
@@ -1177,12 +1178,12 @@ This method is invoked when a class is compiled.</Description>
         set tSC = ##class(Security.Applications).Create("/terminal", .cspProperties)
         if $$$ISERR(tSC) throw ##class(%Installer.Exception).CreateFromStatus(tSC)
         w !, "WEB application ""/terminal"" is created."
+        set ^SYS("Security", "CSP", "AllowClass", "/terminal/", ..#DispatchClass) = 1
     } else {
         do ##class(Security.Applications).Get("/terminal", .props)
         if (props("DispatchClass") '= ..#DispatchClass) {
             w !, "WARNING! WEB application ""/terminal"" exists but does not refer to ",
-                ..#DispatchClass, ".", !,
-                "Please, set correct dispatch class for this application ",
+                DispatchClass, ".", !, "Please, set correct dispatch class for this application ",
                 "or create a terminal WEB-application manually."
         } else {
             w !, "WEB application ""/terminal"" already exists, so it is ready to use."
@@ -1210,6 +1211,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
         } else {
             w !, "Deleting WEB application ""/terminal""..."
             do ##class(Security.Applications).Delete("/terminal")
+            kill ^SYS("Security", "CSP", "AllowClass", "/terminal/", ..#DispatchClass)
             w !, "WEB application ""/terminal"" was successfully removed."
         }
     }
@@ -1220,11 +1222,11 @@ This method is invoked when a class is 'uncompiled'.</Description>
 </Class>
 
 
-<Class name="WebTerminal.Router">
+<Class name="%WebTerminal.Router">
 <Description>
-The REST interface that routes HTTP requests.</Description>
+The REST interface: class that routes HTTP requests</Description>
 <Super>%CSP.REST</Super>
-<TimeCreated>63890,72292.495586</TimeCreated>
+<TimeCreated>63890,69646.001045</TimeCreated>
 
 <XData name="UrlMap">
 <Data><![CDATA[
@@ -1232,6 +1234,7 @@ The REST interface that routes HTTP requests.</Description>
    <Route Url="/" Method="GET" Call="Index"/>
    <Route Url="/index" Method="GET" Call="Index"/>
    <Route Url="/css/terminal.css" Method="GET" Call="GetCss"/>
+   <Route Url="/css/terminal-theme/:theme" Method="GET" Call="GetTheme"/>
    <Route Url="/js/terminal.js" Method="GET" Call="GetJs"/>
    <Route Url="/Autocomplete" Method="GET" Call="WriteAutocomplete"/>
 </Routes>
@@ -1253,7 +1256,7 @@ Method returns autocomplete data in JSON format</Description>
 <Description>
 Calls StaticContent.Write method or sends not modified header. Type have to be "css" or "js"</Description>
 <ClassMethod>1</ClassMethod>
-<FormalSpec>type:%String</FormalSpec>
+<FormalSpec>type:%String,Auth:%String="",ContentType:%String=""</FormalSpec>
 <Private>1</Private>
 <Implementation><![CDATA[
     #define CompileTime ##Expression("""" _ $zd($h, 11) _ ", "_ $zdt($NOW(0), 2,1) _ " GMT""")
@@ -1262,14 +1265,14 @@ Calls StaticContent.Write method or sends not modified header. Type have to be "
         "css": "text/css",
         "js": "text/javascript",
         "html": "text/html",
-        : "text/plain"
+        : $case(ContentType="", 1:"text/plain", :ContentType)
     )
     do %response.SetHeader("Last-Modified", $$$CompileTime)
-   
-    if %request.GetCgiEnv("HTTP_IF_MODIFIED_SINCE")=$$$CompileTime {
+
+    if (%request.GetCgiEnv("HTTP_IF_MODIFIED_SINCE")=$$$CompileTime) && (Auth = "") {
         set %response.Status = "304 Not Modified"
     } else {
-        do ##class(StaticContent).Write(type)
+        do ##class(StaticContent).Write(type, Auth)
     }
 ]]></Implementation>
 </Method>
@@ -1281,6 +1284,18 @@ Method writes application CSS.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
     do ..WriteStatic("css")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetTheme">
+<Description>
+Method writes application theme.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Theme:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..WriteStatic("Theme"_$REPLACE(Theme, ".css", ""),,"text/css")
     return $$$OK
 ]]></Implementation>
 </Method>
@@ -1302,36 +1317,56 @@ Method writes application HTML.</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    do ..WriteStatic("html")
+    set cookie = %session.CSPSessionCookie
+    // Put the name of authorized user in a global to authorize WebSocket WebTerminal connection
+    set ^WebTerminal.AuthUser(cookie) = $LB(
+        $LISTGET(%session.SecurityContext, 1), // username
+        $horolog // granting ticket date
+    )
+    do ..WriteStatic("html", cookie)
     return $$$OK
 ]]></Implementation>
 </Method>
 </Class>
 
 
-<Class name="WebTerminal.StaticContent">
+<Class name="%WebTerminal.StaticContent">
 <Description>
 This class holds whole application static content like scripts and styles.
 Do not edit this file - use external tool to generate it.</Description>
-<TimeCreated>63890,72357.499716</TimeCreated>
+<TimeCreated>63890,69938.115592</TimeCreated>
 
 <Method name="Write">
 <Description>
 Write the contents of xData tag</Description>
 <ClassMethod>1</ClassMethod>
-<FormalSpec>Const:%String</FormalSpec>
+<FormalSpec>Const:%String,Auth:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    Set xdata = ##class(%Dictionary.CompiledXData).%OpenId("WebTerminal.StaticContent||"_Const).Data
+    set Auth = $get(Auth, "")
+    set obj = ##class(%Dictionary.CompiledXData).%OpenId("%WebTerminal.StaticContent||"_Const)
+    quit:(obj = "") $$$OK
+    set xdata = obj.Data
     set status=##class(%XML.TextReader).ParseStream(xdata, .textreader)
     while textreader.Read() { if (textreader.NodeType="chars") {
-        // authorization key injection
-        write $REPLACE(textreader.Value, "createTerminal()", "createTerminal('"_%session.CSPSessionCookie_"','"_%request.Get("NS")_"')")
+        if (Auth '= "") {// authorization key injection
+            write $REPLACE(textreader.Value, "createTerminal()", "createTerminal('"_Auth_"','"_%request.Get("NS")_"')")
+        } else {
+            write textreader.Value
+        }
     } }
-    return $$$OK
+    quit $$$OK
 ]]></Implementation>
 </Method>
-
+{{replace:themes}}
+<XData name="Theme{{replace:themeName}}">
+<Data><![CDATA[
+<data>
+<![CDATA[{{replace:themeData}}]]]]><![CDATA[>
+</data>
+]]></Data>
+</XData>
+{{replace:end}}
 <XData name="html">
 <Data><![CDATA[
 <data>
@@ -1356,4 +1391,14 @@ Write the contents of xData tag</Description>
 ]]></Data>
 </XData>
 </Class>
+
+
+<Project name="WEBTerminal" LastModified="2015-12-06 12:10:07.906721">
+  <Items>
+    <ProjectItem name="%WebTerminal.Engine" type="CLS"></ProjectItem>
+    <ProjectItem name="%WebTerminal.Installer" type="CLS"></ProjectItem>
+    <ProjectItem name="%WebTerminal.Router" type="CLS"></ProjectItem>
+    <ProjectItem name="%WebTerminal.StaticContent" type="CLS"></ProjectItem>
+  </Items>
+</Project>
 </Export>

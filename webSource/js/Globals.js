@@ -71,8 +71,6 @@ window.createTerminal = function (authKey, namespace) {
 
     var term;
 
-    console.log(authKey, namespace);
-
     term = new Terminal({
         container: document.body,
         authKey: authKey || null,

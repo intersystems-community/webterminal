@@ -18,7 +18,7 @@ var CacheWebTerminalServer = function (CONTROLLER, WS_PROTOCOL, IP, PORT) {
     /**
      * @type {string}
      */
-    this.CACHE_CLASS_NAME = "WebTerminal.Engine.cls";
+    this.CACHE_CLASS_NAME = "%WebTerminal.Engine.cls";
 
     /**
      * @type {string}

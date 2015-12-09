@@ -12,10 +12,20 @@ var gulp = require("gulp"),
     source = "webSource",
     buildTo = "build2";
 
+var themes = fs.readdirSync("./" + buildTo + "/web/css/terminal-theme");
+
+var extra = {
+    themes:
+        themes.map(function (n) {
+            return ', "' + n.replace(/\..*$/, "") + '": "css/terminal-theme/' + n + '"';
+        }).join("")
+};
+
 var specialReplace = function () {
-    return replace(/[^\s]+\/\*build\.replace:(.*)\*\//g, function (part, match) {
+    return replace(/[^\s]*\/\*build\.replace:(.*)\*\//g, function (part, match) {
         var s = match.toString();
-        return s.replace(/pkg\.([a-zA-Z]+)/g, function (p,a) { return pkg[a]; });
+        return s.replace(/pkg\.([a-zA-Z]+)/g, function (p,a) { return pkg[a]; })
+            .replace(/extra\.([a-zA-Z]+)/g, function (p,a) { return extra[a]; });
     });
 };
 
@@ -52,10 +62,7 @@ gulp.task("copy-js", ["clean"], function () {
 
 gulp.task("copy-css-basic", ["clean"], function () {
     return gulp.src([
-        "./" + source + "/css/base.css",
-        "./" + source + "/css/terminal.css",
-        "./" + source + "/css/terminal-extra.css",
-        "./" + source + "/css/terminal-graphic.css"
+        "./" + source + "/css/*.css"
     ]).pipe(concat("terminal.css"))
         .pipe(minifyCSS({ keepSpecialComments: 0 }))
         .pipe(gulp.dest("./" + buildTo + "/web/css/"));
@@ -63,9 +70,14 @@ gulp.task("copy-css-basic", ["clean"], function () {
 
 gulp.task("copy-css-themes", ["clean"], function () {
     return gulp.src([
-        "./" + source + "/css/terminal-theme-cache.css"
+        "./" + source + "/css/terminal-theme/*.css"
     ]).pipe(minifyCSS({ keepSpecialComments: 0 }))
-        .pipe(gulp.dest("./" + buildTo + "/web/css/"));
+        .pipe(gulp.dest("./" + buildTo + "/web/css/terminal-theme/"));
+});
+
+gulp.task("copy-export", ["clean"], function () {
+    return gulp.src(["./export/*.*", "!./export/template.xml"])
+        .pipe(gulp.dest("./" + buildTo + "/etc"));
 });
 
 gulp.task("export", ["copy-html", "copy-js", "copy-css-themes", "copy-css-basic" ], function () {
@@ -87,8 +99,21 @@ gulp.task("export", ["copy-html", "copy-js", "copy-css-themes", "copy-css-basic"
             /\{\{replace:html}}/,
             function () { return fs.readFileSync("./" + buildTo + "/web/index.html", "utf-8"); }
         ))
+        .pipe(replace(
+            /\{\{replace:themes}}([^]*)\{\{replace:end}}/g,
+            function (p, content) {
+                return themes.map(function (n) {
+                    return content.replace("{{replace:themeName}}", n.replace(/\..*$/, ""))
+                        .replace("{{replace:themeData}}", function () {
+                            return fs.readFileSync(
+                                "./" + buildTo + "/web/css/terminal-theme/" + n
+                            );
+                        });
+                }).join("\n\n");
+            }
+        ))
         .pipe(rename(function (path) { path.basename = "CacheWebTerminal-v" + pkg["version"]; }))
         .pipe(gulp.dest("./" + buildTo));
 });
 
-gulp.task("default", ["export"]);
+gulp.task("default", ["export", "copy-export"]);

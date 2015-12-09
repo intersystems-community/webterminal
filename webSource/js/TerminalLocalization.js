@@ -293,11 +293,11 @@ var TerminalLocalization = function (TERMINAL) {
             en: "Caché WEB Terminal v" + terminal.VERSION + "\r\nAuthor:\x1B[20GZitRo " +
                 "(+NikitaSavchenko)\r\nProject:\x1B[20Ghttp://intersystems-ru.github.io/" +
                 "webterminal\r\nRepository:\x1B[20Ghttps://github.com/intersystems-ru/" +
-                "webterminal\r\n2013-2014 ©",
+                "webterminal\r\n2013-2016 ©",
             ru: "Caché WEB Terminal v" + terminal.VERSION + "\r\nАвтор:\x1B[20GZitRo " +
                 "(+NikitaSavchenko)\r\nПроект:\x1B[20Ghttp://intersystems-ru.github.io/" +
                 "webterminal\r\nРепозиторий:\x1B[20Ghttps://github.com/intersystems-ru/" +
-                "webterminal\r\n2013-2014 ©"
+                "webterminal\r\n2013-2016 ©"
         },
         44: {
             en: "Syntax highlighting enabled.",
