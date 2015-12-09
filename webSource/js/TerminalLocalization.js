@@ -234,8 +234,8 @@ var TerminalLocalization = function (TERMINAL) {
             ru: "Невозможно изменить язык на %s."
         },
         29: {
-            en: "Start generating file",
-            ru: "Начинается генерация файла"
+            en: "Start generating autocomplete",
+            ru: "Начинается генерация автодополнения"
         },
         30: {
             en: "Wrong namespace:",

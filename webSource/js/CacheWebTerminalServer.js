@@ -98,13 +98,13 @@ CacheWebTerminalServer.prototype.initialize = function () {
  */
 CacheWebTerminalServer.prototype.getAutocompleteFile = function (namespace, callback) {
 
-    AJAX.get("js/autocomplete/" + encodeURIComponent(namespace) + ".js", function (data) {
+    AJAX.get("autocomplete?NS=" + encodeURIComponent(namespace), function (data) {
 
         try {
             data = JSON.parse(data);
         } catch (e) {
             data = null;
-            console.warn("No autocomplete data for " + namespace);
+            console.warn("Unable to parse autocomplete data for " + namespace);
         }
 
         callback(data, namespace);

@@ -582,33 +582,6 @@ This method watches only for tail of global and detects if global still alive</D
 ]]></Implementation>
 </Method>
 
-<Method name="GetJSAutocompleteFilePath">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>namespace:%String</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
-    set data = ##class(%Library.File).ManagerDirectory()
-    set data = ##class(%Library.File).ParentDirectoryName(data)
-
-    set dataTest = ##class(%Library.File).SubDirectoryName(data, "CSP")
-    if (##class(%Library.File).DirectoryExists(dataTest)) {
-        set data = ##class(%Library.File).SubDirectoryName(data, "CSP")
-    } else {
-        set data = ##class(%Library.File).SubDirectoryName(data, "csp")
-    }
-
-    set data = ##class(%Library.File).SubDirectoryName(data,
-        $ZCONVERT($REPLACE("%SYS", "%", ""), "l")
-    )
-    set data = ##class(%Library.File).SubDirectoryName(data, "webterminal")
-    set data = ##class(%Library.File).SubDirectoryName(data, "js")
-    set data = ##class(%Library.File).SubDirectoryName(data, "autocomplete")
-    set data = ##class(%Library.File).SubDirectoryName(data, namespace _ ".js")
-
-    quit data
-]]></Implementation>
-</Method>
-
 <Method name="WriteToFile">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>filename:%String,data:%String</FormalSpec>
@@ -643,43 +616,32 @@ This method watches only for tail of global and detects if global still alive</D
 ]]></Implementation>
 </Method>
 
-<Method name="GenerateAutocompleteFile">
+<Method name="AutocompleteExists">
+<FormalSpec>namespace:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[    quit $get(^%WebTerminal.Autocomplete(namespace)) '= ""
+]]></Implementation>
+</Method>
+
+<Method name="GenerateAutocomplete">
 <Description>
-Generates autocomplete file for namespace. Second parameter decides if
+Generates autocomplete for namespace. Second parameter decides if
 it will be regenerated again. But if namespace equals to "%" - generates
-autocomplete file for system classes. Make sure that autocomplete for
+autocomplete for system classes. Make sure that autocomplete for
 system classes generates one time and forever.
 @param genSystem - Shows if system classes need to be generated. </Description>
 <FormalSpec>namespace:%String,genSystem:%Boolean</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-
-    if (genSystem) {
-        set filename = ..GetJSAutocompleteFilePath("%")
-    } else {
-        set filename = ..GetJSAutocompleteFilePath(namespace)
-    }
+    set trueNs = $case(genSystem, 1:"%", :namespace)
 
     do ..SendData("29", ..ConstClientOutputLocalized)
-    do ..SendData(" " _ filename _ $C(13, 10))
+    do ..SendData(" " _ trueNs _ $C(13, 10))
 
     if ('##class(%SYS.Namespace).Exists(namespace)) {
         do ..SendData("30", ..ConstClientOutputLocalized)
         do ..SendData(" " _ namespace _ $C(13, 10))
         quit $$$NOTOK
-    }
-
-    if ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
-
-        // try to create missed directory
-        set result = ##class(%File).CreateDirectoryChain(##class(%File).GetDirectory(filename))
-
-        if (result '= 1) {
-            do ..SendData("31", ..ConstClientOutputLocalized)
-            do ..SendData($C(13, 10))
-            quit $$$OK
-        }
-
     }
 
     // get all classes names
@@ -711,11 +673,7 @@ system classes generates one time and forever.
     do ..SendData($C(13, 10))
     do ..SendData("32", ..ConstClientOutputLocalized)
 
-    set file=##class(%File).%New(filename)
-    do file.Open("WSN")
-
-    // final data generation
-    do file.Write("{""class"":{")
+    set ac = "{""class"":{" // string with autocomplete
     set first = ""
     set u = 1
 
@@ -730,7 +688,7 @@ system classes generates one time and forever.
         do ..SendData($C(27) _ "[30G" _ u)
         s u = u + 1
 
-        do file.Write(first _ """" _ className _ """:{")
+        set ac = ac _ first _ """" _ className _ """:{"
         if (first = "") set first = ","
 
         set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
@@ -743,30 +701,31 @@ system classes generates one time and forever.
 
         for i=1:1:countMethods {
             set current = current + 1
-            do file.Write("""" _ cdefs.Methods.GetAt(i).Name _ """:0")
-            if (current'=total) do file.Write(",")
+            set ac = ac _ """" _ cdefs.Methods.GetAt(i).Name _ """:0"
+            if (current'=total) set ac = ac _ ","
         }
 
         for i=1:1:countProperties {
             set current = current + 1
-            do file.Write("""" _ cdefs.Properties.GetAt(i).Name _ """:0")
-            if (current'=total) do file.Write(",")
+            set ac = ac _ """" _ cdefs.Properties.GetAt(i).Name _ """:0"
+            if (current'=total) set ac = ac _ ","
         }
 
         for i=1:1:countParameters {
             set current = current + 1
-            do file.Write("""" _ cdefs.Parameters.GetAt(i).Name _ """:0")
-            if (current'=total) do file.Write(",")
+            set ac = ac _ """" _ cdefs.Parameters.GetAt(i).Name _ """:0"
+            if (current'=total) set ac = ac _ ","
         }
 
-        do file.Write("}")
+        set ac = ac _ "}"
 
     }
 
-    do file.Write("}")
-    if ('genSystem) do file.Write(",""global"":" _ ..getGlobalsJSON())
-    do file.Write("}")
-    do file.Close()
+    set ac = ac _ "}"
+    if ('genSystem) set ac = ac _ ",""global"":" _ ..getGlobalsJSON()
+    set ac = ac _ "}"
+
+    set ^%WebTerminal.Autocomplete(trueNs) = ac
 
     do ..SendData($C(13, 10))
     do ..SendData("33", ..ConstClientOutputLocalized)
@@ -784,10 +743,7 @@ Returns terminal to default state</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
     // delete autocompletion files
-    set dir = ##class(%File).GetDirectory(..GetJSAutocompleteFilePath("TEST"))
-    if (##class(%File).DirectoryExists(dir)) {
-        do ##class(%File).RemoveDirectoryTree(dir)
-    }
+    kill ^%WebTerminal.Autocomplete
     quit $$$OK
 ]]></Implementation>
 </Method>
@@ -1059,7 +1015,7 @@ Main method for every new client.</Description>
 
         } elseif (action = ..ConstServerActionStopTraceAll) { // add/remove
 
-            FOR i=1:1:$LISTLENGTH(..Watches) {
+            for i=1:1:$LISTLENGTH(..Watches) {
                 d ..StopTracing($LIST(..Watches, i))
             }
             do ..SendData($NAMESPACE, ..ConstClientPrompt)
@@ -1073,12 +1029,11 @@ Main method for every new client.</Description>
 
             // data shows if system classes required
 
-            if ('##class("%Library.File").Exists(..GetJSAutocompleteFilePath("%")))
-                || (data = "1") {
-                do ..GenerateAutocompleteFile("%SYS", 1)
+            if ('..AutocompleteExists("%")) || (data = "1") {
+                do ..GenerateAutocomplete("%SYS", 1)
                 do ..SendData("%", ..ConstClientLoadAutocomplete)
             }
-            do ..GenerateAutocompleteFile(..CurrentNamespace, 0)
+            do ..GenerateAutocomplete(..CurrentNamespace, 0)
             do ..SendData(..CurrentNamespace, ..ConstClientLoadAutocomplete)
 
         } elseif (action = ..ConstServerActionReset) {
@@ -1215,6 +1170,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
             w !, "WEB application ""/terminal"" was successfully removed."
         }
     }
+    kill ^%WebTerminal.Autocomplete
     zn:ns'="%SYS" ns
     QUIT $$$OK
 ]]></Implementation>
@@ -1236,7 +1192,7 @@ The REST interface: class that routes HTTP requests</Description>
    <Route Url="/css/terminal.css" Method="GET" Call="GetCss"/>
    <Route Url="/css/terminal-theme/:theme" Method="GET" Call="GetTheme"/>
    <Route Url="/js/terminal.js" Method="GET" Call="GetJs"/>
-   <Route Url="/Autocomplete" Method="GET" Call="WriteAutocomplete"/>
+   <Route Url="/autocomplete" Method="GET" Call="WriteAutocomplete"/>
 </Routes>
 ]]></Data>
 </XData>
@@ -1247,7 +1203,10 @@ Method returns autocomplete data in JSON format</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    write "{""test"":1}"
+    set namespace = %request.Get("NS", $znspace)
+    set %response.CharSet = "utf-8"
+    set %response.ContentType = "application/json"
+    write $get(^%WebTerminal.Autocomplete(namespace), "{}")
     return $$$OK
 ]]></Implementation>
 </Method>
