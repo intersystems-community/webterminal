@@ -1105,6 +1105,7 @@ New connection established: require auth key, login and start client loop.</Desc
 <Class name="%WebTerminal.Installer">
 <Description>
 Importing this class will install Cache WEB Terminal properly.</Description>
+<CompileAfter>Engine,Router,StaticContent</CompileAfter>
 <Super>%Projection.AbstractProjection</Super>
 <TimeCreated>63890,71053.144208</TimeCreated>
 
@@ -1147,6 +1148,35 @@ This method is invoked when a class is compiled.</Description>
             w !, "WEB application ""/terminal"" already exists, so it is ready to use."
         }
     }
+    w !, "Mapping %WebTerminal package to %All namespace..."
+    set status = ##Class(Config.Namespaces).Get("%All")
+    if ($$$ISERR(status)) { // no namespace %All
+        w !, "Creating %All namespace..."
+        set Properties("Globals") = "CACHETEMP"
+        set Properties("Library") = "CACHELIB"
+        set Properties("Routines") = "CACHETEMP"
+        set Properties("SysGlobals") = "CACHESYS"
+        set Properties("SysRoutines") = "CACHESYS"
+        set Properties("TempGlobals") = "CACHETEMP"
+        set status = ##Class(Config.Namespaces).Create("%All", .Properties)
+        if ($$$ISERR(status)) {
+            do $SYSTEM.Status.DisplayError(status)
+            quit status
+        } else {
+            w !, "%All namespace created."
+        }
+    }
+    set Properties("Database") = "CACHETEMP"
+    set status=##Class(Config.MapPackages).Create("%All", "%WebTerminal", .Properties)
+    if ($$$ISERR(status)) {
+        do $SYSTEM.Status.DisplayError(status)
+    }
+    set Properties("Database") = "CACHELIB"
+    set status=##Class(Config.MapPackages).Create("%SYS", "%WebTerminal", .Properties)
+    if ($$$ISERR(status)) {
+        do $SYSTEM.Status.DisplayError(status)
+    }
+    w !, "%WebTerminal package successfully mapped into %All namespace."
     zn:ns'="%SYS" ns
     quit $$$OK
 ]]></Implementation>
