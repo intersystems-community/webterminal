@@ -848,10 +848,10 @@ This method transforms error </Description>
         do ..SendData($C(13,10))
         do ..SendData("35", ..#ConstClientOutputLocalized)
         do ..SendData($C(13,10))
-        set stload = $system.OBJ.LoadStream(httprequest.HttpResponse.Data,"",.error,.items)
-        if $$$ISERR(stload) { do ..SendData(System.Status.GetErrorText(stload)) quit $$$NOTOK }
-        set st2 = $system.OBJ.CompileList(.items)
-        if $$$ISERR(st2) { do ..SendData(System.Status.GetErrorText(st2)) quit $$$NOTOK }
+        set stload = $System.OBJ.LoadStream(httprequest.HttpResponse.Data,"",.error,.items)
+        if $$$ISERR(stload) { do ..SendData($System.Status.GetErrorText(stload)) quit $$$NOTOK }
+        set st2 = $System.OBJ.CompileList(.items)
+        if $$$ISERR(st2) { do ..SendData($System.Status.GetErrorText(st2)) quit $$$NOTOK }
         if $$$ISERR(error) {
             do ..SendData($C(27)_"[31mFAILED" _ $C(27) _ "[0m" _ $C(13,10))
             quit $$$NOTOK
@@ -942,7 +942,7 @@ the client - it includes authorization key.</Description>
             continue:($order(userProps("")) = "")
 
             set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
-            set loginStatus = ##class(%SYSTEM.Security).Login(username) // login user
+            set loginStatus = $System.Security.Login(username) // login user
 
             kill ^%WebTerminal.AuthUser(key)
 
@@ -952,7 +952,7 @@ the client - it includes authorization key.</Description>
 
         // kill "old" auth tickets
         set time = $LISTGET(lb, 2)
-        if (time '= "") && ($SYSTEM.SQL.DATEDIFF("s", time, $h) > 100) { // if older than 100 sec
+        if (time '= "") && ($System.SQL.DATEDIFF("s", time, $h) > 100) { // if older than 100 sec
             kill ^%WebTerminal.AuthUser(key)
         }
 
@@ -1163,7 +1163,7 @@ This method is invoked when a class is compiled.</Description>
         set Properties("TempGlobals") = "CACHETEMP"
         set status = ##Class(Config.Namespaces).Create("%All", .Properties)
         if ($$$ISERR(status)) {
-            do $SYSTEM.Status.DisplayError(status)
+            do $System.Status.DisplayError(status)
             quit status
         } else {
             w !, "%All namespace is created."
