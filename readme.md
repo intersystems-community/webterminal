@@ -57,3 +57,21 @@ Type "/help" there to get more information.
 		<td>Hope you will find this useful.</td>
 	</tr>
 </table>
+
+### Development
+We are glad to see anyone who want to contribute to Caché WEB Terminal development! Check the 
+[developer's](https://github.com/intersystems-ru/webterminal/blob/master/DEVELOPMENT.md) guide.
+
+In short, the "hot start" is extremely easy. Having latest [NodeJS](https://nodejs.org/en/) installed,
+execute the following:
+
+```sh
+git clone <this repository URL>
+cd <cloned repository name>
+npm install -g gulp
+npm install
+gulp
+```
+
+Now, in `build` folder you will find `CacheWebTerminal-v*.xml` file ready to import. Every time you
+changes is ready to be tested, just run `gulp` command again and import XML again. 
