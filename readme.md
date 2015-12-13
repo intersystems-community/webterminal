@@ -4,7 +4,8 @@ Web-based terminal application for InterSystems Caché database. Access your dat
 Visit [project page](http://intersystems-ru.github.io/webterminal) for more details.
 
 ### Installation
-Download latest version from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import XML file into %SYS namespace. Make sure that you have enabled write access to CACHELIB database during installation process. Later you can update application by typing "/update" command.
+Download the latest version from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a>
+and import XML file into %SYS namespace. Later you can update application only by typing `/update` command.
 
 ### Usage
 After installation, you will be able to access application at `http://[host]:[port]/terminal/` (slash at the end is required).
@@ -50,7 +51,7 @@ Type "/help" there to get more information.
 	</tr>
 	<tr>
 		<td class="info">Self-update</td>
-		<td>Second version of terminal can be automatically updated by one command.</td>
+		<td>Terminal v3.1.4 can be automatically updated by `/update` command.</td>
 	</tr>
 	<tr>
 		<td class="info">Explore!</td>
@@ -62,15 +63,15 @@ Type "/help" there to get more information.
 We are glad to see anyone who want to contribute to Caché WEB Terminal development! Check the 
 [developer's](https://github.com/intersystems-ru/webterminal/blob/master/DEVELOPMENT.md) guide.
 
-In short, the "hot start" is extremely easy. Having latest [NodeJS](https://nodejs.org/en/) installed,
+In short, the "hot start" is extremely easy. Having latest [Git](https://git-scm.com/) and [NodeJS](https://nodejs.org/en/) installed,
 execute the following:
 
 ```sh
-git clone <this repository URL>
-cd <cloned repository name>
-npm install -g gulp
-npm install
-gulp
+git clone <this repository URL>  # clone this repository into new directory
+cd <cloned repository name>      # enter just created directory
+npm install -g gulp              # install the global module "gulp" to build the project
+npm install                      # install all project's dependencies
+gulp                             # build the project
 ```
 
 Now, in `build` folder you will find `CacheWebTerminal-v*.xml` file ready to import. Every time you

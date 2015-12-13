@@ -202,12 +202,10 @@ var TerminalLocalization = function (TERMINAL) {
             ru: "Авторизация не удалась."
         },
         23: {
-            en: "A new version of Caché WEB Terminal available. Would you" +
-                "like to install it? (Make sure that user has write permission to CACHELIB " +
-                "database) (Y/N)",
+            en: "A new version of Caché WEB Terminal available. Would you " +
+                "like to install it? (Y/n)",
             ru: "Новая версия Caché WEB Terminal доступна. Хотите ли вы " +
-                "установить её? (Убедитесь, что пользователь имеет права на запись в базу " +
-                "данных CACHELIB) (Y/N)"
+                "установить её? (Y/n)"
         },
         24: {
             en: "Updating...",

@@ -2,8 +2,8 @@
 <Export generator="Cache" version="25">
 <Class name="WebTerminal.Engine">
 <Description>
-Cache WEB Terminal vX.X.X/*build.replace:pkg.version*/
-This class is the core of web terminal application.</Description>
+Cache WEB Terminal version X.X.X/*build.replace:pkg.version*/ core.
+This class is the server-side core of the terminal application.</Description>
 <Super>%CSP.WebSocket,%Library.Routine</Super>
 <TimeCreated>63891,56786.028532</TimeCreated>
 
@@ -835,9 +835,8 @@ This method transforms error </Description>
     set httprequest = ##class(%Net.HttpRequest).%New()
     set httprequest.Server = "intersystems-ru.github.io"
     do ..SendData("34", ..#ConstClientOutputLocalized)
-    do ..SendData(" http://intersystems-ru.github.io/webterminal/files/WebTerminal-"
-        _ version _ ".xml ")
-    do httprequest.Get("/webterminal/files/WebTerminal-" _ version _ ".xml")
+    do ..SendData(" http://intersystems-ru.github.io/webterminal/files/" _ version _ ".xml ")
+    do httprequest.Get("/webterminal/files/" _ version _ ".xml")
     if (httprequest.HttpResponse.StatusCode '= 200) {
         do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
             _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
@@ -848,13 +847,31 @@ This method transforms error </Description>
         do ..SendData($C(13,10))
         do ..SendData("35", ..#ConstClientOutputLocalized)
         do ..SendData($C(13,10))
-        set stload = $System.OBJ.LoadStream(httprequest.HttpResponse.Data,"",.error,.items)
-        if $$$ISERR(stload) { do ..SendData($System.Status.GetErrorText(stload)) quit $$$NOTOK }
-        set st2 = $System.OBJ.CompileList(.items)
-        if $$$ISERR(st2) { do ..SendData($System.Status.GetErrorText(st2)) quit $$$NOTOK }
-        if $$$ISERR(error) {
-            do ..SendData($C(27)_"[31mFAILED" _ $C(27) _ "[0m" _ $C(13,10))
+        do ..SendData("Moving back to terminal's home namespace " _ ..InitialZNamespace _ "...")
+        zn ..InitialZNamespace
+        do ..StartClearIO()
+        set stload = $System.OBJ.LoadStream(httprequest.HttpResponse.Data, "", .error, .items)
+        if $$$ISERR(stload) {
+            w $C(27)_"[31mFAILED" _ $C(27) _ "[0m " _ $System.Status.GetErrorText(stload)
             quit $$$NOTOK
+        }
+        set logFileName = ##class(%File).SubDirectoryName(##class(%File).ManagerDirectory(),"CWTUpdateLog.txt")
+        open logFileName:("NRW"):5
+        set io = $IO
+        use logFileName
+        set st2 = $System.OBJ.CompileList(.items, "cuk /checkuptodate=none")
+        close logFileName
+        use io
+        if $$$ISERR(st2) { write $System.Status.GetErrorText(st2) quit $$$NOTOK }
+        do ..EndClearIO()
+        if ##class(%File).Exists(logFileName) {
+            set stream = ##class(%Stream.FileCharacter).%New()
+            set sc = stream.LinkToFile(logFileName)
+            while 'stream.AtEnd {
+                set line = stream.Read()
+                do ..SendData(line)
+            }
+            do ##class(%File).Delete(logFileName)
         }
     }
     quit $$$OK
@@ -1056,12 +1073,17 @@ Main method for every new client.</Description>
 
         } elseif (action = ..#ConstServerActionCheckUpdate) {
 
-            do ..CheckUpdate()
+            if ('$$$ISOK(..CheckUpdate())) {
+                do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            }
 
         } elseif (action = ..#ConstServerActionUpdate) {
 
-            do ..Update(data)
-            do ..SendData("39", ..#ConstClientOutputLocalized)
+            if $$$ISOK(..Update(data)) {
+                do ..SendData("39", ..#ConstClientOutputLocalized)
+            } else {
+                do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            }
 
         } else { // something scary
 
@@ -1171,9 +1193,11 @@ This method is invoked when a class is compiled.</Description>
     }
     w !, "Mapping %WebTerminal package into all namespaces:"
     set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
-    set Properties("Database") = "CACHETEMP"
+    do ##Class(Config.Namespaces).Get("USER", .InstallNSProps)
+    set Properties("Database") = $get(InstallNSProps("Routines"))
     set ptr = 0
     while $LISTNEXT(mapTo, ptr, value) {
+        continue:(ns = value)
         w " ", value
         set status = ##Class(Config.MapPackages).Create(value, "WebTerminal", .Properties)
         if ($$$ISERR(status)) {
@@ -1212,6 +1236,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
     set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
     set ptr = 0
     while $LISTNEXT(mapTo, ptr, value) {
+        continue:(ns = value)
         w " ", value
         set status = ##Class(Config.MapPackages).Delete(value, "WebTerminal")
         if ($$$ISERR(status)) {
@@ -1230,6 +1255,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
 <Class name="WebTerminal.Router">
 <Description>
 The REST interface: class that routes HTTP requests</Description>
+<CompileAfter>StaticContent</CompileAfter>
 <Super>%CSP.REST</Super>
 <TimeCreated>63890,69646.001045</TimeCreated>
 

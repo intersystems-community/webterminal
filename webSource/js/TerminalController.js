@@ -533,11 +533,10 @@ TerminalController.prototype.clientAction = {
     PROMPT_UPDATE: function (data) {
 
         var _this = this,
-            version,
-            releaseNumber = data.split("#");
-
-        version = releaseNumber[1];
-        releaseNumber = parseInt(releaseNumber[0]);
+            parts = data.split("#"),
+            version = parts[1],
+            releaseNumber = parseInt(parts[0]),
+            comment = parts[2] || "";
 
         if (!version || !releaseNumber) {
             console.error("Unable to parse version data: ", data);
@@ -547,8 +546,9 @@ TerminalController.prototype.clientAction = {
         if (releaseNumber > this.TERMINAL.RELEASE_NUMBER) {
             this.TERMINAL.output.print(this._lc.get(23) + "\r\n");
             this.TERMINAL.input.prompt("", 1, function (string) {
-                if (string.toLowerCase() === "y") {
+                if (string === "" || string.toLowerCase() === "y") {
                     _this.TERMINAL.output.print(" " + _this._lc.get(24) + "\r\n");
+                    if (comment) _this.TERMINAL.output.print("\r\n" + comment + "\r\n\r\n");
                     _this.server.send(_this.SERVER_ACTION.UPDATE + version);
                 } else {
                     _this.clientAction["PROMPT"].call(_this, _this.NAMESPACE);
