@@ -848,14 +848,25 @@ This method transforms error </Description>
         do ..SendData($C(13,10))
         do ..SendData("35", ..#ConstClientOutputLocalized)
         do ..SendData($C(13,10))
-        set stload = $System.OBJ.LoadStream(httprequest.HttpResponse.Data,"",.error,.items)
-        if $$$ISERR(stload) { do ..SendData($System.Status.GetErrorText(stload)) quit $$$NOTOK }
-        set st2 = $System.OBJ.CompileList(.items)
-        if $$$ISERR(st2) { do ..SendData($System.Status.GetErrorText(st2)) quit $$$NOTOK }
-        if $$$ISERR(error) {
-            do ..SendData($C(27)_"[31mFAILED" _ $C(27) _ "[0m" _ $C(13,10))
+        do ..StartClearIO()
+        //set ^test = 1
+        set stload = $System.OBJ.LoadStream(httprequest.HttpResponse.Data, "", .error, .items)
+        //set ^test = 2 _ ":"_stload_":" _ $get(items)
+        if $$$ISERR(stload) {
+            w $C(27)_"[31mFAILED" _ $C(27) _ "[0m " _ $System.Status.GetErrorText(stload)
             quit $$$NOTOK
         }
+        SET seqfilename = ##class(%File).SubDirectoryName(##class(%File).ManagerDirectory(),"CWTUpdateLog.txt")
+        OPEN seqfilename:("NRW"):5
+        set io = $IO
+        USE seqfilename
+        set st2 = $System.OBJ.CompileList(.items, "cuk /checkuptodate=none")
+        CLOSE seqfilename
+        USE io
+        //set ^test = 3 _ ":" _ st2 _ ":"
+        if $$$ISERR(st2) { w $System.Status.GetErrorText(st2) quit $$$NOTOK }
+        do ..EndClearIO()
+        //set ^test = 4
     }
     quit $$$OK
 ]]></Implementation>
@@ -866,7 +877,7 @@ This method transforms error </Description>
 <Implementation><![CDATA[
     set httprequest = ##class(%Net.HttpRequest).%New()
     set httprequest.Server = "intersystems-ru.github.io"
-    do httprequest.Get("/webterminal/latestVersion")
+    do httprequest.Get("/webterminal/latestNightVersion")
     if (httprequest.HttpResponse.StatusCode '= 200) {
         do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
             _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
