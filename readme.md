@@ -1,4 +1,4 @@
-# Caché Web Terminal (v3.0 alpha is available)
+# Caché Web Terminal
 Web-based terminal application for InterSystems Caché database. Access your database from everywhere!
 
 Visit [project page](http://intersystems-ru.github.io/webterminal) for more details.
