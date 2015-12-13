@@ -1103,6 +1103,7 @@ New connection established: require auth key, login and start client loop.</Desc
         do ..SendData(..CurrentNamespace, ..#ConstClientChangeNamespace)
 
         use $io:(/NOXY:/BREAK):"^" _ ..InitialZName
+        do ..SendData("Hello!")
         do ..ClientLoop()
 
     } else {
