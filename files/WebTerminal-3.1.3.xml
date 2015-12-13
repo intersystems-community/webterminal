@@ -848,25 +848,32 @@ This method transforms error </Description>
         do ..SendData($C(13,10))
         do ..SendData("35", ..#ConstClientOutputLocalized)
         do ..SendData($C(13,10))
+        do ..SendData("Moving back to terminal's home namespace " _ ..InitialZNamespace _ "...")
+        zn ..InitialZNamespace
         do ..StartClearIO()
-        //set ^test = 1
         set stload = $System.OBJ.LoadStream(httprequest.HttpResponse.Data, "", .error, .items)
-        //set ^test = 2 _ ":"_stload_":" _ $get(items)
         if $$$ISERR(stload) {
             w $C(27)_"[31mFAILED" _ $C(27) _ "[0m " _ $System.Status.GetErrorText(stload)
             quit $$$NOTOK
         }
-        SET seqfilename = ##class(%File).SubDirectoryName(##class(%File).ManagerDirectory(),"CWTUpdateLog.txt")
-        OPEN seqfilename:("NRW"):5
+        set logFileName = ##class(%File).SubDirectoryName(##class(%File).ManagerDirectory(),"CWTUpdateLog.txt")
+        open logFileName:("NRW"):5
         set io = $IO
-        USE seqfilename
+        use logFileName
         set st2 = $System.OBJ.CompileList(.items, "cuk /checkuptodate=none")
-        CLOSE seqfilename
-        USE io
-        //set ^test = 3 _ ":" _ st2 _ ":"
-        if $$$ISERR(st2) { w $System.Status.GetErrorText(st2) quit $$$NOTOK }
+        close logFileName
+        use io
+        if $$$ISERR(st2) { write $System.Status.GetErrorText(st2) quit $$$NOTOK }
         do ..EndClearIO()
-        //set ^test = 4
+        if ##class(%File).Exists(logFileName) {
+            set stream = ##class(%Stream.FileCharacter).%New()
+            set sc = stream.LinkToFile(logFileName)
+            while 'stream.AtEnd {
+                set line = stream.Read()
+                do ..SendData(line)
+            }
+            do ##class(%File).Delete(logFileName)
+        }
     }
     quit $$$OK
 ]]></Implementation>
@@ -1103,7 +1110,6 @@ New connection established: require auth key, login and start client loop.</Desc
         do ..SendData(..CurrentNamespace, ..#ConstClientChangeNamespace)
 
         use $io:(/NOXY:/BREAK):"^" _ ..InitialZName
-        do ..SendData("Hello!")
         do ..ClientLoop()
 
     } else {
