@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.3 (Build 215U)" ts="2015-12-15 14:55:18">
+<Class name="WebTerminal.Router">
+<Description>
+The REST interface: class that routes HTTP requests</Description>
+<CompileAfter>StaticContent</CompileAfter>
+<Super>%CSP.REST</Super>
+<TimeChanged>63899,77962</TimeChanged>
+<TimeCreated>63890,69646.001045</TimeCreated>
+
+<XData name="UrlMap">
+<Data><![CDATA[
+<Routes>
+   <Route Url="/" Method="GET" Call="Index"/>
+   <Route Url="/index" Method="GET" Call="Index"/>
+   <Route Url="/css/terminal.css" Method="GET" Call="GetCss"/>
+   <Route Url="/css/terminal-theme/:theme" Method="GET" Call="GetTheme"/>
+   <Route Url="/js/terminal.js" Method="GET" Call="GetJs"/>
+   <Route Url="/autocomplete" Method="GET" Call="WriteAutocomplete"/>
+</Routes>
+]]></Data>
+</XData>
+
+<Method name="WriteAutocomplete">
+<Description>
+Method returns autocomplete data in JSON format</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set namespace = %request.Get("NS", $znspace)
+    set %response.CharSet = "utf-8"
+    set %response.ContentType = "application/json"
+    write $get(^%WebTerminal.Autocomplete(namespace), "{}")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="WriteStatic">
+<Description>
+Calls StaticContent.Write method or sends not modified header. Type have to be "css" or "js"</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>type:%String,Auth:%String="",ContentType:%String=""</FormalSpec>
+<Private>1</Private>
+<Implementation><![CDATA[
+    #define CompileTime ##Expression("""" _ $zd($h, 11) _ ", "_ $zdt($NOW(0), 2,1) _ " GMT""")
+    set %response.CharSet = "utf-8"
+    set %response.ContentType = $case(type,
+        "css": "text/css",
+        "js": "text/javascript",
+        "html": "text/html",
+        : $case(ContentType="", 1:"text/plain", :ContentType)
+    )
+    do %response.SetHeader("Last-Modified", $$$CompileTime)
+
+    if (%request.GetCgiEnv("HTTP_IF_MODIFIED_SINCE")=$$$CompileTime) && (Auth = "") {
+        set %response.Status = "304 Not Modified"
+    } else {
+        do ##class(StaticContent).Write(type, Auth)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetCss">
+<Description>
+Method writes application CSS.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..WriteStatic("css")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetTheme">
+<Description>
+Method writes application theme.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Theme:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..WriteStatic("Theme"_$REPLACE(Theme, ".css", ""),,"text/css")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetJs">
+<Description>
+Method writes application JavaScript.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..WriteStatic("js")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Index">
+<Description>
+Method writes application HTML.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set cookie = %session.CSPSessionCookie
+    // Put the name of authorized user in a global to authorize WebSocket WebTerminal connection
+    set ^%WebTerminal.AuthUser(cookie) = $LB(
+        $LISTGET(%session.SecurityContext, 1), // username
+        $horolog // granting ticket date
+    )
+    do ..WriteStatic("html", cookie)
+    return $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -5,8 +5,9 @@ var gulp = require("gulp"),
     concat = require("gulp-concat"),
     minifyCSS = require("gulp-minify-css"),
     htmlReplace = require("gulp-html-replace"),
-    rename = require("gulp-rename"),
+    foreach = require("gulp-foreach"),
     fs = require("fs"),
+    path = require("path"),
 
     pkg = require("./package.json"),
     source = "webSource",
@@ -17,18 +18,23 @@ var themes = [],
         themes: ""
     };
 
-function readyToExport () { // triggered when build is done
+function themesReady () { // triggered when build is done
     themes = fs.readdirSync("./" + buildTo + "/web/css/terminal-theme");
     extra.themes = themes.map(function (n) {
         return ', "' + n.replace(/\..*$/, "") + '": "css/terminal-theme/' + n + '"';
-    }).join("")
+    }).join("");
+    console.log("READY");
 }
 
 var specialReplace = function () {
     return replace(/[^\s]*\/\*build\.replace:(.*)\*\//g, function (part, match) {
         var s = match.toString();
-        return s.replace(/pkg\.([a-zA-Z]+)/g, function (p,a) { return pkg[a]; })
-            .replace(/extra\.([a-zA-Z]+)/g, function (p,a) { return extra[a]; });
+        var b = s.replace(/pkg\.([a-zA-Z]+)/g, function (p,a) { return pkg[a]; })
+            .replace(/extra\.([a-zA-Z]+)/g, function (p,a) {
+                console.log(extra);
+                return extra[a]; });
+        console.log(b, "---", s, part, match);
+        return b;
     });
 };
 
@@ -46,7 +52,7 @@ gulp.task("copy-html", ["clean"], function () {
         .pipe(gulp.dest("./" + buildTo + "/web"));
 });
 
-gulp.task("copy-js", ["clean"], function () {
+gulp.task("copy-js", ["clean", "prepare-css"], function () {
     return gulp.src("./" + source + "/js/**/*.js")
         .pipe(concat("terminal.js"))
         .pipe(specialReplace())
@@ -78,14 +84,36 @@ gulp.task("copy-css-themes", ["clean"], function () {
         .pipe(gulp.dest("./" + buildTo + "/web/css/terminal-theme/"));
 });
 
+// Need css themes directory copied to collect themes names.
+gulp.task("prepare-css", ["copy-css-basic", "copy-css-themes"], function (cb) {
+    themesReady();
+    cb();
+});
+
 gulp.task("copy-export", ["clean"], function () {
-    return gulp.src(["./export/*.*", "!./export/template.xml"])
+    return gulp.src(["./export/*.*", "!./export/template.xml", "!./export/WebTerminal/**"])
         .pipe(gulp.dest("./" + buildTo + "/etc"));
 });
 
-gulp.task("export", ["copy-html", "copy-js", "copy-css-themes", "copy-css-basic" ], function () {
-    readyToExport();
-    return gulp.src("export/template.xml")
+gulp.task("copy-readme", ["clean"], function () {
+    return gulp.src("./readme.md")
+        .pipe(gulp.dest("./" + buildTo));
+});
+
+gulp.task("export", [ "copy-html", "copy-js", "prepare-css", "copy-readme" ], function () {
+    var projectTemplate = '<Project name="WEBTerminal" LastModified="'
+        + (new Date()).toISOString().replace(/T/, " ").replace(/Z/, "") + '">\r\n'
+        + '<Items>\r\n',
+        files = [];
+    return gulp.src("export/WebTerminal/**/*.xml")
+        .pipe(foreach(function (stream, file) {
+            files.push(path.relative(path.join(path.dirname(__filename), "export"), file.path)
+                .replace(/[\\\/]/g, ".").replace(/\.xml$/, ""));
+            return stream
+                .pipe(replace(/^<\?xml[^]*?<Class/i, "<Class"))
+                .pipe(replace(/<\/Export>\s*$/i, ""));
+        }))
+        .pipe(concat("CacheWebTerminal-v" + pkg["version"] + ".xml"))
         .pipe(specialReplace())
         .pipe(replace(
             /\{\{replace:css}}/,
@@ -116,7 +144,14 @@ gulp.task("export", ["copy-html", "copy-js", "copy-css-themes", "copy-css-basic"
                 }).join("\n\n");
             }
         ))
-        .pipe(rename(function (path) { path.basename = "CacheWebTerminal-v" + pkg["version"]; }))
+        .pipe(replace(
+            /^/,
+            '<?xml version="1.0" encoding="UTF-8"?>\r\n<Export generator="Cache" version="25">\r\n'
+        )).pipe(foreach(function (stream) {
+            return stream.pipe(replace(/$/, projectTemplate + files.map(function (fileName) {
+                return '<ProjectItem name="' + fileName + '" type="CLS"></ProjectItem>'
+            }).join("\r\n") + '\r\n</Items>\r\n</Project>\r\n</Export>'))
+        }))
         .pipe(gulp.dest("./" + buildTo));
 });
 

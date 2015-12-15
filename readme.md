@@ -75,4 +75,4 @@ gulp                             # build the project
 ```
 
 Now, in `build` folder you will find `CacheWebTerminal-v*.xml` file ready to import. Every time you
-changes is ready to be tested, just run `gulp` command again and import XML again. 
+changes is ready to be tested, just run `gulp` command and import generated XML into Caché. 
