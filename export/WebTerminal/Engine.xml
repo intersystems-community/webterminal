@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.3 (Build 215U)" ts="2015-12-15 14:54:57">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-16 14:23:36">
 <Class name="WebTerminal.Engine">
 <Description>
 Cache WEB Terminal version X.X.X/*build.replace:pkg.version*/ core.
 This class is the server-side core of the terminal application.</Description>
-<Super>%CSP.WebSocket,%Library.Routine</Super>
-<TimeChanged>63899,77962</TimeChanged>
+<IncludeCode>%sySystem</IncludeCode>
+<Super>%CSP.WebSocket</Super>
+<TimeChanged>63902,51627.873186</TimeChanged>
 <TimeCreated>63891,56786.028532</TimeCreated>
 
 <UDLText name="T">
