@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 11:06:12">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 11:26:41">
 <Class name="WebTerminal.Common">
 <IncludeCode>%sySystem</IncludeCode>
-<TimeChanged>63906,39909.679648</TimeChanged>
+<TimeChanged>63906,41141.380559</TimeChanged>
 <TimeCreated>63906,39668.673891</TimeCreated>
-
-<UDLText name="T">
-<Content><![CDATA[
-// CONSTANTS BEGIN
-
-]]></Content>
-</UDLText>
 
 <Parameter name="ConstAuthorizationTimeout">
 <Description>
@@ -143,11 +136,13 @@ How long to wait for authorization key when connection established</Description>
 <Default>PROMPT_UPDATE#</Default>
 </Parameter>
 
-<UDLText name="T">
-<Content><![CDATA[
-// CONSTANTS END
-
-]]></Content>
-</UDLText>
+<Method name="SendData">
+<FormalSpec>query:%String="",action:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    write query,$c(9),action
+    quit $$$OK
+]]></Implementation>
+</Method>
 </Class>
 </Export>
