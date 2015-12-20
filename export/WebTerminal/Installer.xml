@@ -58,7 +58,7 @@ This method is invoked when a class is compiled.</Description>
         set Properties("TempGlobals") = "CACHETEMP"
         set status = ##Class(Config.Namespaces).Create("%All", .Properties)
         if ($$$ISERR(status)) {
-            do $SYSTEM.Status.DisplayError(status)
+            do $System.Status.DisplayError(status)
             quit status
         } else {
             w !, "%All namespace is created."
@@ -66,9 +66,11 @@ This method is invoked when a class is compiled.</Description>
     }
     w !, "Mapping %WebTerminal package into all namespaces:"
     set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
-    set Properties("Database") = "CACHETEMP"
+    do ##Class(Config.Namespaces).Get("USER", .InstallNSProps)
+    set Properties("Database") = $get(InstallNSProps("Routines"))
     set ptr = 0
     while $LISTNEXT(mapTo, ptr, value) {
+        continue:(ns = value)
         w " ", value
         set status = ##Class(Config.MapPackages).Create(value, "WebTerminal", .Properties)
         if ($$$ISERR(status)) {
@@ -107,6 +109,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
     set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
     set ptr = 0
     while $LISTNEXT(mapTo, ptr, value) {
+        continue:(ns = value)
         w " ", value
         set status = ##Class(Config.MapPackages).Delete(value, "WebTerminal")
         if ($$$ISERR(status)) {
