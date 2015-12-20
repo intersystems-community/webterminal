@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 11:03:16">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 11:06:06">
 <Class name="WebTerminal.Engine">
 <Description>
 Cache WEB Terminal version X.X.X/*build.replace:pkg.version*/ core.
 This class is the server-side core of the terminal application.</Description>
 <Super>%CSP.WebSocket,Common</Super>
-<TimeChanged>63906,39729.08935</TimeChanged>
+<TimeChanged>63906,39906.305515</TimeChanged>
 <TimeCreated>63891,56786.028532</TimeCreated>
 
 <Property name="SharedConnection">
@@ -788,7 +788,7 @@ This method holds process and expects only one package from
 the client - it includes authorization key.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    set authKey = ..Read(, .status, ..#authorizationTimeout) // wait for package
+    set authKey = ..Read(, .status, ..#ConstAuthorizationTimeout) // wait for package
     set ok = $$$NOTOK
 
     set namespace = ""
