@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 11:26:41">
+<Class name="WebTerminal.Common">
+<IncludeCode>%sySystem</IncludeCode>
+<TimeChanged>63906,41141.380559</TimeChanged>
+<TimeCreated>63906,39668.673891</TimeCreated>
+
+<Parameter name="ConstAuthorizationTimeout">
+<Description>
+How long to wait for authorization key when connection established</Description>
+<Default>5</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionExecute">
+<Type>%Char</Type>
+<Default>EXEC</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionExecuteSQL">
+<Type>%Char</Type>
+<Default>SQL</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionGenerateAutocomplete">
+<Type>%Char</Type>
+<Default>AC</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionTrace">
+<Type>%Char</Type>
+<Default>TRACE</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionStopTraceAll">
+<Type>%Char</Type>
+<Default>STOP_TRACE_ALL</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionCheckTrace">
+<Type>%Char</Type>
+<Default>CT</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionReset">
+<Type>%Char</Type>
+<Default>R</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionEcho">
+<Type>%Char</Type>
+<Default>E</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionCheckUpdate">
+<Type>%Char</Type>
+<Default>CU</Default>
+</Parameter>
+
+<Parameter name="ConstServerActionUpdate">
+<Type>%Char</Type>
+<Default>U</Default>
+</Parameter>
+
+<Parameter name="ConstClientPrompt">
+<Type>%String</Type>
+<Default>PROMPT#</Default>
+</Parameter>
+
+<Parameter name="ConstClientStartExec">
+<Type>%String</Type>
+<Default>EST#</Default>
+</Parameter>
+
+<Parameter name="ConstClientEndExec">
+<Type>%String</Type>
+<Default>END#</Default>
+</Parameter>
+
+<Parameter name="ConstClientOutputMessage">
+<Type>%String</Type>
+<Default>O#</Default>
+</Parameter>
+
+<Parameter name="ConstClientOutputLocalized">
+<Type>%String</Type>
+<Default>OL#</Default>
+</Parameter>
+
+<Parameter name="ConstClientChangeNamespace">
+<Type>%String</Type>
+<Default>NS#</Default>
+</Parameter>
+
+<Parameter name="ConstClientLoadAutocomplete">
+<Type>%String</Type>
+<Default>AC#</Default>
+</Parameter>
+
+<Parameter name="ConstClientReadString">
+<Type>%String</Type>
+<Default>R#</Default>
+</Parameter>
+
+<Parameter name="ConstClientReadChar">
+<Type>%String</Type>
+<Default>RC#</Default>
+</Parameter>
+
+<Parameter name="ConstClientAuthorizationStatus">
+<Type>%String</Type>
+<Default>AUTH#</Default>
+</Parameter>
+
+<Parameter name="ConstClientTrace">
+<Type>%String</Type>
+<Default>TRACE#</Default>
+</Parameter>
+
+<Parameter name="ConstClientStopTrace">
+<Type>%String</Type>
+<Default>STOP_TRACE#</Default>
+</Parameter>
+
+<Parameter name="ConstClientLoginInfo">
+<Type>%String</Type>
+<Default>I#</Default>
+</Parameter>
+
+<Parameter name="ConstClientClearScreen">
+<Type>%String</Type>
+<Default>CLRSCR#</Default>
+</Parameter>
+
+<Parameter name="ConstClientPromptUpdate">
+<Type>%String</Type>
+<Default>PROMPT_UPDATE#</Default>
+</Parameter>
+
+<Method name="SendData">
+<FormalSpec>query:%String="",action:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    write query,$c(9),action
+    quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.3 (Build 215U)" ts="2015-12-15 14:55:07">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 14:44:54">
 <Class name="WebTerminal.Installer">
 <Description>
 Importing this class will install Cache WEB Terminal properly.</Description>
-<CompileAfter>Engine,Router,StaticContent</CompileAfter>
 <Super>%Projection.AbstractProjection</Super>
-<TimeChanged>63898,2021.685611</TimeChanged>
+<TimeChanged>63906,53063.112672</TimeChanged>
 <TimeCreated>63890,71053.144208</TimeCreated>
+<DependsOn>Common,Engine,Router,StaticContent</DependsOn>
 
 <Parameter name="DispatchClass">
 <Default>WebTerminal.Router</Default>
