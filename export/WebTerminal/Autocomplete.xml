@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 13:40:54">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-21 13:52:31">
 <Class name="WebTerminal.Autocomplete">
 <Super>Common</Super>
-<TimeChanged>63906,49146.441893</TimeChanged>
+<TimeChanged>63907,49852.728366</TimeChanged>
 <TimeCreated>63906,49098.662696</TimeCreated>
 
 <Method name="AutocompleteExists">
@@ -24,11 +24,11 @@ system classes generates one time and forever.
 <Implementation><![CDATA[
     set trueNs = $case(genSystem, 1:"%", :namespace)
 
-    do ..SendData("29", ..#ConstClientOutputLocalized)
+    do ..SendData("29", ..#ClientOutputLocalized)
     do ..SendData(" " _ trueNs _ $C(13, 10))
 
     if ('##class(%SYS.Namespace).Exists(namespace)) {
-        do ..SendData("30", ..#ConstClientOutputLocalized)
+        do ..SendData("30", ..#ClientOutputLocalized)
         do ..SendData(" " _ namespace _ $C(13, 10))
         quit $$$NOTOK
     }
@@ -60,7 +60,7 @@ system classes generates one time and forever.
     */
 
     do ..SendData($C(13, 10))
-    do ..SendData("32", ..#ConstClientOutputLocalized)
+    do ..SendData("32", ..#ClientOutputLocalized)
 
     set ac = "{""class"":{" // string with autocomplete
     set first = ""
@@ -117,9 +117,9 @@ system classes generates one time and forever.
     set ^%WebTerminal.Autocomplete(trueNs) = ac
 
     do ..SendData($C(13, 10))
-    do ..SendData("33", ..#ConstClientOutputLocalized)
+    do ..SendData("33", ..#ClientOutputLocalized)
     do ..SendData($C(13, 10))
-    //do ..SendData(namespace, ..#ConstClientLoadAutocomplete)
+    //do ..SendData(namespace, ..#ClientLoadAutocomplete)
 
     quit $$$OK
 ]]></Implementation>
