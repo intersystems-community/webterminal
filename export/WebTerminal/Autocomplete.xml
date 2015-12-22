@@ -8,7 +8,7 @@
 <Method name="AutocompleteExists">
 <FormalSpec>namespace:%String</FormalSpec>
 <ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[    quit $get(^%WebTerminal.Autocomplete(namespace)) '= ""
+<Implementation><![CDATA[    quit $get(^WebTerminal("Autocomplete", namespace)) '= ""
 ]]></Implementation>
 </Method>
 
@@ -114,7 +114,7 @@ system classes generates one time and forever.
     if ('genSystem) set ac = ac _ ",""global"":" _ ..getGlobalsJSON()
     set ac = ac _ "}"
 
-    set ^%WebTerminal.Autocomplete(trueNs) = ac
+    set ^WebTerminal("Autocomplete", trueNs) = ac
 
     do ..SendData($C(13, 10))
     do ..SendData("33", ..#ClientOutputLocalized)
@@ -132,7 +132,7 @@ Returns terminal to default state</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
     // delete autocompletion files
-    kill ^%WebTerminal.Autocomplete
+    kill ^WebTerminal("Autocomplete")
     quit $$$OK
 ]]></Implementation>
 </Method>

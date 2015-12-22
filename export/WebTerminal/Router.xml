@@ -30,7 +30,7 @@ Method returns autocomplete data in JSON format</Description>
     set namespace = %request.Get("NS", $znspace)
     set %response.CharSet = "utf-8"
     set %response.ContentType = "application/json"
-    write $get(^%WebTerminal.Autocomplete(namespace), "{}")
+    write $get(^WebTerminal("Autocomplete", namespace), "{}")
     return $$$OK
 ]]></Implementation>
 </Method>
@@ -102,7 +102,7 @@ Method writes application HTML.</Description>
 <Implementation><![CDATA[
     set cookie = %session.CSPSessionCookie
     // Put the name of authorized user in a global to authorize WebSocket WebTerminal connection
-    set ^%WebTerminal.AuthUser(cookie) = $LB(
+    set ^WebTerminal("AuthUser", cookie) = $LB(
         $LISTGET(%session.SecurityContext, 1), // username
         $horolog // granting ticket date
     )

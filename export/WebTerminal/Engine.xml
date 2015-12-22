@@ -477,9 +477,9 @@ the client - it includes authorization key.</Description>
     /*
      * Find given CSPSessionCookie in WebTerminal auth global. If found, grant access.
      */
-    SET key = $ORDER(^%WebTerminal.AuthUser(""))
+    SET key = $ORDER(^WebTerminal("AuthUser", ""))
     WHILE (key '= "") {
-        set lb = $GET(^%WebTerminal.AuthUser(key))
+        set lb = $GET(^WebTerminal("AuthUser", key))
         if ((lb '= "") && (key = authKey)) {
 
             // setup privileges
@@ -493,7 +493,7 @@ the client - it includes authorization key.</Description>
             set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
             set loginStatus = $System.Security.Login(username) // login user
 
-            kill ^%WebTerminal.AuthUser(key)
+            kill ^WebTerminal("AuthUser", key)
 
             set ok = loginStatus
 
@@ -502,10 +502,10 @@ the client - it includes authorization key.</Description>
         // kill "old" auth tickets
         set time = $LISTGET(lb, 2)
         if (time '= "") && ($System.SQL.DATEDIFF("s", time, $h) > 100) { // if older than 100 sec
-            kill ^%WebTerminal.AuthUser(key)
+            kill ^WebTerminal("AuthUser", key)
         }
 
-        SET key = $ORDER(^%WebTerminal.AuthUser(key))
+        SET key = $ORDER(^WebTerminal("AuthUser", key))
     }
 
     if (namespace '= "") {

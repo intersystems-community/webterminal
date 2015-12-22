@@ -9,7 +9,7 @@ and import XML file into %SYS namespace. Later you can update application only b
 
 ### Usage
 After installation, you will be able to access application at `http://[host]:[port]/terminal/` (slash at the end is required).
-Type "/help" there to get more information.
+Type `/help` there to get more information.
 
 ### Features
 <table>

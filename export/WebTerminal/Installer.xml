@@ -23,7 +23,7 @@ This method is invoked when a class is compiled.</Description>
 <FormalSpec><![CDATA[cls:%String,&params]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    set ns = $NAMESPACE
+    set ns = $NAMESPACE // has to be package home namespace!
     zn:ns'="%SYS" "%SYS"
     do ##class(Security.System).GetInstallationSecuritySetting(.security)
     set cspProperties("AutheEnabled") = 32 // password by default, 64 for no password
@@ -73,9 +73,9 @@ This method is invoked when a class is compiled.</Description>
         continue:(ns = value)
         w " ", value
         set status = ##Class(Config.MapPackages).Create(value, "WebTerminal", .Properties)
-        if ($$$ISERR(status)) {
-            do $SYSTEM.Status.DisplayError(status)
-        }
+        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
+        set status = ##Class(Config.MapGlobals).Create(value, "WebTerminal", .Properties)
+        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
     }
     w ".", !, "Mapping complete."
     w !, "WebTerminal package successfully mapped into all namespaces."
@@ -91,7 +91,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
 <FormalSpec><![CDATA[cls:%String,&params,recompile:%Boolean]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    set ns = $NAMESPACE
+    set ns = $NAMESPACE // has to be package home namespace!
     zn:ns'="%SYS" "%SYS"
     if (##class(Security.Applications).Exists("/terminal")) {
         do ##class(Security.Applications).Get("/terminal", .props)
@@ -112,13 +112,14 @@ This method is invoked when a class is 'uncompiled'.</Description>
         continue:(ns = value)
         w " ", value
         set status = ##Class(Config.MapPackages).Delete(value, "WebTerminal")
-        if ($$$ISERR(status)) {
-            do $SYSTEM.Status.DisplayError(status)
-        }
+        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
+        set status = ##Class(Config.MapGlobals).Delete(value, "WebTerminal")
+        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
     }
     w ".", !, "Unmapping complete."
-    kill ^%WebTerminal.Autocomplete
     zn:ns'="%SYS" ns
+    kill ^WebTerminal
+    w !, "Global ^WebTerminal removed."
     QUIT $$$OK
 ]]></Implementation>
 </Method>
