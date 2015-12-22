@@ -12,7 +12,7 @@
         <script type="text/javascript">
             function init () {
                 [].slice.call(document.querySelectorAll("#downloadLinks a")).forEach(function (l) {
-                    l.setAttribute("download", l.textContent.replace(/\s+/g, " "));
+                    l.setAttribute("download", l.textContent.replace(/\s+/g, " ") + ".xml");
                 });
             }
         </script>
