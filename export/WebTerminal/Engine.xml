@@ -2,7 +2,7 @@
 <Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-21 13:52:46">
 <Class name="WebTerminal.Engine">
 <Description>
-Cache WEB Terminal version 3.1.6 core.
+Cache WEB Terminal version X.X.X/*build.replace:pkg.version*/ core.
 This class is the server-side core of the terminal application.</Description>
 <Super>%CSP.WebSocket,Trace,Autocomplete</Super>
 <TimeChanged>63907,49887.419268</TimeChanged>
