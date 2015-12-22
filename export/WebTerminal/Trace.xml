@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 11:27:03">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-21 13:52:55">
 <Class name="WebTerminal.Trace">
 <Super>Common</Super>
-<TimeChanged>63906,41142.88232</TimeChanged>
+<TimeChanged>63907,49869.367047</TimeChanged>
 <TimeCreated>63906,40630.844178</TimeCreated>
 
 <Property name="Watches">
@@ -39,7 +39,7 @@ Returns status of this operation</Description>
             set ..Watches = ..Watches _ $LISTBUILD(name)
             set ..WatchesCaret(name,0) = $QUERY(@name@(""),-1) // last
             set ..WatchesCaret(name,1) = "?"
-            do ..SendData(name, ..#ConstClientTrace)
+            do ..SendData(name, ..#ClientTrace)
             q 1
         }
     } else { // watch file
@@ -48,7 +48,7 @@ Returns status of this operation</Description>
             set file = ##class(%File).%New(name)
             set ..WatchesCaret(name,0) = file.Size // current watch cursor position
             set ..WatchesCaret(name,1) = file.DateModified
-            do ..SendData(name, ..#ConstClientTrace)
+            do ..SendData(name, ..#ClientTrace)
             q 1
         }
     }
@@ -71,7 +71,7 @@ Returns success status</Description>
     set ..Watches = $LISTFROMSTRING($EXTRACT(newWatches, 2, *-1), s)
     if (watches '= newWatches) {
         k ..WatchesCaret(name) // really removed
-        do ..SendData(name, ..#ConstClientStopTrace)
+        do ..SendData(name, ..#ClientStopTrace)
     }
     quit watches '= newWatches
 ]]></Implementation>

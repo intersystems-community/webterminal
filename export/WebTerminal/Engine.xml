@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 14:44:45">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-21 13:52:46">
 <Class name="WebTerminal.Engine">
 <Description>
-Cache WEB Terminal version X.X.X/*build.replace:pkg.version*/ core.
+Cache WEB Terminal version 3.1.6 core.
 This class is the server-side core of the terminal application.</Description>
 <Super>%CSP.WebSocket,Trace,Autocomplete</Super>
-<TimeChanged>63906,53073.499858</TimeChanged>
+<TimeChanged>63907,49887.419268</TimeChanged>
 <TimeCreated>63891,56786.028532</TimeCreated>
 <DependsOn>Common</DependsOn>
 
@@ -286,7 +286,7 @@ Function sends data derectly to server with specified action</Description>
 <FormalSpec>query:%String="",action:%String=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    if (action = "") { set action = ..#ConstClientOutputMessage }
+    if (action = "") { set action = ..#ClientOutputMessage }
     do ..Write(action _ query)
 ]]></Implementation>
 </Method>
@@ -320,7 +320,7 @@ Sends to client new namespace if last was changed</Description>
 <Implementation><![CDATA[
     if (..CurrentNamespace '= $Znspace) { // change client namespace
         set ..CurrentNamespace = $Znspace
-        do ..SendData(..CurrentNamespace,..#ConstClientChangeNamespace)
+        do ..SendData(..CurrentNamespace,..#ClientChangeNamespace)
     }
 ]]></Implementation>
 </Method>
@@ -330,7 +330,7 @@ Sends to client new namespace if last was changed</Description>
 Starts clear I/O mode</Description>
 <Implementation><![CDATA[
     write *-3
-    do ..Write(..#ConstClientStartExec)
+    do ..Write(..#ClientStartExec)
     write *-3
     do ##class(%Device).ReDirectIO($$$YES)
 ]]></Implementation>
@@ -342,7 +342,7 @@ Ends clear I/O mode</Description>
 <Implementation><![CDATA[
     //write *-3
     do ##class(%Device).ReDirectIO($$$NO)
-    do ..SendData("",..#ConstClientEndExec)
+    do ..SendData("",..#ClientEndExec)
     write *-3
 ]]></Implementation>
 </Method>
@@ -366,7 +366,7 @@ This method transforms error </Description>
 <Implementation><![CDATA[
     set httprequest = ##class(%Net.HttpRequest).%New()
     set httprequest.Server = "intersystems-ru.github.io"
-    do ..SendData("34", ..#ConstClientOutputLocalized)
+    do ..SendData("34", ..#ClientOutputLocalized)
     do ..SendData(" http://intersystems-ru.github.io/webterminal/files/" _ version _ ".xml ")
     do httprequest.Get("/webterminal/files/" _ version _ ".xml")
     if (httprequest.HttpResponse.StatusCode '= 200) {
@@ -377,7 +377,7 @@ This method transforms error </Description>
     do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m")
     if ($isobject(httprequest.HttpResponse.Data)) {
         do ..SendData($C(13,10))
-        do ..SendData("35", ..#ConstClientOutputLocalized)
+        do ..SendData("35", ..#ClientOutputLocalized)
         do ..SendData($C(13,10))
         do ..SendData("Moving back to terminal's home namespace " _ ..InitialZNamespace _ "...")
         zn ..InitialZNamespace
@@ -422,7 +422,7 @@ This method transforms error </Description>
         quit $$$NOTOK
     }
     if ($isobject(httprequest.HttpResponse.Data)) {
-        do ..SendData(httprequest.HttpResponse.Data.Read(), ..#ConstClientPromptUpdate)
+        do ..SendData(httprequest.HttpResponse.Data.Read(), ..#ClientPromptUpdate)
     }
     quit $$$OK
 ]]></Implementation>
@@ -464,7 +464,7 @@ This method holds process and expects only one package from
 the client - it includes authorization key.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    set authKey = ..Read(, .status, ..#ConstAuthorizationTimeout) // wait for package
+    set authKey = ..Read(, .status, ..#AuthorizationTimeout) // wait for package
     set ok = $$$NOTOK
 
     set namespace = ""
@@ -526,7 +526,7 @@ Main method for every new client.</Description>
 
     kill // clear junk vars
 
-    do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+    do ..SendData($NAMESPACE, ..#ClientPrompt)
 
     for {
 
@@ -535,7 +535,7 @@ Main method for every new client.</Description>
         if $$$ISERR(status) {
 
             try {
-                do ..SendData("40", ..#ConstClientOutputLocalized)
+                do ..SendData("40", ..#ClientOutputLocalized)
             } catch e { }
             quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
 
@@ -545,83 +545,83 @@ Main method for every new client.</Description>
         set action = $EXTRACT(data, 1, pos-2)
         set data = $EXTRACT(data, pos, *)
 
-        if (action = ..#ConstServerActionExecute) {
+        if (action = ..#ServerActionExecute) {
 
             do ..ExecuteCommand(data)
-            do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
 
-        } elseif (action = ..#ConstServerActionCheckTrace) {
+        } elseif (action = ..#ServerActionCheckTrace) {
 
             set changes = ..CheckTracing()
             if (changes '= "") {
                 do ..SendData(changes)
             }
 
-        } elseif (action = ..#ConstServerActionTrace) { // add/remove
+        } elseif (action = ..#ServerActionTrace) { // add/remove
 
             set result = ..Trace(data)
             if ('$$$ISOK(result)) {
                 set result = ..StopTracing(data)
                 if ('$$$ISOK(result)) {
-                    do ..SendData("!" _ data, ..#ConstClientTrace)
+                    do ..SendData("!" _ data, ..#ClientTrace)
                 }
             }
-            do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
 
-        } elseif (action = ..#ConstServerActionStopTraceAll) { // add/remove
+        } elseif (action = ..#ServerActionStopTraceAll) { // add/remove
 
             for i=1:1:$LISTLENGTH(..Watches) {
                 d ..StopTracing($LIST(..Watches, i))
             }
-            do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
 
-        } elseif (action = ..#ConstServerActionExecuteSQL) { // sql
+        } elseif (action = ..#ServerActionExecuteSQL) { // sql
 
             do ..ExecuteSQL(data)
-            do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
 
-        } elseif (action = ..#ConstServerActionGenerateAutocomplete) {
+        } elseif (action = ..#ServerActionGenerateAutocomplete) {
 
             // data shows if system classes required
 
             if ('..AutocompleteExists("%")) || (data = "1") {
                 do ..GenerateAutocomplete("%SYS", 1)
-                do ..SendData("%", ..#ConstClientLoadAutocomplete)
+                do ..SendData("%", ..#ClientLoadAutocomplete)
             }
             do ..GenerateAutocomplete(..CurrentNamespace, 0)
-            do ..SendData(..CurrentNamespace, ..#ConstClientLoadAutocomplete)
+            do ..SendData(..CurrentNamespace, ..#ClientLoadAutocomplete)
 
-        } elseif (action = ..#ConstServerActionReset) {
+        } elseif (action = ..#ServerActionReset) {
 
             do ..Reset()
-            do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
 
-        } elseif (action = ..#ConstServerActionEcho) {
+        } elseif (action = ..#ServerActionEcho) {
 
             do ..StartClearIO()
             write data
             do ..EndClearIO()
-            do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
 
-        } elseif (action = ..#ConstServerActionCheckUpdate) {
+        } elseif (action = ..#ServerActionCheckUpdate) {
 
             if ('$$$ISOK(..CheckUpdate())) {
-                do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+                do ..SendData($NAMESPACE, ..#ClientPrompt)
             }
 
-        } elseif (action = ..#ConstServerActionUpdate) {
+        } elseif (action = ..#ServerActionUpdate) {
 
             if $$$ISOK(..Update(data)) {
-                do ..SendData("39", ..#ConstClientOutputLocalized)
+                do ..SendData("39", ..#ClientOutputLocalized)
             } else {
-                do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+                do ..SendData($NAMESPACE, ..#ClientPrompt)
             }
 
         } else { // something scary
 
-            do ..SendData("38", ..#ConstClientOutputLocalized)
+            do ..SendData("38", ..#ClientOutputLocalized)
             do ..SendData(" " _ action)
-            do ..SendData($NAMESPACE, ..#ConstClientPrompt)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
 
         }
 
@@ -640,15 +640,15 @@ New connection established: require auth key, login and start client loop.</Desc
 
         set ..CurrentNamespace = $Znspace
 
-        do ..SendData("1", ..#ConstClientAuthorizationStatus)
-        do ..SendData(..CurrentNamespace, ..#ConstClientChangeNamespace)
+        do ..SendData("1", ..#ClientAuthorizationStatus)
+        do ..SendData(..CurrentNamespace, ..#ClientChangeNamespace)
 
         use $io:(/NOXY:/BREAK):"^" _ ..InitialZName
         do ..ClientLoop()
 
     } else {
 
-        do ..SendData("0", ..#ConstClientAuthorizationStatus)
+        do ..SendData("0", ..#ClientAuthorizationStatus)
         do ..EndServer()
 
     }

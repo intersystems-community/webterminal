@@ -1,137 +1,137 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-20 11:26:41">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-21 13:52:40">
 <Class name="WebTerminal.Common">
 <IncludeCode>%sySystem</IncludeCode>
-<TimeChanged>63906,41141.380559</TimeChanged>
+<TimeChanged>63907,49858.397499</TimeChanged>
 <TimeCreated>63906,39668.673891</TimeCreated>
 
-<Parameter name="ConstAuthorizationTimeout">
+<Parameter name="AuthorizationTimeout">
 <Description>
 How long to wait for authorization key when connection established</Description>
 <Default>5</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionExecute">
+<Parameter name="ServerActionExecute">
 <Type>%Char</Type>
 <Default>EXEC</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionExecuteSQL">
+<Parameter name="ServerActionExecuteSQL">
 <Type>%Char</Type>
 <Default>SQL</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionGenerateAutocomplete">
+<Parameter name="ServerActionGenerateAutocomplete">
 <Type>%Char</Type>
 <Default>AC</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionTrace">
+<Parameter name="ServerActionTrace">
 <Type>%Char</Type>
 <Default>TRACE</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionStopTraceAll">
+<Parameter name="ServerActionStopTraceAll">
 <Type>%Char</Type>
 <Default>STOP_TRACE_ALL</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionCheckTrace">
+<Parameter name="ServerActionCheckTrace">
 <Type>%Char</Type>
 <Default>CT</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionReset">
+<Parameter name="ServerActionReset">
 <Type>%Char</Type>
 <Default>R</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionEcho">
+<Parameter name="ServerActionEcho">
 <Type>%Char</Type>
 <Default>E</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionCheckUpdate">
+<Parameter name="ServerActionCheckUpdate">
 <Type>%Char</Type>
 <Default>CU</Default>
 </Parameter>
 
-<Parameter name="ConstServerActionUpdate">
+<Parameter name="ServerActionUpdate">
 <Type>%Char</Type>
 <Default>U</Default>
 </Parameter>
 
-<Parameter name="ConstClientPrompt">
+<Parameter name="ClientPrompt">
 <Type>%String</Type>
 <Default>PROMPT#</Default>
 </Parameter>
 
-<Parameter name="ConstClientStartExec">
+<Parameter name="ClientStartExec">
 <Type>%String</Type>
 <Default>EST#</Default>
 </Parameter>
 
-<Parameter name="ConstClientEndExec">
+<Parameter name="ClientEndExec">
 <Type>%String</Type>
 <Default>END#</Default>
 </Parameter>
 
-<Parameter name="ConstClientOutputMessage">
+<Parameter name="ClientOutputMessage">
 <Type>%String</Type>
 <Default>O#</Default>
 </Parameter>
 
-<Parameter name="ConstClientOutputLocalized">
+<Parameter name="ClientOutputLocalized">
 <Type>%String</Type>
 <Default>OL#</Default>
 </Parameter>
 
-<Parameter name="ConstClientChangeNamespace">
+<Parameter name="ClientChangeNamespace">
 <Type>%String</Type>
 <Default>NS#</Default>
 </Parameter>
 
-<Parameter name="ConstClientLoadAutocomplete">
+<Parameter name="ClientLoadAutocomplete">
 <Type>%String</Type>
 <Default>AC#</Default>
 </Parameter>
 
-<Parameter name="ConstClientReadString">
+<Parameter name="ClientReadString">
 <Type>%String</Type>
 <Default>R#</Default>
 </Parameter>
 
-<Parameter name="ConstClientReadChar">
+<Parameter name="ClientReadChar">
 <Type>%String</Type>
 <Default>RC#</Default>
 </Parameter>
 
-<Parameter name="ConstClientAuthorizationStatus">
+<Parameter name="ClientAuthorizationStatus">
 <Type>%String</Type>
 <Default>AUTH#</Default>
 </Parameter>
 
-<Parameter name="ConstClientTrace">
+<Parameter name="ClientTrace">
 <Type>%String</Type>
 <Default>TRACE#</Default>
 </Parameter>
 
-<Parameter name="ConstClientStopTrace">
+<Parameter name="ClientStopTrace">
 <Type>%String</Type>
 <Default>STOP_TRACE#</Default>
 </Parameter>
 
-<Parameter name="ConstClientLoginInfo">
+<Parameter name="ClientLoginInfo">
 <Type>%String</Type>
 <Default>I#</Default>
 </Parameter>
 
-<Parameter name="ConstClientClearScreen">
+<Parameter name="ClientClearScreen">
 <Type>%String</Type>
 <Default>CLRSCR#</Default>
 </Parameter>
 
-<Parameter name="ConstClientPromptUpdate">
+<Parameter name="ClientPromptUpdate">
 <Type>%String</Type>
 <Default>PROMPT_UPDATE#</Default>
 </Parameter>
