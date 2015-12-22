@@ -14,7 +14,7 @@ Contributing
     1. Run `gulp` command to build the project;
     3. Find `build/CacheWebTerminal-v*.xml` file and import it to the studio.
 2. By making changes in studio files (*.cls) just export the code into `export` repository directory.
-    1. NOTE: Some files as `WebTerminal/StaticContent.xml` contain special tags like `{{replace:*}}`, so that files cannot be directly imported from studio without modifying. Please, check file differences to ensure that you haven't rewritten any of those;
+    1. NOTE: Some files as, for example, `WebTerminal/StaticContent.xml` contain special tags like `{{replace:*}}`, so that files cannot be directly imported from studio without modifying. Please, check file differences to ensure that you haven't rewritten any of those;
     2. NOTE: When creating or changing classes, put their XML files into `export/WebTerminal` directory or any sub-directory which will be built as sub-packages. 
 
 ## Applications Integration

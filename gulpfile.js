@@ -23,18 +23,13 @@ function themesReady () { // triggered when build is done
     extra.themes = themes.map(function (n) {
         return ', "' + n.replace(/\..*$/, "") + '": "css/terminal-theme/' + n + '"';
     }).join("");
-    console.log("READY");
 }
 
 var specialReplace = function () {
     return replace(/[^\s]*\/\*build\.replace:(.*)\*\//g, function (part, match) {
         var s = match.toString();
-        var b = s.replace(/pkg\.([a-zA-Z]+)/g, function (p,a) { return pkg[a]; })
-            .replace(/extra\.([a-zA-Z]+)/g, function (p,a) {
-                console.log(extra);
-                return extra[a]; });
-        console.log(b, "---", s, part, match);
-        return b;
+        return s.replace(/pkg\.([a-zA-Z]+)/g, function (p,a) { return pkg[a]; })
+            .replace(/extra\.([a-zA-Z]+)/g, function (p,a) { return extra[a]; });
     });
 };
 
