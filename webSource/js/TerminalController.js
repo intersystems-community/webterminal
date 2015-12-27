@@ -77,7 +77,8 @@ TerminalController.prototype.SERVER_ACTION = {
     RESET: "R#",
     ECHO: "E#",
     CHECK_UPDATE: "CU#",
-    UPDATE: "U#"
+    UPDATE: "U#",
+    RENAME: "RENAME#"
 };
 
 /**
@@ -120,14 +121,6 @@ TerminalController.prototype.internalCommands = {
             this.TERMINAL.output.print(this._lc.get(50) + "\r\n");
             return;
         }
-
-//        if (args[0] === "gen") {
-//            this.server.send(this.SERVER_ACTION.AUTOCOMPLETE);
-//        } else {
-//            this.mergeAutocompleteFile(this.NAMESPACE);
-//        }
-//
-//        return false;
 
         this.server.send(this.SERVER_ACTION.AUTOCOMPLETE
             + (!this.autocompleteController.SYSTEM_CLASSES_LOADED
@@ -323,6 +316,13 @@ TerminalController.prototype.internalCommands = {
 
         interval = setInterval(colorPrint, 25);
 
+        return false;
+
+    },
+
+    "rename": function (args) {
+
+        this.server.send(this.SERVER_ACTION.RENAME + (args[0] || ""));
         return false;
 
     }
@@ -523,7 +523,11 @@ TerminalController.prototype.clientAction = {
     },
 
     I: function (data) {
-        this.TERMINAL.output.print(data + "\r\n");
+
+        var obj = {}; try { obj = JSON.parse(data) } catch (e) {  }
+
+        this.TERMINAL.serverInit(obj);
+
     },
 
     CLRSCR: function () {

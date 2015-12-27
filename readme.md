@@ -50,8 +50,8 @@ Type `/help` there to get more information.
 		<td>Access to WebSocket is granted only if client will pass a session key given by csp page.</td>
 	</tr>
 	<tr>
-		<td class="info">Self-update</td>
-		<td>Terminal v3.1.4 can be automatically updated by `/update` command.</td>
+		<td class="info">Self-updating</td>
+		<td>Terminal version 3.1.4 and higher can be automatically updated by using `/update` command.</td>
 	</tr>
 	<tr>
 		<td class="info">Explore!</td>

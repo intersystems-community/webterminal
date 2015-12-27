@@ -61,6 +61,11 @@ How long to wait for authorization key when connection established</Description>
 <Default>U</Default>
 </Parameter>
 
+<Parameter name="ServerActionRename">
+<Type>%Char</Type>
+<Default>RENAME</Default>
+</Parameter>
+
 <Parameter name="ClientPrompt">
 <Type>%String</Type>
 <Default>PROMPT#</Default>

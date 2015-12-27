@@ -52,6 +52,8 @@ var TerminalLocalization = function (TERMINAL) {
                 "autocomplete again, use " +
                 "\x1B[1msys\x1B[0m parameter.\r\n" +
                 "\x1B[33m/echo\x1B[0m [param1] [param2] ...\x1B[32GEcho each argument of this command." +
+                "\r\n\x1B[33m/rename\x1B[0m [name]\x1B[32GSpecify a name for the terminal instance. This name " +
+                "will be shown after terminal startup and as a page title. Empty argument will remove specified name." +
                 "\r\n\x1B[33m/trace\x1B[0m [global/filePath]\x1B[32GStart tracing global or file. To stop " +
                 "tracing, enter command without arguments. To stop tracing particular file or " +
                 "global, enter trace command again.\r\n" +
@@ -77,6 +79,8 @@ var TerminalLocalization = function (TERMINAL) {
                 "в ваш код или хотите обновить автодополнение системных классов, воспользуйтесь параметром " +
                 "\x1B[1msys\x1B[0m.\r\n" +
                 "\x1B[33m/echo\x1B[0m [параметр1] [второй] ...\x1B[32GОтображает каждый аргумент команды." +
+                "\r\n\x1B[33m/rename\x1B[0m [name]\x1B[32GУстановить имя для экземпляра терминала. Это имя " +
+                "будет показано после загрузки терминала и как заголовок страницы. Пустой аргумент уберёт установленное имя." +
                 "\r\n\x1B[33m/trace\x1B[0m [глобал/путь]\x1B[32GНаблюдать за изменениями в файле или глобале. Чтобы " +
                 "перестать наблюдать за изменениями, введите команду ещё раз. Команда без аргументов" +
                 " остановит наблюдение за всеми файлами и глобалами.\r\n" +
@@ -336,6 +340,20 @@ var TerminalLocalization = function (TERMINAL) {
         53: {
             en: "Loaded.",
             ru: "Загружено."
+        },
+        54: {
+            en: "System %s, user %s.",
+            ru: "Система %s, пользователь %s."
+        },
+        55: {
+            en: "System %s, user %s, name: %s.",
+            ru: "Система %s, пользователь %s, имя: %s."
+        },
+        56: {
+            en: "Terminal instance name changed successfully. Please, reload the page to see" +
+                " the changes.",
+            ru: "Экземпляр терминала переименован успешно. Пожалуйста, обновите страницу чтобы" +
+                " увидеть изменения."
         }
     };
 

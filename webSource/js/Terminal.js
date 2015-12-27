@@ -171,6 +171,27 @@ Terminal.prototype.initialize = function () {
 };
 
 /**
+ * This function is executed when server instance ready and basic server info is sent to the client.
+ */
+Terminal.prototype.serverInit = function (data) {
+
+    if (typeof data.system === "string") {
+        var nodeInfo = data.system.split(":"); // [PCName, Instance]
+        data.node = nodeInfo[0];
+        data.instance = nodeInfo[1];
+    }
+
+    if (data.node && data.instance) {
+        document.title = (data.name ? data.name + " " : "") + data.instance
+            + " (" + data.node + ")" + " - Caché WEB Terminal";
+        this.output.print(this.localization.get(
+            data.name ? 55 : 54, data.node, data.instance, data.name ? data.name : undefined
+        ) + "\r\n");
+    }
+
+};
+
+/**
  * Function to register execution of other functions when terminal in ready state. (when all
  * modules loaded)
  *

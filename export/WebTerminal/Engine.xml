@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-12-21 13:52:46">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.3 (Build 215U)" ts="2015-12-27 13:48:44">
 <Class name="WebTerminal.Engine">
 <Description>
 Cache WEB Terminal version X.X.X/*build.replace:pkg.version*/ core.
 This class is the server-side core of the terminal application.</Description>
 <Super>%CSP.WebSocket,Trace,Autocomplete</Super>
-<TimeChanged>63907,49887.419268</TimeChanged>
+<TimeChanged>63913,49707.26915</TimeChanged>
 <TimeCreated>63891,56786.028532</TimeCreated>
 <DependsOn>Common</DependsOn>
 
@@ -617,6 +617,12 @@ Main method for every new client.</Description>
                 do ..SendData($NAMESPACE, ..#ClientPrompt)
             }
 
+        } elseif (action = ..#ServerActionRename) {
+
+            set ^WebTerminal("Name") = data
+            do ..SendData("56", ..#ClientOutputLocalized)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
         } else { // something scary
 
             do ..SendData("38", ..#ClientOutputLocalized)
@@ -629,19 +635,41 @@ Main method for every new client.</Description>
 ]]></Implementation>
 </Method>
 
+<Method name="SendLoginInfo">
+<Description>
+This method sends basic login info to the user. Use this method to set client variables
+during the WebTerminal initialization.</Description>
+<Implementation><![CDATA[
+    set obj = ##class(%ZEN.proxyObject).%New()
+    set obj.username = $USERNAME
+    set obj.name = $get(^WebTerminal("Name"))
+    
+    // "pretty" json formatter
+    set data = "{""system"":""" _ $SYSTEM _ """"
+    set key = $order(obj.%data(""))
+    while (key '= "") {
+        set data = data _ ","""_key_""":"""_obj.%data(key)_""""
+        set key = $order(obj.%data(key))
+    }
+    set data = data _ "}"
+    
+    do ..SendData(data, ..#ClientLoginInfo)
+]]></Implementation>
+</Method>
+
 <Method name="Server">
 <Description>
 New connection established: require auth key, login and start client loop.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 
-    /*UNCOMMENT ON RELEASE!*/
     if ($$$ISOK(..RequireAuthorization())) {
 
         set ..CurrentNamespace = $Znspace
 
         do ..SendData("1", ..#ClientAuthorizationStatus)
         do ..SendData(..CurrentNamespace, ..#ClientChangeNamespace)
+        do ..SendLoginInfo()
 
         use $io:(/NOXY:/BREAK):"^" _ ..InitialZName
         do ..ClientLoop()
