@@ -1,0 +1,1511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="WebTerminal.Autocomplete">
+<Super>Common</Super>
+<TimeChanged>63907,49852.728366</TimeChanged>
+<TimeCreated>63906,49098.662696</TimeCreated>
+
+<Method name="AutocompleteExists">
+<FormalSpec>namespace:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[    quit $get(^WebTerminal("Autocomplete", namespace)) '= ""
+]]></Implementation>
+</Method>
+
+<Method name="GenerateAutocomplete">
+<Description>
+Generates autocomplete for namespace. Second parameter decides if
+it will be regenerated again. But if namespace equals to "%" - generates
+autocomplete for system classes. Make sure that autocomplete for
+system classes generates one time and forever.
+@param genSystem - Shows if system classes need to be generated. </Description>
+<FormalSpec>namespace:%String,genSystem:%Boolean</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set trueNs = $case(genSystem, 1:"%", :namespace)
+
+    do ..SendData("29", ..#ClientOutputLocalized)
+    do ..SendData(" " _ trueNs _ $C(13, 10))
+
+    if ('##class(%SYS.Namespace).Exists(namespace)) {
+        do ..SendData("30", ..#ClientOutputLocalized)
+        do ..SendData(" " _ namespace _ $C(13, 10))
+        quit $$$NOTOK
+    }
+
+    // get all classes names
+    set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
+    do result.Execute()
+
+    /*
+    The next COULD BE IMPROVED FOR SPEED, I beleive.
+    Generates compressed JSON string of type:
+    {
+        "class": {
+            "%ClassName1": {
+                "methodName": 0,
+                "propertyName": 0,
+                "parameterName": 0,
+                ...
+            },
+            "ClassName2": {
+                ...
+            }
+        },
+        "global": {
+            "^%g1": 0,
+            "^g2": 0
+        }
+    }
+    */
+
+    do ..SendData($C(13, 10))
+    do ..SendData("32", ..#ClientOutputLocalized)
+
+    set ac = "{""class"":{" // string with autocomplete
+    set first = ""
+    set u = 1
+
+    while (result.Next()) { // forming autocomplete for each class
+
+        if (genSystem) '= ($Extract(result.Data("Name"), 1) = "%") {
+            continue
+        }
+
+        set className = result.Data("Name")
+
+        do ..SendData($C(27) _ "[30G" _ u)
+        s u = u + 1
+
+        set ac = ac _ first _ """" _ className _ """:{"
+        if (first = "") set first = ","
+
+        set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
+
+        set countMethods = cdefs.Methods.Count()
+        set countParameters = cdefs.Parameters.Count()
+        set countProperties = cdefs.Properties.Count()
+        set total = countMethods + countParameters + countProperties
+        set current = 0
+
+        for i=1:1:countMethods {
+            set current = current + 1
+            set ac = ac _ """" _ cdefs.Methods.GetAt(i).Name _ """:0"
+            if (current'=total) set ac = ac _ ","
+        }
+
+        for i=1:1:countProperties {
+            set current = current + 1
+            set ac = ac _ """" _ cdefs.Properties.GetAt(i).Name _ """:0"
+            if (current'=total) set ac = ac _ ","
+        }
+
+        for i=1:1:countParameters {
+            set current = current + 1
+            set ac = ac _ """" _ cdefs.Parameters.GetAt(i).Name _ """:0"
+            if (current'=total) set ac = ac _ ","
+        }
+
+        set ac = ac _ "}"
+
+    }
+
+    set ac = ac _ "}"
+    if ('genSystem) set ac = ac _ ",""global"":" _ ..getGlobalsJSON()
+    set ac = ac _ "}"
+
+    set ^WebTerminal("Autocomplete", trueNs) = ac
+
+    do ..SendData($C(13, 10))
+    do ..SendData("33", ..#ClientOutputLocalized)
+    do ..SendData($C(13, 10))
+    //do ..SendData(namespace, ..#ClientLoadAutocomplete)
+
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Reset">
+<Description>
+Returns terminal to default state</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    // delete autocompletion files
+    kill ^WebTerminal("Autocomplete")
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="getGlobalsJSON">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>namespace:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+
+    set out = "{"
+    set rset=##class(%ResultSet).%New("%SYS.GlobalQuery:NameSpaceList")
+    set sc=rset.Execute($ZNSPACE,"*",0)
+    while (rset.Next()) {
+        set out = out _ """" _ $Piece(rset.GetData(1),"(",1) _ """:0,"
+    }
+    set out = $EXTRACT(out,1,$LENGTH(out)-1) _ "}"
+
+    // todo:
+    // Set Rset = ##class(%Library.ResultSet).%New("%SYS.GlobalQuery:NameSpaceListChui")
+    // s Status=Rset.Execute(NameSpace,Mask,SystemGlobals,.UnavailableDatabases)
+
+    q out
+]]></Implementation>
+</Method>
+</Class>
+
+<Class name="WebTerminal.Common">
+<IncludeCode>%sySystem</IncludeCode>
+<TimeChanged>63907,49858.397499</TimeChanged>
+<TimeCreated>63906,39668.673891</TimeCreated>
+
+<Parameter name="AuthorizationTimeout">
+<Description>
+How long to wait for authorization key when connection established</Description>
+<Default>5</Default>
+</Parameter>
+
+<Parameter name="ServerActionExecute">
+<Type>%Char</Type>
+<Default>EXEC</Default>
+</Parameter>
+
+<Parameter name="ServerActionExecuteSQL">
+<Type>%Char</Type>
+<Default>SQL</Default>
+</Parameter>
+
+<Parameter name="ServerActionGenerateAutocomplete">
+<Type>%Char</Type>
+<Default>AC</Default>
+</Parameter>
+
+<Parameter name="ServerActionTrace">
+<Type>%Char</Type>
+<Default>TRACE</Default>
+</Parameter>
+
+<Parameter name="ServerActionStopTraceAll">
+<Type>%Char</Type>
+<Default>STOP_TRACE_ALL</Default>
+</Parameter>
+
+<Parameter name="ServerActionCheckTrace">
+<Type>%Char</Type>
+<Default>CT</Default>
+</Parameter>
+
+<Parameter name="ServerActionReset">
+<Type>%Char</Type>
+<Default>R</Default>
+</Parameter>
+
+<Parameter name="ServerActionEcho">
+<Type>%Char</Type>
+<Default>E</Default>
+</Parameter>
+
+<Parameter name="ServerActionCheckUpdate">
+<Type>%Char</Type>
+<Default>CU</Default>
+</Parameter>
+
+<Parameter name="ServerActionUpdate">
+<Type>%Char</Type>
+<Default>U</Default>
+</Parameter>
+
+<Parameter name="ServerActionRename">
+<Type>%Char</Type>
+<Default>RENAME</Default>
+</Parameter>
+
+<Parameter name="ClientPrompt">
+<Type>%String</Type>
+<Default>PROMPT#</Default>
+</Parameter>
+
+<Parameter name="ClientStartExec">
+<Type>%String</Type>
+<Default>EST#</Default>
+</Parameter>
+
+<Parameter name="ClientEndExec">
+<Type>%String</Type>
+<Default>END#</Default>
+</Parameter>
+
+<Parameter name="ClientOutputMessage">
+<Type>%String</Type>
+<Default>O#</Default>
+</Parameter>
+
+<Parameter name="ClientOutputLocalized">
+<Type>%String</Type>
+<Default>OL#</Default>
+</Parameter>
+
+<Parameter name="ClientChangeNamespace">
+<Type>%String</Type>
+<Default>NS#</Default>
+</Parameter>
+
+<Parameter name="ClientLoadAutocomplete">
+<Type>%String</Type>
+<Default>AC#</Default>
+</Parameter>
+
+<Parameter name="ClientReadString">
+<Type>%String</Type>
+<Default>R#</Default>
+</Parameter>
+
+<Parameter name="ClientReadChar">
+<Type>%String</Type>
+<Default>RC#</Default>
+</Parameter>
+
+<Parameter name="ClientAuthorizationStatus">
+<Type>%String</Type>
+<Default>AUTH#</Default>
+</Parameter>
+
+<Parameter name="ClientTrace">
+<Type>%String</Type>
+<Default>TRACE#</Default>
+</Parameter>
+
+<Parameter name="ClientStopTrace">
+<Type>%String</Type>
+<Default>STOP_TRACE#</Default>
+</Parameter>
+
+<Parameter name="ClientLoginInfo">
+<Type>%String</Type>
+<Default>I#</Default>
+</Parameter>
+
+<Parameter name="ClientClearScreen">
+<Type>%String</Type>
+<Default>CLRSCR#</Default>
+</Parameter>
+
+<Parameter name="ClientPromptUpdate">
+<Type>%String</Type>
+<Default>PROMPT_UPDATE#</Default>
+</Parameter>
+
+<Method name="SendData">
+<FormalSpec>query:%String="",action:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    write query,$c(9),action
+    quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+<Class name="WebTerminal.Engine">
+<Description>
+Cache WEB Terminal version 3.2.0 core.
+This class is the server-side core of the terminal application.</Description>
+<Super>%CSP.WebSocket,Trace,Autocomplete</Super>
+<TimeChanged>63913,49707.26915</TimeChanged>
+<TimeCreated>63891,56786.028532</TimeCreated>
+<DependsOn>Common</DependsOn>
+
+<Property name="SharedConnection">
+<Description><![CDATA[
+This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
+connection or over a pool of shared connections.  It may be set to one of the following:
+<br><ul>
+<li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
+<li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
+</ul>]]></Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="CurrentNamespace">
+<Type>%String</Type>
+</Property>
+
+<Property name="InitialZName">
+<Type>%String</Type>
+</Property>
+
+<Property name="InitialZNamespace">
+<Type>%String</Type>
+</Property>
+
+<Method name="redirects">
+<Description>
+Public point entries, using when redirecting i/o</Description>
+<Private>1</Private>
+<ProcedureBlock>0</ProcedureBlock>
+<Implementation><![CDATA[
+/// Mnemonics
+APC d APC^%X364 q
+BEL d BEL^%X364 q
+CBT(%1) d CBT^%X364(%1) q
+CCH d CCH^%X364 q
+CHA(%1) d CHA^%X364(%1) q
+CHT(%1) d CHT^%X364(%1) q
+CNL(%1) d CNL^%X364(%1) q
+CPL(%1) d CPL^%X364(%1) q
+CPR d CPR^%X364 q
+CTC(%1,%2,%3,%4,%5,%6,%7,%8,%9) d CTC^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+CUB(%1) d CUB^%X364(%1) q
+CUD(%1) d CUD^%X364(%1) q
+CUF(%1) d CUF^%X364(%1) q
+CUP(%2,%1) d CUP^%X364(%2,%1) q
+CUU(%1) d CUU^%X364(%1) q
+CVT(%1) d CVT^%X364(%1) q
+DA d DA^%X364 q
+DAQ(%1,%2,%3,%4,%5,%6,%7,%8,%9) d DAQ^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+DCH(%1) d DCH^%X364(%1) q
+DCS d DCS^%X364 q
+DL(%1) d DL^%X364(%1) q
+DMI d DMI^%X364 q
+DSR(%1) d DSR^%X364(%1) q
+EA(%1) d EA^%X364(%1) q
+ECH(%1) d ECH^%X364(%1) q
+ED(%1) d ED^%X364(%1) q
+EF(%1) d EF^%X364(%1) q
+EL(%1) d EL^%X364(%1) q
+EMI d EMI^%X364 q
+EPA d EPA^%X364 q
+ESA d ESA^%X364 q
+FNT d DNT^%X364 q
+GSM d GSM^%X364 q
+GSS d GSS^%X364 q
+HPA(%1) d HPA^%X364(%1) q
+HPR(%1) d HPR^%X364(%1) q
+HTJ d HTJ^%X364 q
+HTS d HTS^%X364 q
+HVP(%1,%2) d HVP^%X364(%1,%2) q
+ICH(%1) d ICH^%X364(%1) q
+IL(%1) d IL^%X364(%1) q
+IND d IND^%X364 q
+INT d INT^%X364 q
+JFY d JFY^%X364 q
+MC d MC^%X364 q
+MW d MW^%X364 q
+NEL d NEL^%X364 q
+NP(%1) d NP^%X364(%1) q
+OSC d OSC^%X364 q
+PLD d PLD^%X364 q
+PLU d PLU^%X364 q
+PM d PM^%X364 q
+PP(%1) d PP^%X364(%1) q
+PU1 d PU1^%X364 q
+PU2 d PU2^%X364 q
+QUAD d QUAD^%X364 q
+REP d REP^%X364 q
+RI d RI^%X364 q
+RIS d RIS^%X364 q
+RM(%1,%2,%3,%4,%5,%6,%7,%8,%9) d RM^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+SEM d SEM^%X364 q
+SGR(%1,%2,%3,%4,%5,%6,%7,%8,%9) d SGR^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+SL d SL^%X364 q
+SM(%1,%2,%3,%4,%5,%6,%7,%8,%9) d SM^%X364(%1,%2,%3,%4,%5,%6,%7,%8,%9) q
+SPA d SPA^%X364 q
+SPI d SPI^%X364 q
+SR d SR^%X364 q
+SS2 d SS2^%X364 q
+SS3 d SS3^%X364 q
+SSA d SSA^%X364 q
+ST d ST^%X364 q
+STS d STS^%X364 q
+SU d SU^%X364 q
+TBC d TBC^%X364 q
+TSS d TSS^%X364 q
+VPA(%1) d VPA^%X364(%1) q
+VPR(%1) d VPR^%X364(%1) q
+VTS d VTS^%X364 q
+
+PrepareOutput(data)
+    Try { Set data=$zconvert(data, "O", "UTF8") } Catch {  }
+    quit data
+
+PrepareInput(data)
+    Try { Set data=$zconvert(data, "I", "UTF8") } Catch {  }
+    quit data
+
+/// Routine from %CSP.WebSocket.cls
+ReadMessage(len = 32656, timeout = 86400, BytesAvailable, AtEnd, data, data1, header, size, type)
+    Set $ZTrap="ReadError"
+    If len<1 Set len=32656
+    //If (..SharedConnection = 1) {
+    //    Set data=..ReadAsync(.len, .sc, timeout)
+    //    Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+    //    Set len=$Length(data1)
+    //    Quit data1
+    //}
+    Set BytesAvailable=0, AtEnd=0
+    Read header#5:timeout
+    If $Test=0 {
+        Set len=0
+        //Set sc=$$$ERROR($$$CSPWebSocketTimeout, "WebSocket Read Operation timed-out")
+        Set AtEnd=1
+        Quit ""
+    }
+    Set type=$Extract(header,5)
+    If type=9 {
+        Set len=0
+        //Set sc=$$$ERROR($$$CSPWebSocketClosed,"WebSocket Closed by the Client")
+        Set AtEnd=1
+        Quit ""
+    }
+    Set header=$Extract(header, 1, 4)
+    Set size=$ZLA(header)-1 If size<0 Set size=0
+    Set BytesAvailable=size
+ReadData
+    If BytesAvailable > len {
+        Set size=len
+        Set BytesAvailable=BytesAvailable-len
+    }
+    else {
+        Set size=BytesAvailable
+        Set BytesAvailable=0
+    }
+    If 'BytesAvailable Set AtEnd=1
+    If size=0 Set len=0 Quit ""
+    Read data#size
+    Set len=size
+    //Set sc=$$$OK
+    Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+    Set len=$Length(data1)
+    Quit data1
+ReadError
+    #; No interrupts during cleanup or error processing
+    $$$SetExternalInterrupts(0)
+    Set $ZTrap="ReadHalt"
+    Hang 5
+    Close 0
+ReadHalt
+    Halt
+
+/// Workaround for Cache 2015
+#define WSProtocol (##class(%Dictionary.CompiledProperty).%OpenId("%CSP.WebSocket||WSClassProtocolVersion"))
+WriteMessage(data, data1, head)
+    if ($$$WSProtocol) && ($$$WSProtocol.InitialExpression > 1) {
+        try { set data1 = $zconvert(data, "O", "UTF8") } catch { set data1 = data }
+        set head = $ZLChar($Length(data1))
+        set head = head _ "7"
+        write head _ data1, *-3
+    } else {
+        write $$PrepareOutput(data), *-3
+    }
+    quit
+
+//////////////////////////////////////////////
+
+wstr(s)
+    do ##class(%Device).ReDirectIO($$$NO)
+    do WriteMessage("O#"_s)
+    do ##class(%Device).ReDirectIO($$$YES)
+    set $X = $X + $LENGTH(s)
+    set $Y = $Y - 1
+    quit
+
+wchr(c)
+    do ##class(%Device).ReDirectIO($$$NO)
+    do WriteMessage("O#"_$c(c))
+    do ##class(%Device).ReDirectIO($$$YES)
+    set $X = $X + 1
+    set $Y = $Y - 1
+    quit
+
+wnl
+    do ##class(%Device).ReDirectIO($$$NO)
+    do WriteMessage("O#"_$c(13, 10))
+    do ##class(%Device).ReDirectIO($$$YES)
+    set $X = 0
+    quit
+
+wff
+    do ##class(%Device).ReDirectIO($$$NO)
+    do WriteMessage("CLRSCR#")
+    do ##class(%Device).ReDirectIO($$$YES)
+    set $Y = 0
+    set $X = 0
+    quit
+
+wtab(s)
+    do ##class(%Device).ReDirectIO($$$NO)
+    do WriteMessage("O#" _ $C(27) _ "[" _ (s + 1) _ "G")
+    do ##class(%Device).ReDirectIO($$$YES)
+    set $X = s
+    quit
+
+rstr(len = 32656, timeout = 86400, data)
+    do ##class(%Device).ReDirectIO($$$NO)
+    do WriteMessage("R#" _ len)
+    s data = $$ReadMessage(len, timeout)
+    do ##class(%Device).ReDirectIO($$$YES)
+    quit data
+
+rchr(timeout = 86400, data)
+    do ##class(%Device).ReDirectIO($$$NO)
+    do WriteMessage("RC#")
+    set data = $$ReadMessage(, timeout)
+    set data = data * 1 // $ASCII($EXTRACT(data,1,1))
+    do ##class(%Device).ReDirectIO($$$YES)
+    quit data
+]]></Implementation>
+</Method>
+
+<Method name="OnPreServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set ..InitialZName = $zname
+    set ..InitialZNamespace = $znspace
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OnPostServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    kill ^CacheTemp.WebTerminal.Watching
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="WriteToFile">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String,data:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set file=##class(%File).%New(filename)
+    do file.Open("WSN")
+    do file.WriteLine(data)
+    do file.Close()
+]]></Implementation>
+</Method>
+
+<Method name="SendData">
+<Description>
+Function sends data derectly to server with specified action</Description>
+<FormalSpec>query:%String="",action:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (action = "") { set action = ..#ClientOutputMessage }
+    do ..Write(action _ query)
+]]></Implementation>
+</Method>
+
+<Method name="ExecuteSQL">
+<FormalSpec>query:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..StartClearIO()
+    do ##class(%Device).ReDirectIO($$$YES)
+
+    set tStatement = ##class(%SQL.Statement).%New()
+    set qStatus = tStatement.%Prepare(query)
+    if qStatus'=1 {
+        write $System.Status.DisplayError(qStatus)
+    } else {
+        set rset = tStatement.%Execute()
+        do rset.%Display()
+    }
+
+    do ##class(%Device).ReDirectIO($$$NO)
+    do ..EndClearIO()
+
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ClientAlertNamespace">
+<Description>
+Sends to client new namespace if last was changed</Description>
+<Implementation><![CDATA[
+    if (..CurrentNamespace '= $Znspace) { // change client namespace
+        set ..CurrentNamespace = $Znspace
+        do ..SendData(..CurrentNamespace,..#ClientChangeNamespace)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="StartClearIO">
+<Description>
+Starts clear I/O mode</Description>
+<Implementation><![CDATA[
+    write *-3
+    do ..Write(..#ClientStartExec)
+    write *-3
+    do ##class(%Device).ReDirectIO($$$YES)
+]]></Implementation>
+</Method>
+
+<Method name="EndClearIO">
+<Description>
+Ends clear I/O mode</Description>
+<Implementation><![CDATA[
+    //write *-3
+    do ##class(%Device).ReDirectIO($$$NO)
+    do ..SendData("",..#ClientEndExec)
+    write *-3
+]]></Implementation>
+</Method>
+
+<Method name="ParseError">
+<Description>
+This method transforms error </Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>string:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set string = $REPLACE($REPLACE(string, ">", "<"), ".Engine.", "<")
+    quit "ERROR: " _ $PIECE(string, "<", 2) _
+        $EXTRACT($PIECE(string, "<", 4), 2, *)
+]]></Implementation>
+</Method>
+
+<Method name="Update">
+<FormalSpec>version</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set httprequest = ##class(%Net.HttpRequest).%New()
+    set httprequest.Server = "intersystems-ru.github.io"
+    do ..SendData("34", ..#ClientOutputLocalized)
+    do ..SendData(" http://intersystems-ru.github.io/webterminal/files/" _ version _ ".xml ")
+    do httprequest.Get("/webterminal/files/" _ version _ ".xml")
+    if (httprequest.HttpResponse.StatusCode '= 200) {
+        do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
+            _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
+        quit $$$NOTOK
+    }
+    do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m")
+    if ($isobject(httprequest.HttpResponse.Data)) {
+        do ..SendData($C(13,10))
+        do ..SendData("35", ..#ClientOutputLocalized)
+        do ..SendData($C(13,10))
+        do ..SendData("Moving back to terminal's home namespace " _ ..InitialZNamespace _ "...")
+        zn ..InitialZNamespace
+        do ..StartClearIO()
+        set stload = $System.OBJ.LoadStream(httprequest.HttpResponse.Data, "", .error, .items)
+        if $$$ISERR(stload) {
+            w $C(27)_"[31mFAILED" _ $C(27) _ "[0m " _ $System.Status.GetErrorText(stload)
+            quit $$$NOTOK
+        }
+        set logFileName = ##class(%File).SubDirectoryName(##class(%File).ManagerDirectory(),"CWTUpdateLog.txt")
+        open logFileName:("NRW"):5
+        set io = $IO
+        use logFileName
+        set st2 = $System.OBJ.CompileList(.items, "cuk /checkuptodate=none")
+        close logFileName
+        use io
+        if $$$ISERR(st2) { write $System.Status.GetErrorText(st2) quit $$$NOTOK }
+        do ..EndClearIO()
+        if ##class(%File).Exists(logFileName) {
+            set stream = ##class(%Stream.FileCharacter).%New()
+            set sc = stream.LinkToFile(logFileName)
+            while 'stream.AtEnd {
+                set line = stream.Read()
+                do ..SendData(line)
+            }
+            do ##class(%File).Delete(logFileName)
+        }
+    }
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="CheckUpdate">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set httprequest = ##class(%Net.HttpRequest).%New()
+    set httprequest.Server = "intersystems-ru.github.io"
+    do httprequest.Get("/webterminal/latestVersion")
+    if (httprequest.HttpResponse.StatusCode '= 200) {
+        do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
+            _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
+        quit $$$NOTOK
+    }
+    if ($isobject(httprequest.HttpResponse.Data)) {
+        do ..SendData(httprequest.HttpResponse.Data.Read(), ..#ClientPromptUpdate)
+    }
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ExecuteCommand">
+<Description>
+The heart of terminal application</Description>
+<FormalSpec>query:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (query = "") quit $$$OK
+
+    #dim exception as %Exception.AbstractException
+    set value = $Replace(query, $CHAR(10), " ")
+
+    do ..StartClearIO() // execute session start
+
+    set $ZERROR = ""
+
+    try { xecute value } catch exception {
+        set $ZERROR = exception.DisplayString()
+    }
+
+    if ($ZERROR '= "") {
+        w $ZERROR, *-3
+    }
+
+    do ..EndClearIO() // execute session end
+    do ..ClientAlertNamespace() // check namespace change
+
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RequireAuthorization">
+<Description>
+This method holds process and expects only one package from
+the client - it includes authorization key.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set authKey = ..Read(, .status, ..#AuthorizationTimeout) // wait for package
+    set ok = $$$NOTOK
+
+    set namespace = ""
+    set pos = $FIND(authKey, "#")
+    if pos '= 0 {
+        set namespace = $EXTRACT(authKey, pos, *)
+        set authKey = $EXTRACT(authKey, 1, pos-2)
+    }
+
+    /*
+     * Find given CSPSessionCookie in WebTerminal auth global. If found, grant access.
+     */
+    SET key = $ORDER(^WebTerminal("AuthUser", ""))
+    WHILE (key '= "") {
+        set lb = $GET(^WebTerminal("AuthUser", key))
+        if ((lb '= "") && (key = authKey)) {
+
+            // setup privileges
+            set username = $LISTGET(lb, 1) // user name
+            set ns = $namespace
+            zn "%SYS"
+            do ##class(Security.Users).Get(username, .userProps)
+            zn ns
+            continue:($order(userProps("")) = "")
+
+            set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
+            set loginStatus = $System.Security.Login(username) // login user
+
+            kill ^WebTerminal("AuthUser", key)
+
+            set ok = loginStatus
+
+        }
+
+        // kill "old" auth tickets
+        set time = $LISTGET(lb, 2)
+        if (time '= "") && ($System.SQL.DATEDIFF("s", time, $h) > 100) { // if older than 100 sec
+            kill ^WebTerminal("AuthUser", key)
+        }
+
+        SET key = $ORDER(^WebTerminal("AuthUser", key))
+    }
+
+    if (namespace '= "") {
+        try { // in case user may specify namespace that does not exists
+            znspace namespace
+        } catch (e) {  }
+    }
+
+    quit ok
+]]></Implementation>
+</Method>
+
+<Method name="ClientLoop">
+<Description>
+Main method for every new client.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    kill // clear junk vars
+
+    do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+    for {
+
+        set data = ..Read(,.status)
+
+        if $$$ISERR(status) {
+
+            try {
+                do ..SendData("40", ..#ClientOutputLocalized)
+            } catch e { }
+            quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
+
+        }
+
+        set pos = $FIND(data, "#")
+        set action = $EXTRACT(data, 1, pos-2)
+        set data = $EXTRACT(data, pos, *)
+
+        if (action = ..#ServerActionExecute) {
+
+            do ..ExecuteCommand(data)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+        } elseif (action = ..#ServerActionCheckTrace) {
+
+            set changes = ..CheckTracing()
+            if (changes '= "") {
+                do ..SendData(changes)
+            }
+
+        } elseif (action = ..#ServerActionTrace) { // add/remove
+
+            set result = ..Trace(data)
+            if ('$$$ISOK(result)) {
+                set result = ..StopTracing(data)
+                if ('$$$ISOK(result)) {
+                    do ..SendData("!" _ data, ..#ClientTrace)
+                }
+            }
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+        } elseif (action = ..#ServerActionStopTraceAll) { // add/remove
+
+            for i=1:1:$LISTLENGTH(..Watches) {
+                d ..StopTracing($LIST(..Watches, i))
+            }
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+        } elseif (action = ..#ServerActionExecuteSQL) { // sql
+
+            do ..ExecuteSQL(data)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+        } elseif (action = ..#ServerActionGenerateAutocomplete) {
+
+            // data shows if system classes required
+
+            if ('..AutocompleteExists("%")) || (data = "1") {
+                do ..GenerateAutocomplete("%SYS", 1)
+                do ..SendData("%", ..#ClientLoadAutocomplete)
+            }
+            do ..GenerateAutocomplete(..CurrentNamespace, 0)
+            do ..SendData(..CurrentNamespace, ..#ClientLoadAutocomplete)
+
+        } elseif (action = ..#ServerActionReset) {
+
+            do ..Reset()
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+        } elseif (action = ..#ServerActionEcho) {
+
+            do ..StartClearIO()
+            write data
+            do ..EndClearIO()
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+        } elseif (action = ..#ServerActionCheckUpdate) {
+
+            if ('$$$ISOK(..CheckUpdate())) {
+                do ..SendData($NAMESPACE, ..#ClientPrompt)
+            }
+
+        } elseif (action = ..#ServerActionUpdate) {
+
+            if $$$ISOK(..Update(data)) {
+                do ..SendData("39", ..#ClientOutputLocalized)
+            } else {
+                do ..SendData($NAMESPACE, ..#ClientPrompt)
+            }
+
+        } elseif (action = ..#ServerActionRename) {
+
+            set ^WebTerminal("Name") = data
+            do ..SendData("56", ..#ClientOutputLocalized)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+        } else { // something scary
+
+            do ..SendData("38", ..#ClientOutputLocalized)
+            do ..SendData(" " _ action)
+            do ..SendData($NAMESPACE, ..#ClientPrompt)
+
+        }
+
+    }
+]]></Implementation>
+</Method>
+
+<Method name="SendLoginInfo">
+<Description>
+This method sends basic login info to the user. Use this method to set client variables
+during the WebTerminal initialization.</Description>
+<Implementation><![CDATA[
+    set obj = ##class(%ZEN.proxyObject).%New()
+    set obj.username = $USERNAME
+    set obj.name = $get(^WebTerminal("Name"))
+    
+    // "pretty" json formatter
+    set data = "{""system"":""" _ $SYSTEM _ """"
+    set key = $order(obj.%data(""))
+    while (key '= "") {
+        set data = data _ ","""_key_""":"""_obj.%data(key)_""""
+        set key = $order(obj.%data(key))
+    }
+    set data = data _ "}"
+    
+    do ..SendData(data, ..#ClientLoginInfo)
+]]></Implementation>
+</Method>
+
+<Method name="Server">
+<Description>
+New connection established: require auth key, login and start client loop.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    if ($$$ISOK(..RequireAuthorization())) {
+
+        set ..CurrentNamespace = $Znspace
+
+        do ..SendData("1", ..#ClientAuthorizationStatus)
+        do ..SendData(..CurrentNamespace, ..#ClientChangeNamespace)
+        do ..SendLoginInfo()
+
+        use $io:(/NOXY:/BREAK):"^" _ ..InitialZName
+        do ..ClientLoop()
+
+    } else {
+
+        do ..SendData("0", ..#ClientAuthorizationStatus)
+        do ..EndServer()
+
+    }
+
+    quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+<Class name="WebTerminal.Installer">
+<Description>
+Importing this class will install Cache WEB Terminal properly.</Description>
+<Super>%Projection.AbstractProjection</Super>
+<TimeChanged>63906,53063.112672</TimeChanged>
+<TimeCreated>63890,71053.144208</TimeCreated>
+<DependsOn>Common,Engine,Router,StaticContent</DependsOn>
+
+<Parameter name="DispatchClass">
+<Default>WebTerminal.Router</Default>
+</Parameter>
+
+<Projection name="Reference">
+<Type>Installer</Type>
+</Projection>
+
+<Method name="CreateProjection">
+<Description>
+This method is invoked when a class is compiled.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[cls:%String,&params]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set ns = $NAMESPACE // has to be package home namespace!
+    zn:ns'="%SYS" "%SYS"
+    do ##class(Security.System).GetInstallationSecuritySetting(.security)
+    set cspProperties("AutheEnabled") = 32 // password by default, 64 for no password
+    set cspProperties("NameSpace") = ns // terminal works only in %SYS namespace, only in % package
+    set cspProperties("Description") = "A WEB application for Cache WEB Terminal."
+    set cspProperties("IsNameSpaceDefault") = 0
+    set cspProperties("DispatchClass") = ..#DispatchClass
+    if ('##class(Security.Applications).Exists("/terminal")) {
+        w !, "Creating WEB application ""/terminal""..."
+        set tSC = ##class(Security.Applications).Create("/terminal", .cspProperties)
+        if $$$ISERR(tSC) throw ##class(%Installer.Exception).CreateFromStatus(tSC)
+        w !, "WEB application ""/terminal"" is created."
+        //set ^SYS("Security", "CSP", "AllowClass", "/terminal/", ..#DispatchClass) = 1
+    } else {
+        do ##class(Security.Applications).Get("/terminal", .props)
+        if (props("DispatchClass") '= ..#DispatchClass) {
+            w !, "WARNING! WEB application ""/terminal"" exists but does not refer to ",
+                DispatchClass, ".", !, "Please, set correct dispatch class for this application ",
+                "or create a terminal WEB-application manually."
+        } else {
+            w !, "WEB application ""/terminal"" already exists, so it is ready to use."
+        }
+    }
+    set status = ##Class(Config.Namespaces).Get("%All")
+    if ($$$ISERR(status)) { // no namespace %All
+        w !, "Creating %All namespace..."
+        set Properties("Globals") = "CACHETEMP"
+        set Properties("Library") = "CACHELIB"
+        set Properties("Routines") = "CACHETEMP"
+        set Properties("SysGlobals") = "CACHESYS"
+        set Properties("SysRoutines") = "CACHESYS"
+        set Properties("TempGlobals") = "CACHETEMP"
+        set status = ##Class(Config.Namespaces).Create("%All", .Properties)
+        if ($$$ISERR(status)) {
+            do $System.Status.DisplayError(status)
+            quit status
+        } else {
+            w !, "%All namespace is created."
+        }
+    }
+    w !, "Mapping %WebTerminal package into all namespaces:"
+    set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
+    do ##Class(Config.Namespaces).Get("USER", .InstallNSProps)
+    set Properties("Database") = $get(InstallNSProps("Routines"))
+    set ptr = 0
+    while $LISTNEXT(mapTo, ptr, value) {
+        continue:(ns = value)
+        w " ", value
+        set status = ##Class(Config.MapPackages).Create(value, "WebTerminal", .Properties)
+        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
+        set status = ##Class(Config.MapGlobals).Create(value, "WebTerminal", .Properties)
+        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
+    }
+    w ".", !, "Mapping complete."
+    w !, "WebTerminal package successfully mapped into all namespaces."
+    zn:ns'="%SYS" ns
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RemoveProjection">
+<Description>
+This method is invoked when a class is 'uncompiled'.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[cls:%String,&params,recompile:%Boolean]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set ns = $NAMESPACE // has to be package home namespace!
+    zn:ns'="%SYS" "%SYS"
+    if (##class(Security.Applications).Exists("/terminal")) {
+        do ##class(Security.Applications).Get("/terminal", .props)
+        if (props("DispatchClass") '= ..#DispatchClass) {
+            w !, "Won't remove WEB-application ""/terminal"" because it does not refer to ",
+                "dispatch class anymore."
+        } else {
+            w !, "Deleting WEB application ""/terminal""..."
+            do ##class(Security.Applications).Delete("/terminal")
+            kill ^SYS("Security", "CSP", "AllowClass", "/terminal/", ..#DispatchClass)
+            w !, "WEB application ""/terminal"" was successfully removed."
+        }
+    }
+    w !, "Unmapping %WebTerminal package from all namespaces:"
+    set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
+    set ptr = 0
+    while $LISTNEXT(mapTo, ptr, value) {
+        continue:(ns = value)
+        w " ", value
+        set status = ##Class(Config.MapPackages).Delete(value, "WebTerminal")
+        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
+        set status = ##Class(Config.MapGlobals).Delete(value, "WebTerminal")
+        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
+    }
+    w ".", !, "Unmapping complete."
+    zn:ns'="%SYS" ns
+    kill ^WebTerminal
+    w !, "Global ^WebTerminal removed."
+    QUIT $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+<Class name="WebTerminal.Router">
+<Description>
+The REST interface: class that routes HTTP requests</Description>
+<CompileAfter>StaticContent</CompileAfter>
+<Super>%CSP.REST</Super>
+<TimeChanged>63899,77962</TimeChanged>
+<TimeCreated>63890,69646.001045</TimeCreated>
+
+<XData name="UrlMap">
+<Data><![CDATA[
+<Routes>
+   <Route Url="/" Method="GET" Call="Index"/>
+   <Route Url="/index" Method="GET" Call="Index"/>
+   <Route Url="/css/terminal.css" Method="GET" Call="GetCss"/>
+   <Route Url="/css/terminal-theme/:theme" Method="GET" Call="GetTheme"/>
+   <Route Url="/js/terminal.js" Method="GET" Call="GetJs"/>
+   <Route Url="/autocomplete" Method="GET" Call="WriteAutocomplete"/>
+</Routes>
+]]></Data>
+</XData>
+
+<Method name="WriteAutocomplete">
+<Description>
+Method returns autocomplete data in JSON format</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set namespace = %request.Get("NS", $znspace)
+    set %response.CharSet = "utf-8"
+    set %response.ContentType = "application/json"
+    write $get(^WebTerminal("Autocomplete", namespace), "{}")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="WriteStatic">
+<Description>
+Calls StaticContent.Write method or sends not modified header. Type have to be "css" or "js"</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>type:%String,Auth:%String="",ContentType:%String=""</FormalSpec>
+<Private>1</Private>
+<Implementation><![CDATA[
+    #define CompileTime ##Expression("""" _ $zd($h, 11) _ ", "_ $zdt($NOW(0), 2,1) _ " GMT""")
+    set %response.CharSet = "utf-8"
+    set %response.ContentType = $case(type,
+        "css": "text/css",
+        "js": "text/javascript",
+        "html": "text/html",
+        : $case(ContentType="", 1:"text/plain", :ContentType)
+    )
+    do %response.SetHeader("Last-Modified", $$$CompileTime)
+
+    if (%request.GetCgiEnv("HTTP_IF_MODIFIED_SINCE")=$$$CompileTime) && (Auth = "") {
+        set %response.Status = "304 Not Modified"
+    } else {
+        do ##class(StaticContent).Write(type, Auth)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetCss">
+<Description>
+Method writes application CSS.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..WriteStatic("css")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetTheme">
+<Description>
+Method writes application theme.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Theme:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..WriteStatic("Theme"_$REPLACE(Theme, ".css", ""),,"text/css")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetJs">
+<Description>
+Method writes application JavaScript.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..WriteStatic("js")
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Index">
+<Description>
+Method writes application HTML.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set cookie = %session.CSPSessionCookie
+    // Put the name of authorized user in a global to authorize WebSocket WebTerminal connection
+    set ^WebTerminal("AuthUser", cookie) = $LB(
+        $LISTGET(%session.SecurityContext, 1), // username
+        $horolog // granting ticket date
+    )
+    do ..WriteStatic("html", cookie)
+    return $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+<Class name="WebTerminal.StaticContent">
+<Description>
+This class holds whole application static content like scripts and styles.
+Do not edit this file - use external tool to generate it.</Description>
+<TimeChanged>63899,77962</TimeChanged>
+<TimeCreated>63890,69938.115592</TimeCreated>
+
+<Method name="Write">
+<Description>
+Write the contents of xData tag</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Const:%String,Auth:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set Auth = $get(Auth, "")
+    set obj = ##class(%Dictionary.CompiledXData).%OpenId("WebTerminal.StaticContent||"_Const)
+    quit:(obj = "") $$$OK
+    set xdata = obj.Data
+    set status=##class(%XML.TextReader).ParseStream(xdata, .textreader)
+    while textreader.Read() { if (textreader.NodeType="chars") {
+        if (Auth '= "") {// authorization key injection
+            write $REPLACE(textreader.Value, "createTerminal()", "createTerminal('"_Auth_"','"_%request.Get("NS")_"')")
+        } else {
+            write textreader.Value
+        }
+    } }
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+
+<XData name="Themecache">
+<Data><![CDATA[
+<data>
+<![CDATA[.terminalContainer{color:#000;background:#fff;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.terminalContainer .terminalHint{text-shadow:1px 1px 4px #fff}.term-gri31{color:#c80000}.term-gri32{color:#00c800}.term-gri33{color:#c8c800}.term-gri34{color:#0000c8}.term-gri35{color:#c800c8}.term-gri36{color:#00c8c8}.term-gri41{background-color:#c80000}.term-gri42{background-color:#00c800}.term-gri43{background-color:#c8c800}.term-gri44{background-color:#0000c8}.term-gri45{background-color:#c800c8}.term-gri46{background-color:#00c8c8}]]]]><![CDATA[>
+</data>
+]]></Data>
+</XData>
+
+
+<XData name="html">
+<Data><![CDATA[
+<data>
+<![CDATA[<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8"/>
+    <title>Caché WEB Terminal</title>
+    <meta name="author" content="ZitRo"/>
+    <meta name="description" content="Web-based terminal emulator for Caché administering."/>
+    <meta name="keywords" content="Cache,Caché,terminal,web,remote,control,Caché WebTerminal"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <link id="favicon" rel="shortcut icon" href="#"/>
+    <link rel="stylesheet" href="css/terminal.css">
+    <script src="js/terminal.js"></script></head>
+<body onload="this.terminal = createTerminal(); document.body.removeAttribute('onload');">
+
+</body>
+</html>]]]]><![CDATA[>
+</data>
+]]></Data>
+</XData>
+
+<XData name="css">
+<Data><![CDATA[
+<data>
+<![CDATA[.terminalContainer,body,html{position:relative;overflow:hidden;height:100%;width:100%}body,html{padding:0;margin:0}@-webkit-keyframes blink{0%,100%{opacity:1}50%{opacity:0}}@-o-keyframes blink{0%,100%{opacity:1}50%{opacity:0}}@-moz-keyframes blink{0%,100%{opacity:1}50%{opacity:0}}@-ms-keyframes blink{0%,100%{opacity:1}50%{opacity:0}}@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}@-ms-keyframes pulsate{0%,100%{opacity:0}0%{transform:scale(.1);-o-transform:scale(.1);-ms-transform:scale(.1);-moz-transform:scale(.1);-webkit-transform:scale(.1)}50%{opacity:1}100%{transform:scale(.5);-o-transform:scale(.5);-ms-transform:scale(.5);-moz-transform:scale(.5);-webkit-transform:scale(.5)}}@-moz-keyframes pulsate{0%{transform:scale(.1);-o-transform:scale(.1);-ms-transform:scale(.1);-moz-transform:scale(.1);-webkit-transform:scale(.1);opacity:0}50%{opacity:1}100%{transform:scale(.5);-o-transform:scale(.5);-ms-transform:scale(.5);-moz-transform:scale(.5);-webkit-transform:scale(.5);opacity:0}}@-o-keyframes pulsate{0%{transform:scale(.1);-o-transform:scale(.1);-ms-transform:scale(.1);-moz-transform:scale(.1);-webkit-transform:scale(.1);opacity:0}50%{opacity:1}100%{transform:scale(.5);-o-transform:scale(.5);-ms-transform:scale(.5);-moz-transform:scale(.5);-webkit-transform:scale(.5);opacity:0}}@-webkit-keyframes pulsate{0%{transform:scale(.1);-o-transform:scale(.1);-ms-transform:scale(.1);-moz-transform:scale(.1);-webkit-transform:scale(.1);opacity:0}50%{opacity:1}100%{transform:scale(.5);-o-transform:scale(.5);-ms-transform:scale(.5);-moz-transform:scale(.5);-webkit-transform:scale(.5);opacity:0}}@keyframes pulsate{0%{transform:scale(.1);-o-transform:scale(.1);-ms-transform:scale(.1);-moz-transform:scale(.1);-webkit-transform:scale(.1);opacity:0}50%{opacity:1}100%{transform:scale(.5);-o-transform:scale(.5);-ms-transform:scale(.5);-moz-transform:scale(.5);-webkit-transform:scale(.5);opacity:0}}.term-gri1{font-weight:900}.term-gri2{opacity:.8}.term-gri3{font-style:italic}.term-gri4{text-decoration:underline}.term-gri5{animation:blink infinite 1s;-o-animation:blink infinite 1s;-ms-animation:blink infinite 1s;-moz-animation:blink infinite 1s;-webkit-animation:blink infinite 1s}.term-gri7{-webkit-filter:invert(100%);filter:invert(100%)}.term-gri8{opacity:0}.term-gri30{color:#000}.term-gri31{color:red}.term-gri32{color:green}.term-gri33{color:#ff0}.term-gri34{color:#00f}.term-gri35{color:#ff00ff}.term-gri36{color:#0ff}.term-gri37{color:#fff}.term-gri40{background-color:#000}.term-gri41{background-color:red}.term-gri42{background-color:green}.term-gri43{background-color:#ff0}.term-gri44{background-color:#00f}.term-gri45{background-color:#ff00ff}.term-gri46{background-color:#0ff}.term-gri47{background-color:#fff}.terminalContainer{color:#fff;background:#000;font-family:FreeMono,monospace;font-size:16px;-webkit-font-smoothing:subpixel-antialiased;-moz-osx-font-smoothing:auto}.terminalContainer .terminalOutputCentralizer{position:absolute;left:0;top:0;width:100%;height:100%;display:table}.terminalContainer .terminalOutputCentralizer>div{display:table-cell;text-align:center;vertical-align:middle}.terminalContainer .terminalOutputCentralizer>div>div{display:inline-block;text-align:left;position:relative;overflow-y:scroll}.terminalContainer .terminalInput{width:100%;margin:0;padding:0;opacity:0;position:absolute;height:1em;top:-1.5em}.terminalContainer .terminalOutput{white-space:pre;word-wrap:break-word;word-break:break-all;overflow-x:hidden}.terminalContainer .terminalOutput>div{position:relative;overflow:hidden}.terminalContainer .terminalCaret{position:absolute!important;left:0;top:0;animation:blink infinite 1s;-o-animation:blink infinite 1s;-ms-animation:blink infinite 1s;-moz-animation:blink infinite 1s;-webkit-animation:blink infinite 1s}.terminalContainer .terminalCaret:after{position:relative;top:-1px;content:"_"}.terminalContainer .terminalHint{position:absolute!important;left:0;top:0;color:inherit;opacity:.6;text-shadow:1px 1px 4px #000;z-index:10}.terminalContainer .terminalIndicator{position:fixed!important;right:13px;top:7px;border:3px solid #fff;border-radius:30px;height:30px;margin:-15px 0 0 -15px;opacity:0;width:30px;animation:pulsate infinite 1s;-o-animation:pulsate infinite 1s;-ms-animation:pulsate infinite 1s;-moz-animation:pulsate infinite 1s;-webkit-animation:pulsate infinite 1s}]]]]><![CDATA[>
+</data>
+]]></Data>
+</XData>
+
+<XData name="js">
+<Data><![CDATA[
+<data>
+<![CDATA[var CacheAutocompleteController=function(t){this.CONTROLLER=t,this._lc=t.TERMINAL.localization,this.SYSTEM_CLASSES_LOADED=!1,this.initialize()};CacheAutocompleteController.prototype.STORAGE_NAME="cacheAutocomplete",CacheAutocompleteController.prototype.initialize=function(){var t,e=this.CONTROLLER.TERMINAL.storage.get(this.STORAGE_NAME),i=this;e&&this.CONTROLLER.TERMINAL.execReady(this,function(){if(i.CONTROLLER.TERMINAL.settings.AUTOCOMPLETE){try{e=JSON.parse(e)}catch(n){return void console.error(n)}i.CONTROLLER.TERMINAL.output.print(i._lc.get(52)+" "),i.CONTROLLER.TERMINAL.output.getCurrentLine().render();for(t in e)i.registerObject(t,e[t]);i.CONTROLLER.TERMINAL.output.print(i._lc.get(53)+"\r\n")}})},CacheAutocompleteController.prototype.registerObject=function(t,e){var i,n,r,s=this.CONTROLLER.TERMINAL.storage.get(this.STORAGE_NAME)||"{}";for(i in e["class"]){this.CONTROLLER.TERMINAL.autocomplete.register(this.CONTROLLER.TERMINAL.autocomplete.TYPES["class"],i,"%"===t?void 0:t);for(r in e["class"][i])this.CONTROLLER.TERMINAL.autocomplete.register(this.CONTROLLER.TERMINAL.autocomplete.TYPES.subclass,r,"%"===t?void 0:t,[i])}for(n in e.global)this.CONTROLLER.TERMINAL.autocomplete.register(this.CONTROLLER.TERMINAL.autocomplete.TYPES.globals,n,"%"===t?void 0:t);if("%"===t&&(this.SYSTEM_CLASSES_LOADED=!0),s)try{s=JSON.parse(s),s[t]=e,this.CONTROLLER.TERMINAL.storage.set(this.STORAGE_NAME,JSON.stringify(s))}catch(o){console.error(o)}};var CacheTracing=function(t){this._lc=t.TERMINAL.localization,this.CONTROLLER=t,this._trace={},this._interval=0,this.TRACING_INTERVAL=1e3};CacheTracing.prototype._timeout=function(){this.CONTROLLER.EXECUTION_IN_PROGRESS||this.CONTROLLER.server.send(this.CONTROLLER.SERVER_ACTION.CHECK_TRACE)},CacheTracing.prototype.start=function(t){var e=this;return"!"===t.charAt(0)?void this.CONTROLLER.TERMINAL.output.print(this._lc.get(5,t.substr(1))):(this._interval||(this._interval=setInterval(function(){e._timeout.call(e)},e.TRACING_INTERVAL)),this._trace[t]=!0,void this.CONTROLLER.TERMINAL.output.print(this._lc.get(7,t)))},CacheTracing.prototype.stop=function(t){var e=!0;if(t)delete this._trace[t],this.CONTROLLER.TERMINAL.output.print(this._lc.get(8,t));else for(e in this._trace)this.CONTROLLER.server.send(this.CONTROLLER.SERVER_ACTION.TRACE+e);for(e in this._trace){e=!1;break}e&&(clearInterval(this._interval),this._interval=0)};var CacheWebTerminalServer=function(t,e,i,n){this._lc=t.TERMINAL.localization,this.CACHE_CLASS_NAME="WebTerminal.Engine.cls",this.PROTOCOL=e,this.IP=i,this.PORT=n,this.CONTROLLER=t,this.socket=null,this.initialize()};CacheWebTerminalServer.prototype.RECONNECTION_TIMEOUT=1e4,CacheWebTerminalServer.prototype.initialize=function(){var t=this;try{this.socket=new WebSocket(this.PROTOCOL+"//"+this.IP+(this.PORT?":"+this.PORT:"")+"/"+encodeURIComponent(this.CACHE_CLASS_NAME))}catch(e){this.onError(),console.error(e)}this.socket.onopen=function(e){t.onConnect.call(t,e)},this.socket.onclose=function(e){t.onClose(e)},this.socket.onerror=function(){t.onError()},this.socket.onmessage=function(e){t.CONTROLLER.serverData(e.data)}},CacheWebTerminalServer.prototype.getAutocompleteFile=function(t,e){AJAX.get("autocomplete?NS="+encodeURIComponent(t),function(i){try{i=JSON.parse(i)}catch(n){i=null,console.warn("Unable to parse autocomplete data for "+t)}e(i,t)})},CacheWebTerminalServer.prototype.send=function(t){try{this.socket.send(t)}catch(e){this.CONTROLLER.TERMINAL.output.print(this._lc.get(3)+"\r\n"),console.error(e)}},CacheWebTerminalServer.prototype.onConnect=function(){var t,e;this.CONTROLLER.TERMINAL.output.print(this._lc.get(2)+"\r\n"),(t=this.CONTROLLER.TERMINAL.SETUP.authKey)&&this.send(t+((e=this.CONTROLLER.TERMINAL.SETUP.defaultNamespace)?"#"+e:""))},CacheWebTerminalServer.prototype.onClose=function(t){this.CONTROLLER.TERMINAL.output.print(this._lc.get(4,t.code,t.reason)+"\r\n")},CacheWebTerminalServer.prototype.onError=function(){var t=this;this.CONTROLLER.TERMINAL.output.print(this._lc.get(6,this.socket.url,this.RECONNECTION_TIMEOUT/1e3)+"\r\n"),setTimeout(function(){t.initialize()},this.RECONNECTION_TIMEOUT)},String.prototype.splice=function(t,e,i){return this.slice(0,t)+i+this.slice(t+Math.abs(e))};var AJAX=new function(){this.get=function(t,e,i){var n,r=new XMLHttpRequest;i="cache="+(i?1:Math.random()),r.onreadystatechange=function(){4===r.readyState&&(200===r.status?e.call(window,r.responseText,!1):e.call(window,"",!0))},n=-1===t.indexOf("?")?"?":"&";try{r.open("GET",t+n+i,!0),r.send()}catch(s){}}},lib=new function(){this.image={favicon:"data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAD///8BAAAABQAAABEAAAAJAAAAAwAAAAMAAAAD////Af///wH///8B////Af///wH///8B////Af///wH///8B////AQAAAAcAAAAVLyoiXzcxJa09NijfPjcp4YiHhcWbm5ypioqLhWtrbF8vLy85AAAAIQAAAAP///8B////AXt7fBGFhYZHiomLRXFua0FEPzNPOjMkY1dSSceqqqr/vLy9/7a2t/+vr7D/kZGS4wAAABkAAAAbAAAAFf///wGXlZKPq6qg57GtlK2vqIqjsaySt6+qlcOvr5/1t7es/76+t//GxsT/zMzM98fIyIW8vLxDwcHBKY6Njg////8BioZ8j5aTjpkUERGjHRIS4SIVFM8oGRa9Mh8ZrUc0KatfTT2tdWROsYZ1XauciHGVt6aQl7uwnp/GxLPRuLi2gYyIfo+XlJCZCQgIzQAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8IBgX/Eg8O5bOwpXuOi4CPmZaSmQgIB80AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wICAfGqqKB3kY2Cj5yZlJkIBwfNAAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8FBATtpaKcd5SQhY+em5eZCAcHzQAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wUFBf8aGhr/Li0s65+dl3WXk4iPop+amQgHB80AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AQEB/xISEv8mJib/MjIy/zk3NumamJJ1m5eMj6WinZkHBwfPXV1d/wcHB/9PT0//V1dX/0tLS/8AAAD/BQUF/xkZGf8nJyf/MjIy/zw8PP9CPz3nlJKNdZ+bj5GopZ+ZBwcHz25ubv+qqqr/ODg4/zg4OP8pKSn/CAgI/xwcHP8oKCj/MzMz/zw8PP9DQ0P/SENB55COiXOin5KRq6iimQcHBs9gYGD/m5ub/wAAAP8AAAD/DQ0N/x0dHf8oKCj/MzMz/z09Pf9DQ0P/R0dH/0pFQ+WMioVzpaGUkaunoZ8ICAjPc3Nz/wcHB/0GBgb1FBMT7x4eHecqKSfhNTMx3T89OttIRUHZT0xH2VVSTNtwbWTflZOQibKwrYe4tanplpGCs4uDcamblIOto52Ot6Gcj7+fmo69nZmNs5qWi6mVkombjoyFjYaFgH9/f3xxfXx9Y3t8fi+npqYbsbKyU7m4uE2/v787srKxKY+OjxdtbW0H////Af///wH///8B////Af///wH///8B////Af///wH///8B//8AAPA/AAD8DwAAAA8AAAAAAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAAAAAADwAA//8AAA=="}};window.createTerminal=function(t,e){var i;return document.getElementById("favicon").href=lib.image.favicon,i=new Terminal({container:document.body,authKey:t||null,defaultNamespace:e}),window.addEventListener("keydown",function(t){t.ctrlKey||t.shiftKey||t.altKey||i.elements.input===document.activeElement||i.input.focus()}),i};var Terminal=function(t){this.VERSION="3.2.0",this.RELEASE_NUMBER=19,this._execReady=[],this.storage=new TerminalStorage,this.localization=new TerminalLocalization(this),this.dictionary=new TerminalInitialDictionary,this.settings=new TerminalSettings(this),this.autocomplete=new TerminalAutocomplete,this.SETUP={defaultNamespace:t.defaultNamespace||"",controller:t.controller||new TerminalController(this),container:t.container||document.body,authKey:t.authKey||null},this.elements=new TerminalElements(this.SETUP.container),this.progressIndicator=new TerminalIndicator(this),this.theme=new TerminalTheme(this),this.parser=new TerminalParser(this),this.output=new TerminalOutput(this),this.input=new TerminalInput(this),this.favorites=new TerminalFavorites(this),this.definitions=new TerminalDefinitions(this),this.controller=this.SETUP.controller,this.initialize()};Terminal.prototype.initialize=function(){var t;for(t in this.controller.internalCommands)this.autocomplete.register(this.autocomplete.TYPES.keyword,"/"+t);for(t in this.dictionary.KEYWORDS)t.length<2||(this.autocomplete.register(this.autocomplete.TYPES.keyword,t),this.autocomplete.register(this.autocomplete.TYPES.keyword,t.toUpperCase()));for(t=0;t<this._execReady.length;t++)this._execReady[t]["function"].apply(this._execReady[t]["this"],this._execReady[t].args)},Terminal.prototype.serverInit=function(t){if("string"==typeof t.system){var e=t.system.split(":");t.node=e[0],t.instance=e[1]}t.node&&t.instance&&(document.title=(t.name?t.name+" ":"")+t.instance+" ("+t.node+") - Cach\xe9 WEB Terminal",this.output.print(this.localization.get(t.name?55:54,t.node,t.instance,t.name?t.name:void 0)+"\r\n"))},Terminal.prototype.execReady=function(t,e,i){this._execReady.push({"function":e,"this":t,args:i})},Terminal.prototype.reset=function(){var t=this;this.output.printSync(this.localization.get(9)+"\r\n"),window.addEventListener("beforeunload",function(){t.storage.clear()})};var TerminalAutocomplete=function(){this._trie={},this._namespaceTries={},this.NAMESPACE=""};TerminalAutocomplete.prototype.TYPES={common:{regExp:/([a-zA-Z][a-z0-9A-Z]*)$/},keyword:{regExp:/([\$#\/]*[a-zA-Z]*[a-z0-9A-Z]*)$/i},"class":{regExp:/##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)$/,priority:1,split:"."},subclass:{regExp:/##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)\)\.(%?[a-zA-Z]*[a-zA-Z0-9]*)$/,priority:2},globals:{regExp:/\^(%?[a-z0-9A-Z]*)/}},TerminalAutocomplete.prototype.setNamespace=function(t){this.NAMESPACE=t},TerminalAutocomplete.prototype._appendEndings=function(t,e,i){var n,r=function(e,i){t[e]=i},s=function(t,e){for(n in t)n===i.split&&""!==e?r(e,0):"\n"===n?""!==e&&t[n].type===i&&r(e,0):"type"!==n&&s(t[n],e+n)},o=function(t){for(n=0;n<e.length;n++)if(t=t[e[n]],!t)return;s(t,"")};o(this._trie),o(this._namespaceTries[this.NAMESPACE]||{})},TerminalAutocomplete.prototype.getEndings=function(t){var e,i,n,r={},s=[],o=0,a=60;if((t.match(/"/g)||[]).length%2===1)return[];t=t.substr(Math.max(t.length-a,0),Math.min(a,t.length));for(e in this.TYPES)i=this.TYPES[e].regExp||this.TYPES.common.regExp,n=(t.match(i)||[]).slice(1).join("\n"),n&&(this.TYPES[e].priority>o?(r={},o=this.TYPES[e].priority,this._appendEndings(r,n,this.TYPES[e])):(this.TYPES[e].priority||0)===o&&this._appendEndings(r,n,this.TYPES[e]));for(e in r)s.push(e);return s.sort(function(t,e){return r[t]-r[e]}),s},TerminalAutocomplete.prototype.register=function(t,e,i,n){var r,s=i?this._namespaceTries[i]||(this._namespaceTries[i]={}):this._trie;for(n&&(e=(n||[]).join("\n")+"\n"+e),r=0;r<e.length;r++)s=s.hasOwnProperty(e[r])?s[e[r]]:s[e[r]]={};s["\n"]={type:t}},TerminalAutocomplete.prototype.clear=function(t,e,i){var n,r=e?this._namespaceTries[e]||(this._namespaceTries[e]={}):this._trie;for(i&&(t=(i||[]).join("\n")+"\n"+t),n=0;n<t.length;n++)r=r.hasOwnProperty(t[n])?r[t[n]]:r[t[n]]={};r.hasOwnProperty("\n")&&r["\n"].type&&delete r["\n"].type},TerminalAutocomplete.prototype.parseForCacheTokens=function(t){t=" "+t+"  ";var e=new RegExp("[\\s\\{](set|s)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))\\s*=","ig"),i=e.exec(t);i&&i[2]&&("^"===i[2].charAt(0)?this.register(this.TYPES.globals,i[2].substr(1),this.NAMESPACE):this.register(this.TYPES.common,i[2],this.NAMESPACE)),e=new RegExp("[\\s\\{](k|kill)\\s(([a-zA-Z][a-zA-Z0-9]*)|(\\^[a-zA-Z][a-z\\.A-Z0-9]*))[\\s\\}]","ig"),i=e.exec(t),i&&i[2]&&("^"===i[2].charAt(0)?this.clear(i[2].substr(1),this.NAMESPACE):this.clear(i[2],this.NAMESPACE))};var TerminalController=function(t){this.TERMINAL=t,this._lc=t.localization,this.EXECUTION_IN_PROGRESS=!1,this.server=new CacheWebTerminalServer(this,"https:"===location.protocol?"wss:":"ws:",location.hostname,location.port||"57776"),this.trace=new CacheTracing(this),this.autocompleteController=new CacheAutocompleteController(this),this.NAMESPACE="UNAUTHORIZED",this._mode=this.MODE.UNAUTHORIZED};TerminalController.prototype.MODE={UNAUTHORIZED:0,EXECUTE:1,CLEAR_IO:2,SQL:3,MACRO:4},TerminalController.prototype.SERVER_ACTION={EXECUTE:"EXEC#",EXECUTE_SQL:"SQL#",AUTOCOMPLETE:"AC#",TRACE:"TRACE#",STOP_TRACE_ALL:"STOP_TRACE_ALL#",CHECK_TRACE:"CT#",RESET:"R#",ECHO:"E#",CHECK_UPDATE:"CU#",UPDATE:"U#",RENAME:"RENAME#"},TerminalController.prototype.authorized=function(){this._mode=this.MODE.EXECUTE,this.TERMINAL.output.printSync(this._lc.get(10)+"\r\n")},TerminalController.prototype.setNamespace=function(t){this.TERMINAL.autocomplete.setNamespace(t),this.NAMESPACE=t},TerminalController.prototype.internalCommands={help:function(){this.TERMINAL.output.print(this.TERMINAL.localization.get(1))},autocomplete:function(t){return this.TERMINAL.settings.AUTOCOMPLETE?(this.server.send(this.SERVER_ACTION.AUTOCOMPLETE+(this.autocompleteController.SYSTEM_CLASSES_LOADED&&"sys"!==t[0]?"0":"1")),!1):void this.TERMINAL.output.print(this._lc.get(50)+"\r\n")},echo:function(t){return this.server.send(this.SERVER_ACTION.ECHO+t.join("\r\n")),!1},trace:function(t){return t[0]?this.server.send(this.SERVER_ACTION.TRACE+t[0]):this.server.send(this.SERVER_ACTION.STOP_TRACE_ALL),!1},sql:function(){this._mode=this._mode===this.MODE.SQL?this.MODE.EXECUTE:this.MODE.SQL},reset:function(){return this.TERMINAL.reset(),!1},favorite:function(t){var e,i=this;t.length?t[1]?this.TERMINAL.favorites.set(t[1],t[0]):(e=this.TERMINAL.favorites.get(t[0]),e?setTimeout(function(){i.TERMINAL.input.set(e)},1):this.TERMINAL.output.print(this._lc.get(12,t[0],this.TERMINAL.favorites.getList().join(", "))+"\r\n")):this.TERMINAL.output.print(this._lc.get(11,this.TERMINAL.favorites.getList().join(", "))+"\r\n")},define:function(t){t[0]&&t[1]&&"clear"!==t[0]?(this.TERMINAL.definitions.define(t[1],t[0]),this.TERMINAL.output.print(this._lc.get(13,t[0],t[1]))):"clear"===t[0]?(this.TERMINAL.definitions.clear(),this.TERMINAL.output.print(this._lc.get(14)+"\r\n")):this.TERMINAL.output.print(this._lc.get(15,this.TERMINAL.definitions.getList().join(", ")))},version:function(){this.TERMINAL.output.print(this.TERMINAL.VERSION+"\r\n")},update:function(){return this.TERMINAL.output.print(this._lc.get(16,this.TERMINAL.VERSION)+"\r\n"),this.server.send(this.SERVER_ACTION.CHECK_UPDATE),!1},settings:function(t){var e,i,n,r,s=this;(e=t.join("")).match(/[a-z]=[a-z0-9]/)?(i=e.substring(0,e.indexOf("=")),n=e.substr(i.length+1),r={locale:function(t){s.TERMINAL.localization.setLocale(t)?s.TERMINAL.output.print(s._lc.get(27,t)+"\r\n"):s.TERMINAL.output.print(s._lc.get(28,t)+"\r\n")},theme:function(t){s.TERMINAL.theme.setTheme(t)?s.TERMINAL.output.print(s._lc.get(41,t)+"\r\n"):s.TERMINAL.output.print(s._lc.get(42,t)+"\r\n")},highlightInput:function(t){s.TERMINAL.settings.setHighlightInput("true"===t.toLowerCase())?s.TERMINAL.output.print(s._lc.get(44)+"\r\n"):s.TERMINAL.output.print(s._lc.get(45)+"\r\n")},showProgressIndicator:function(t){s.TERMINAL.settings.setShowProgressIndicator("true"===t.toLowerCase())?s.TERMINAL.output.print(s._lc.get(46)+"\r\n"):s.TERMINAL.output.print(s._lc.get(47)+"\r\n")},autocomplete:function(t){s.TERMINAL.settings.setAutocomplete("true"===t.toLowerCase())?s.TERMINAL.output.print(s._lc.get(48)+"\r\n"):(s.TERMINAL.input.clearAutocompleteVariants(),s.TERMINAL.output.print(s._lc.get(49)+"\r\n"))}}[i],r?r(n):this.TERMINAL.output.print(this._lc.get(51,i)+"\r\n")):this.TERMINAL.output.print(this._lc.get(26,"locale",this.TERMINAL.localization.getLocale(),this.TERMINAL.localization.getAvailableList().join(", "),"theme",this.TERMINAL.theme.getCurrentTheme(),this.TERMINAL.theme.getAvailableList().join(", "),"highlightInput",this.TERMINAL.settings.HIGHLIGHT_INPUT,"showProgressIndicator",this.TERMINAL.settings.SHOW_PROGRESS_INDICATOR,"autocomplete",this.TERMINAL.settings.AUTOCOMPLETE)+"\r\n")},about:function(){var t,e=this._lc.get(43),i=0,n=this,r=function(){i<e.length?(n.TERMINAL.output.print(e[i]),i++):(clearInterval(t),n.clientAction.PROMPT.call(n,n.NAMESPACE))};return t=setInterval(r,25),!1},rename:function(t){return this.server.send(this.SERVER_ACTION.RENAME+(t[0]||"")),!1}},TerminalController.prototype.internalCommand=function(t){var e,i,n,r=t.match(/^\/([a-z]+)|\s\/([a-z]+)/),s=[];return r?((n=r[1])?i=t.substr(r[0].length):(n=r[2])&&(s.push(t.substr(0,t.indexOf(r[0]))),i=t.substr(t.indexOf(r[0])+r[0].length)),e=i.match(/"([^"]*)"|([^\s]*)/g),e.filter(function(t,e,i){'"'===t.charAt(0)&&(i[e]=t.substr(1,t.length-2)),t&&s.push(i[e])}),this.internalCommands.hasOwnProperty(n)?this.internalCommands[n].call(this,s)===!1?-1:!0:!1):!1},TerminalController.prototype.terminalQuery=function(t){var e;this.EXECUTION_IN_PROGRESS?this.server.send(t):(this.TERMINAL.output.print("\r\n"),e=this.internalCommand(t),-1===e||(e?this.clientAction.PROMPT.call(this,this.NAMESPACE):this._mode===this.MODE.SQL?this.server.send(this.SERVER_ACTION.EXECUTE_SQL+t):this._mode===this.MODE.EXECUTE?this.server.send(this.SERVER_ACTION.EXECUTE+t):console.warn("Unimplemented in mode "+this._mode+": ",t)))},TerminalController.prototype.mergeAutocompleteFile=function(t){var e=this;e.TERMINAL.output.printSync(this._lc.get(18,t)+"\r\n"),this.server.getAutocompleteFile(t,function(t,i){t?(e.autocompleteController.registerObject(i,t),e.clientAction.PROMPT.call(e,e.NAMESPACE)):(e.TERMINAL.output.print(e._lc.get(21)+"\r\n"),e.clientAction.PROMPT.call(e,e.NAMESPACE))})},TerminalController.prototype.clientAction={PROMPT:function(t){this.setNamespace(t),this.TERMINAL.output.print("\r\n"),this.TERMINAL.input.prompt(t+(this._mode===this.MODE.SQL?":SQL":"")+" > ")},EST:function(){this.EXECUTION_IN_PROGRESS=!0},END:function(){this.EXECUTION_IN_PROGRESS=!1},O:function(t){this.TERMINAL.output.print(t)},OL:function(t){this.TERMINAL.output.print(this._lc.get(t))},NS:function(t){this.setNamespace(t)},AC:function(t){this.mergeAutocompleteFile(t)},R:function(t){this.TERMINAL.input.prompt("",t)},RC:function(){var t=this;this.TERMINAL.input.getChar(function(e){t.server.send(e)})},AUTH:function(t){"1"===t?this.authorized():this.TERMINAL.output.printSync(this._lc.get(22)+"\r\n")},TRACE:function(t){this.trace.start(t)},STOP_TRACE:function(t){this.trace.stop(t)},I:function(t){var e={};try{e=JSON.parse(t)}catch(i){}this.TERMINAL.serverInit(e)},CLRSCR:function(){this.TERMINAL.output.clear()},PROMPT_UPDATE:function(t){var e=this,i=t.split("#"),n=i[1],r=parseInt(i[0]),s=i[2]||"";return n&&r?void(r>this.TERMINAL.RELEASE_NUMBER?(this.TERMINAL.output.print(this._lc.get(23)+"\r\n"),this.TERMINAL.input.prompt("",1,function(t){""===t||"y"===t.toLowerCase()?(e.TERMINAL.output.print(" "+e._lc.get(24)+"\r\n"),s&&e.TERMINAL.output.print("\r\n"+s+"\r\n\r\n"),e.server.send(e.SERVER_ACTION.UPDATE+n)):e.clientAction.PROMPT.call(e,e.NAMESPACE)})):(this.TERMINAL.output.print(this._lc.get(25)+"\r\n"),this.clientAction.PROMPT.call(this,this.NAMESPACE))):void console.error("Unable to parse version data: ",t)}},TerminalController.prototype.serverData=function(t){var e=t.split("#",1)[0],i=t.substr(e.length+1);this.clientAction.hasOwnProperty(e)?this.clientAction[e].call(this,i):(this.TERMINAL.output.print(t),console.error("Server response unrecognised:",t))};var TerminalDefinitions=function(t){this.TERMINAL=t,this._storage={},this.initialize()};TerminalDefinitions.prototype.STORAGE_NAME="terminal-definitions",TerminalDefinitions.prototype.initialize=function(){var t=this,e=this.TERMINAL.storage.get(this.STORAGE_NAME);window.addEventListener("beforeunload",function(){t.TERMINAL.storage.set(t.STORAGE_NAME,t.exportJSON())}),e&&this.importJSON(e)},TerminalDefinitions.prototype.define=function(t,e){this._storage[t]=e},TerminalDefinitions.prototype.clear=function(){this._storage={}},TerminalDefinitions.prototype.getList=function(){var t,e=[];for(t in this._storage)e.push(t);return e},TerminalDefinitions.prototype.replace=function(t){var e;for(e in this._storage)t=t.replace(e,this._storage[e]);return t},TerminalDefinitions.prototype.importJSON=function(t){var e,i;try{e=JSON.parse(t);for(i in this)this.hasOwnProperty(i)&&(this[i]=e[i]||this[i])}catch(n){console.error(n)}},TerminalDefinitions.prototype.exportJSON=function(){return JSON.stringify({_storage:this._storage})};var TerminalElements=function(t){this.terminal=document.createElement("div"),this.output=document.createElement("div"),this.input=document.createElement("input"),this.themeLink=document.createElement("link"),this._initialize(t)};TerminalElements.prototype._initialize=function(t){var e=document.createElement("div"),i=document.createElement("div");this.terminal.className="terminalContainer",e.className="terminalOutputCentralizer",this.input.className="terminalInput",this.output.className="terminalOutput",this.terminal.appendChild(this.input),i.appendChild(this.output),e.appendChild(i),this.terminal.appendChild(e),t.appendChild(this.terminal),this.themeLink.id="terminal-theme",this.themeLink.setAttribute("rel","stylesheet"),this.terminal.appendChild(this.themeLink)};var TerminalFavorites=function(t){this.TERMINAL=t,this._storage={},this.initialize()};TerminalFavorites.prototype.STORAGE_NAME="terminal-favorites",TerminalFavorites.prototype.initialize=function(){var t=this,e=this.TERMINAL.storage.get(this.STORAGE_NAME);window.addEventListener("beforeunload",function(){t.TERMINAL.storage.set(t.STORAGE_NAME,t.exportJSON())}),e&&this.importJSON(e)},TerminalFavorites.prototype.set=function(t,e){this._storage[t]=e},TerminalFavorites.prototype.get=function(t){return this._storage[t]||""},TerminalFavorites.prototype.getList=function(){var t,e=[];for(t in this._storage)e.push(t);return e},TerminalFavorites.prototype.importJSON=function(t){var e,i;try{e=JSON.parse(t);for(i in this)this.hasOwnProperty(i)&&(this[i]=e[i]||this[i])}catch(n){console.error(n)}},TerminalFavorites.prototype.exportJSON=function(){return JSON.stringify({_storage:this._storage})};var TerminalHint=function(t){this.TERMINAL=t,this.element=document.createElement("div"),this.initialize()};TerminalHint.prototype.initialize=function(){this.element.className="terminalHint"},TerminalHint.prototype.show=function(t,e,i){this.element.innerHTML=i,this.element.style.top=this.TERMINAL.output.getLineByIndex(e).getElement().offsetTop+"px",this.element.style.left=(t-1)*this.TERMINAL.output.SYMBOL_PIXEL_WIDTH+"px",this.TERMINAL.elements.output.appendChild(this.element)},TerminalHint.prototype.hide=function(){this.element.parentNode&&this.element.parentNode.removeChild(this.element)};var TerminalIndicator=function(t){this.TERMINAL=t,this.element=document.createElement("div"),this.initialize()};TerminalIndicator.prototype.initialize=function(){this.element.className="terminalIndicator"},TerminalIndicator.prototype.show=function(){this.TERMINAL.elements.output.appendChild(this.element)},TerminalIndicator.prototype.hide=function(){this.element.parentNode&&this.element.parentNode.removeChild(this.element)};var TerminalInitialDictionary=function(){this.KEYWORDS={"break":0,"catch":0,close:0,"continue":0,"do":0,d:0,"else":0,elseif:0,"for":0,"goto":0,halt:0,hang:0,h:0,"if":0,job:0,j:0,kill:0,k:0,lock:0,l:0,merge:0,"new":0,open:0,quit:0,q:0,read:0,r:0,"return":0,set:0,s:0,tcommit:0,"throw":0,trollback:0,"try":0,tstart:0,use:0,view:0,"while":0,write:0,w:0,xecute:0,x:0,zkill:0,znspace:0,zn:0,ztrap:0,zwrite:0,zw:0,zzdump:0,zzwrite:0,print:0,zbreak:0,zinsert:0,zload:0,zprint:0,zremove:0,zsave:0,zzprint:0,mv:0,mvcall:0,mvcrt:0,mvdim:0,mvprint:0,zquit:0,zsync:0,ascii:0,$bit:0,$bitcount:0,$bitfind:0,$bitlogic:0,$case:0,$char:0,$classmethod:0,$classname:0,$compile:0,$data:0,$decimal:0,$double:0,$extract:0,$factor:0,$find:0,$fnumber:0,$get:0,$increment:0,$inumber:0,$isobject:0,$isvaliddouble:0,$isvalidnum:0,$justify:0,$length:0,$list:0,$listbuild:0,$listdata:0,$listfind:0,$listfromstring:0,$listget:0,$listlength:0,$listnext:0,$listsame:0,$listtostring:0,$listvalid:0,$locate:0,$match:0,$method:0,$name:0,$nconvert:0,$next:0,$normalize:0,$now:0,$number:0,$order:0,$parameter:0,$piece:0,$prefetchoff:0,$prefetchon:0,$property:0,$qlength:0,$qsubscript:0,$query:0,$random:0,$replace:0,$reverse:0,$sconvert:0,$select:0,$sortbegin:0,$sortend:0,$stack:0,$text:0,$translate:0,$view:0,$wascii:0,$wchar:0,$wextract:0,$wfind:0,$wiswide:0,$wlength:0,$wreverse:0,$xecute:0,$zabs:0,$zarccos:0,$zarcsin:0,$zarctan:0,$zcos:0,$zcot:0,$zcsc:0,$zdate:0,$zdateh:0,$zdatetime:0,$zdatetimeh:0,$zexp:0,$zhex:0,$zln:0,$zlog:0,$zpower:0,$zsec:0,$zsin:0,$zsqr:0,$ztan:0,$ztime:0,$ztimeh:0,$zboolean:0,$zconvert:0,$zcrc:0,$zcyc:0,$zdascii:0,$zdchar:0,$zf:0,$ziswide:0,$zlascii:0,$zlchar:0,$zname:0,$zposition:0,$zqascii:0,$zqchar:0,$zsearch:0,$zseek:0,$zstrip:0,$zwascii:0,$zwchar:0,$zwidth:0,$zwpack:0,$zwbpack:0,$zwunpack:0,$zwbunpack:0,$zzenkaku:0,$change:0,$mv:0,$mvat:0,$mvfmt:0,$mvfmts:0,$mviconv:0,$mviconvs:0,$mvinmat:0,$mvlover:0,$mvoconv:0,$mvoconvs:0,$mvraise:0,$mvtrans:0,$mvv:0,$mvname:0,$zbitand:0,$zbitcount:0,$zbitfind:0,$zbitget:0,$zbitlen:0,$zbitnot:0,$zbitor:0,$zbitset:0,$zbitstr:0,$zbitxor:0,$zincrement:0,$znext:0,$zorder:0,$zprevious:0,$zsort:0,device:0,$ecode:0,$estack:0,$etrap:0,$halt:0,$horolog:0,$io:0,$job:0,$key:0,$namespace:0,$principal:0,$quit:0,$roles:0,$storage:0,$system:0,$test:0,$this:0,$tlevel:0,$username:0,$x:0,$y:0,$za:0,$zb:0,$zchild:0,$zeof:0,$zeos:0,$zerror:0,$zhorolog:0,$zio:0,$zjob:0,$zmode:0,$znspace:0,$zparent:0,$zpi:0,$zpos:0,$zreference:0,$zstorage:0,$ztimestamp:0,$ztimezone:0,$ztrap:0,$zversion:0,"##class":0}},TerminalInput=function(t){this.TERMINAL=t,this.ENABLED=!1,this.history=new TerminalInputHistory(this),this.caret=new TerminalInputCaret(this),this._autocompleteVariants=[],this._currentAutocompleteVariant=0,this._autocompleteHint=new TerminalHint(this.TERMINAL),this.__inputLastLength=0,this._handler=null,this.__readingChar=!1,
+this.INITIAL_POSITION={line:0,position:0},this.initialize()};TerminalInput.prototype.initialize=function(){var t=this;window.addEventListener("keypress",function(){t.ENABLED&&document.activeElement!==t.TERMINAL.elements.input&&t.focus()}),this.TERMINAL.elements.terminal.addEventListener("touchend",function(e){t.ENABLED&&document.getSelection().isCollapsed&&(e.preventDefault(),t.focus())}),this.TERMINAL.elements.input.addEventListener("input",function(){t.ENABLED&&t._onInput()}),this.TERMINAL.elements.input.addEventListener("keydown",function(e){t.ENABLED&&t.keyDown(e)})},TerminalInput.prototype.focus=function(){this.TERMINAL.elements.input.blur(),this.TERMINAL.elements.input.focus()},TerminalInput.prototype.set=function(t){var e=this.TERMINAL.elements.input;e.value=t,this.setCaretPosition(e.value.length),this._onInput()},TerminalInput.prototype._enable=function(){this.ENABLED=!0,this.TERMINAL.elements.input.removeAttribute("disabled"),this.focus(),this.caret.update()},TerminalInput.prototype._disable=function(){this.TERMINAL.elements.input.setAttribute("disabled",""),this.ENABLED=!1,this.caret.hide()},TerminalInput.prototype.getCaretPosition=function(){return"undefined"!=typeof this.TERMINAL.elements.input.selectionStart?this.TERMINAL.elements.input.selectionStart:this.TERMINAL.elements.input.value.length},TerminalInput.prototype.get=function(){return this.TERMINAL.elements.input.value},TerminalInput.prototype.setCaretPosition=function(t){this.TERMINAL.elements.input.selectionStart=this.TERMINAL.elements.input.selectionEnd=t},TerminalInput.prototype.complete=function(){var t=this.getCurrentAutocompleteVariant(),e=this.getCaretPosition();t&&(this.set(this.get().splice(e,0,t)),this.setCaretPosition(e+t.length),this._onInput())},TerminalInput.prototype.getCurrentAutocompleteVariant=function(){return this._autocompleteVariants[this._currentAutocompleteVariant]||""},TerminalInput.prototype._changeAutocompleteVariant=function(t){this._currentAutocompleteVariant=(this._currentAutocompleteVariant+t)%this._autocompleteVariants.length||0,this._currentAutocompleteVariant<0&&(this._currentAutocompleteVariant+=this._autocompleteVariants.length||0),this._updateAutocompleteView()},TerminalInput.prototype._updateAutocompleteView=function(){var t=this.getCurrentAutocompleteVariant();return t?void this._autocompleteHint.show((this.INITIAL_POSITION.position+this.getCaretPosition())%this.TERMINAL.output.WIDTH+1,this.INITIAL_POSITION.line+Math.floor((this.INITIAL_POSITION.position+this.getCaretPosition())/this.TERMINAL.output.WIDTH),t):void this._autocompleteHint.hide()},TerminalInput.prototype.clearAutocompleteVariants=function(){this._autocompleteVariants=[],this._currentAutocompleteVariant=0},TerminalInput.prototype._onInput=function(){var t,e,i,n="",r=this.TERMINAL.elements.input.value,s=r.length;for(this.TERMINAL.settings.AUTOCOMPLETE&&(this._autocompleteVariants=this.TERMINAL.autocomplete.getEndings(r.substring(0,this.getCaretPosition())),this._changeAutocompleteVariant(0)),this.TERMINAL.output.printAtLine(this.TERMINAL.settings.HIGHLIGHT_INPUT?this.TERMINAL.parser.highlightSyntax(r,this.TERMINAL.theme.getCurrentTheme()):r,this.INITIAL_POSITION.line,this.INITIAL_POSITION.position,!1),t=0;t<this.__inputLastLength-s;t++)n+=" ";e=this.TERMINAL.output.getCaretX(),i=this.TERMINAL.output.getCaretY(),this.TERMINAL.output.$CARET_RESTRICTION_ON=!1,this.TERMINAL.output.printSync(n),this.TERMINAL.output.$CARET_RESTRICTION_ON=!0,this.TERMINAL.output.getCaretY()<1&&this.TERMINAL.output.increaseTopLine(this.TERMINAL.output.getCaretY()-1),this.TERMINAL.output.setCaretX(e),this.TERMINAL.output.setCaretY(i),this.__inputLastLength=s+this.getCurrentAutocompleteVariant().length,s===this.TERMINAL.elements.input.maxLength&&this.submit(),this.TERMINAL.output.scrollToActualLine(),this._updateAutocompleteView(),this.caret.update()},TerminalInput.prototype.keyDown=function(t){var e=t.charCode||t.keyCode,i=this;switch(e){case 9:this.complete(),t.preventDefault();break;case 13:this.set(this.TERMINAL.definitions.replace(this.TERMINAL.elements.input.value)),this.submit();break;case 16:break;case 17:1!==t.location?this._changeAutocompleteVariant(-1):this._changeAutocompleteVariant(1);break;case 35:setTimeout(function(){i._onInput()},1);break;case 36:setTimeout(function(){i._onInput()},1);break;case 37:setTimeout(function(){i._onInput()},1);break;case 39:setTimeout(function(){i._onInput()},1)}},TerminalInput.prototype.submit=function(){var t=this.TERMINAL.elements.input.value,e=this._handler;this.TERMINAL.settings.SHOW_PROGRESS_INDICATOR&&this.TERMINAL.progressIndicator.show(),this._disable(),this.history.save(t),this.TERMINAL.elements.input.value="",this.__inputLastLength=0,this._autocompleteVariants=[],"function"==typeof e?(this._handler=null,e.call(this,t)):(this.TERMINAL.autocomplete.parseForCacheTokens(t),this.TERMINAL.controller.terminalQuery(t)),this._updateAutocompleteView()},TerminalInput.prototype.limitLength=function(t){this.TERMINAL.elements.input.maxLength=t},TerminalInput.prototype.prompt=function(t,e,i){i&&(this._handler&&console.warn("Possible wrong handler usage."),this._handler=i),this.TERMINAL.progressIndicator.hide(),this.limitLength(e||32656),this.TERMINAL.output.printSync(t||""),this.INITIAL_POSITION.line=this.TERMINAL.output.getLineNumber(),this.INITIAL_POSITION.position=this.TERMINAL.output.getCaretX()-1,this._enable()},TerminalInput.prototype.getChar=function(t){var e=this,i=!1;if(this.__readingChar)return!1;this.__readingChar=!0,this.TERMINAL.progressIndicator.hide();var n=function(s){var o=s.keyCode,a=String.fromCharCode(o);16===o&&(i=!0),16!==o&&17!==o&&18!==o&&(a=i?a.toUpperCase():a.toLowerCase(),e.TERMINAL.output.print(a),window.removeEventListener("keydown",n,!0),window.removeEventListener("keyup",r,!0),s.preventDefault(),s.cancelBubble=!0,e.__readingChar=!1,t.call(e,a.charCodeAt(0).toString()))},r=function(t){16===t.keyCode&&(i=!1)};window.addEventListener("keydown",n,!0),window.addEventListener("keyup",r,!0)};var TerminalInputCaret=function(t){this.INPUT=t,this._element=document.createElement("div"),this.initialize()};TerminalInputCaret.prototype.CARET_CLASS_NAME="terminalCaret",TerminalInputCaret.prototype.initialize=function(){this._element.className=this.CARET_CLASS_NAME},TerminalInputCaret.prototype.update=function(){var t=this.INPUT.TERMINAL.output.getLineByIndex(this.INPUT.INITIAL_POSITION.line+Math.floor((this.INPUT.INITIAL_POSITION.position+this.INPUT.getCaretPosition())/this.INPUT.TERMINAL.output.WIDTH));return t?(this._element.style.left=(this.INPUT.INITIAL_POSITION.position+this.INPUT.TERMINAL.elements.input.selectionStart)%this.INPUT.TERMINAL.output.WIDTH*this.INPUT.TERMINAL.output.SYMBOL_PIXEL_WIDTH+"px",this._element.style.top=t.getElement().offsetTop+"px",void this.INPUT.TERMINAL.elements.output.appendChild(this._element)):void console.warn("Cannot get current terminal line element.")},TerminalInputCaret.prototype.hide=function(){this._element.parentNode&&this._element.parentNode.removeChild(this._element)};var TerminalInputHistory=function(t){this.INPUT=t,this._history=[""],this._currentPosition=0,this.initialize()};TerminalInputHistory.prototype.STORAGE_NAME="terminal-inputHistory",TerminalInputHistory.prototype.MAX_STACK_SIZE=200,TerminalInputHistory.prototype.initialize=function(){var t=this,e=this.INPUT.TERMINAL.storage.get(this.STORAGE_NAME);window.addEventListener("keydown",function(e){38===e.keyCode?(t.seek(-1),t.INPUT.set(t.getCurrent()),e.preventDefault(),e.cancelBubble=!0):40===e.keyCode&&(t.seek(1),t.INPUT.set(t.getCurrent()),e.preventDefault(),e.cancelBubble=!0)}),window.addEventListener("beforeunload",function(){t.INPUT.TERMINAL.storage.set(t.STORAGE_NAME,t.exportJSON())}),e&&(this.importJSON(e),this._currentPosition=this._history.length-1)},TerminalInputHistory.prototype.importJSON=function(t){var e,i;try{e=JSON.parse(t);for(i in this)this.hasOwnProperty(i)&&(this[i]=e[i]||this[i])}catch(n){console.error(n)}},TerminalInputHistory.prototype.exportJSON=function(){return JSON.stringify({_history:this._history})},TerminalInputHistory.prototype.seek=function(t){this._currentPosition=(t+this._currentPosition)%this._history.length,this._currentPosition<0&&(this._currentPosition+=this._history.length)},TerminalInputHistory.prototype.get=function(t){return this._history[t]||""},TerminalInputHistory.prototype.save=function(t){return this._history[this._history.length-2]===t||""===t?void(this._currentPosition=this._history.length-1):(this._history[this._history.length-1]=t,this._history.push(""),this._history.length>this.MAX_STACK_SIZE&&this._history.splice(0,1),void(this._currentPosition=this._history.length-1))},TerminalInputHistory.prototype.getCurrent=function(){return this._history[this._currentPosition]||""},TerminalInputHistory.prototype.load=function(t){return this._currentPosition+=t,this._currentPosition<0&&(this._currentPosition=history.length-1),this._currentPosition>=history.length&&(this._currentPosition=0),this.getCurrent()};var TerminalLocalization=function(t){var e=this._TERMINAL=t;this.AVAILABLE_LOCALIZATIONS={en:"en",ru:"ru"},this._currentLocalization=this.AVAILABLE_LOCALIZATIONS.en,this._LOCALIZATION_BASE={1:{en:"Cach\xe9 WEB Terminal v"+e.VERSION+"\r\n\r\n\x1B[4mAvailable commands:\x1B[0m\r\n\x1B[33m/help\x1B[0m\x1B[32GShow the help information you are reading now.\r\n\x1B[33m/autocomplete\x1B[0m [sys]\x1B[32GPerforms autocomplete data loading. The system autocomplete file will be generated only the first time command execute. To generate system autocomplete again, use \x1B[1msys\x1B[0m parameter.\r\n\x1B[33m/echo\x1B[0m [param1] [param2] ...\x1B[32GEcho each argument of this command.\r\n\x1B[33m/rename\x1B[0m [name]\x1B[32GSpecify a name for the terminal instance. This name will be shown after terminal startup and as a page title. Empty argument will remove specified name.\r\n\x1B[33m/trace\x1B[0m [global/filePath]\x1B[32GStart tracing global or file. To stop tracing, enter command without arguments. To stop tracing particular file or global, enter trace command again.\r\n\x1B[33m/sql\x1B[0m\x1B[32GEnter or exit SQL mode.\r\n\x1B[33m/reset\x1B[0m\x1B[32GReset terminal application to defaults.\r\n{command} \x1B[33m/favorite\x1B[0m {phrase}\x1B[32GSave command for future use.\r\n\x1B[33m/favorite\x1B[0m {phrase}\x1B[32GLoad previously saved command.\r\n{definition} \x1B[33m/define\x1B[0m {phrase}\x1B[32GReplace each next {phrase} with {definition}. To get more information, call command without parameters.\r\n\x1B[33m/version\x1B[0m\x1B[32GOutput terminal application version.\r\n\x1B[33m/update\x1B[0m\x1B[32GCheck for updates and prompt to update if new version available.\r\n\x1B[33m/settings\x1B[0m\x1B[32GShow or change terminal settings.\r\n\x1B[33m/about\x1B[0m\x1B[32GProject information.\r\n\r\n\x1B[4mControl keys:\x1B[0m\r\n\x1B[33mTAB\x1B[0m\x1B[32GComplete input if autocomplete variant available.\r\n\x1B[33mCTRL\x1B[0m\x1B[32GLeft/right control will switch next/previous available autocomplete variant.\r\n",ru:"Cach\xe9 WEB Terminal v"+e.VERSION+"\r\n\r\n\x1B[4m\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u044b\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u044b:\x1B[0m\r\n\x1B[33m/help\x1B[0m\x1B[32G\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0432\u0441\u043f\u043e\u043c\u0430\u0433\u0430\u0442\u0435\u043b\u044c\u043d\u0443\u044e \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044e, \u043a\u043e\u0442\u043e\u0440\u0443\u044e \u0432\u044b \u0441\u0435\u0439\u0447\u0430\u0441 \u0447\u0438\u0442\u0430\u0435\u0442\u0435.\r\n\x1B[33m/autocomplete\x1B[0m [sys]\x1B[32G\u041f\u043e\u0434\u0433\u0440\u0443\u0436\u0430\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0435 \u0434\u043b\u044f \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f. \u0424\u0430\u0439\u043b\u044b \u0441\u0438\u0441\u0442\u0435\u043c\u043d\u043e\u0433\u043e \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u0431\u0443\u0434\u0443\u0442 \u0441\u0433\u0435\u043d\u0435\u0440\u0438\u0440\u043e\u0432\u0430\u043d\u044b \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u0440\u0438 \u043f\u0435\u0440\u0432\u043e\u043c \u0432\u044b\u0437\u043e\u0432\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u044b. \u0415\u0441\u043b\u0438 \u0432\u044b \u0432\u043d\u0435\u0441\u043b\u0438 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0432 \u0432\u0430\u0448 \u043a\u043e\u0434 \u0438\u043b\u0438 \u0445\u043e\u0442\u0438\u0442\u0435 \u043e\u0431\u043d\u043e\u0432\u0438\u0442\u044c \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0441\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0445 \u043a\u043b\u0430\u0441\u0441\u043e\u0432, \u0432\u043e\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435\u0441\u044c \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u043e\u043c \x1B[1msys\x1B[0m.\r\n\x1B[33m/echo\x1B[0m [\u043f\u0430\u0440\u0430\u043c\u0435\u0442\u04401] [\u0432\u0442\u043e\u0440\u043e\u0439] ...\x1B[32G\u041e\u0442\u043e\u0431\u0440\u0430\u0436\u0430\u0435\u0442 \u043a\u0430\u0436\u0434\u044b\u0439 \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442 \u043a\u043e\u043c\u0430\u043d\u0434\u044b.\r\n\x1B[33m/rename\x1B[0m [name]\x1B[32G\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u044c \u0438\u043c\u044f \u0434\u043b\u044f \u044d\u043a\u0437\u0435\u043c\u043f\u043b\u044f\u0440\u0430 \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u0430. \u042d\u0442\u043e \u0438\u043c\u044f \u0431\u0443\u0434\u0435\u0442 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u043e \u043f\u043e\u0441\u043b\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438 \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u0430 \u0438 \u043a\u0430\u043a \u0437\u0430\u0433\u043e\u043b\u043e\u0432\u043e\u043a \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u044b. \u041f\u0443\u0441\u0442\u043e\u0439 \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442 \u0443\u0431\u0435\u0440\u0451\u0442 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u043d\u043e\u0435 \u0438\u043c\u044f.\r\n\x1B[33m/trace\x1B[0m [\u0433\u043b\u043e\u0431\u0430\u043b/\u043f\u0443\u0442\u044c]\x1B[32G\u041d\u0430\u0431\u043b\u044e\u0434\u0430\u0442\u044c \u0437\u0430 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f\u043c\u0438 \u0432 \u0444\u0430\u0439\u043b\u0435 \u0438\u043b\u0438 \u0433\u043b\u043e\u0431\u0430\u043b\u0435. \u0427\u0442\u043e\u0431\u044b \u043f\u0435\u0440\u0435\u0441\u0442\u0430\u0442\u044c \u043d\u0430\u0431\u043b\u044e\u0434\u0430\u0442\u044c \u0437\u0430 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f\u043c\u0438, \u0432\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u0443 \u0435\u0449\u0451 \u0440\u0430\u0437. \u041a\u043e\u043c\u0430\u043d\u0434\u0430 \u0431\u0435\u0437 \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u043e\u0432 \u043e\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442 \u043d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435 \u0437\u0430 \u0432\u0441\u0435\u043c\u0438 \u0444\u0430\u0439\u043b\u0430\u043c\u0438 \u0438 \u0433\u043b\u043e\u0431\u0430\u043b\u0430\u043c\u0438.\r\n\x1B[33m/sql\x1B[0m\x1B[32G\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c\u0441\u044f \u0438\u043b\u0438 \u0432\u044b\u0439\u0442\u0438 \u0438\u0437 SQL-\u0440\u0435\u0436\u0438\u043c\u0430.\r\n\x1B[33m/reset\x1B[0m\x1B[32G\u0412\u0435\u0440\u043d\u0443\u0442\u044c \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b \u0432 \u043f\u0435\u0440\u0432\u043e\u043d\u0430\u0447\u0430\u043b\u044c\u043d\u043e\u0435 \u0441\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435.\r\n{\u043a\u043e\u043c\u0430\u043d\u0434\u0430} \x1B[33m/favorite\x1B[0m {\u0444\u0440\u0430\u0437\u0430}\x1B[32G\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043a\u043e\u043c\u0430\u043d\u0434\u0443 \u0434\u043b\u044f \u0434\u0430\u043b\u044c\u043d\u0435\u0439\u0448\u0435\u0433\u043e \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u0438\u044f.\r\n\x1B[33m/favorite\x1B[0m {\u0444\u0440\u0430\u0437\u0430}\x1B[32G\u0412\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442 \u0440\u0430\u043d\u0435\u0435 \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u043d\u0443\u044e \u043a\u043e\u043c\u0430\u043d\u0434\u0443.\r\n{\u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435} \x1B[33m/define\x1B[0m {\u0444\u0440\u0430\u0437\u0430}\x1B[32G\u0417\u0430\u043c\u0435\u043d\u044f\u0442\u044c \u043a\u0443\u0436\u0434\u0443\u044e {\u0444\u0440\u0430\u0437\u0443} {\u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435\u043c}. \u0427\u0442\u043e\u0431\u044b \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0431\u043e\u043b\u044c\u0448\u0435 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u0438, \u0432\u044b\u0437\u043e\u0432\u0438\u0442\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u0443 \u0431\u0435\u0437 \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u043e\u0432.\r\n\x1B[33m/version\x1B[0m\x1B[32G\u0412\u044b\u0432\u0435\u0441\u0442\u0438 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044e \u043e \u0432\u0435\u0440\u0441\u0438\u0438 \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u0430.\r\n\x1B[33m/update\x1B[0m\x1B[32G\u041f\u0440\u043e\u0432\u0435\u0440\u0438\u0442\u044c \u043d\u0430\u043b\u0438\u0447\u0438\u0435 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0439 \u0438 \u0441\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u0443 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f, \u043d\u0443\u0436\u043d\u043e \u043b\u0438 \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435, \u0435\u0441\u043b\u0438 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430 \u043d\u043e\u0432\u0430\u044f \u0432\u0435\u0440\u0441\u0438\u044f.\r\n\x1B[33m/settings\x1B[0m\x1B[32G\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0438\u043b\u0438 \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u0430.\r\n\x1B[33m/about\x1B[0m\x1B[32G\u0418\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f \u043e \u043f\u0440\u043e\u0435\u043a\u0442\u0435.\r\n\r\n\x1B[4m\u0423\u043f\u0440\u0430\u0432\u043b\u044f\u044e\u0449\u0438\u0435 \u043a\u043b\u0430\u0432\u0438\u0448\u0438:\x1B[0m\r\n\x1B[33mTAB\x1B[0m\x1B[32G\u0417\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c \u0432\u0432\u043e\u0434, \u0435\u0441\u043b\u0438 \u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f.\r\n\x1B[33mCTRL\x1B[0m\x1B[32G\u041b\u0435\u0432\u044b\u0439/\u043f\u0440\u0430\u0432\u044b\u0439 CTRL \u043f\u0435\u0440\u0435\u0439\u0434\u0451\u0442 \u043a \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0435\u043c\u0443/\u043f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0435\u043c\u0443 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e\u043c\u0443 \u0432\u0430\u0440\u0438\u0430\u043d\u0442\u0443 \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f.\r\n"},2:{en:"Connection to Cach\xe9 Server established.",ru:"\u0421\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u0441 \u0441\u0435\u0440\u0432\u0435\u0440\u043e\u043c Cach\xe9 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u043e."},3:{en:"Unable to send data to server.",ru:"\u041d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e \u043e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u0434\u0430\u043d\u043d\u044b\u0435 \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440."},4:{en:"WebSocket connection closed. Code %n, reason: %s.",ru:"\u0421\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 WebSocket \u0437\u0430\u043a\u0440\u044b\u0442\u043e. \u041a\u043e\u0434 %n, \u043f\u0440\u0438\u0447\u0438\u043d\u0430: %s."},5:{en:"Unable to trace %s.",ru:"\u041d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e \u043d\u0430\u0431\u043b\u044e\u0434\u0430\u0442\u044c \u0437\u0430 %s."},6:{en:"WebSocket connection error (%s). Trying to connect again in %n seconds...",ru:"\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u044f WebSocket (%s). \u041f\u043e\u0432\u0442\u043e\u0440\u043d\u0430\u044f \u043f\u043e\u043f\u044b\u0442\u043a\u0430 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u044f \u0447\u0435\u0440\u0435\u0437 %n \u0441\u0435\u043a\u0443\u043d\u0434..."},7:{en:"Start tracing %s.",ru:"\u041d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435 \u0437\u0430 %s \u043d\u0430\u0447\u0430\u0442\u043e."},8:{en:"Stop tracing %s.",ru:"\u041d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435 \u0437\u0430 %s \u0437\u0430\u043a\u043e\u043d\u0447\u0435\u043d\u043e."},9:{en:"Refresh page to apply reset.",ru:"\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u0435 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0443 \u0447\u0442\u043e\u0431\u044b \u043f\u0440\u0438\u043c\u0435\u043d\u0438\u0442\u044c \u0441\u0431\u0440\u043e\u0441."},10:{en:"Authorization successful.",ru:"\u0410\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u044f \u043f\u0440\u043e\u0448\u043b\u0430 \u0443\u0441\u043f\u0435\u0448\u043d\u043e."},11:{en:"Usage:\r\n{your command} \x1B[1m/favorite\x1B[0m {name}\x1B[35GTo save command.\r\n\x1B[1m/favorite\x1B[0m {name} \x1B[35GTo load command.\r\nPreviously saved names: %s.",ru:"\u0423\u043f\u043e\u0442\u0440\u0435\u0431\u043b\u0435\u043d\u0438\u0435:\r\n{\u043a\u043e\u043c\u0430\u043d\u0434\u0430} \x1B[1m/favorite\x1B[0m {\u0438\u043c\u044f}\x1B[35G\u0414\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u043a\u043e\u043c\u0430\u043d\u0434\u044b.\r\n\x1B[1m/favorite\x1B[0m {\u0438\u043c\u044f} \x1B[35G\u0414\u043b\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438 \u043a\u043e\u043c\u0430\u043d\u0434\u044b.\r\n\u0420\u0430\u043d\u0435\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u044b \u043a\u043e\u043c\u0430\u043d\u0434\u044b \u043f\u043e\u0434 \u0438\u043c\u0435\u043d\u0430\u043c\u0438: %s."},12:{en:'No command saved for "%s".\r\nPreviously saved: %s.',ru:'\u041a\u043e\u043c\u0430\u043d\u0434\u0430 \u0441 \u0438\u043c\u0435\u043d\u0435\u043c "%s" \u043d\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0430.\r\n\u0420\u0430\u043d\u0435\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d\u043d\u044b\u0435: %s.'},13:{en:"%s\x1B[1m defined as \x1B[0m%s",ru:"%s\x1B[1m \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u043e \u043a\u0430\u043a \x1B[0m%s"},14:{en:"Definitions removed.",ru:"\u041e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f \u0443\u0434\u0430\u043b\u0435\u043d\u044b."},15:{en:'\x1B[4mUsage:\x1B[0m\r\n\x1B[1m/define\x1B[0m {everything} {phrase}\x1B[35GTo define {phrase} as {everything}.\r\n\x1B[1m/define\x1B[0m clear\x1B[35GClears all definitions.\r\n\x1B[4mExample:\x1B[0m \x1B[2m##class(%Library.File).Exists( \x1B[0m\x1B[1m/define\x1B[0m \x1B[2m?f(\x1B[0m \r\nThis will set shorten expression for checking if file exists. Then, commands like \x1B[2mw ?f("C:")\x1B[0m will be automatically replaced with \x1B[2mw ##class(%Library.File).Exists("C:")\x1B[0m when submitting. To clear definitions, give "clear" parameter.\r\n\x1B[4mList of definitions:\x1B[0m %s.',ru:'\x1B[4m\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u0438\u0435:\x1B[0m\r\n\x1B[1m/define\x1B[0m {\u0432\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435} {\u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435}\x1B[35G\u041a\u0430\u0436\u0434\u043e\u0435 \u0432\u0445\u043e\u0436\u0434\u0435\u043d\u0438\u0435 {\u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f} \u0432 \u0441\u0442\u0440\u043e\u043a\u0443 \u0432\u0432\u043e\u0434\u0430 \u0431\u0443\u0434\u0435\u0442 \u0437\u0430\u043c\u0435\u043d\u0435\u043d\u043e \u043d\u0430 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044e\u0449\u0435\u0435 {\u0432\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435}.\r\n\x1B[1m/define\x1B[0m clear\x1B[35G\u0423\u0434\u0430\u043b\u0438\u0442 \u0432\u0441\u0435 \u0440\u0430\u043d\u0435\u0435 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043d\u044b\u0435 \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f.\r\n\x1B[4m\u041f\u0440\u0438\u043c\u0435\u0440:\x1B[0m \x1B[2m##class(%Library.File).Exists( \x1B[0m\x1B[1m/define\x1B[0m \x1B[2m?f(\x1B[0m \r\n\u042d\u0442\u043e \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442 \u0441\u043e\u043a\u0440\u0430\u0449\u0451\u043d\u043d\u043e\u0435 \u0432\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0434\u043b\u044f \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u043e\u0432\u0430\u043d\u0438\u044f \u0444\u0430\u0439\u043b\u0430. \u041f\u043e\u0441\u043b\u0435, \u043a\u043e\u043c\u0430\u043d\u0434\u044b \u0432\u0438\u0434\u0430 \x1B[2mw ?f("C:")\x1B[0m \u0431\u0443\u0434\u0443\u0442 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438 \u043f\u0440\u0435\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u044b \u0432 \x1B[2mw ##class(%Library.File).Exists("C:")\x1B[0m \u043f\u0440\u0438 \u043e\u0442\u043f\u0440\u0430\u0432\u043a\u0435. \u0427\u0442\u043e\u0431\u044b \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f, \u043f\u0435\u0440\u0435\u0434\u0430\u0439\u0442\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440 "clear".\r\n\x1B[4m\u0421\u043f\u0438\u0441\u043e\u043a \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0439:\x1B[0m %s.'
+},16:{en:"Cach\xe9 WEB Terminal v%s\r\nChecking for updates...",ru:"Cach\xe9 WEB Terminal v%s\r\n\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0439..."},17:{en:"",ru:""},18:{en:"Merging autocomplete database for %s...",ru:"\u041e\u0431\u044a\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u0431\u0430\u0437\u044b \u0434\u0430\u043d\u043d\u044b\u0445 \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u0434\u043b\u044f %s..."},19:{en:"Classes merged: %n",ru:"\u041a\u043b\u0430\u0441\u0441\u043e\u0432 \u043e\u0431\u044a\u0435\u0434\u0438\u043d\u0435\u043d\u043e: %n"},20:{en:"Globals merged: %n",ru:"\u0413\u043b\u043e\u0431\u0430\u043b\u043e\u0432 \u043e\u0431\u044a\u0435\u0434\u0438\u043d\u0435\u043d\u043e: %n"},21:{en:"No autocomplete file found on server. Requesting...",ru:"\u0424\u0430\u0439\u043b \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d. \u0417\u0430\u043f\u0440\u043e\u0441 \u0444\u0430\u0439\u043b\u0430..."},22:{en:"Authorization failed.",ru:"\u0410\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u044f \u043d\u0435 \u0443\u0434\u0430\u043b\u0430\u0441\u044c."},23:{en:"A new version of Cach\xe9 WEB Terminal available. Would you like to install it? (Y/n)",ru:"\u041d\u043e\u0432\u0430\u044f \u0432\u0435\u0440\u0441\u0438\u044f Cach\xe9 WEB Terminal \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430. \u0425\u043e\u0442\u0438\u0442\u0435 \u043b\u0438 \u0432\u044b \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u044c \u0435\u0451? (Y/n)"},24:{en:"Updating...",ru:"\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435..."},25:{en:"Cach\xe9 WEB Terminal is up-to-date.",ru:"\u041d\u0430 \u0434\u0430\u043d\u043d\u044b\u0439 \u043c\u043e\u043c\u0435\u043d\u0442 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0430 \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u044f\u044f \u0432\u0435\u0440\u0441\u0438\u044f Cach\xe9 WEB Terminal."},26:{en:"\x1B[4mCurrent settings:\x1B[0m\r\n%s \x1B[25G= %s (available: %s)\r\n%s \x1B[25G= %s (available: %s)\r\n%s \x1B[25G= %s\r\n%s \x1B[25G= %s\r\n%s \x1B[25G= %s\r\nTo change values, enter command with argument \x1B[3m{NAME}={VALUE}\x1B[0m.",ru:"\x1B[4m\u0422\u0435\u043a\u0443\u0449\u0438\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438:\x1B[0m\r\n%s \x1B[25G= %s (\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b: %s)\r\n%s \x1B[25G= %s (\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b: %s)\r\n%s \x1B[25G= %s\r\n%s \x1B[25G= %s\r\n%s \x1B[25G= %s\r\n\u0427\u0442\u043e\u0431\u044b \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044f, \u0432\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u0443 \u0441 \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u043e\u043c \x1B[3m{\u0418\u041c\u042f}={\u0417\u041d\u0410\u0427\u0415\u041d\u0418\u0415}\x1B[0m."},27:{en:"Terminal locale changed to %s.",ru:"\u042f\u0437\u044b\u043a \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u0430 \u0438\u0437\u043c\u0435\u043d\u0451\u043d \u043d\u0430 %s."},28:{en:"Unable to change locale to %s.",ru:"\u041d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u044f\u0437\u044b\u043a \u043d\u0430 %s."},29:{en:"Start generating autocomplete",ru:"\u041d\u0430\u0447\u0438\u043d\u0430\u0435\u0442\u0441\u044f \u0433\u0435\u043d\u0435\u0440\u0430\u0446\u0438\u044f \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f"},30:{en:"Wrong namespace:",ru:"\u041d\u0435\u043f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u0430\u044f \u043e\u0431\u043b\u0430\u0441\u0442\u044c:"},31:{en:"Unable to create directory csp/WebTerminal/js/autocomplete.",ru:"\u041d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u0434\u0438\u0440\u0435\u043a\u0442\u043e\u0440\u0438\u044e csp/WebTerminal/js/autocomplete."},32:{en:"Classes scanned:",ru:"\u0421\u043a\u0430\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u043a\u043b\u0430\u0441\u0441\u043e\u0432:"},33:{en:"Generation complete.",ru:"\u0413\u0435\u043d\u0435\u0440\u0430\u0446\u0438\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430."},34:{en:"Request",ru:"\u0417\u0430\u043f\u0440\u043e\u0441"},35:{en:"Updating terminal... Connection will be lost, so just reload terminal.",ru:"\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u0430... \u0421\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u0431\u0443\u0434\u0435\u0442 \u0440\u0430\u0437\u043e\u0440\u0432\u0430\u043d\u043e, \u043f\u043e\u0442\u043e\u043c\u0443 \u043f\u0440\u043e\u0441\u0442\u043e \u043f\u0435\u0440\u0435\u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u0435 \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b."},36:{en:"Importing and compiling files...",ru:"\u0418\u043c\u043f\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 \u0438 \u043a\u043e\u043c\u043f\u0438\u043b\u044f\u0446\u0438\u044f \u0444\u0430\u0439\u043b\u043e\u0432..."},37:{en:"Clearing temporary files...",ru:"\u041e\u0447\u0438\u0441\u0442\u043a\u0430 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u044b\u0445 \u0444\u0430\u0439\u043b\u043e\u0432..."},38:{en:"Client query unrecognized:",ru:"\u0417\u0430\u043f\u0440\u043e\u0441 \u043a\u043b\u0438\u0435\u043d\u0442\u0430 \u043d\u0435 \u043e\u043f\u043e\u0437\u043d\u0430\u043d:"},39:{en:"Please, refresh the page to apply updates.",ru:"\u041f\u043e\u0436\u0430\u043b\u0443\u0439\u0441\u0442\u0430, \u043e\u0431\u043d\u043e\u0432\u0438\u0442\u0435 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0443 \u0447\u0442\u043e\u0431\u044b \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0432\u0441\u0442\u0443\u043f\u0438\u043b\u0438 \u0432 \u0441\u0438\u043b\u0443."},40:{en:"An error occurred when reading data.",ru:"\u0412\u043e\u0437\u043d\u0438\u043a\u043b\u0430 \u043e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u0447\u0442\u0435\u043d\u0438\u0438 \u0434\u0430\u043d\u043d\u044b\u0445."},41:{en:"Theme changed to %s.",ru:"\u0412\u043d\u0435\u0448\u043d\u0438\u0439 \u0432\u0438\u0434 \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u0430 \u0438\u0437\u043c\u0435\u043d\u0451\u043d \u043d\u0430 %s."},42:{en:"Unable to change theme to %s.",ru:"\u041d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0442\u0435\u043c\u0443 \u043d\u0430 %s."},43:{en:"Cach\xe9 WEB Terminal v"+e.VERSION+"\r\nAuthor:\x1B[20GZitRo (+NikitaSavchenko)\r\nProject:\x1B[20Ghttp://intersystems-ru.github.io/webterminal\r\nRepository:\x1B[20Ghttps://github.com/intersystems-ru/webterminal\r\n2013-2016 \xa9",ru:"Cach\xe9 WEB Terminal v"+e.VERSION+"\r\n\u0410\u0432\u0442\u043e\u0440:\x1B[20GZitRo (+NikitaSavchenko)\r\n\u041f\u0440\u043e\u0435\u043a\u0442:\x1B[20Ghttp://intersystems-ru.github.io/webterminal\r\n\u0420\u0435\u043f\u043e\u0437\u0438\u0442\u043e\u0440\u0438\u0439:\x1B[20Ghttps://github.com/intersystems-ru/webterminal\r\n2013-2016 \xa9"},44:{en:"Syntax highlighting enabled.",ru:"\u041f\u043e\u0434\u0441\u0432\u0435\u0442\u043a\u0430 \u0441\u0438\u043d\u0442\u0430\u043a\u0441\u0438\u0441\u0430 \u0432\u043a\u043b\u044e\u0447\u0435\u043d\u0430."},45:{en:"Syntax highlighting disabled.",ru:"\u041f\u043e\u0434\u0441\u0432\u0435\u0442\u043a\u0430 \u0441\u0438\u043d\u0442\u0430\u043a\u0441\u0438\u0441\u0430 \u0432\u044b\u043a\u043b\u044e\u0447\u0435\u043d\u0430."},46:{en:"Progress indicator enabled.",ru:"\u0418\u043d\u0434\u0438\u043a\u0430\u0442\u043e\u0440 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u0432\u043a\u043b\u044e\u0447\u0451\u043d."},47:{en:"Progress indicator disabled.",ru:"\u0418\u043d\u0434\u0438\u043a\u0430\u0442\u043e\u0440 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u0432\u044b\u043a\u043b\u044e\u0447\u0435\u043d."},48:{en:"Autocomplete enabled.",ru:"\u0410\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0432\u043a\u043b\u044e\u0447\u0435\u043d\u043e."},49:{en:"Autocomplete disabled.",ru:"\u0410\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0432\u044b\u043a\u043b\u044e\u0447\u0435\u043d\u043e."},50:{en:"Useless :)\r\nEnable autocomplete first.",ru:"\u0411\u0435\u0441\u043f\u043e\u043b\u0435\u0437\u043d\u043e :)\r\n\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u0435 \u0441\u043f\u0435\u0440\u0432\u0430 \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435."},51:{en:"Unknown option: %s.",ru:"\u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043e\u043f\u0446\u0438\u044f: %s."},52:{en:"Loading autocomplete from local storage...",ru:"\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0430\u0432\u0442\u043e\u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u0438\u0437 \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u043e\u0433\u043e \u0445\u0440\u0430\u043d\u0438\u043b\u0438\u0449\u0430..."},53:{en:"Loaded.",ru:"\u0417\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u043e."},54:{en:"System %s, user %s.",ru:"\u0421\u0438\u0441\u0442\u0435\u043c\u0430 %s, \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c %s."},55:{en:"System %s, user %s, name: %s.",ru:"\u0421\u0438\u0441\u0442\u0435\u043c\u0430 %s, \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c %s, \u0438\u043c\u044f: %s."},56:{en:"Terminal instance name changed successfully. Please, reload the page to see the changes.",ru:"\u042d\u043a\u0437\u0435\u043c\u043f\u043b\u044f\u0440 \u0442\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u0430 \u043f\u0435\u0440\u0435\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d \u0443\u0441\u043f\u0435\u0448\u043d\u043e. \u041f\u043e\u0436\u0430\u043b\u0443\u0439\u0441\u0442\u0430, \u043e\u0431\u043d\u043e\u0432\u0438\u0442\u0435 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0443 \u0447\u0442\u043e\u0431\u044b \u0443\u0432\u0438\u0434\u0435\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f."}},this.initialize()};TerminalLocalization.prototype.STORAGE_NAME="terminal-localization",TerminalLocalization.prototype.initialize=function(){var t=this._TERMINAL.storage.get(this.STORAGE_NAME);t&&this.AVAILABLE_LOCALIZATIONS.hasOwnProperty(t)||(t=navigator.language,this.AVAILABLE_LOCALIZATIONS.hasOwnProperty(t)||(t="en")),this.setLocale(t)},TerminalLocalization.prototype.getAvailableList=function(){var t,e=[];for(t in this.AVAILABLE_LOCALIZATIONS)e.push(t);return e},TerminalLocalization.prototype.get=function(t){var e=0,i=arguments;return(this._LOCALIZATION_BASE[t]?this._LOCALIZATION_BASE[t][this._currentLocalization]||"[no available localization of ["+t+'] for "'+this._currentLocalization+'"]':"[translation ["+t+"] not found]").replace(/%[sn]/g,function(t){return"undefined"!=typeof i[++e]?"s"===t.charAt(1)?i[e].toString():parseFloat(i[e])+"":t})},TerminalLocalization.prototype.setLocale=function(t){return this.AVAILABLE_LOCALIZATIONS.hasOwnProperty(t)?(this._currentLocalization=t,this._TERMINAL.storage.set(this.STORAGE_NAME,t),!0):(console.error('No available translations for "'+t+'". Please, check available languages at TerminalLocalization file.'),!1)},TerminalLocalization.prototype.getLocale=function(){return this._currentLocalization};var TerminalOutput=function(t){this.TERMINAL=t,this._stack="",this._TOP_LINE_INDEX=0,this.SYMBOL_PIXEL_WIDTH=0,this.SYMBOL_PIXEL_HEIGHT=0,this.CONTROL_SEQUENCE_PATTERN=/[\x00-\x1A]|\x1b\[?[^@-~]*[@-~]/g,this.CURRENT_GRAPHIC_RENDITION={},this._lines=[],this._caret={x:1,y:1},this._scrolling={enabled:!1,lineStart:0,lineEnd:0},this._tabs={},this.$CARET_RESTRICTION_ON=!0,this.WIDTH=0,this.HEIGHT=0,this.STACK_REFRESH_INTERVAL=25,this.initialize()};TerminalOutput.prototype.COLOR_8BIT={0:"#000000",1:"#800000",2:"#008000",3:"#808000",4:"#000080",5:"#800080",6:"#008080",7:"#c0c0c0",8:"#808080",9:"#ff0000",10:"#00ff00",11:"#ffff00",12:"#0000ff",13:"#ff00ff",14:"#00ffff",15:"#ffffff",16:"#000000",17:"#00005f",18:"#000087",19:"#0000af",20:"#0000df",21:"#0000ff",22:"#005f00",23:"#005f5f",24:"#005f87",25:"#005faf",26:"#005fdf",27:"#005fff",28:"#008700",29:"#00875f",30:"#008787",31:"#0087af",32:"#0087df",33:"#0087ff",34:"#00af00",35:"#00af5f",36:"#00af87",37:"#00afaf",38:"#00afdf",39:"#00afff",40:"#00df00",41:"#00df5f",42:"#00df87",43:"#00dfaf",44:"#00dfdf",45:"#00dfff",46:"#00ff00",47:"#00ff5f",48:"#00ff87",49:"#00ffaf",50:"#00ffdf",51:"#00ffff",52:"#5f0000",53:"#5f005f",54:"#5f0087",55:"#5f00af",56:"#5f00df",57:"#5f00ff",58:"#5f5f00",59:"#5f5f5f",60:"#5f5f87",61:"#5f5faf",62:"#5f5fdf",63:"#5f5fff",64:"#5f8700",65:"#5f875f",66:"#5f8787",67:"#5f87af",68:"#5f87df",69:"#5f87ff",70:"#5faf00",71:"#5faf5f",72:"#5faf87",73:"#5fafaf",74:"#5fafdf",75:"#5fafff",76:"#5fdf00",77:"#5fdf5f",78:"#5fdf87",79:"#5fdfaf",80:"#5fdfdf",81:"#5fdfff",82:"#5fff00",83:"#5fff5f",84:"#5fff87",85:"#5fffaf",86:"#5fffdf",87:"#5fffff",88:"#870000",89:"#87005f",90:"#870087",91:"#8700af",92:"#8700df",93:"#8700ff",94:"#875f00",95:"#875f5f",96:"#875f87",97:"#875faf",98:"#875fdf",99:"#875fff",100:"#878700",101:"#87875f",102:"#878787",103:"#8787af",104:"#8787df",105:"#8787ff",106:"#87af00",107:"#87af5f",108:"#87af87",109:"#87afaf",110:"#87afdf",111:"#87afff",112:"#87df00",113:"#87df5f",114:"#87df87",115:"#87dfaf",116:"#87dfdf",117:"#87dfff",118:"#87ff00",119:"#87ff5f",120:"#87ff87",121:"#87ffaf",122:"#87ffdf",123:"#87ffff",124:"#af0000",125:"#af005f",126:"#af0087",127:"#af00af",128:"#af00df",129:"#af00ff",130:"#af5f00",131:"#af5f5f",132:"#af5f87",133:"#af5faf",134:"#af5fdf",135:"#af5fff",136:"#af8700",137:"#af875f",138:"#af8787",139:"#af87af",140:"#af87df",141:"#af87ff",142:"#afaf00",143:"#afaf5f",144:"#afaf87",145:"#afafaf",146:"#afafdf",147:"#afafff",148:"#afdf00",149:"#afdf5f",150:"#afdf87",151:"#afdfaf",152:"#afdfdf",153:"#afdfff",154:"#afff00",155:"#afff5f",156:"#afff87",157:"#afffaf",158:"#afffdf",159:"#afffff",160:"#df0000",161:"#df005f",162:"#df0087",163:"#df00af",164:"#df00df",165:"#df00ff",166:"#df5f00",167:"#df5f5f",168:"#df5f87",169:"#df5faf",170:"#df5fdf",171:"#df5fff",172:"#df8700",173:"#df875f",174:"#df8787",175:"#df87af",176:"#df87df",177:"#df87ff",178:"#dfaf00",179:"#dfaf5f",180:"#dfaf87",181:"#dfafaf",182:"#dfafdf",183:"#dfafff",184:"#dfdf00",185:"#dfdf5f",186:"#dfdf87",187:"#dfdfaf",188:"#dfdfdf",189:"#dfdfff",190:"#dfff00",191:"#dfff5f",192:"#dfff87",193:"#dfffaf",194:"#dfffdf",195:"#dfffff",196:"#ff0000",197:"#ff005f",198:"#ff0087",199:"#ff00af",200:"#ff00df",201:"#ff00ff",202:"#ff5f00",203:"#ff5f5f",204:"#ff5f87",205:"#ff5faf",206:"#ff5fdf",207:"#ff5fff",208:"#ff8700",209:"#ff875f",210:"#ff8787",211:"#ff87af",212:"#ff87df",213:"#ff87ff",214:"#ffaf00",215:"#ffaf5f",216:"#ffaf87",217:"#ffafaf",218:"#ffafdf",219:"#ffafff",220:"#ffdf00",221:"#ffdf5f",222:"#ffdf87",223:"#ffdfaf",224:"#ffdfdf",225:"#ffdfff",226:"#ffff00",227:"#ffff5f",228:"#ffff87",229:"#ffffaf",230:"#ffffdf",231:"#ffffff",232:"#080808",233:"#121212",234:"#1c1c1c",235:"#262626",236:"#303030",237:"#3a3a3a",238:"#444444",239:"#4e4e4e",240:"#585858",241:"#606060",242:"#666666",243:"#767676",244:"#808080",245:"#8a8a8a",246:"#949494",247:"#9e9e9e",248:"#a8a8a8",249:"#b2b2b2",250:"#bcbcbc",251:"#c6c6c6",252:"#d0d0d0",253:"#dadada",254:"#e4e4e4",255:"#eeeeee"},TerminalOutput.prototype.initialize=function(){var t,e=this;for(setInterval(function(){e.freeStack()},this.STACK_REFRESH_INTERVAL),window.addEventListener("resize",function(){e.sizeChanged()}),this.sizeChanged(),t=9;t<this.WIDTH;t+=8)this.setTab(t)},TerminalOutput.prototype.setTab=function(t){this._tabs[t]=!0},TerminalOutput.prototype.clearTab=function(t){t?delete this._tabs[t]:this._tabs={}},TerminalOutput.prototype.setCaretX=function(t){return this._caret.x=Math.max(1,Math.min(this.WIDTH,t)),t===this._caret.x},TerminalOutput.prototype.setCaretY=function(t){return this._caret.y=this.$CARET_RESTRICTION_ON?Math.max(1,Math.min(this.HEIGHT,t)):t,t===this._caret.y},TerminalOutput.prototype.increaseTopLine=function(t){this._TOP_LINE_INDEX+=Math.round(t),this._TOP_LINE_INDEX<0&&(this._TOP_LINE_INDEX=0,console.warn("_TOP_LINE_INDEX = 0 bottom restriction applied."))},TerminalOutput.prototype.enableScrolling=function(t,e){return e>this.HEIGHT||1>t||t>e?void console.warn("Wrong scrolling borders: ",t,e):(this._scrolling.enabled=!0,this._scrolling.lineStart=t,this._scrolling.lineEnd=e,this.setCaretX(1),void this.setCaretY(1))},TerminalOutput.prototype.disableScrolling=function(){this._scrolling.enabled=!1},TerminalOutput.prototype.scrollDisplayPart=function(t,e,i){var n,r=this.getLineByIndex(this._TOP_LINE_INDEX+e),s=this._lines.slice(this._TOP_LINE_INDEX+t-1,this._TOP_LINE_INDEX+e),o={getElement:function(){return null}},a=s.length,l=s.slice(Math.min(Math.max(0,i),a),Math.max(Math.min(a,a+i),0)),h=i>0?(r||o).getElement()||null:(l[0]||o).getElement()||(r||o).getElement()||null,u=s.length-l.length;for(n=0;u>n;n++)s[i>0?"shift":"pop"]().remove();for(n=0;u>n;n++)l[i>0?"push":"unshift"].apply(l,[new TerminalOutputLine(this,h)]);this._lines.splice.apply(this._lines,[this._TOP_LINE_INDEX+t-1,l.length].concat(l))},TerminalOutput.prototype.getCaretX=function(){return this._caret.x},TerminalOutput.prototype.getCaretY=function(){return this._caret.y},TerminalOutput.prototype._controlCharacters={"\x00":function(){},"	":function(){for(var t=this.getCaretX();t<this.WIDTH;t++)if(this._tabs.hasOwnProperty(t.toString())){this.setCaretX(t);break}},"\n":function(){this._scrolling.enabled&&this._caret.y===this._scrolling.lineEnd?this.scrollDisplayPart(this._scrolling.lineStart,this._scrolling.lineEnd,1):(this._caret.y===this.HEIGHT&&this.scrollDisplay(1),this.setCaretY(this._caret.y+1))},"\r":function(){this.setCaretX(1)}},TerminalOutput.prototype._controlSequences={m:function(t,e){var i,n=e.split(";").map(function(t){return parseInt(t,10)});for(i=0;i<n.length;i++)38===n[i]&&5===n[i+1]?(this.setGraphicRendition(38,"color: "+this.COLOR_8BIT[n[i+2]]),i+=2):48===n[i]&&5===n[i+1]?(this.setGraphicRendition(48,"background-color: "+this.COLOR_8BIT[n[i+2]]),i+=2):this.setGraphicRendition(n[i]||0)},A:function(t,e){this.setCaretY(this.getCaretY()-(parseInt(e)||1))},B:function(t,e){this.setCaretY(this.getCaretY()+(parseInt(e)||1))},C:function(t,e){this.setCaretX(this.getCaretX()+(parseInt(e)||1))},D:function(t,e){"["===t.charAt(1)?this.setCaretX(this.getCaretX()-(parseInt(e)||1)):this._scrolling.enabled&&this.scrollDisplayPart(this._scrolling.lineStart,this._scrolling.lineEnd,-1)},M:function(){this._scrolling.enabled&&this.scrollDisplayPart(this._scrolling.lineStart,this._scrolling.lineEnd,1)},f:function(t,e){var i=e.split(";");this.setCaretX(parseInt(i[1]||1)),this.setCaretY(parseInt(i[0]||1))},H:function(t,e){"["===t.charAt(1)?this._controlSequences.f.call(this,t,e):this.setTab(this.getCaretX())},g:function(t,e){"3"===e?this.clearTab():this.clearTab(this.getCaretX())},G:function(t,e){this.setCaretX(parseInt(e)||1)},c:function(t){var e=1;"\x1B[c"===t&&this.TERMINAL.controller.terminalQuery("\x1B["+e+"0c")},n:function(t,e){switch(parseInt(e)){case 5:this.TERMINAL.controller.terminalQuery("\x1B[0n");break;case 6:this.TERMINAL.controller.terminalQuery("\x1B["+this.getCaretY()+";"+this.getCaretX()+"R")}},r:function(t,e){var i;e?(i=e.split(";").map(function(t){return parseInt(t,10)}),i.length>1&&this.enableScrolling(i[0],i[1])):this.disableScrolling()},K:function(t,e){1==e?this.getCurrentLine().writePlain(new Array(this.getCaretX()).join(" "),0):2==e?this.getCurrentLine().writePlain(new Array(this.WIDTH+1).join(" "),0):this.getCurrentLine().writePlain(new Array(this.WIDTH-this.getCaretX()+2).join(" "),this.getCaretX()-1)},J:function(t,e){var i;if(1==e)for(i=this.getCaretY();i>0;i--)this.getLineByCursorY(i).clear();else if(2==e)for(i=1;i<this.WIDTH;i++)this.getLineByCursorY(i).clear();else for(i=this.getCaretY()+1;i<this.HEIGHT;i++)this.getLineByCursorY(i).clear()}},TerminalOutput.prototype.scrollDisplay=function(t){t>0?this._TOP_LINE_INDEX+=t:console.warn("Todo: scroll up")},TerminalOutput.prototype.anyGraphicRenditionSet=function(){var t;for(t in this.CURRENT_GRAPHIC_RENDITION)if(this.CURRENT_GRAPHIC_RENDITION.hasOwnProperty(t))return!0;return!1},TerminalOutput.prototype.setGraphicRendition=function(t,e){0===t?this.CURRENT_GRAPHIC_RENDITION={}:this.CURRENT_GRAPHIC_RENDITION[t]=e?{style:e}:t},TerminalOutput.prototype.applyControlSequence=function(t){var e,i;(e=t.match(/[\x00-\x1A]/))?this._controlCharacters.hasOwnProperty(e[0])&&this._controlCharacters[e[0]].call(this):(e=t.match(/\x1b\[?([^@-~]*)([@-~])/))&&(i=e[2],this._controlSequences.hasOwnProperty(i)&&this._controlSequences[i].call(this,e[0],e[1]))},TerminalOutput.prototype.getTopLine=function(){var t;for(t=this._lines.length;t<=this._TOP_LINE_INDEX;t++)this._lines[t]=new TerminalOutputLine(this);return this._lines[this._TOP_LINE_INDEX]},TerminalOutput.prototype.getCurrentLine=function(){return this.getLineByCursorY(this.getCaretY())},TerminalOutput.prototype.newLineSequence=function(){this.applyControlSequence("\r"),this.applyControlSequence("\n")},TerminalOutput.prototype.getLineNumber=function(){return this._TOP_LINE_INDEX+this._caret.y-1},TerminalOutput.prototype._spawnLines=function(t){for(;t>0;t--)this._lines.push(new TerminalOutputLine(this))},TerminalOutput.prototype._printPlainText=function(t){var e,i;do e=this.getCurrentLine(),i=t.length,t=e.writePlain(t,this._caret.x-1),i-=t.length,t?this.newLineSequence():this.setCaretX(this._caret.x+i)||this.newLineSequence();while(t)},TerminalOutput.prototype._output=function(t){var e,i=t||"",n=0,r=this;t=t||"",t.replace(this.CONTROL_SEQUENCE_PATTERN,function(t,e,s){var o=s.substring(n,e);return n||(i=s),n=e+t.length,o&&r._printPlainText(o),r.applyControlSequence(t),""}),e=i.substring(n,i.length),e&&this._printPlainText(e)},TerminalOutput.prototype.print=function(t){this._stack+=t},TerminalOutput.prototype.getLineByIndex=function(t){var e;for(e=this._lines.length;t>=e;e++)this._lines[e]=new TerminalOutputLine(this);return this._lines[t]},TerminalOutput.prototype.getLineByCursorY=function(t){return this.getLineByIndex(this._TOP_LINE_INDEX+(t-1))},TerminalOutput.prototype.printAtLine=function(t,e,i,n){var r=this.$CARET_RESTRICTION_ON;"undefined"==typeof n&&(n=!0),this.$CARET_RESTRICTION_ON=!1,this._caret.x=i+1,this._caret.y=e-this._TOP_LINE_INDEX+1,this.printSync(t),n&&(this.$CARET_RESTRICTION_ON=!0,this.setCaretX(this.getCaretX()),this.setCaretY(this.getCaretY())),this.$CARET_RESTRICTION_ON=r},TerminalOutput.prototype.printSync=function(t){this.freeStack(),this.print(t||""),this.freeStack()},TerminalOutput.prototype.freeStack=function(){var t,e;this._stack&&(-1!==(t=this._stack.lastIndexOf(String.fromCharCode(27)))&&(e=(t=this._stack.substring(t,this._stack.length)).match(this.CONTROL_SEQUENCE_PATTERN))&&"\x1B["!==e[0]?(this._output(this._stack),this._stack=""):(this._output(this._stack.substring(0,this._stack.length-(t.length||0))),this._stack=-1===t?"":t),this.scrollToActualLine())},TerminalOutput.prototype.clear=function(){this.printSync(),this._TOP_LINE_INDEX=this._lines.length,this._spawnLines(this.HEIGHT),this.scrollToActualLine(),this.setCaretX(1),this.setCaretY(1)},TerminalOutput.prototype.scrollToActualLine=function(){this.TERMINAL.elements.output.scrollTop=this.getTopLine().getElement().offsetTop},TerminalOutput.prototype.sizeChanged=function(){var t,e=document.createElement("span"),i=document.createElement("div"),n=this.TERMINAL.elements.output.style.overflowY,r=6;this.TERMINAL.elements.output.style.overflowY="scroll",this.TERMINAL.elements.output.appendChild(i),t=this.TERMINAL.elements.output.offsetWidth-i.offsetWidth,this.TERMINAL.elements.output.style.overflowY=n,e.className=this.LINE_CLASSNAME,e.innerHTML="XXXXXXXXXX",this.TERMINAL.elements.output.appendChild(e),this.SYMBOL_PIXEL_WIDTH=e.offsetWidth/10,this.SYMBOL_PIXEL_HEIGHT=e.offsetHeight,this.WIDTH=Math.floor((this.TERMINAL.elements.terminal.offsetWidth-t-r)/this.SYMBOL_PIXEL_WIDTH),this.HEIGHT=Math.floor(this.TERMINAL.elements.terminal.offsetHeight/this.SYMBOL_PIXEL_HEIGHT),this.TERMINAL.elements.output.style.width=this.WIDTH*this.SYMBOL_PIXEL_WIDTH+t+"px",this.TERMINAL.elements.output.style.height=this.HEIGHT*this.SYMBOL_PIXEL_HEIGHT+"px",this.TERMINAL.elements.output.removeChild(i),this.TERMINAL.elements.output.removeChild(e)};var TerminalOutputLine=function(t,e){this.TERMINAL=t.TERMINAL,this.TERMINAL_OUTPUT=t,this._lineElement=document.createElement("div"),this._linePlainText="",this.graphicRenditionIndex={},this.renderTimeout=0,this.initialize(e)};TerminalOutputLine.prototype.initialize=function(t){this._lineElement.style.height=this.TERMINAL_OUTPUT.SYMBOL_PIXEL_HEIGHT+"px",t?this.TERMINAL.elements.output.insertBefore(this._lineElement,t):this.TERMINAL.elements.output.appendChild(this._lineElement)},TerminalOutputLine.prototype.getElement=function(){return this._lineElement},TerminalOutputLine.prototype.render=function(){
+var t,e,i,n=[],r="";for(t in this.graphicRenditionIndex)n.push(parseInt(t));for(n.sort(function(t,e){return t-e}),0!==n[0]&&n.unshift(0),t=0;t<n.length;t++)e="",i="",(this.graphicRenditionIndex[n[t]]||[]).every(function(t){return e+="term-gri"+t.index+" ",t.style&&(i+=(i?";":"")+t.style+" "),!0},this),e&&(e='<span class="'+e+'"'+(i?'style="'+i.replace('"',"&quot;")+'"':"")+">"),r+=e+this._linePlainText.substring(n[t]||0,n[t+1]||this._linePlainText.length).replace(/&/g,"&amp;").replace(/</g,"&lt;")+"</span>";r||(r=this._linePlainText.replace(/&/g,"&amp;").replace(/</g,"&lt;")),this._lineElement.innerHTML=r},TerminalOutputLine.prototype.writePlain=function(t,e){var i,n,r=this;for("undefined"==typeof e&&(e=this._linePlainText.length),n=t.substr(0,this.TERMINAL_OUTPUT.WIDTH-e),e>this._linePlainText.length&&(this._linePlainText+=new Array(e-this._linePlainText.length+1).join(" ")),this._linePlainText=this._linePlainText.splice(e,n.length,n),i=e;i<e+n.length;i++)this.graphicRenditionIndex.hasOwnProperty(i.toString())&&(this.graphicRenditionIndex[e+n.length]=(this.graphicRenditionIndex[e+n.length]||[]).concat(this.graphicRenditionIndex[i]),delete this.graphicRenditionIndex[i]);if(this.graphicRenditionIndex[e+n.length]instanceof Array){for(i=0;i<this.graphicRenditionIndex[e+n.length].length;i++)0===this.graphicRenditionIndex[e+n.length][i].index&&(this.graphicRenditionIndex[e+n.length].splice(0,i+1),i=0);this.graphicRenditionIndex[e+n.length]=this.graphicRenditionIndex[e+n.length].filter(function(t,e,n){for(i=0;e>i;i++)if(n[e].index===n[i].index)return!1;return!0})}if(this.TERMINAL_OUTPUT.anyGraphicRenditionSet()){this.graphicRenditionIndex[e]=[];for(i in this.TERMINAL_OUTPUT.CURRENT_GRAPHIC_RENDITION)this.graphicRenditionIndex[e].push({index:parseInt(i)||i,style:this.TERMINAL_OUTPUT.CURRENT_GRAPHIC_RENDITION[i].style})}else this.graphicRenditionIndex[e]=[{index:0}];return this.renderTimeout||(this.renderTimeout=setTimeout(function(){r.render(),r.renderTimeout=0},25)),t.substr(n.length,t.length)},TerminalOutputLine.prototype.clear=function(){this._linePlainText="",this.graphicRenditionIndex={},this.render()},TerminalOutputLine.prototype.remove=function(){this._lineElement.parentNode&&this._lineElement.parentNode.removeChild(this._lineElement)};var TerminalParser=function(t){this.TERMINAL=t,this.THEMES={"default":["\x1B[38;5;226m","\x1B[38;5;226m","\x1B[38;5;76m","\x1B[38;5;51m","\x1B[38;5;111m","\x1B[38;5;9m","\x1B[38;5;180m","\x1B[38;5;51m","\x1B[0m","\x1B[38;5;39m"],cache:["\x1B[38;5;166m","\x1B[38;5;16m","\x1B[38;5;28m","\x1B[38;5;16m","\x1B[38;5;12m","\x1B[38;5;9m","\x1B[38;5;20m","\x1B[38;5;12m","\x1B[0m","\x1B[38;5;12m"]},this._SPEC_ETC_POS=8,this._SPEC_KEYWORD_POS=9,this.SYNTAX_REGULAR_EXPRESSION=new RegExp('(\\/[a-z]+)|([\\[\\]\\{\\}\\(\\)\\-\\+\\*\\/_=])|("[^"]*")|([0-9]\\.?[0-9]*)|(\\${1,3}[\\w]+)|(\\^[\\w]+)|(#{2,3}[\\w]+)|(\\.{2}[\\w]+)|([\\w]+)',"g")};TerminalParser.prototype.highlightSyntax=function(t,e){var i=this;return i.THEMES[e]||(e="default"),t.replace(this.SYNTAX_REGULAR_EXPRESSION,function(t){var n;for(n=1;n<arguments.length-1;n++)if(arguments[n])return n-1===i._SPEC_ETC_POS&&i.TERMINAL.dictionary.KEYWORDS.hasOwnProperty(t)?i.THEMES[e][i._SPEC_KEYWORD_POS]+t+"\x1B[0m":i.THEMES[e][n-1]+t+"\x1B[0m";return t})};var TerminalSettings=function(t){this.TERMINAL=t,this.SHOW_PROGRESS_INDICATOR=!0,this.HIGHLIGHT_INPUT=!0,this.AUTOCOMPLETE=!0,this.initialize()};TerminalSettings.prototype.STORAGE_NAME_SHOW_PROGRESS_INDICATOR="terminal-showProgressIndicator",TerminalSettings.prototype.STORAGE_NAME_HIGHLIGHT_INPUT="terminal-highlightInput",TerminalSettings.prototype.STORAGE_NAME_AUTOCOMPLETE="terminal-autocomplete",TerminalSettings.prototype.initialize=function(){var t=this,e=function(t){return"true"===t?!0:"false"===t?!1:!1},i=function(i,n){null===t[i]?t[i]=n:t[i]=e(t[i])};this.SHOW_PROGRESS_INDICATOR=this.TERMINAL.storage.get(this.STORAGE_NAME_SHOW_PROGRESS_INDICATOR),i("SHOW_PROGRESS_INDICATOR",!0),this.HIGHLIGHT_INPUT=this.TERMINAL.storage.get(this.STORAGE_NAME_HIGHLIGHT_INPUT),i("HIGHLIGHT_INPUT",!0),this.AUTOCOMPLETE=this.TERMINAL.storage.get(this.STORAGE_NAME_AUTOCOMPLETE),i("AUTOCOMPLETE",!0)},TerminalSettings.prototype.setShowProgressIndicator=function(t){return this.SHOW_PROGRESS_INDICATOR=t,this.TERMINAL.storage.set(this.STORAGE_NAME_SHOW_PROGRESS_INDICATOR,t.toString()),t},TerminalSettings.prototype.setHighlightInput=function(t){return this.HIGHLIGHT_INPUT=t,this.TERMINAL.storage.set(this.STORAGE_NAME_HIGHLIGHT_INPUT,t.toString()),t},TerminalSettings.prototype.setAutocomplete=function(t){return this.AUTOCOMPLETE=t,this.TERMINAL.storage.set(this.STORAGE_NAME_AUTOCOMPLETE,t.toString()),t};var TerminalStorage=function(){if("undefined"==typeof JSON)throw new Error("Browser does not support html5 local storage. Please, update your browser")};TerminalStorage.prototype.clear=function(){localStorage.clear()},TerminalStorage.prototype.set=function(t,e){localStorage.setItem(t,e)},TerminalStorage.prototype.remove=function(t){localStorage.removeItem(t)},TerminalStorage.prototype.get=function(t){return localStorage.getItem(t)};var TerminalTheme=function(t){this.TERMINAL=t,this.AVAILABLE_THEMES={"":"","default":"",cache:"css/terminal-theme/cache.css"},this._CURRENT_THEME="default",this.initialize()};TerminalTheme.prototype.STORAGE_NAME="terminal-theme",TerminalTheme.prototype.initialize=function(){var t;(t=this.TERMINAL.storage.get(this.STORAGE_NAME))&&this.setTheme(t)},TerminalTheme.prototype.getCurrentTheme=function(){return this._CURRENT_THEME||"default"},TerminalTheme.prototype.getAvailableList=function(){var t,e=[];for(t in this.AVAILABLE_THEMES)t&&e.push(t);return e},TerminalTheme.prototype.setTheme=function(t){var e;return this.AVAILABLE_THEMES.hasOwnProperty(t)?((e=this.AVAILABLE_THEMES[t])?(this.TERMINAL.elements.themeLink.setAttribute("href",e),this._CURRENT_THEME=t,this.TERMINAL.storage.set(this.STORAGE_NAME,t)):(this.TERMINAL.storage.remove(this.STORAGE_NAME),this._CURRENT_THEME="default",this.TERMINAL.elements.themeLink.removeAttribute("href")),!0):!1};]]]]><![CDATA[>
+</data>
+]]></Data>
+</XData>
+</Class>
+
+<Class name="WebTerminal.Trace">
+<Super>Common</Super>
+<TimeChanged>63907,49869.367047</TimeChanged>
+<TimeCreated>63906,40630.844178</TimeCreated>
+
+<Property name="Watches">
+<Description>
+Property is used to store watching files/globals. </Description>
+<Type>%List</Type>
+</Property>
+
+<Property name="WatchesCaret">
+<Description>
+Watch position in file on global</Description>
+<Type>%Numeric</Type>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Method name="Trace">
+<Description>
+Chechs for correct watch source and sets watch target to ..Watches
+Returns status of this operation</Description>
+<FormalSpec>name</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set s = $CHAR(0)
+    set watches = s _ $LISTTOSTRING(..Watches, s) _ s
+    if ($FIND(watches, s_name_s) '= 0) q 0 // if watch already defined
+
+    if ($EXTRACT(name,1,1) = "^") { // watching global
+        s g = 0
+        try {
+            if (($data(@name))'=0) s g = 1
+        } catch {  }
+        set $ZERROR = ""
+        if (g = 1) {
+            set ..Watches = ..Watches _ $LISTBUILD(name)
+            set ..WatchesCaret(name,0) = $QUERY(@name@(""),-1) // last
+            set ..WatchesCaret(name,1) = "?"
+            do ..SendData(name, ..#ClientTrace)
+            q 1
+        }
+    } else { // watch file
+        if (##class(%File).Exists(name)) {
+            set ..Watches = ..Watches _ $LISTBUILD(name)
+            set file = ##class(%File).%New(name)
+            set ..WatchesCaret(name,0) = file.Size // current watch cursor position
+            set ..WatchesCaret(name,1) = file.DateModified
+            do ..SendData(name, ..#ClientTrace)
+            q 1
+        }
+    }
+
+    q 0
+]]></Implementation>
+</Method>
+
+<Method name="StopTracing">
+<Description>
+Removes watch from watches list
+Returns success status</Description>
+<FormalSpec>name</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    // absurdly, but working
+    set s = $CHAR(0)
+    set watches = s _ $LISTTOSTRING(..Watches,s) _ s
+    set newWatches = $REPLACE(watches, s_name_s, s)
+    set ..Watches = $LISTFROMSTRING($EXTRACT(newWatches, 2, *-1), s)
+    if (watches '= newWatches) {
+        k ..WatchesCaret(name) // really removed
+        do ..SendData(name, ..#ClientStopTrace)
+    }
+    quit watches '= newWatches
+]]></Implementation>
+</Method>
+
+<Method name="ListWatches">
+<Description>
+Returns a list current watches</Description>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set no=0
+    set s = "Watching: " _ $CHAR(10)
+    while $LISTNEXT(..Watches, no, value) {
+        set s = s_"(pos: "_..WatchesCaret(value,0)_
+        "; mod: "_..WatchesCaret(value,1)_") "_value_$CHAR(10)
+    }
+    q s
+]]></Implementation>
+</Method>
+
+<Method name="GetTraceGlobalModified">
+<Description>
+Return null string if global hadn't been updated
+This method watches only for tail of global and detects if global still alive</Description>
+<FormalSpec>watch</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set data = ""
+    if ($data(@watch)=0) {
+        do ..StopTracing(watch)
+        q "removed"
+    }
+    for {
+        set query = $QUERY(@..WatchesCaret(watch,0))
+        quit:query=""
+        if (data="") set data = "modified"
+        set ..WatchesCaret(watch,0) = query
+        set data = data _ $CHAR(13, 10) _ @query
+    }
+    q data
+]]></Implementation>
+</Method>
+
+<Method name="GetTraceFileModified">
+<FormalSpec>watch</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set file=##class(%File).%New(watch)
+    set size = file.Size
+    set modDate = file.DateModified
+    set output = ""
+    if (size < 0) { // file had been deleted
+
+        do ..StopTracing(watch)
+        q "removed"
+
+    }
+
+    if (size > ..WatchesCaret(watch, 0)) {
+
+        set output = "updated" _ $CHAR(13, 10)
+        set stream=##class(%Stream.FileBinary).%New()
+        set sc=stream.LinkToFile(watch)
+        do stream.MoveTo(..WatchesCaret(watch, 0) + 1)
+        set readed = stream.Read(size - ..WatchesCaret(watch, 0))
+        set output=output_readed
+        set ..WatchesCaret(watch, 0) = size
+        set ..WatchesCaret(watch, 1) = file.DateModified
+
+    } elseif ((size < ..WatchesCaret(watch, 0)) || (file.DateModified '= ..WatchesCaret(watch, 1))) {
+
+        set output = "modified" _ $CHAR(13, 10)
+        set output = output _ "Bytes changed: " _ (size - ..WatchesCaret(watch, 0))
+        set ..WatchesCaret(watch, 0) = size
+        set ..WatchesCaret(watch, 1) = file.DateModified
+
+    } // else file not changed
+    q output
+]]></Implementation>
+</Method>
+
+<Method name="CheckTracing">
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set no = 0
+    set data = ""
+    set overal = ""
+    set watchList = ..Watches // do not remove or simplify: ..Watches can be modified
+    while $LISTNEXT(watchList, no, value) {
+        if ($EXTRACT(value, 1, 1) = "^") {
+            set data = ..GetTraceGlobalModified(value)
+        } else {
+            set data = ..GetTraceFileModified(value)
+        }
+        if (data '= "") {
+            set overal = $ZDATETIME($NOW(),1,1) _ " " _
+            value _ ": " _ data _ $CHAR(10)
+        }
+        set data = ""
+    }
+    q overal
+]]></Implementation>
+</Method>
+</Class>
+<Project name="WEBTerminal" LastModified="2015-12-27 12:32:35.955">
+<Items>
+<ProjectItem name="WebTerminal.Autocomplete" type="CLS"></ProjectItem>
+<ProjectItem name="WebTerminal.Common" type="CLS"></ProjectItem>
+<ProjectItem name="WebTerminal.Engine" type="CLS"></ProjectItem>
+<ProjectItem name="WebTerminal.Installer" type="CLS"></ProjectItem>
+<ProjectItem name="WebTerminal.Router" type="CLS"></ProjectItem>
+<ProjectItem name="WebTerminal.StaticContent" type="CLS"></ProjectItem>
+<ProjectItem name="WebTerminal.Trace" type="CLS"></ProjectItem>
+</Items>
+</Project>
+</Export>
