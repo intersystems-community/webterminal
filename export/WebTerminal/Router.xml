@@ -100,7 +100,7 @@ Method writes application HTML.</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    set cookie = %session.CSPSessionCookie
+    set cookie = $System.Encryption.Base64Encode(%session.Key)
     // Put the name of authorized user in a global to authorize WebSocket WebTerminal connection
     set ^WebTerminal("AuthUser", cookie) = $LB(
         $LISTGET(%session.SecurityContext, 1), // username
