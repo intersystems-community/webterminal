@@ -4,7 +4,7 @@
   "description": "Web-based terminal emulator for Caché administering.",
   "author": "ZitRo",
   "version": "3.2.2",
-  "releaseNumber": 19,
+  "releaseNumber": 20,
   "repository": {
     "type": "git",
     "url": "https://github.com/intersystems-ru/webterminal.git"
