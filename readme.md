@@ -5,7 +5,7 @@ Visit [project page](http://intersystems-ru.github.io/webterminal) for more deta
 
 ### Installation
 Download the latest version from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a>
-and import XML file into %SYS namespace. Later you can update application only by typing `/update` command.
+and import XML file into any namespace. Later you can update application only by typing `/update` command in terminal.
 
 ### Usage
 After installation, you will be able to access application at `http://[host]:[port]/terminal/` (slash at the end is required).
