@@ -28,7 +28,7 @@ var TerminalController = function (TERMINAL) {
      */
     this.server = new CacheWebTerminalServer(
         this, (location.protocol === "https:" ? "wss:" : "ws:"), location.hostname,
-        ""/*build.replace:location.port*/ || "57776"
+        ""/*build.replace:location.port*/ || (location.protocol === "https:" ? "443" : "80")
     );
 
     /**
