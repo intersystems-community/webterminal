@@ -96,10 +96,7 @@ gulp.task("copy-readme", ["clean"], function () {
 });
 
 gulp.task("export", [ "copy-html", "copy-js", "prepare-css", "copy-readme" ], function () {
-    var projectTemplate = '<Project name="WEBTerminal" LastModified="'
-        + (new Date()).toISOString().replace(/T/, " ").replace(/Z/, "") + '">\r\n'
-        + '<Items>\r\n',
-        files = [];
+    var files = [];
     return gulp.src("export/WebTerminal/**/*.xml")
         .pipe(foreach(function (stream, file) {
             files.push(path.relative(path.join(path.dirname(__filename), "export"), file.path)
@@ -142,11 +139,8 @@ gulp.task("export", [ "copy-html", "copy-js", "prepare-css", "copy-readme" ], fu
         .pipe(replace(
             /^/,
             '<?xml version="1.0" encoding="UTF-8"?>\r\n<Export generator="Cache" version="25">\r\n'
-        )).pipe(foreach(function (stream) {
-            return stream.pipe(replace(/$/, projectTemplate + files.map(function (fileName) {
-                return '<ProjectItem name="' + fileName + '" type="CLS"></ProjectItem>'
-            }).join("\r\n") + '\r\n</Items>\r\n</Project>\r\n</Export>'))
-        }))
+        ))
+        .pipe(replace(/$/, "</Export>"))
         .pipe(gulp.dest("./" + buildTo));
 });
 
