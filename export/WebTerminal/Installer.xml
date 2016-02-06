@@ -6,7 +6,7 @@ Importing this class will install Cache WEB Terminal properly.</Description>
 <Super>%Projection.AbstractProjection</Super>
 <TimeChanged>63954,74786.153524</TimeChanged>
 <TimeCreated>63890,71053.144208</TimeCreated>
-<DependsOn>Common,Engine,Router,StaticContent</DependsOn>
+<DependsOn>Common,Engine,Router,StaticContent,Autocomplete,Trace</DependsOn>
 
 <Parameter name="DispatchClass">
 <Default>WebTerminal.Router</Default>
@@ -70,7 +70,8 @@ This method is invoked when a class is compiled.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
     write !, "Installing WebTerminal application to " _ $NAMESPACE
-    set ns = $NAMESPACE // has to be package home namespace!
+    set ns = $NAMESPACE // ought to be package home namespace!
+    set ^WebTerminal("HomeNamespace") = ns
     zn:ns'="%SYS" "%SYS"
     do ##class(Security.System).GetInstallationSecuritySetting(.security)
     set cspProperties("AutheEnabled") = 32 // password by default, 64 for no password
@@ -129,6 +130,12 @@ This method is invoked when a class is 'uncompiled'.</Description>
 <Implementation><![CDATA[
     write !, "Uninstalling WebTerminal application from " _ $NAMESPACE
     set ns = $NAMESPACE // has to be package home namespace!
+    if ($get(^WebTerminal("HomeNamespace")) = "") {
+        write "Terminal home namespace is not defined! Uninstalling will be skipped."
+        quit '$$$OK
+    } else {
+        set ns = ^WebTerminal("HomeNamespace")
+    }
     zn:ns'="%SYS" "%SYS"
     do ..RemoveWebApplication("/terminal")
     do ..RemoveWebApplication("/terminalsocket")
