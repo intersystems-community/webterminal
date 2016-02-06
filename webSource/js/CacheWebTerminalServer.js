@@ -45,6 +45,9 @@ var CacheWebTerminalServer = function (CONTROLLER, WS_PROTOCOL, IP, PORT) {
      */
     this.socket = null;
 
+    this.CONNECTION_URL = this.PROTOCOL + "//" + this.IP + (this.PORT ? ":" + this.PORT : "")
+        + "/terminalsocket/" + encodeURIComponent(this.CACHE_CLASS_NAME);
+
     this.initialize();
 
 };
@@ -56,10 +59,7 @@ CacheWebTerminalServer.prototype.initialize = function () {
     var _this = this;
 
     try {
-        this.socket = new WebSocket(
-                this.PROTOCOL + "//" + this.IP + (this.PORT ? ":" + this.PORT : "") + "/"
-                + encodeURIComponent(this.CACHE_CLASS_NAME)
-        );
+        this.socket = new WebSocket(this.CONNECTION_URL);
     } catch (e) {
         this.onError();
         console.error(e);
@@ -78,7 +78,6 @@ CacheWebTerminalServer.prototype.initialize = function () {
     };
 
     this.socket.onmessage = function (event) {
-        //console.log("server >> ", event.data);
         _this.CONTROLLER.serverData(event.data);
     };
 
