@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.2 (Build 559U)" ts="2016-02-06 20:50:57">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2016-02-15 12:28:08">
 <Class name="WebTerminal.Installer">
 <Description>
 Importing this class will install Cache WEB Terminal properly.</Description>
 <Super>%Projection.AbstractProjection</Super>
-<TimeChanged>63954,74786.153524</TimeChanged>
+<TimeChanged>63963,44872.55628</TimeChanged>
 <TimeCreated>63890,71053.144208</TimeCreated>
 <DependsOn>Common,Engine,Router,StaticContent,Autocomplete,Trace</DependsOn>
 
@@ -72,6 +72,7 @@ This method is invoked when a class is compiled.</Description>
     write !, "Installing WebTerminal application to " _ $NAMESPACE
     set ns = $NAMESPACE // ought to be package home namespace!
     set ^WebTerminal("HomeNamespace") = ns
+    set dbdir = $$$defdir
     zn:ns'="%SYS" "%SYS"
     do ##class(Security.System).GetInstallationSecuritySetting(.security)
     set cspProperties("AutheEnabled") = 32 // password by default, 64 for no password
@@ -83,6 +84,8 @@ This method is invoked when a class is compiled.</Description>
     set cspProperties("AutheEnabled") = 64
     set cspProperties("Description") = "An application representing the open socket for /terminal application. Required since 2016.* Cache versions changed WebSocket behavior. PLEASE LEAVE THIS APPLICATION UNAUTHENTICATED, but do not worry: the socket won't accept anyone without the key."
     set cspProperties("DispatchClass") = ""
+    set role = ..GetDBRole(dbdir)
+    set cspProperties("MatchRoles")=":%DB_CACHESYS" _ $case($get(role)'="", 1: ":"_role, :"")
     do ..RegisterWebApplication("/terminalsocket", .cspProperties)
     set status = ##Class(Config.Namespaces).Get("%All")
     if ($$$ISERR(status)) { // no namespace %All
@@ -131,8 +134,9 @@ This method is invoked when a class is 'uncompiled'.</Description>
     write !, "Uninstalling WebTerminal application from " _ $NAMESPACE
     set ns = $NAMESPACE // has to be package home namespace!
     if ($get(^WebTerminal("HomeNamespace")) = "") {
-        write "Terminal home namespace is not defined! Uninstalling will be skipped."
-        quit '$$$OK
+        set msg = "Please, set ^WebTerminal(""HomeNamespace"") global equal to " _
+                  "the namespace WebTerminal was installed to before uninstalling."
+        quit $$$ERROR($$$GeneralError, msg)
     } else {
         set ns = ^WebTerminal("HomeNamespace")
     }
@@ -155,6 +159,26 @@ This method is invoked when a class is 'uncompiled'.</Description>
     kill ^WebTerminal
     w !, "Global ^WebTerminal removed."
     QUIT $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetDBRole">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>directory:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	quit:'$d(directory) ""
+	new $NAMESPACE
+	set $Namespace = "%SYS"
+	#dim db As SYS.Database
+	set db=##class(SYS.Database).%OpenId(directory)
+	if $Isobject(db) {
+		set resource = db.ResourceName
+		set role = resource // I'm assuming that default role exists
+	} else {
+		set role = ""
+	}
+	quit role
 ]]></Implementation>
 </Method>
 </Class>
