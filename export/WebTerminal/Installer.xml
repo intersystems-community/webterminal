@@ -134,7 +134,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
     set ns = $NAMESPACE // has to be package home namespace!
     if ($get(^WebTerminal("HomeNamespace")) = "") {
         set msg = "Terminal home namespace is not defined! Uninstalling will be skipped."
-        set msg = msg _ $C(10,12) _ "Set ^WebTerminal(""HomeNamespace"") global equal to home namespace"
+        set msg = msg _ $Char(13,10) _ "Set ^WebTerminal(""HomeNamespace"") global equal to home namespace"
         quit $$$ERROR($$$GeneralError, msg)
     } else {
         set ns = ^WebTerminal("HomeNamespace")
