@@ -84,7 +84,8 @@ This method is invoked when a class is compiled.</Description>
     set cspProperties("AutheEnabled") = 64
     set cspProperties("Description") = "An application representing the open socket for /terminal application. Required since 2016.* Cache versions changed WebSocket behavior. PLEASE LEAVE THIS APPLICATION UNAUTHENTICATED, but do not worry: the socket won't accept anyone without the key."
     set cspProperties("DispatchClass") = ""
-    set cspProperties("MatchRoles")=":%DB_CACHESYS:" _ ..GetDBRole(dbdir)
+    set role = ..GetDBRole(dbdir)
+    set cspProperties("MatchRoles")=":%DB_CACHESYS" _ $case($get(role)'="", 1: ":"_role, :"")
     do ..RegisterWebApplication("/terminalsocket", .cspProperties)
     set status = ##Class(Config.Namespaces).Get("%All")
     if ($$$ISERR(status)) { // no namespace %All
@@ -133,8 +134,8 @@ This method is invoked when a class is 'uncompiled'.</Description>
     write !, "Uninstalling WebTerminal application from " _ $NAMESPACE
     set ns = $NAMESPACE // has to be package home namespace!
     if ($get(^WebTerminal("HomeNamespace")) = "") {
-        set msg = "Terminal home namespace is not defined! Uninstalling will be skipped."
-        set msg = msg _ $Char(13,10) _ "Set ^WebTerminal(""HomeNamespace"") global equal to home namespace"
+        set msg = "Please, set ^WebTerminal(""HomeNamespace"") global equal to " _
+                  "the namespace WebTerminal was installed to before uninstalling."
         quit $$$ERROR($$$GeneralError, msg)
     } else {
         set ns = ^WebTerminal("HomeNamespace")
