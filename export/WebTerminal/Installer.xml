@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2016-02-19 20:32:07">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2016-02-19 20:34:10">
 <Class name="WebTerminal.Installer">
 <Description>
 Importing this class will install Cache WEB Terminal properly.</Description>
 <Super>%Projection.AbstractProjection</Super>
-<TimeChanged>63967,73903.267858</TimeChanged>
+<TimeChanged>63967,74024.934648</TimeChanged>
 <TimeCreated>63890,71053.144208</TimeCreated>
 <DependsOn>Common,Engine,Router,StaticContent,Autocomplete,Trace</DependsOn>
 
@@ -154,17 +154,17 @@ This method is invoked when a class is 'uncompiled'.</Description>
         continue:(ns = namespace)
         write " ", namespace
         if (##Class(Config.MapPackages).Exists(namespace, "WebTerminal")) {
-        	set status = ##Class(Config.MapPackages).Delete(namespace, "WebTerminal", .Properties)
-        	if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
+        	set st = ##Class(Config.MapPackages).Delete(namespace, "WebTerminal", .Properties)
+        	if ($$$ISERR(st)) { do $SYSTEM.Status.DisplayError(st) }
         }
         if (##Class(Config.MapGlobals).Exists(namespace, "WebTerminal")) {
-	        set status = ##Class(Config.MapGlobals).Delete(namespace, "WebTerminal", .Properties)
-	        if ($$$ISERR(status)) { do $SYSTEM.Status.DisplayError(status) }
+	        set st = ##Class(Config.MapGlobals).Delete(namespace, "WebTerminal", .Properties)
+	        if ($$$ISERR(st)) { do $SYSTEM.Status.DisplayError(st) }
         }
     }
-    w !, "Unmapping complete."
+    write !, "Unmapping complete."
     kill ^WebTerminal
-    w !, "Global ^WebTerminal removed."
+    write !, "Global ^WebTerminal removed."
     quit $$$OK
 ]]></Implementation>
 </Method>
