@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2016-02-19 21:01:31">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2016-02-19 21:03:21">
 <Class name="WebTerminal.Installer">
 <Description>
 Importing this class will install Cache WEB Terminal properly.</Description>
 <Super>%Projection.AbstractProjection</Super>
-<TimeChanged>63967,75686.361916</TimeChanged>
+<TimeChanged>63967,75756.360549</TimeChanged>
 <TimeCreated>63890,71053.144208</TimeCreated>
 <DependsOn>Common,Engine,Router,StaticContent,Autocomplete,Trace</DependsOn>
 
@@ -104,9 +104,9 @@ This method is invoked when a class is compiled.</Description>
     if ($$$ISERR(st)) {
         do $System.Status.DisplayError(st)
     } else {
-	    write !, "Mapping complete."
+	    write !, "WebTerminal package successfully mapped into all namespaces."
     }
-    write !, "WebTerminal package successfully mapped into all namespaces."
+    
     quit st
 ]]></Implementation>
 </Method>
