@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2016-02-19 20:52:51">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2016-02-19 21:01:31">
 <Class name="WebTerminal.Installer">
 <Description>
 Importing this class will install Cache WEB Terminal properly.</Description>
 <Super>%Projection.AbstractProjection</Super>
-<TimeChanged>63967,75157.263303</TimeChanged>
+<TimeChanged>63967,75686.361916</TimeChanged>
 <TimeCreated>63890,71053.144208</TimeCreated>
 <DependsOn>Common,Engine,Router,StaticContent,Autocomplete,Trace</DependsOn>
 
@@ -119,33 +119,27 @@ This method is invoked when a class is 'uncompiled'.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	new $Namespace
+	
 	set ns = $get(^WebTerminal("HomeNamespace"))
     set msg = "Please, set ^WebTerminal(""HomeNamespace"") global equal to " _
-              "the namespace WebTerminal was installed to before uninstalling."
+              "the namespace WebTerminal was installed to before uninstalling." _ $Namespace
     quit:'ns $$$ERROR($$$GeneralError, msg)
-    write !, "Uninstalling WebTerminal application from " _ ns
+    write !, "Uninstalling WebTerminal application from "
     zn "%SYS"
     do ..RemoveWebApplication("/terminal")
     do ..RemoveWebApplication("/terminalsocket")
+    
     write !, "Unmapping %WebTerminal package from all namespaces:"
-    set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
-    set ptr = 0
-    while $LISTNEXT(mapTo, ptr, namespace) {
-        continue:(ns = namespace)
-        write " ", namespace
-        if (##Class(Config.MapPackages).Exists(namespace, "WebTerminal")) {
-        	set st = ##Class(Config.MapPackages).Delete(namespace, "WebTerminal", .Properties)
-        	if ($$$ISERR(st)) { do $SYSTEM.Status.DisplayError(st) }
-        }
-        if (##Class(Config.MapGlobals).Exists(namespace, "WebTerminal")) {
-	        set st = ##Class(Config.MapGlobals).Delete(namespace, "WebTerminal", .Properties)
-	        if ($$$ISERR(st)) { do $SYSTEM.Status.DisplayError(st) }
-        }
+	set st = ..UnMap(ns)
+    if ($$$ISERR(st)) {
+        do $System.Status.DisplayError(st)
+    } else {
+	    write !, "Unmapping complete."
     }
-    write !, "Unmapping complete."
-    kill ^WebTerminal
+    
+    kill:st ^WebTerminal
     write !, "Global ^WebTerminal removed."
-    quit $$$OK
+    quit st
 ]]></Implementation>
 </Method>
 
@@ -196,10 +190,10 @@ This method is invoked when a class is 'uncompiled'.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	new $Namespace
-    set $Namespace = "%SYS"
+    set $Namespace = "%SYS"  
+    set st = $$$OK
 
     set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
-    set st = $$$OK
     do ##Class(Config.Namespaces).Get(fromNS, .InstallNSProps)
     set Properties("Database") = $get(InstallNSProps("Routines"))
     set ptr = 0
@@ -211,6 +205,30 @@ This method is invoked when a class is 'uncompiled'.</Description>
         }
         if ('##Class(Config.MapGlobals).Exists(namespace, "WebTerminal")) {
 	        set st2 = ##Class(Config.MapGlobals).Create(namespace, "WebTerminal", .Properties)
+        }
+        set st = $$$ADDSC(st,$$$ADDSC($get(st1,$$$OK),$get(st2,$$$OK)))
+    }
+    quit st
+]]></Implementation>
+</Method>
+
+<Method name="UnMap">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	new $Namespace
+    set $Namespace = "%SYS"
+    set st = $$$OK
+    
+	set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
+    set ptr = 0
+    while $LISTNEXT(mapTo, ptr, namespace) {
+        write " ", namespace
+        if (##Class(Config.MapPackages).Exists(namespace, "WebTerminal")) {
+        	set st1 = ##Class(Config.MapPackages).Delete(namespace, "WebTerminal", .Properties)
+        }
+        if (##Class(Config.MapGlobals).Exists(namespace, "WebTerminal")) {
+	        set st2 = ##Class(Config.MapGlobals).Delete(namespace, "WebTerminal", .Properties)
         }
         set st = $$$ADDSC(st,$$$ADDSC($get(st1,$$$OK),$get(st2,$$$OK)))
     }
