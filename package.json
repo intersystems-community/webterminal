@@ -3,7 +3,7 @@
   "title": "Cache WEB Terminal",
   "description": "Web-based terminal emulator for Caché administering.",
   "author": "ZitRo",
-  "version": "3.2.5",
+  "version": "3.2.7",
   "releaseNumber": 22,
   "repository": {
     "type": "git",

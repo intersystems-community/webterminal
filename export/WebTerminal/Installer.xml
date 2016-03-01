@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2016-02-19 21:03:21">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.2 (Build 590U)" ts="2016-03-01 12:49:46">
 <Class name="WebTerminal.Installer">
 <Description>
 Importing this class will install Cache WEB Terminal properly.</Description>
 <Super>%Projection.AbstractProjection</Super>
-<TimeChanged>63967,75756.360549</TimeChanged>
+<TimeChanged>63978,45153.996987</TimeChanged>
 <TimeCreated>63890,71053.144208</TimeCreated>
 <DependsOn>Common,Engine,Router,StaticContent,Autocomplete,Trace</DependsOn>
 
@@ -92,12 +92,7 @@ This method is invoked when a class is compiled.</Description>
     set st = ..RegisterWebApplication("/terminalsocket", .cspProperties)
     quit:$$$ISERR(st) st
     
-    set st = ..CreateAllNamespace()
-    if ($$$ISERR(st)) {
-        do $System.Status.DisplayError(st)
-    } else {
-        write !, "%All namespace is created."
-    }
+    do ..CreateAllNamespace()
     
     write !, "Mapping %WebTerminal package into all namespaces:"
     set st = ..Map(ns)
@@ -122,8 +117,8 @@ This method is invoked when a class is 'uncompiled'.</Description>
 	
 	set ns = $get(^WebTerminal("HomeNamespace"))
     set msg = "Please, set ^WebTerminal(""HomeNamespace"") global equal to " _
-              "the namespace WebTerminal was installed to before uninstalling." _ $Namespace
-    quit:'ns $$$ERROR($$$GeneralError, msg)
+              "the namespace WebTerminal was installed to before uninstalling. " _ ns
+    quit:(ns="") $$$ERROR($$$GeneralError, msg)
     write !, "Uninstalling WebTerminal application from "
     zn "%SYS"
     do ..RemoveWebApplication("/terminal")
@@ -179,6 +174,11 @@ This method is invoked when a class is 'uncompiled'.</Description>
 		set Properties("SysRoutines") = "CACHESYS"
 		set Properties("TempGlobals") = "CACHETEMP"
 		set st = ##Class(Config.Namespaces).Create(ns, .Properties)
+		if ($$$ISERR(st)) {
+        	do $System.Status.DisplayError(st)
+    	} else {
+        	write !, "%All namespace is created."
+    	}
 	}
 	return st
 ]]></Implementation>
@@ -190,7 +190,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	new $Namespace
-    set $Namespace = "%SYS"  
+    set $Namespace = "%SYS"
     set st = $$$OK
 
     set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
@@ -214,6 +214,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
 
 <Method name="UnMap">
 <ClassMethod>1</ClassMethod>
+<FormalSpec>fromNS:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	new $Namespace
@@ -223,6 +224,7 @@ This method is invoked when a class is 'uncompiled'.</Description>
 	set mapTo = $LISTBUILD("%All", "SAMPLES", "DOCBOOK")
     set ptr = 0
     while $LISTNEXT(mapTo, ptr, namespace) {
+	    continue:(fromNS = namespace)
         write " ", namespace
         if (##Class(Config.MapPackages).Exists(namespace, "WebTerminal")) {
         	set st1 = ##Class(Config.MapPackages).Delete(namespace, "WebTerminal", .Properties)
