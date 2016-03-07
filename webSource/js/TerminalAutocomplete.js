@@ -60,7 +60,7 @@ TerminalAutocomplete.prototype.TYPES = {
         split: "."
     },
     subclass: {
-        regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)\)\.(%?[a-zA-Z]*[a-zA-Z0-9]*)$/,
+        regExp: /##class\((%?[a-zA-Z]*[a-zA-Z0-9\.]*)\)\.((?:%|\$)?[a-zA-Z]*[a-zA-Z0-9]*)$/,
         priority: 2
     },
     globals: {

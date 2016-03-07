@@ -81,11 +81,17 @@ system classes generates one time and forever.
         if (first = "") set first = ","
 
         set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
+        set ccdefs = ##class(%Dictionary.CompiledClass).%OpenId(className)
 
         set countMethods = cdefs.Methods.Count()
         set countParameters = cdefs.Parameters.Count()
         set countProperties = cdefs.Properties.Count()
-        set total = countMethods + countParameters + countProperties
+        try { // SystemMethods does not exists for Caché versions before 2016.*
+        	set countSysMethods = ccdefs.SystemMethods.Count()
+        } catch (e) {
+	     	set countSysMethods = 0
+        }
+        set total = countMethods + countParameters + countProperties + countSysMethods
         set current = 0
 
         for i=1:1:countMethods {
@@ -103,6 +109,12 @@ system classes generates one time and forever.
         for i=1:1:countParameters {
             set current = current + 1
             set ac = ac _ """" _ cdefs.Parameters.GetAt(i).Name _ """:0"
+            if (current'=total) set ac = ac _ ","
+        }
+
+        for i=1:1:countSysMethods {
+            set current = current + 1
+            set ac = ac _ """$" _ ccdefs.SystemMethods.GetAt(i).Name _ """:0"
             if (current'=total) set ac = ac _ ","
         }
 
