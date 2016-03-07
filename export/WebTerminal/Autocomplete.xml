@@ -86,10 +86,11 @@ system classes generates one time and forever.
         set countMethods = cdefs.Methods.Count()
         set countParameters = cdefs.Parameters.Count()
         set countProperties = cdefs.Properties.Count()
-        try { // SystemMethods does not exists for Caché versions before 2016.*
-        	set countSysMethods = ccdefs.SystemMethods.Count()
-        } catch (e) {
-	     	set countSysMethods = 0
+        if ##class(%Dictionary.PropertyDefinition).IDKEYExists("%Dictionary.ClassDefinition","SystemMethods") { 
+            set countSysMethods = ccdefs.SystemMethods.Count()
+        } else {
+            // SystemMethods does not exist for Caché versions before 2016.*
+            set countSysMethods = 0
         }
         set total = countMethods + countParameters + countProperties + countSysMethods
         set current = 0
