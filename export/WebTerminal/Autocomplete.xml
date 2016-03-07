@@ -89,7 +89,7 @@ system classes generates one time and forever.
         if ##class(%Dictionary.PropertyDefinition).IDKEYExists("%Dictionary.ClassDefinition","SystemMethods") { 
             set countSysMethods = ccdefs.SystemMethods.Count()
         } else {
-            // SystemMethods does not exists for Caché versions before 2016.*
+            // SystemMethods does not exist for Caché versions before 2016.*
             set countSysMethods = 0
         }
         set total = countMethods + countParameters + countProperties + countSysMethods
