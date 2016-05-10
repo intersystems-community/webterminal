@@ -1,44 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.3 (Build 215U)" ts="2015-12-27 13:48:44">
-<Class name="WebTerminal.Engine">
-<Description>
-Cache WEB Terminal <!-- @echo package.printableName --> v<!-- @echo package.version --> core.
-This class is the server-side core of the terminal application.</Description>
-<Super>%CSP.WebSocket,Trace,Autocomplete</Super>
-<TimeChanged>63913,49707.26915</TimeChanged>
-<TimeCreated>63891,56786.028532</TimeCreated>
-<DependsOn>Common</DependsOn>
+/// Cache WEB Terminal version 3.3.1 core.
+/// This class is the server-side core of the terminal application.
+Class WebTerminal.Engine Extends (%CSP.WebSocket, Trace, Autocomplete) [ DependsOn = Common ]
+{
 
-<Property name="SharedConnection">
-<Description><![CDATA[
-This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
-connection or over a pool of shared connections.  It may be set to one of the following:
-<br><ul>
-<li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
-<li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
-</ul>]]></Description>
-<Type>%Boolean</Type>
-<InitialExpression>0</InitialExpression>
-</Property>
+/// This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
+/// connection or over a pool of shared connections.  It may be set to one of the following:
+/// <br><ul>
+/// <li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
+/// <li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
+/// </ul>
+Property SharedConnection As %Boolean [ InitialExpression = 0 ];
 
-<Property name="CurrentNamespace">
-<Type>%String</Type>
-</Property>
+Property CurrentNamespace As %String;
 
-<Property name="InitialZName">
-<Type>%String</Type>
-</Property>
+Property InitialZName As %String;
 
-<Property name="InitialZNamespace">
-<Type>%String</Type>
-</Property>
+Property InitialZNamespace As %String;
 
-<Method name="redirects">
-<Description>
-Public point entries, using when redirecting i/o</Description>
-<Private>1</Private>
-<ProcedureBlock>0</ProcedureBlock>
-<Implementation><![CDATA[
+/// Public point entries, using when redirecting i/o
+Method redirects() [ Private, ProcedureBlock = 0 ]
+{
 /// Mnemonics
 APC d APC^%X364 q
 BEL d BEL^%X364 q
@@ -248,53 +229,38 @@ rchr(timeout = 86400, data)
     set data = data * 1 // $ASCII($EXTRACT(data,1,1))
     do ##class(%Device).ReDirectIO($$$YES)
     quit data
-]]></Implementation>
-</Method>
+}
 
-<Method name="OnPreServer">
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+Method OnPreServer() As %Status
+{
     set ..InitialZName = $zname
     set ..InitialZNamespace = $znspace
     quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="OnPostServer">
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+Method OnPostServer() As %Status
+{
     kill ^CacheTemp.WebTerminal.Watching
     quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="WriteToFile">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>filename:%String,data:%String</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+ClassMethod WriteToFile(filename As %String, data As %String) As %Status
+{
     set file=##class(%File).%New(filename)
     do file.Open("WSN")
     do file.WriteLine(data)
     do file.Close()
-]]></Implementation>
-</Method>
+}
 
-<Method name="SendData">
-<Description>
-Function sends data derectly to server with specified action</Description>
-<FormalSpec>query:%String="",action:%String=""</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Function sends data derectly to server with specified action
+Method SendData(query As %String = "", action As %String = "") As %Status
+{
     if (action = "") { set action = ..#ClientOutputMessage }
     do ..Write(action _ query)
-]]></Implementation>
-</Method>
+}
 
-<Method name="ExecuteSQL">
-<FormalSpec>query:%String=""</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+Method ExecuteSQL(query As %String = "") As %Status
+{
     do ..StartClearIO()
     do ##class(%Device).ReDirectIO($$$YES)
 
@@ -311,59 +277,45 @@ Function sends data derectly to server with specified action</Description>
     do ..EndClearIO()
 
     quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="ClientAlertNamespace">
-<Description>
-Sends to client new namespace if last was changed</Description>
-<Implementation><![CDATA[
+/// Sends to client new namespace if last was changed
+Method ClientAlertNamespace()
+{
     if (..CurrentNamespace '= $Znspace) { // change client namespace
         set ..CurrentNamespace = $Znspace
         do ..SendData(..CurrentNamespace,..#ClientChangeNamespace)
     }
-]]></Implementation>
-</Method>
+}
 
-<Method name="StartClearIO">
-<Description>
-Starts clear I/O mode</Description>
-<Implementation><![CDATA[
+/// Starts clear I/O mode
+Method StartClearIO()
+{
     write *-3
     do ..Write(..#ClientStartExec)
     write *-3
     do ##class(%Device).ReDirectIO($$$YES)
-]]></Implementation>
-</Method>
+}
 
-<Method name="EndClearIO">
-<Description>
-Ends clear I/O mode</Description>
-<Implementation><![CDATA[
+/// Ends clear I/O mode
+Method EndClearIO()
+{
     //write *-3
     do ##class(%Device).ReDirectIO($$$NO)
     do ..SendData("",..#ClientEndExec)
     write *-3
-]]></Implementation>
-</Method>
+}
 
-<Method name="ParseError">
-<Description>
-This method transforms error </Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>string:%String</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
+/// This method transforms error 
+ClassMethod ParseError(string As %String) As %String
+{
     set string = $REPLACE($REPLACE(string, ">", "<"), ".Engine.", "<")
     quit "ERROR: " _ $PIECE(string, "<", 2) _
         $EXTRACT($PIECE(string, "<", 4), 2, *)
-]]></Implementation>
-</Method>
+}
 
-<Method name="Update">
-<FormalSpec>version</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+Method Update(version) As %Status
+{
     set httprequest = ##class(%Net.HttpRequest).%New()
     set httprequest.Server = "intersystems-ru.github.io"
     do ..SendData("34", ..#ClientOutputLocalized)
@@ -407,12 +359,10 @@ This method transforms error </Description>
         }
     }
     quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="CheckUpdate">
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+Method CheckUpdate() As %Status
+{
     set httprequest = ##class(%Net.HttpRequest).%New()
     set httprequest.Server = "intersystems-ru.github.io"
     do httprequest.Get("/webterminal/latestVersion")
@@ -425,15 +375,11 @@ This method transforms error </Description>
         do ..SendData(httprequest.HttpResponse.Data.Read(), ..#ClientPromptUpdate)
     }
     quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="ExecuteCommand">
-<Description>
-The heart of terminal application</Description>
-<FormalSpec>query:%String=""</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// The heart of terminal application
+Method ExecuteCommand(query As %String = "") As %Status
+{
     if (query = "") quit $$$OK
 
     #dim exception as %Exception.AbstractException
@@ -455,15 +401,12 @@ The heart of terminal application</Description>
     do ..ClientAlertNamespace() // check namespace change
 
     quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="RequireAuthorization">
-<Description>
-This method holds process and expects only one package from
-the client - it includes authorization key.</Description>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// This method holds process and expects only one package from
+/// the client - it includes authorization key.
+Method RequireAuthorization() As %Status
+{
     set authKey = ..Read(, .status, ..#AuthorizationTimeout) // wait for package
     set ok = $$$NOTOK
 
@@ -515,14 +458,11 @@ the client - it includes authorization key.</Description>
     }
 
     quit ok
-]]></Implementation>
-</Method>
+}
 
-<Method name="ClientLoop">
-<Description>
-Main method for every new client.</Description>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Main method for every new client.
+Method ClientLoop() As %Status
+{
 
     kill // clear junk vars
 
@@ -632,14 +572,12 @@ Main method for every new client.</Description>
         }
 
     }
-]]></Implementation>
-</Method>
+}
 
-<Method name="SendLoginInfo">
-<Description>
-This method sends basic login info to the user. Use this method to set client variables
-during the WebTerminal initialization.</Description>
-<Implementation><![CDATA[
+/// This method sends basic login info to the user. Use this method to set client variables
+/// during the WebTerminal initialization.
+Method SendLoginInfo()
+{
     set obj = ##class(%ZEN.proxyObject).%New()
     set obj.username = $USERNAME
     set obj.name = $get(^WebTerminal("Name"))
@@ -654,14 +592,11 @@ during the WebTerminal initialization.</Description>
     set data = data _ "}"
     
     do ..SendData(data, ..#ClientLoginInfo)
-]]></Implementation>
-</Method>
+}
 
-<Method name="Server">
-<Description>
-New connection established: require auth key, login and start client loop.</Description>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// New connection established: require auth key, login and start client loop.
+Method Server() As %Status
+{
 
     if ($$$ISOK(..RequireAuthorization())) {
 
@@ -682,7 +617,6 @@ New connection established: require auth key, login and start client loop.</Desc
     }
 
     quit $$$OK
-]]></Implementation>
-</Method>
-</Class>
-</Export>
+}
+
+}
