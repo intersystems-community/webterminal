@@ -63,7 +63,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set cspProperties("IsNameSpaceDefault") = $$$NO
     set cspProperties("DispatchClass") = ..#DispatchClass
     set st = ..RegisterWebApplication("/terminal", .cspProperties)
-    quit:$$$ISERR(st) st
+    return:$$$ISERR(st) st
     
     set cspProperties("AutheEnabled") = $$$AutheUnauthenticated
     set cspProperties("Description") = "An application representing the open socket for /terminal application. Required since 2016.* Cache versions changed WebSocket behavior. PLEASE LEAVE THIS APPLICATION UNAUTHENTICATED, but do not worry: the socket won't accept anyone without the key."
@@ -71,7 +71,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set role = ..GetDBRole(dbdir)
     set cspProperties("MatchRoles")=":%DB_CACHESYS" _ $case($get(role)'="", 1: ":"_role, :"")
     set st = ..RegisterWebApplication("/terminalsocket", .cspProperties)
-    quit:$$$ISERR(st) st
+    return:$$$ISERR(st) st
     
     do ..CreateAllNamespace()
     
@@ -83,7 +83,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
 	    write !, "WebTerminal package successfully mapped into all namespaces."
     }
     
-    quit st
+    return st
 }
 
 /// This method is invoked when a class is 'uncompiled'.
@@ -94,8 +94,10 @@ ClassMethod RemoveProjection(cls As %String, ByRef params, recompile As %Boolean
 	set ns = $get(^WebTerminal("HomeNamespace"))
     set msg = "Please, set ^WebTerminal(""HomeNamespace"") global equal to " _
               "the namespace WebTerminal was installed to before uninstalling. " _ ns
-    quit:(ns="") $$$ERROR($$$GeneralError, msg)
-    write !, "Uninstalling WebTerminal application from "
+    return:(ns="") $$$ERROR($$$GeneralError, msg)
+    write:(recompile) !, "Recompiling WebTerminal..."
+    return:(recompile) $$$OK
+    write !, "Uninstalling WebTerminal application from ", ns
     zn "%SYS"
     do ..RemoveWebApplication("/terminal")
     do ..RemoveWebApplication("/terminalsocket")
@@ -110,12 +112,12 @@ ClassMethod RemoveProjection(cls As %String, ByRef params, recompile As %Boolean
     
     kill:st ^WebTerminal
     write !, "Global ^WebTerminal removed."
-    quit st
+    return st
 }
 
 ClassMethod GetDBRole(directory As %String) As %String
 {
-	quit:'$d(directory) ""
+	return:'$d(directory) ""
 	new $Namespace
 	set $Namespace = "%SYS"
 	#dim db As SYS.Database
@@ -126,7 +128,7 @@ ClassMethod GetDBRole(directory As %String) As %String
 	} else {
 		set role = ""
 	}
-	quit role
+	return role
 }
 
 ClassMethod CreateAllNamespace() As %Status
@@ -173,7 +175,7 @@ ClassMethod Map(fromNS = "") As %Status
         }
         set st = $$$ADDSC(st,$$$ADDSC($get(st1,$$$OK),$get(st2,$$$OK)))
     }
-    quit st
+    return st
 }
 
 ClassMethod UnMap(fromNS As %String) As %Status
@@ -195,7 +197,7 @@ ClassMethod UnMap(fromNS As %String) As %Status
         }
         set st = $$$ADDSC(st,$$$ADDSC($get(st1,$$$OK),$get(st2,$$$OK)))
     }
-    quit st
+    return st
 }
 
 }

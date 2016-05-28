@@ -48,12 +48,12 @@ var Terminal = function (setting) {
     /**
      * @type {string}
      */
-    this.VERSION = "(dev)"/*build.replace:"pkg.version"*/;
+    this.VERSION = "/* @echo package.version */";
 
     /**
      * @type {number}
      */
-    this.RELEASE_NUMBER = 0/*build.replace:pkg.releaseNumber*/;
+    this.RELEASE_NUMBER = +"/* @echo package.releaseNumber */";
 
     /**
      * @type {Array} of { function: function () {}, this: Object, args: Array }

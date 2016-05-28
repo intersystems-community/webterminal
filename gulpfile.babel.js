@@ -18,28 +18,18 @@ let dir = __dirname,
     context = {
         context: {
             package: pkg,
-            compileAfter: "" // is filled during "pre-cls" task.
+            compileAfter: "", // is set during "pre-cls" task.
+            themes: "" // is set after css move task
         }
     },
-    themes = [],
-    extra = {
-        themes: ""
-    };
+    themes = [];
 
 function themesReady () { // triggered when build is done
     themes = fs.readdirSync(`${ dest }/client/css/terminal-theme`);
-    extra.themes = themes.map(function (n) {
+    context.context.themes = themes.map(function (n) {
         return ', "' + n.replace(/\..*$/, "") + '": "css/terminal-theme/' + n + '"';
     }).join("");
 }
-
-var specialReplace = function () {
-    return replace(/[^\s]*\/\*build\.replace:(.*)\*\//g, function (part, match) {
-        var s = match.toString();
-        return s.replace(/pkg\.([a-zA-Z]+)/g, function (p,a) { return pkg[a]; })
-            .replace(/extra\.([a-zA-Z]+)/g, function (p,a) { return extra[a]; });
-    });
-};
 
 gulp.task("clean", function () {
     return gulp.src(dest, { read: false })
@@ -58,7 +48,7 @@ gulp.task("html", ["clean"], function () {
 gulp.task("js", ["clean", "css"], function () {
     return gulp.src(`${ source }/client/js/**/*.js`)
         .pipe(concat("terminal.js"))
-        .pipe(specialReplace())
+        .pipe(preprocess(context))
         .pipe(uglify({
             output: {
                 ascii_only: true,
@@ -81,6 +71,7 @@ gulp.task("copy-css-basic", ["clean"], function () {
 
 gulp.task("copy-css-themes", ["clean"], function () {
     return gulp.src(`${ source }/client/css/terminal-theme/*.css`)
+        .pipe(preprocess(context))
         .pipe(cssNano())
         .pipe(gulp.dest(`${ dest }/client/css/terminal-theme/`));
 });
@@ -115,54 +106,5 @@ gulp.task("readme", ["clean"], function () {
     return gulp.src(`${ dir }/readme.md`)
         .pipe(gulp.dest(`${ dest }`));
 });
-
-// gulp.task("export", [ "copy-html", "copy-js", "prepare-css", "copy-readme" ], function () {
-//     var files = [];
-//     return gulp.src("export/WebTerminal/**/*.xml")
-//         .pipe(foreach(function (stream, file) {
-//             files.push(path.relative(path.join(path.dirname(__filename), "export"), file.path)
-//                 .replace(/[\\\/]/g, ".").replace(/\.xml$/, ""));
-//             return stream
-//                 .pipe(replace(/^<\?xml[^]*?<Class/i, "<Class"))
-//                 .pipe(replace(/<\/Export>\s*$/i, ""));
-//         }))
-//         .pipe(concat("CacheWebTerminal-v" + pkg["version"] + ".xml"))
-//         .pipe(specialReplace())
-//         .pipe(replace(
-//             /\{\{replace:css}}/,
-//             function () {
-//                 return fs.readFileSync("./" + buildTo + "/web/css/terminal.css", "utf-8");
-//             }
-//         ))
-//         .pipe(replace(
-//             /\{\{replace:js}}/,
-//             function () {
-//                 return fs.readFileSync("./" + buildTo + "/web/js/terminal.js", "utf-8");
-//             }
-//         ))
-//         .pipe(replace(
-//             /\{\{replace:html}}/,
-//             function () { return fs.readFileSync("./" + buildTo + "/web/index.html", "utf-8"); }
-//         ))
-//         .pipe(replace(
-//             /\{\{replace:themes}}([^]*)\{\{replace:end}}/g,
-//             function (p, content) {
-//                 return themes.map(function (n) {
-//                     return content.replace("{{replace:themeName}}", n.replace(/\..*$/, ""))
-//                         .replace("{{replace:themeData}}", function () {
-//                             return fs.readFileSync(
-//                                 "./" + buildTo + "/web/css/terminal-theme/" + n
-//                             );
-//                         });
-//                 }).join("\n\n");
-//             }
-//         ))
-//         .pipe(replace(
-//             /^/,
-//             '<?xml version="1.0" encoding="UTF-8"?>\r\n<Export generator="Cache" version="25">\r\n'
-//         ))
-//         .pipe(replace(/$/, "</Export>"))
-//         .pipe(gulp.dest("./" + buildTo));
-// });
 
 gulp.task("default", ["cls"]);

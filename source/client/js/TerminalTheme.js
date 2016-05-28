@@ -18,7 +18,7 @@ var TerminalTheme = function (TERMINAL) {
     this.AVAILABLE_THEMES = {
         "": "", // also default - keep
         "default": "" // , "cache": "css/terminal-theme-cache.css"
-        /**//*build.replace:extra.themes*/
+        /* @echo themes */
     };
 
     /**
