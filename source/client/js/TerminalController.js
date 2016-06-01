@@ -545,7 +545,7 @@ TerminalController.prototype.clientAction = {
             comment = parts[2] || "";
 
         if (!version || !releaseNumber) {
-            console.error("Unable to parse version data: ", data);
+            console.error("Unable to parse VERSION data: ", data);
             return;
         }
 

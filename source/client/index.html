@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8"/>
-    <title>Caché WEB Terminal</title>
+    <title>Cach&eacute; WEB Terminal</title>
     <meta name="author" content="ZitRo"/>
     <meta name="description" content="Web-based terminal emulator for Caché administering."/>
     <meta name="keywords" content="Cache,Caché,terminal,web,remote,control,Caché WebTerminal"/>
@@ -11,40 +11,19 @@
     <meta name="HandheldFriendly" content="true"/>
     <meta name="mobile-web-app-capable" content="yes"/>
     <meta name="apple-mobile-web-app-capable" content="yes"/>
-    <link id="favicon" rel="shortcut icon" href="#"/>
-    <!-- build:css -->
-    <link rel="stylesheet" href="css/base.css"/>
-    <link rel="stylesheet" href="css/terminal.css"/>
-    <link rel="stylesheet" href="css/terminal-extra.css"/>
-    <link rel="stylesheet" href="css/terminal-graphic.css"/>
-    <!-- endbuild -->
-    <!-- build:js -->
-    <script type="text/javascript" src="js/Globals.js"></script>
-    <script type="text/javascript" src="js/CacheWebTerminalServer.js"></script>
-    <script type="text/javascript" src="js/CacheTracing.js"></script>
-    <script type="text/javascript" src="js/CacheAutocompleteController.js"></script>
-    <script type="text/javascript" src="js/TerminalInitialDictionary.js"></script>
-    <script type="text/javascript" src="js/Terminal.js"></script>
-    <script type="text/javascript" src="js/TerminalController.js"></script>
-    <script type="text/javascript" src="js/TerminalAutocomplete.js"></script>
-    <script type="text/javascript" src="js/TerminalElements.js"></script>
-    <script type="text/javascript" src="js/TerminalFavorites.js"></script>
-    <script type="text/javascript" src="js/TerminalDefinitions.js"></script>
-    <script type="text/javascript" src="js/TerminalInput.js"></script>
-    <script type="text/javascript" src="js/TerminalInputHistory.js"></script>
-    <script type="text/javascript" src="js/TerminalInputCaret.js"></script>
-    <script type="text/javascript" src="js/TerminalHint.js"></script>
-    <script type="text/javascript" src="js/TerminalLocalization.js"></script>
-    <script type="text/javascript" src="js/TerminalParser.js"></script>
-    <script type="text/javascript" src="js/TerminalOutput.js"></script>
-    <script type="text/javascript" src="js/TerminalOutputLine.js"></script>
-    <script type="text/javascript" src="js/TerminalStorage.js"></script>
-    <script type="text/javascript" src="js/TerminalTheme.js"></script>
-    <script type="text/javascript" src="js/TerminalIndicator.js"></script>
-    <script type="text/javascript" src="js/TerminalSettings.js"></script>
-    <!-- endbuild -->
+    <link rel="stylesheet" href="css/index.css"/>
+    <script type="text/javascript" src="js/index.js"></script>
 </head>
 <body onload="this.terminal = createTerminal(); document.body.removeAttribute('onload');">
+    <script>
+        function createTerminal (authKey, namespace) {
 
+            initTerminal({
+                authKey: authKey || null,
+                defaultNamespace: namespace
+            });
+
+        }
+    </script>
 </body>
 </html>

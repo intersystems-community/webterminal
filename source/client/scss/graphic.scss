@@ -1,0 +1,124 @@
+@import "mixins";
+
+.term-gri1 { /* bright */
+    font-weight: 900;
+}
+
+.term-gri2 { /* dim */
+    opacity: 0.8;
+}
+
+.term-gri3 {
+    font-style: italic;
+}
+
+.term-gri4 {
+    text-decoration: underline;
+}
+
+.term-gri5 {
+    animation: blink infinite 1s;
+    -o-animation: blink infinite 1s;
+    -ms-animation: blink infinite 1s;
+    -moz-animation: blink infinite 1s;
+    -webkit-animation: blink infinite 1s;
+}
+
+.term-gri7 {
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
+}
+
+.term-gri8 {
+    opacity: 0;
+}
+
+.term-gri30 {
+    color: #000000;
+}
+
+.term-gri31 {
+    color: #ff0000;
+}
+
+.term-gri32 {
+    color: #008000;
+}
+
+.term-gri33 {
+    color: yellow;
+}
+
+.term-gri34 {
+    color: #0000ff;
+}
+
+.term-gri35 {
+    color: magenta;
+}
+
+.term-gri36 {
+    color: cyan;
+}
+
+.term-gri37 {
+    color: white;
+}
+
+.term-gri40 {
+    background-color: #000000;
+}
+
+.term-gri41 {
+    background-color: #ff0000;
+}
+
+.term-gri42 {
+    background-color: #008000;
+}
+
+.term-gri43 {
+    background-color: yellow;
+}
+
+.term-gri44 {
+    background-color: #0000ff;
+}
+
+.term-gri45 {
+    background-color: magenta;
+}
+
+.term-gri46 {
+    background-color: cyan;
+}
+
+.term-gri47 {
+    background-color: white;
+}
+
+@include keyframes(blink) {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@include keyframes(pulsate) {
+    0% {
+        transform: scale(.1);
+        -o-transform: scale(.1);
+        -ms-transform: scale(.1);
+        -moz-transform: scale(.1);
+        -webkit-transform: scale(.1);
+        opacity: 0.0;
+    }
+    50% { opacity:1; }
+    100% {
+        transform: scale(.5);
+        -o-transform: scale(.5);
+        -ms-transform: scale(.5);
+        -moz-transform: scale(.5);
+        -webkit-transform: scale(.5);
+        opacity: 0;
+    }
+}

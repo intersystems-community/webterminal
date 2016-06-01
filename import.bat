@@ -10,7 +10,7 @@ set CACHE_DIR=C:\Program Files\InterSystems\Ensemble
 :: NAMESPACE TO IMPORT PACKAGE TO
 set NAMESPACE=ENSDEMO
 :: Other variables
-set BUILD_DIR=build\cache
+set BUILD_DIR=build\cls
 :: Export
 set XML_EXPORT_DIR=build
 set PACKAGE_NAME=WebTerminal

@@ -1,0 +1,101 @@
+@import "graphic";
+
+html, body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    background: black;
+    color: white;
+}
+
+.terminal {
+
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: FreeMono, monospace;
+    font-size: 16px;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
+
+    > .output {
+
+        position: absolute;
+        white-space: pre;
+        word-wrap: break-word;
+        word-break: break-all;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        height: 100%;
+        z-index: 0;
+
+        > .input {
+
+            position: absolute;
+            width: 100%;
+            border: 0;
+            text-decoration: none;
+            outline: none;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            font-family: inherit;
+            font-size: inherit;
+            z-index: 3;
+            background: transparent;
+            color: transparent;
+
+        }
+
+        .line {
+            position: absolute;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .caret {
+
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 2;
+            @include animation(blink infinite 1s);
+
+            &:after {
+                position: relative;
+                top: -1px;
+                content: "_";
+            }
+
+        }
+
+        .hint { // text hint (autocomplete)
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: inherit;
+            opacity: 0.6;
+            text-shadow: 1px 1px 4px black;
+            z-index: 10;
+        }
+
+    }
+
+    > .indicator {
+        position: fixed;
+        right: 13px;
+        top: 7px;
+        border: 3px solid #fff;
+        border-radius: 30px;
+        height: 30px;
+        margin: -15px 0 0 -15px;
+        opacity: 0;
+        width: 30px;
+        @include animation(pulsate infinite 1s);
+    }
+
+}
