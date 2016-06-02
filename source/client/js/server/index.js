@@ -35,7 +35,7 @@ function connect () {
     ws.addEventListener(`close`, onClose);
     ws.addEventListener(`error`, onError);
     ws.addEventListener(`message`, (m) => { try {
-        onMessage(JSON.parse(m.data))
+        onMessage(JSON.parse(m.data));
     } catch (e) { printLine(localize(`serParseErr`, m.data)); } });
 }
 

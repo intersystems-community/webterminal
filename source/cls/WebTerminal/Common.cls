@@ -24,7 +24,7 @@ Class WebTerminal.Common
 /// t - indent with tab character<br/>
 /// u - output pre-converted to UTF-8 instead of in native internal format<br/>
 /// w - Windows-style cr/lf newline<br/>
-ClassMethod GetJSONString(obj As %ZEN.proxyObject, pLevel As %Integer = 0, pFormat As %String = "") As %String
+ClassMethod GetJSONString(obj As %ZEN.proxyObject, pLevel As %Integer = 0, pFormat As %String = "ous") As %String
 {
 	#; JSON utility macros that use the JSON translation table instead of the JS translation table
 	#define ZENJSNUM(%num)					$fnumber(%num,"LON")
