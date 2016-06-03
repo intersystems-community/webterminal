@@ -1,5 +1,5 @@
-import { SYMBOL_WIDTH, SYMBOL_HEIGHT, getCursorX, getCursorY } from "../output";
-import { output } from "../elements";
+import { SYMBOL_WIDTH, SYMBOL_HEIGHT, TOP_LINE_INDEX, getCursorX, getCursorY } from "../output";
+import { output as outputElement } from "../elements";
 
 const CLASS_NAME = "caret";
 
@@ -11,11 +11,13 @@ element.className = CLASS_NAME;
 
 export function update () {
     
-    element.style.left = `${ (getCursorX() - 1) * SYMBOL_WIDTH }px`;
-    element.style.top = `${ (getCursorY() - 1) * SYMBOL_HEIGHT }px`;
+    element.style.left =
+        `${ (getCursorX() - 1) * SYMBOL_WIDTH }px`;
+    element.style.top =
+        `${ TOP_LINE_INDEX * SYMBOL_HEIGHT + (getCursorY() - 1) * SYMBOL_HEIGHT }px`;
     
     if (!element.parentNode)
-        output.appendChild(element);
+        outputElement.appendChild(element);
     
 }
 

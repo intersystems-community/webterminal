@@ -19,6 +19,7 @@ html, body {
     overflow: hidden;
     font-family: FreeMono, monospace;
     font-size: 16px;
+    background: inherit;
     -webkit-font-smoothing: subpixel-antialiased;
     -moz-osx-font-smoothing: auto;
 
@@ -30,6 +31,7 @@ html, body {
         word-break: break-all;
         overflow-x: hidden;
         overflow-y: scroll;
+        background: inherit;
         width: 100%;
         height: 100%;
         z-index: 0;
@@ -53,9 +55,16 @@ html, body {
         }
 
         .line {
+
             position: absolute;
             overflow: hidden;
             z-index: 1;
+            background: inherit;
+
+            .g {
+                background: inherit;
+            }
+
         }
 
         .caret {

@@ -1,12 +1,15 @@
 import { Line, LINE_CLASS_NAME } from "./Line";
 import * as elements from "../elements";
 import { onWindowLoad } from "../lib";
-import { COLOR_8BIT } from "./const";
+import { ESC_CHARS_MASK, applyEscapeSequence } from "./escStateMachine";
+import esc from "./esc";
 
 export let SYMBOL_HEIGHT = 12; // in px
 export let SYMBOL_WIDTH = 8; // in px
 export let WIDTH = 0, // in symbols
            HEIGHT = 0;
+export let LINE_WRAP_ENABLED = true; // todo
+export let SCROLLING_ENABLED = false;
 
 /**
  * Regular expression that must match any control symbols such as "\r" or "\n" and escape
@@ -14,16 +17,6 @@ export let WIDTH = 0, // in symbols
  * @type {RegExp}
  */
 let CONTROL_SEQUENCE_PATTERN = /[\x00-\x1A]|\x1b\[?[^@-~]*[@-~]/g;
-
-/**
- * When printing a lot of text, terminal may freeze and become unresponsive. To prevent this,
- * writing a big string, or a frequent write will trigger a little delay in printing to draw
- * contents on the screen.
- * @type {number}
- */
-/*let PRINT_INTERRUPT_TIMEOUT = 25,
-    printScore = 0,
-    interruptTimeout = 0;*/
 
 /**
  * Output stack. Each output operation will be written to stack first.
@@ -36,13 +29,13 @@ let stack = "";
  * will define Y = 1 caret position.
  * @type {number}
  */
-let TOP_LINE_INDEX = 0;
+export let TOP_LINE_INDEX = 0;
 
 /**
  * Object that includes current graphic rendition flags as a key.
  * @type {{number: boolean}}
  */
-let CURRENT_GRAPHIC_RENDITION = {};
+let graphicProperties = {};
 
 /**
  * Array of Line instances currently on the screen.
@@ -104,7 +97,7 @@ let scrolling = {
  * Holds the tab positions.
  * @type {Object.<number,boolean>}
  */
-let tabs = {};
+let tabs = [];
 
 /**
  * When enabled, caret position will be limited in [1, WIDTH] by X and [1, HEIGHT] by Y axis.
@@ -131,56 +124,39 @@ export function printLine (text) {
     print(`${ text }\r\n`);
 }
 
-export function getGraphicRendition () {
-    return CURRENT_GRAPHIC_RENDITION; // @todo
+export function getGraphicProperties () {
+    return graphicProperties;
+}
+
+export function setTabAt (x) {
+    for (let i = 0; i < tabs.length; i++) {
+        if (x < tabs[i]) {
+            tabs.splice(i, 0, x);
+            return;
+        } else if (x === tabs[i]) {
+            return;
+        }
+    }
+    tabs.push(x);
 }
 
 /**
- * This object handles implementation of control characters in range \x00..\x1F.
- * @private
+ * Clear tabs. If position is not defined, clears all tabs.
+ * @param {number} [x]
  */
-const CONTROL_CHARACTERS = {
-
-    "\x00": function () {
-
-    },
-
-    // \t
-    "\x09": function () {
-
-        var x = getCursorX();
-
-        for (; x < WIDTH; x++) {
-            if (tabs.hasOwnProperty(x.toString())) {
-                setCursorX(x);
-                break;
-            }
-        }
-
-    },
-
-    // \n
-    "\x0A": function () {
-
-        if (scrolling.enabled && cursor.y === scrolling.lineEnd) {
-            scrollDisplayPart(scrolling.lineStart, scrolling.lineEnd, 1);
-        } else {
-            if (cursor.y === HEIGHT) {
-                scrollDisplay(1);
-            }
-            setCursorY(cursor.y + 1);
-        }
-
-    },
-
-    // \r
-    "\x0D": function () {
-
-        setCursorX(1);
-
+function clearTab (x) {
+    let i;
+    if (x) {
+        if ((i = tabs.indexOf(x)) !== -1)
+            tabs.splice(i, 1);
+    } else {
+        tabs = [];
     }
+}
 
-};
+export function getTabs () {
+    return tabs;
+}
 
 /**
  * Escape sequences implementation.
@@ -205,12 +181,12 @@ const CONTROL_SEQUENCES = {
 
         for (i = 0; i < codes.length; i++) {
             if (codes[i] === 38 && codes[i+1] === 5) {
-                setGraphicRendition(38, "color: " + COLOR_8BIT[codes[i+2]]);
+                //setGraphicProperties(38, "color: " + COLOR_8BIT[codes[i+2]]);
                 i += 2;
             } else if (codes[i] === 48 && codes[i+1] === 5) {
-                setGraphicRendition(48, "background-color: " + COLOR_8BIT[codes[i+2]]);
+                //setGraphicProperties(48, "background-color: " + COLOR_8BIT[codes[i+2]]);
                 i += 2;
-            } else setGraphicRendition(codes[i] || 0);
+            } //else setGraphicProperties(codes[i] || 0);
         }
 
     },
@@ -378,29 +354,9 @@ onWindowLoad(() => {
 
     // set initial tabs
     for (let x = 9; x < WIDTH; x += 8)
-        setTab(x);
+        tabs.push(x); // setTabAt speed-up
 
 });
-
-/**
- * Set tab in position x.
- * @param {number} x
- */
-function setTab (x) {
-    tabs[x] = true;
-}
-
-/**
- * Clear tabs. If position is not defined, clears all tabs.
- * @param {number} [position]
- */
-function clearTab (position) {
-    if (position) {
-        delete tabs[position];
-    } else {
-        tabs = {};
-    }
-}
 
 /**
  * Sets caret X position. Caret position is limited by terminal output size.
@@ -421,19 +377,6 @@ export function setCursorX (x) {
 export function setCursorY (y, restrict = true) {
     cursor.y = restrict ? Math.max(1, Math.min(HEIGHT, y)) : y;
     return y === cursor.y;
-}
-
-/**
- * Increase _TOP_LINE_INDEX for given amount. Use this function if only you know what are you doing.
- * @deprecated
- * @param {number} delta
- */
-function increaseTopLine (delta) {
-    TOP_LINE_INDEX += Math.round(delta);
-    if (TOP_LINE_INDEX < 0) {
-        TOP_LINE_INDEX = 0;
-        console.warn("_TOP_LINE_INDEX = 0 bottom restriction applied.");
-    }
 }
 
 /**
@@ -507,60 +450,26 @@ function scrollDisplayPart (lineFrom, lineTo, amount) {
 }
 
 /**
- * Scrolls the display down.
- * @param {number} delta - Positive to scroll down.
+ * Sets the graphic property.
+ * @param {number} key - The key of the property.
+ * @param {string} [className] - The name of the class if needed.
+ * @param {string} [style] - Style attribute for tag (if needed).
  */
-function scrollDisplay (delta) {
+export function setGraphicProperty (key, className, style) {
 
-    if (delta > 0) {
-        TOP_LINE_INDEX += delta;
-    } else {
-        console.warn("Scroll up is not currently implemented. PLease, consult with author.");
-    }
+    graphicProperties[key] = {};
+    if (style)
+        graphicProperties[key].style = style;
+    if (className)
+        graphicProperties[key].class = className;
 
 }
 
 /**
- * Sets the graphic rendition index. Giving no arguments will clear any present indexes.
- * @param {number} [index]
- * @param {string} [style] - Style attribute for tag.
+ * Clears all previously assigned graphic properties.
  */
-function setGraphicRendition (index, style) {
-
-    if (!index) {
-        CURRENT_GRAPHIC_RENDITION = {};
-    } else {
-        CURRENT_GRAPHIC_RENDITION[index] = style ? {
-            style: style
-        } : index;
-    }
-
-}
-
-/**
- * Sequence parsing and performing.
- * @param {string} sequence - Must include only one sequence.
- */
-function applyControlSequence (sequence) {
-
-    var i, letter;
-
-    if (i = sequence.match(/[\x00-\x1A]/)) {
-
-        if (CONTROL_CHARACTERS.hasOwnProperty(i[0])) {
-            CONTROL_CHARACTERS[i[0]].call(this);
-        }
-
-    } else if (i = sequence.match(/\x1b\[?([^@-~]*)([@-~])/)) {
-
-        letter = i[2];
-
-        if (CONTROL_CHARACTERS.hasOwnProperty(letter)) {
-            CONTROL_CHARACTERS[letter].call(this, i[0], i[1]);
-        }
-
-    }
-
+export function resetGraphicProperties () {
+    graphicProperties = {};
 }
 
 /**
@@ -589,34 +498,43 @@ function getCurrentLine () {
 }
 
 /**
- * Outputs new line.
- */
-function newLineSequence () {
-
-    // do not flip to .print - may cause recursion. || change _outPlainText
-    applyControlSequence("\r");
-    applyControlSequence("\n");
-
-}
-
-/**
- * Add empty lines to the end of terminal output.
+ * Add empty lines to the bottom and update TOP_LINE_INDEX if necessary.
  * @param {number} number
  */
-function spawnLines (number) {
-
+export function pushLines (number) {
+    let oldI = TOP_LINE_INDEX;
     for (; number > 0; number--) {
         lines.push(new Line(lines.length));
     }
+    TOP_LINE_INDEX = Math.max(oldI, lines.length - HEIGHT);
+    if (oldI !== TOP_LINE_INDEX)
+        setCursorY(getCursorY() - (TOP_LINE_INDEX - oldI));
+}
+
+function freeStack () {
+
+    if (!stack) return;
+
+    let pos, oldStack;
+
+    while ((pos = stack.search(ESC_CHARS_MASK)) !== -1) {
+        output(stack.substring(0, pos));
+        stack = applyEscapeSequence((oldStack = stack).substr(pos));
+        if (stack.length === oldStack.length)
+            return; // wait for more characters
+    }
+
+    output(stack);
+    stack = "";
+    scrollDown();
 
 }
 
 /**
- * Outputs plain text to caret position (x;y) to terminal output.
- * @param {string} string - String of plain text. This MUST NOT include any control characters.
- * @private
+ * Output plain text. Text must not include any non-printable characters.
+ * @param {string=} plainText
  */
-function printPlainText (string) {
+function output (plainText = "") {
 
     var line, xDelta;
 
@@ -624,43 +542,17 @@ function printPlainText (string) {
 
         line = getCurrentLine();
 
-        xDelta = string.length;
-        string = line.writePlain(string, cursor.x - 1);
-        xDelta -= string.length;
+        xDelta = plainText.length;
+        plainText = line.print(plainText, cursor.x - 1);
+        xDelta -= plainText.length;
 
-        if (string) {
-            newLineSequence();
+        if (plainText) {
+            esc["\r"](); esc["\n"]();
         } else if (!setCursorX(cursor.x + xDelta)) {
-            newLineSequence();
+            esc["\r"](); esc["\n"]();
         }
 
-    } while (string);
-
-}
-
-/**
- * Output and parse text with control symbols.
- * @param {string=} text
- */
-function output (text = "") {
-
-    var textOrigin = text,
-        lastIndex = 0,
-        textLeft;
-
-    text.replace(CONTROL_SEQUENCE_PATTERN, (part, index, str) => {
-        let beforePart = str.substring(lastIndex, index);
-        if (!lastIndex) textOrigin = str;
-        lastIndex = index + part.length;
-        if (beforePart) printPlainText(beforePart);
-        applyControlSequence(part);
-        return "";
-    });
-
-    textLeft = textOrigin.substring(lastIndex, textOrigin.length);
-
-    if (textLeft)
-        printPlainText(textLeft);
+    } while (plainText);
 
 }
 
@@ -687,98 +579,25 @@ function getLineByIndex (index) {
  * @returns {Line}
  */
 function getLineByCursorY (y) {
-
     return getLineByIndex(TOP_LINE_INDEX + (y - 1));
-
-}
-
-/**
- * May print text out-of-terminal (by Y axis). Synchronous operation.
- *
- * @param {string} text
- * @param {number} line
- * @param {number} position
- * @param {boolean=true} restrictCaret - restrict caret position to terminal window at end.
- */
-function printAtLine (text, line, position, restrictCaret) {
-
-    var lastRestriction = $CARET_RESTRICTION_ON;
-
-    if (typeof restrictCaret === "undefined") restrictCaret = true;
-
-    $CARET_RESTRICTION_ON = false;
-    cursor.x = position + 1;
-    cursor.y = line - TOP_LINE_INDEX + 1;
-    printSync(text);
-
-    if (restrictCaret) { // limit caret again
-        $CARET_RESTRICTION_ON = true;
-        setCursorX(getCursorX());
-        setCursorY(getCursorY());
-    }
-
-    $CARET_RESTRICTION_ON = lastRestriction;
-
-}
-
-/**
- * Writing output to object immediately.
- *
- * @param {string} [text]
- */
-function printSync (text) {
-
-    freeStack();
-    print(text || "");
-    freeStack();
-
-}
-
-function freeStack () {
-
-    var temp,
-        temp2;
-
-    if (!stack) return;
-
-    // ? Wait for valid escape sequence.
-    // This weird condition splits output stack so that valid escape sequences won't be separated.
-    // In other words, this prevents printing beginning of sequence (for example, "<ESC>[0...") and
-    // ending (f.e. "m") separately.
-    // Also I believe that this technique can be improved. If you have any suggestions, please,
-    // comment on this.
-    if ((temp = stack.lastIndexOf(String.fromCharCode(27))) !== -1
-        && (temp2 = stack.substring(temp, stack.length)
-            .match(CONTROL_SEQUENCE_PATTERN)) && temp2[0] !== "\x1b[") {
-        output(stack);
-        stack = "";
-    } else {
-        output(stack.substring(0, stack.length - (temp.length || 0)));
-        stack = temp === -1 ? "" : temp2;
-    }
-    scrollDown();
-
 }
 
 /**
  * Clears output field.
  */
 export function clear () {
-
-    printSync();
-    TOP_LINE_INDEX = lines.length;
-    spawnLines(HEIGHT);
-    scrollDown();
+    freeStack();
+    pushLines(HEIGHT);
     setCursorX(1);
     setCursorY(1);
-
+    scrollDown();
 }
 
 /**
- * Scrolls terminal to _TOP_LINE_INDEX.
+ * Scrolls terminal window to actual view.
  */
 export function scrollDown () {
-    elements.output.scrollTop = TOP_LINE_INDEX * SYMBOL_HEIGHT + SYMBOL_HEIGHT;
+    elements.output.scrollTop = TOP_LINE_INDEX * SYMBOL_HEIGHT;
 }
 
 /**

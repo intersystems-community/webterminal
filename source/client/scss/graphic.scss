@@ -1,99 +1,94 @@
 @import "mixins";
 
-.term-gri1 { /* bright */
+.g.m1 { /* bright */
     font-weight: 900;
 }
 
-.term-gri2 { /* dim */
+.g.m2 { /* dim */
     opacity: 0.8;
 }
 
-.term-gri3 {
+.g.m3 {
     font-style: italic;
 }
 
-.term-gri4 {
+.g.m4 {
     text-decoration: underline;
 }
 
-.term-gri5 {
-    animation: blink infinite 1s;
-    -o-animation: blink infinite 1s;
-    -ms-animation: blink infinite 1s;
-    -moz-animation: blink infinite 1s;
-    -webkit-animation: blink infinite 1s;
+.g.m5 {
+    @include animation(blink infinite 1s);
 }
 
-.term-gri7 {
-    -webkit-filter: invert(100%);
-    filter: invert(100%);
+.g.m7 {
+    @include filter(invert(100%));
 }
 
-.term-gri8 {
+.g.m8 {
     opacity: 0;
 }
 
-.term-gri30 {
+.g.m30 {
     color: #000000;
 }
 
-.term-gri31 {
+.g.m31 {
     color: #ff0000;
 }
 
-.term-gri32 {
+.g.m32 {
     color: #008000;
 }
 
-.term-gri33 {
+.g.m33 {
     color: yellow;
 }
 
-.term-gri34 {
+.g.m34 {
     color: #0000ff;
 }
 
-.term-gri35 {
+.g.m35 {
     color: magenta;
 }
 
-.term-gri36 {
+.g.m36 {
     color: cyan;
 }
 
-.term-gri37 {
+.g.m37 {
     color: white;
 }
 
-.term-gri40 {
+.g.m40 {
     background-color: #000000;
 }
 
-.term-gri41 {
+.g.m41 {
     background-color: #ff0000;
 }
 
-.term-gri42 {
+.g.m42 {
     background-color: #008000;
 }
 
-.term-gri43 {
+.g.m43 {
     background-color: yellow;
 }
 
-.term-gri44 {
+.g.m44 {
     background-color: #0000ff;
 }
 
-.term-gri45 {
+.g.m45 {
     background-color: magenta;
 }
 
-.term-gri46 {
+.g.m46 {
     background-color: cyan;
 }
 
-.term-gri47 {
+.g.m47 {
     background-color: white;
 }
 

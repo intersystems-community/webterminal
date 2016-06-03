@@ -10,8 +10,14 @@ let ORIGIN_LINE_INDEX = 0,
 let oldInputLength = 0,
     promptCallBack = null;
 
+window.addEventListener(`keydown`, (e) => {
+    if (focusInput() && e.keyCode === 13)
+        onSubmit();
+}, true);
+window.addEventListener(`click`, focusInput, true);
 elements.input.addEventListener(`input`, updateInput);
 elements.input.addEventListener(`keydown`, (e) => {
+    console.log(e.keyCode);
     if (e.keyCode === 13) { // enter
         e.preventDefault();
         onSubmit();
@@ -22,16 +28,17 @@ elements.input.addEventListener(`keyup`, (e) => {
         updateInput();
     }
 });
-window.addEventListener(`keydown`, focusInput, true);
-window.addEventListener(`click`, focusInput, true);
 
 export function focusInput () {
     if (!ENABLED)
-        return;
+        return false;
     if (document.getSelection().toString() !== "")
-        return;
-    if (document.activeElement !== elements.input)
+        return false;
+    if (document.activeElement !== elements.input) {
         elements.input.focus();
+        return true;
+    }
+    return false;
 }
 
 /**

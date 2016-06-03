@@ -13,6 +13,15 @@
     transition: $options;
 }
 
+@mixin filter ($options) {
+    -khtml-filter: $options;
+    -moz-filter: $options;
+    -o-filter: $options;
+    -ms-filter: $options;
+    -webkit-filter: $options;
+    filter: $options;
+}
+
 @mixin transform ($options) {
     -webkit-transform: $options;
     -moz-transform: $options;
