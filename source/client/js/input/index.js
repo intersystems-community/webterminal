@@ -17,7 +17,7 @@ window.addEventListener(`keydown`, (e) => {
 window.addEventListener(`click`, focusInput, true);
 elements.input.addEventListener(`input`, updateInput);
 elements.input.addEventListener(`keydown`, (e) => {
-    console.log(e.keyCode);
+    // console.log(e.keyCode);
     if (e.keyCode === 13) { // enter
         e.preventDefault();
         onSubmit();

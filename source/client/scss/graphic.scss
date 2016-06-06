@@ -1,101 +1,105 @@
 @import "mixins";
 
-.g.m1 { /* bright */
-    font-weight: 900;
-}
+.terminal .output .line {
 
-.g.m2 { /* dim */
-    opacity: 0.8;
-}
+    .g.m1 { /* bright */
+        font-weight: 900;
+    }
 
-.g.m3 {
-    font-style: italic;
-}
+    .g.m2 { /* dim */
+        opacity: 0.8;
+    }
 
-.g.m4 {
-    text-decoration: underline;
-}
+    .g.m3 {
+        font-style: italic;
+    }
 
-.g.m5 {
-    @include animation(blink infinite 1s);
-}
+    .g.m4 {
+        text-decoration: underline;
+    }
 
-.g.m7 {
-    @include filter(invert(100%));
-}
+    .g.m5 {
+        @include animation(blink infinite 1s);
+    }
 
-.g.m8 {
-    opacity: 0;
-}
+    .g.m7 {
+        @include filter(invert(100%));
+    }
 
-.g.m30 {
-    color: #000000;
-}
+    .g.m8 {
+        opacity: 0;
+    }
 
-.g.m31 {
-    color: #ff0000;
-}
+    .g.m30 {
+        color: #000000;
+    }
 
-.g.m32 {
-    color: #008000;
-}
+    .g.m31 {
+        color: #ff0000;
+    }
 
-.g.m33 {
-    color: yellow;
-}
+    .g.m32 {
+        color: #008000;
+    }
 
-.g.m34 {
-    color: #0000ff;
-}
+    .g.m33 {
+        color: yellow;
+    }
 
-.g.m35 {
-    color: magenta;
-}
+    .g.m34 {
+        color: #0000ff;
+    }
 
-.g.m36 {
-    color: cyan;
-}
+    .g.m35 {
+        color: magenta;
+    }
 
-.g.m37 {
-    color: white;
-}
+    .g.m36 {
+        color: cyan;
+    }
 
-.g.m40 {
-    background-color: #000000;
-}
+    .g.m37 {
+        color: white;
+    }
 
-.g.m41 {
-    background-color: #ff0000;
-}
+    .g.m40 {
+        background-color: #000000;
+    }
 
-.g.m42 {
-    background-color: #008000;
-}
+    .g.m41 {
+        background-color: #ff0000;
+    }
 
-.g.m43 {
-    background-color: yellow;
-}
+    .g.m42 {
+        background-color: #008000;
+    }
 
-.g.m44 {
-    background-color: #0000ff;
-}
+    .g.m43 {
+        background-color: yellow;
+    }
 
-.g.m45 {
-    background-color: magenta;
-}
+    .g.m44 {
+        background-color: #0000ff;
+    }
 
-.g.m46 {
-    background-color: cyan;
-}
+    .g.m45 {
+        background-color: magenta;
+    }
 
-.g.m47 {
-    background-color: white;
+    .g.m46 {
+        background-color: cyan;
+    }
+
+    .g.m47 {
+        background-color: white;
+    }
+
 }
 
 @include keyframes(blink) {
-    0% { opacity: 1.0; }
-    50% { opacity: 0.0; }
-    100% { opacity: 1.0; }
+    0% { @include filter(invert(0%)); }
+    50% { @include filter(invert(100%)); }
+    100% { @include filter(invert(0%)); }
 }
 
 @include keyframes(pulsate) {

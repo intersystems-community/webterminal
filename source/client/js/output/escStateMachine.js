@@ -33,34 +33,36 @@ for (let seq in esc) {
 export const ESC_CHARS_MASK = /[\x00-\x1F]/;
 
 function getMatched (o, str, args = []) {
-    console.log(`Diving with ${str} (${ str.length })`);
-    let a, m = 0, n, l;
+    // console.log(`Diving with ${str} (${ str.length })`);
+    if (!str)
+        return 0;
+    let a, m = -1, n, l;
     if (o[str[0]]) {
         if (typeof o[str[0]] === "function") {
             o[str[0]](args);
-            console.log(`Function found`);
+            // console.log(`Function found`);
             return 1;
         }
         m = getMatched(o[str[0]], str.substr(1), args);
-        if (m >= 0) {
-            console.log(`Sub-obj found`);
+        if (m > 0) {
+            // console.log(`Sub-obj found`);
             return 1 + m;
         }
     }
     for (let p in o[""]) {
         if (a = str.match(`^${ p }`)) {
-            console.log(`Match found ${ p }`);
+            // console.log(`Match found ${ p }`);
             n = getMatched(o[""][p], str.substr(l = a.join().length), args.concat(a));
             if (n > 0)
                 return n + l;
             m = n > m ? n : m;
         }
     }
-    if (m <= 0 && str) {
-        console.log(`Nothing found, end reached`);
+    if (m < 0) {
+        // console.log(`Nothing found, end reached`);
         return -1;
     }
-    console.log(`Nothing found`);
+    // console.log(`Nothing found`);
     return m;
 }
 
@@ -75,6 +77,7 @@ function getMatched (o, str, args = []) {
  */
 export function applyEscapeSequence (string = "") {
     let l = getMatched(stateTree, string);
+    // console.log(`Input: ${ string }, getMatched: ${ l }`);
     return l === -1 ? string.substr(1) // unknown escape sequence, just remove esc character
         : l === 0 ? string // need more characters, wait
         : string.substr(l); // rest of the string

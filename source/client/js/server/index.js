@@ -34,9 +34,16 @@ function connect () {
     ws.addEventListener(`open`, onOpen);
     ws.addEventListener(`close`, onClose);
     ws.addEventListener(`error`, onError);
-    ws.addEventListener(`message`, (m) => { try {
-        onMessage(JSON.parse(m.data));
-    } catch (e) { printLine(localize(`serParseErr`, m.data)); } });
+    ws.addEventListener(`message`, (m) => {
+        let d;
+        try {
+            d = JSON.parse(m.data);
+        } catch (e) {
+            printLine(localize(`serParseErr`, m.data));
+            return;
+        }
+        onMessage(d);
+    });
 }
 
 /**

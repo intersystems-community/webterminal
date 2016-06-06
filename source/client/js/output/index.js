@@ -33,9 +33,9 @@ export let TOP_LINE_INDEX = 0;
 
 /**
  * Object that includes current graphic rendition flags as a key.
- * @type {{number: boolean}}
+ * @type {{number: { class: string, style: string }}}
  */
-let graphicProperties = {};
+export let GRAPHIC_PROPERTIES = {};
 
 /**
  * Array of Line instances currently on the screen.
@@ -118,14 +118,10 @@ export function print (text) {
 
 }
 
-window.print = print; // todo: remove after test
+window.out = print; // todo: remove after test
 
 export function printLine (text) {
     print(`${ text }\r\n`);
-}
-
-export function getGraphicProperties () {
-    return graphicProperties;
 }
 
 export function setTabAt (x) {
@@ -457,11 +453,13 @@ function scrollDisplayPart (lineFrom, lineTo, amount) {
  */
 export function setGraphicProperty (key, className, style) {
 
-    graphicProperties[key] = {};
+    GRAPHIC_PROPERTIES[key] = {};
     if (style)
-        graphicProperties[key].style = style;
+        GRAPHIC_PROPERTIES[key].style = style;
     if (className)
-        graphicProperties[key].class = className;
+        GRAPHIC_PROPERTIES[key].class = className;
+
+    // console.log(`GP is now`,GRAPHIC_PROPERTIES);
 
 }
 
@@ -469,7 +467,8 @@ export function setGraphicProperty (key, className, style) {
  * Clears all previously assigned graphic properties.
  */
 export function resetGraphicProperties () {
-    graphicProperties = {};
+    GRAPHIC_PROPERTIES = {};
+    // console.log(`GP is now`,GRAPHIC_PROPERTIES);
 }
 
 /**
@@ -518,8 +517,11 @@ function freeStack () {
     let pos, oldStack;
 
     while ((pos = stack.search(ESC_CHARS_MASK)) !== -1) {
+        // console.log(`Taking ${stack} (${ stack.split("").map(a => a.charCodeAt(0)) })`);
         output(stack.substring(0, pos));
+        // console.log(`Outputting ${ pos } characters`);
         stack = applyEscapeSequence((oldStack = stack).substr(pos));
+        // console.log(`After esc applied got ${stack} (${ stack.split("").map(a => a.charCodeAt(0)) })`);
         if (stack.length === oldStack.length)
             return; // wait for more characters
     }
@@ -536,7 +538,10 @@ function freeStack () {
  */
 function output (plainText = "") {
 
-    var line, xDelta;
+    if (!plainText.length)
+        return;
+
+    let line, xDelta;
 
     do {
 
