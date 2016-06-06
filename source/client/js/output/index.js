@@ -11,12 +11,7 @@ export let WIDTH = 0, // in symbols
 export let LINE_WRAP_ENABLED = true; // todo
 export let SCROLLING_ENABLED = false;
 
-/**
- * Regular expression that must match any control symbols such as "\r" or "\n" and escape
- * sequences.
- * @type {RegExp}
- */
-let CONTROL_SEQUENCE_PATTERN = /[\x00-\x1A]|\x1b\[?[^@-~]*[@-~]/g;
+const LINE_UPDATE_TIMEOUT = 10;
 
 /**
  * Output stack. Each output operation will be written to stack first.
@@ -532,6 +527,9 @@ function freeStack () {
 
 }
 
+let changedLines = {},
+    lineUpdateTimeout = 0;
+
 /**
  * Output plain text. Text must not include any non-printable characters.
  * @param {string=} plainText
@@ -549,6 +547,7 @@ function output (plainText = "") {
 
         xDelta = plainText.length;
         plainText = line.print(plainText, cursor.x - 1);
+        changedLines[line.INDEX] = true;
         xDelta -= plainText.length;
 
         if (plainText) {
@@ -558,6 +557,18 @@ function output (plainText = "") {
         }
 
     } while (plainText);
+
+    if (lineUpdateTimeout !== 0)
+        return;
+
+    lineUpdateTimeout = setTimeout(() => {
+        for (let line in changedLines) {
+            if (lines[line])
+                lines[line].render();
+            delete changedLines[line];
+        }
+        lineUpdateTimeout = 0;
+    }, LINE_UPDATE_TIMEOUT);
 
 }
 
