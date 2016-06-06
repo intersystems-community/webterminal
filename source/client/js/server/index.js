@@ -68,10 +68,12 @@ function onError (e) {
 function onClose (e) {
     CONNECTED = false;
     if (e.code !== 1000) {
+        printLine(`\r\n${ localize(`wsConnLost`, e.code) }`);
         printLine(localize(`reConn`, RECONNECT_IN / 1000));
         reconnectTimeout = setTimeout(() => {
-            stack.unshift(firstMessage);
-            connect();
+            printLine(localize(`plRefPageSes`)); // todo: restore session [https://community.intersystems.com/post/it-possible-not-terminate-jobbed-process-when-parent-process-terminates]
+            // stack.unshift(firstMessage);
+            // connect();
         }, RECONNECT_IN);
     } else {
         printLine(localize(`seeYou`));
@@ -83,10 +85,10 @@ function onMessage (data = {}) {
         if (typeof handlers[data.h] === "function") {
             handlers[data.h](data.d);
         } else {
-            printLine(localize(`eInt`, `E.server.index.1 (${ data.h })`));
+            printLine(`\r\n` + localize(`eInt`, `E.server.index.1 (${ data.h })`));
         }
     } else {
-        printLine(localize(`eInt`, `E.server.index.2 (${ data })`));
+        printLine(`\r\n` + localize(`eInt`, `E.server.index.2 (${ data })`));
     }
 }
 

@@ -3,19 +3,14 @@
 Class WebTerminal.Engine Extends (%CSP.WebSocket, Trace, Autocomplete) [ DependsOn = Common ]
 {
 
-/// This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
-/// connection or over a pool of shared connections.  It may be set to one of the following:
-/// <br><ul>
-/// <li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
-/// <li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
-/// </ul>
-Property SharedConnection As %Boolean [ InitialExpression = 0 ];
-
 Property CurrentNamespace As %String;
 
 Property InitialZName As %String;
 
 Property InitialZNamespace As %String;
+
+/// The process ID of the terminal core.
+Property corePID As %Numeric [ InitialExpression = 0 ];
 
 Method GetMessage(timeout As %Numeric) As %ZEN.proxyObject
 {
@@ -45,7 +40,10 @@ Method OnPreServer() As %Status
 
 Method OnPostServer() As %Status
 {
-    kill ^CacheTemp.WebTerminal.Watching
+    if (..corePID '= 0) {
+        do $system.Event.Signal(..corePID, $LB("end"))
+    }
+    kill ^CacheTemp.WebTerminal.Watching // @deprecated
     quit $$$OK
 }
 
@@ -209,10 +207,10 @@ Method ClientLoop() As %Status
         do ..Send("error", "%noJob")
         return 0
     }
-    set childPID = $ZCHILD
-
+    set ..corePID = $ZCHILD
+    set ^test = $JOB
     do ..Send("prompt", $Namespace)
-
+    //try {
     for {
 
         set message = ..GetMessage()
@@ -220,29 +218,43 @@ Method ClientLoop() As %Status
         set handler = message.h
 
         if (handler = "execute") {
-            do ..Send("o", $C(13,10))
-            do $system.Event.Signal(childPID, message.d)
+            do ..Send("o", $CHAR(13, 10))
+            do $system.Event.Signal(..corePID, $LB("m", message.d))
             for {
                 set list = $system.Event.WaitMsg()
                 set message = $LISTGET(list, 2)
-                set act = $PIECE(message, ":", 1)
-                set dt = $EXTRACT(message, $LENGTH(act) + 2, *)
-                if (act = "fin") {
-                    quit
+                set act = $LISTGET(message, 1)
+                if (act = "o") {
+                    do ..Send("o", $LISTGET(message, 2))
                 } elseif (act = "r") {
-                    do ..Send("read")
-                    do $system.Event.Signal(childPID, ..GetMessage().d)
-                } else {
-                    do ..Send("o", dt)
+                    set obj = ##class(%ZEN.proxyObject).%New()
+                    set obj.length = $LISTGET(message, 2)
+                    set obj.timeout = $LISTGET(message, 3)
+                    do ..Send("readString", obj)
+                    do $system.Event.Signal(..corePID, $LB("m", ..GetMessage().d))
+                } elseif (act = "rc") {
+                    set obj = ##class(%ZEN.proxyObject).%New()
+                    set obj.timeout = $LISTGET(message, 2)
+                    do ..Send("readChar", obj)
+                    do $system.Event.Signal(..corePID, $LB("m", ..GetMessage().d))
+                } elseif (act = "end") {
+                    set err = $LISTGET(message, 2)
+                    if (err '= "") {
+                        do ..Send("execError", err)
+                    }
+                    quit // break for cycle
+                } else { // unknown response - just send it to the client
+                    do ..Send("o", $LISTGET(message, 2))
                 }
             }
-            do ..Send("o", $C(13,10))
+            do ..Send("o", $CHAR(13, 10))
             do ..Send("prompt", $Namespace)
         } else { // error or unknown message
             quit
         }
 
     }
+    //} catch (e) { set ^err = $system.Status.GetErrorText(e) }
 }
 
 /// This method sends basic login info to the user. Use this method to set client variables

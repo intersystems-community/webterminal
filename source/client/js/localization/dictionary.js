@@ -348,8 +348,7 @@ export default {
         ru: "Невозможно обработать ответ сервера: %s"
     },
     "reConn": {
-        en: "Attempt to connect in %n seconds...",
-        ru: "Попытка подключения через %n секунд..."
+        en: "Attempting to restore session in %n seconds..."
     },
     "seeYou": {
         en: "See you!",
@@ -362,5 +361,11 @@ export default {
     "noJob": {
         en: "Unable to start new Job",
         ru: "Невозможно запустить новый Job"
+    },
+    "wsConnLost": {
+        en: "WebTerminal lost connection with server (code %n)."
+    },
+    "plRefPageSes": {
+        en: "Please, refresh the web page to start a new session."
     }
 };

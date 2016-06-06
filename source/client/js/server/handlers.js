@@ -14,6 +14,13 @@ export function prompt (namespace) {
     });
 }
 
+export function execError (message = "") {
+    output.print(
+        message.replace(/^(<.*>)/, `\x1b[31m$1\x1b[0m`)
+            .replace(/zLoop\+[0-9]+\^WebTerminal\.Core\.[0-9]+/, "")
+    );
+}
+
 /**
  * Output data.
  * @param {string} text
