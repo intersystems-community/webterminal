@@ -44,6 +44,9 @@
     @-moz-keyframes #{$animationName} {
         @content;
     }
+    @-ms-keyframes #{$animationName} {
+        @content;
+    }
     @-o-keyframes #{$animationName} {
         @content;
     }
@@ -57,13 +60,13 @@
     $animations: '';
     @for $i from 1 through $max {
         $animations: #{$animations + nth($animate, $i)};
-
         @if $i < $max {
             $animations: #{$animations + ", "};
         }
     }
     -webkit-animation: $animations;
     -moz-animation:    $animations;
+    -ms-animation:     $animations;
     -o-animation:      $animations;
     animation:         $animations;
 }

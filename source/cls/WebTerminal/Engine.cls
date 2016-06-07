@@ -1,6 +1,6 @@
 /// <!-- @echo package.title --> version <!-- @echo package.version --> WebSocket client.
 /// This class represents a connected client via WebSocket.
-Class WebTerminal.Engine Extends (%CSP.WebSocket, Trace, Autocomplete) [ DependsOn = Common ]
+Class WebTerminal.Engine Extends (%CSP.WebSocket, Common, Trace, Autocomplete)
 {
 
 Property CurrentNamespace As %String;
@@ -11,6 +11,9 @@ Property InitialZNamespace As %String;
 
 /// The process ID of the terminal core.
 Property corePID As %Numeric [ InitialExpression = 0 ];
+
+/// The last known namespace in child process.
+Property childNamespace As %String;
 
 Method GetMessage(timeout As %Numeric) As %ZEN.proxyObject
 {
@@ -41,7 +44,7 @@ Method OnPreServer() As %Status
 Method OnPostServer() As %Status
 {
     if (..corePID '= 0) {
-        do $system.Event.Signal(..corePID, $LB("end"))
+        do ..SendChunk(..corePID, "e")
     }
     kill ^CacheTemp.WebTerminal.Watching // @deprecated
     quit $$$OK
@@ -208,53 +211,56 @@ Method ClientLoop() As %Status
         return 0
     }
     set ..corePID = $ZCHILD
-    set ^test = $JOB _ "->" _ $ZCHILD
-    do ..Send("prompt", $Namespace)
-    //try {
+    set ..childNamespace = $NAMESPACE
+    do ..Send("prompt", ..childNamespace)
+    // set ^test = $JOB _ "->" _ $ZCHILD
+    // try {
     for {
 
         set message = ..GetMessage()
+        quit:(message = "") // if client is gone, finish looping
         set data = message.d
         set handler = message.h
 
         if (handler = "execute") {
             do ..Send("o", $CHAR(13, 10))
-            do $system.Event.Signal(..corePID, $LB("m", message.d))
+            do ..SendChunk(..corePID, "m", message.d)
             for {
-                set list = $system.Event.WaitMsg()
-                set message = $LISTGET(list, 2)
-                set act = $LISTGET(message, 1)
-                if (act = "o") {
-                    do ..Send("o", $LISTGET(message, 2))
-                } elseif (act = "r") {
+                set message = ..ReceiveChunk()
+                set flag = $LISTGET(message, 1)
+                set data = $LISTGET(message, 2)
+                if (flag = "o") {
+                    do ..Send("o", data)
+                } elseif (flag = "r") {
                     set obj = ##class(%ZEN.proxyObject).%New()
-                    set obj.length = $LISTGET(message, 2)
-                    set obj.timeout = $LISTGET(message, 3)
+                    set obj.length = $LISTGET(data, 1)
+                    set obj.timeout = $LISTGET(data, 2)
                     do ..Send("readString", obj)
-                    do $system.Event.Signal(..corePID, $LB("m", ..GetMessage().d))
-                } elseif (act = "rc") {
+                    do ..SendChunk(..corePID, "m", ..GetMessage().d)
+                } elseif (flag = "c") {
                     set obj = ##class(%ZEN.proxyObject).%New()
-                    set obj.timeout = $LISTGET(message, 2)
+                    set obj.timeout = data
                     do ..Send("readChar", obj)
-                    do $system.Event.Signal(..corePID, $LB("m", ..GetMessage().d))
-                } elseif (act = "end") {
-                    set err = $LISTGET(message, 2)
+                    do ..SendChunk(..corePID, "m", ..GetMessage().d)
+                } elseif (flag = "e") {
+                    set ..childNamespace = $LISTGET(data, 1)
+                    set err = $LISTGET(data, 2)
                     if (err '= "") {
                         do ..Send("execError", err)
                     }
                     quit // break for cycle
                 } else { // unknown response - just send it to the client
-                    do ..Send("o", $LISTGET(message, 2))
+                    do ..Send("o", data)
                 }
             }
             do ..Send("o", $CHAR(13, 10))
-            do ..Send("prompt", $Namespace)
+            do ..Send("prompt", ..childNamespace)
         } else { // error or unknown message
             quit
         }
 
     }
-    //} catch (e) { set ^err = $system.Status.GetErrorText(e) }
+    // } catch (e) { set ^err = $ZERROR }
 }
 
 /// This method sends basic login info to the user. Use this method to set client variables

@@ -1,12 +1,9 @@
+import "babel-polyfill";
 import * as output from "./output";
 import * as input from "./input";
 import * as server from "./server";
 
 let terminal = null;
-//    initHandlers = [],
-//    INITIALIZED = false;
-
-export var container = null;
 
 export const VERSION = "/* @echo package.VERSION */";
 export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
@@ -20,7 +17,7 @@ export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
 export function initTerminal (options) {
     if (terminal)
         return terminal;
-    return new Terminal(options);
+    return terminal = new Terminal(options);
 }
 
 window.initTerminal = initTerminal;

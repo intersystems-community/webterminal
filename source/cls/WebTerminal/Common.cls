@@ -3,6 +3,53 @@ Include %sySystem
 Class WebTerminal.Common
 {
 
+/// Interprocess communication cannot handle big messages at once, so they need to be split.
+
+Parameter ChunkSize = 45;
+
+/// Send the chunk of data to another process. The process need to receive the chunk with the
+/// appropriate function ReceiveChunk. Consider event length less than 44 characters long.
+ClassMethod SendChunk(pid As %Numeric, flag As %String, data As %String = "") As %Status
+{
+    set pos = 1
+    set len = $LENGTH(data) + 1 // send the last empty message if the data size = ChunkSize
+    for {
+        try {
+            set st = $system.Event.Signal(
+                pid,
+                $LB(flag, $EXTRACT(data, pos, pos + ..#ChunkSize - 1))
+            )
+        } catch (e) { return $$$NOTOK }
+        if (st '= 1) { return $$$NOTOK }
+        set pos = pos + ..#ChunkSize
+        if (pos > len) { quit }
+    }
+    return $$$OK
+}
+
+/// Receives the chunk of data from another process. Returns the $LISTBUILD string which contains
+/// flag at the first position and string at the second. This method also terminates the process
+/// if the parent process is gone.
+ClassMethod ReceiveChunk() As %String
+{
+    set flag = ""
+    set str = ""
+    for {
+        set message = $system.Event.WaitMsg("", 1)
+        set status = $LISTGET(message, 1)
+        if (status <= 0) {
+            do:'$data(^$Job($ZPARENT)) $system.Process.Terminate($JOB, 0)
+            continue
+        }
+        set data = $LISTGET(message, 2)
+        set flag = $LISTGET(data, 1)
+        set m = $LISTGET(data, 2)
+        set str = str _ m
+        quit:($LENGTH(m) '= ..#ChunkSize)
+    }
+    return $LISTBUILD(flag, str)
+}
+
 /// Write out the contents of this proxy object to the current device in JSON format.<br/>
 /// This method is called when a proxy object is used in conjunction with
 /// the <class>%ZEN.Auxiliary.jsonProvider</class> component.<br/>

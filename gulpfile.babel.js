@@ -60,7 +60,7 @@ gulp.task("js", ["clean", "css"], function () {
         entries: `${source}/client/js/index.js`,
         debug: true
     });
-    bundler.transform(babelify);
+    bundler.transform("babelify", { presets: ["es2015"] });
     return bundler.bundle()
         .on("error", function (err) { console.error("An error occurred during bundling:", err); })
         .pipe(sourceStream("index.js"))
