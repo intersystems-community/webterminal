@@ -34,11 +34,11 @@ wtab(s)
 
 rstr(length = 32656, timeout = 86400)
     do $system.Event.Signal($ZPARENT, $lb("r", length, timeout))
-    quit $LISTGET($system.Event.WaitMsg(), 2)
+    quit $LISTGET($LISTGET($system.Event.WaitMsg(), 2), 2)
 
 rchr(timeout = 86400)
     do $system.Event.Signal($ZPARENT, $lb("rc", timeout))
-    quit $LISTGET($system.Event.WaitMsg(), 2)
+    quit $LISTGET($LISTGET($system.Event.WaitMsg(), 2), 2)
 }
 
 /// Retrieves a command text from the parent process.

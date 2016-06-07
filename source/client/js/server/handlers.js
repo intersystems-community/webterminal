@@ -9,7 +9,7 @@ export function init (data = {}) {
 }
 
 export function prompt (namespace) {
-    input.prompt(`${ namespace } > `, (str) => {
+    input.prompt(`${ namespace } > `, {}, (str) => {
         server.send("execute", str);
     });
 }
@@ -19,6 +19,18 @@ export function execError (message = "") {
         message.replace(/^(<.*>)/, `\x1b[31m$1\x1b[0m`)
             .replace(/zLoop\+[0-9]+\^WebTerminal\.Core\.[0-9]+/, "")
     );
+}
+
+export function readString (data = {}) {
+    input.prompt("", data, (str) => {
+        server.send("i", str);
+    });
+}
+
+export function readChar (data = {}) {
+    input.getKey(data, (code) => {
+        server.send("i", code);
+    });
 }
 
 /**

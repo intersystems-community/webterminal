@@ -8,11 +8,16 @@ let ORIGIN_LINE_INDEX = 0,
     ORIGIN_CURSOR_X = 0;
 
 let oldInputLength = 0,
-    promptCallBack = null;
+    promptCallBack = null,
+    readTimeout = 0,
+    readLength = 0;
 
 window.addEventListener(`keydown`, (e) => {
-    if (focusInput() && e.keyCode === 13)
+    if (!ENABLED)
+        return;
+    if (focusInput() && e.keyCode === 13) {
         onSubmit();
+    }
 }, true);
 window.addEventListener(`click`, focusInput, true);
 elements.input.addEventListener(`input`, updateInput);
@@ -44,23 +49,81 @@ export function focusInput () {
 /**
  * Prompts user to enter text.
  * @param {string} text - String, which will be printed before prompt.
- * @param {function} callback (text)
+ * @param {{ [timeout]: number, [length]: number }} options - Timeout in seconds.
+ * @param {function} callback
  */
-export function prompt (text, callback) {
+export function prompt (text, options = {}, callback) {
 
     if (text)
         output.print(text);
-
+    
     ENABLED = true;
     ORIGIN_CURSOR_X = output.getCursorX();
     ORIGIN_LINE_INDEX = output.getCurrentLineIndex();
     if (typeof callback === `function`)
         promptCallBack = callback;
+    clearTimeout(readTimeout);
+    if (options.timeout)
+        readTimeout = setTimeout(onSubmit, options.timeout * 1000);
+    readLength = options.length ? options.length : 0;
     showInput();
 
 }
 
-window.enter = prompt;
+/**
+ * Returns a code of a pressed key.
+ * @param {{ [timeout]: number }} options - Timeout in seconds.
+ * @param {function} callback
+ */
+export function getKey (options = {}, callback) {
+
+    if (ENABLED)
+        onSubmit();
+
+    // for mobile devices the keyboard needs to appear
+    showInput();
+    focusInput();
+    caret.hide();
+
+    let inp = (e) => {
+        if (handleKeyPress(e, callback) === false)
+            return;
+        window.removeEventListener(`keydown`, inp);
+    };
+    window.addEventListener(`keydown`, inp);
+    clearTimeout(readTimeout);
+    if (options.timeout) {
+        readTimeout = setTimeout(() => {
+            readTimeout = 0;
+            window.removeEventListener(`keydown`, inp);
+            hideInput();
+            callback(-1);
+        }, options.timeout * 1000);
+    }
+
+}
+
+/**
+ * This function must call callback function with appropriate key code value.
+ * @param {Event} event
+ * @param {function} callback
+ */
+function handleKeyPress (event, callback) {
+
+    event.stopPropagation();
+    event.preventDefault();
+
+    if ([16, 17, 18].indexOf(event.keyCode) !== -1) // shift, ctrl, alt
+        return false;
+
+    hideInput();
+    let char = String.fromCharCode(event.keyCode)[event.shiftKey ? "toUpperCase" : "toLowerCase"](),
+        code = char.charCodeAt(0);
+    if (code > 31)
+        output.print(char);
+    callback(code);
+
+}
 
 function showInput () {
     oldInputLength = 0;
@@ -72,6 +135,9 @@ function showInput () {
 }
 
 function updateInput () {
+
+    if (!ENABLED)
+        return;
 
     output.setCursorYToLineIndex(ORIGIN_LINE_INDEX);
     output.setCursorX(ORIGIN_CURSOR_X);
@@ -100,9 +166,15 @@ function updateInput () {
     if (elements.input.style.height !== `${ h }px`)
         elements.input.style.height = `${ h }px`;
 
+    if (ENABLED && readLength && elements.input.value.length >= readLength)
+        onSubmit();
+
 }
 
 function onSubmit () {
+    ENABLED = false;
+    clearTimeout(readTimeout);
+    readTimeout = 0;
     if (promptCallBack)
         promptCallBack(elements.input.value);
     promptCallBack = null;

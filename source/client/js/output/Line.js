@@ -169,7 +169,7 @@ Line.prototype.print = function (text, position = this.text.length) {
         }
     }
 
-    console.log(`line GP now`, this.graphicProperties);
+    // console.log(`line GP now`, this.graphicProperties);
 
     this.text = position < this.text.length
         ? this.text.substring(0, position) + part + this.text.substr(position + part.length)
