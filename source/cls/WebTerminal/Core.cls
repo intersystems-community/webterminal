@@ -1,3 +1,5 @@
+/// <!-- @echo package.title --> version <!-- @echo package.version --> core.
+/// Class which handles client requests and executes code.
 Class WebTerminal.Core [ Not ProcedureBlock ]
 {
 
@@ -39,28 +41,33 @@ rchr(timeout = 86400)
     quit $LISTGET($system.Event.WaitMsg(), 2)
 }
 
+/// Retrieves a command text from the parent process.
+/// Terminates itself if the parent process is dead.
 ClassMethod WaitCommand() As %String [ ProcedureBlock = 1 ]
 {
-    set message = $system.Event.WaitMsg()
-    set ^pids($I(^pids)) = message
-    if ($LISTGET(message, 1) '= 1) {
+    for {
+        set message = $system.Event.WaitMsg("", 1)
+        set status = $LISTGET(message, 1)
+        if (status = 1) {
+            quit
+        }
+        if (status = 0) {
+            do:'$data(^$Job($ZPARENT)) $system.Process.Terminate($JOB, 1)
+            continue
+        }
         do $system.Process.Terminate($JOB, 1)
-        return ""
     }
     set data = $LISTGET(message, 2)
     set event = $LISTGET(data, 1)
-    if (event = "end") {
-        do $system.Process.Terminate($JOB, 1)
-        return ""
-    } elseif (event = "m") {
+    if (event = "m") {
         return $LISTGET(data, 2)
-    } else {
+    } else { // end or unexpected
         do $system.Process.Terminate($JOB, 2)
         return ""
     }
 }
 
-/// Starts new terminal loop
+/// Starts new terminal loop. Must be called with JOB command.
 ClassMethod Loop() As %Status
 {
     set ^pids($I(^pids)) = $JOB

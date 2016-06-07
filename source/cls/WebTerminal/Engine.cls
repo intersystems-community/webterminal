@@ -1,5 +1,5 @@
-/// Cache WEB Terminal version 3.3.1 core.
-/// This class is the server-side core of the terminal application.
+/// <!-- @echo package.title --> version <!-- @echo package.version --> WebSocket client.
+/// This class represents a connected client via WebSocket.
 Class WebTerminal.Engine Extends (%CSP.WebSocket, Trace, Autocomplete) [ DependsOn = Common ]
 {
 
@@ -208,7 +208,7 @@ Method ClientLoop() As %Status
         return 0
     }
     set ..corePID = $ZCHILD
-    set ^test = $JOB
+    set ^test = $JOB _ "->" _ $ZCHILD
     do ..Send("prompt", $Namespace)
     //try {
     for {
