@@ -1,6 +1,7 @@
 import * as elements from "../elements";
 import * as output from "../output";
 import * as caret from "./caret";
+import * as history from "./history";
 
 export let ENABLED = false;
 
@@ -13,25 +14,15 @@ let oldInputLength = 0,
     readLength = 0;
 
 window.addEventListener(`keydown`, (e) => {
-    if (!ENABLED)
-        return;
-    if (focusInput() && e.keyCode === 13) {
-        onSubmit();
-    }
+    focusInput();
+    onKeyDown(e);
+    e.stopPropagation();
 }, true);
 window.addEventListener(`click`, focusInput, true);
 elements.input.addEventListener(`input`, updateInput);
 elements.input.addEventListener(`keydown`, (e) => {
-    // console.log(e.keyCode);
-    if (e.keyCode === 13) { // enter
-        e.preventDefault();
-        onSubmit();
-    }
-});
-elements.input.addEventListener(`keyup`, (e) => {
-    if ([8, 46, 35, 36, 37, 39].indexOf(e.keyCode) !== -1) { // del backspace end home left right
-        updateInput();
-    }
+    onKeyDown(e);
+    e.stopPropagation();
 });
 let lastMouseMoveSelection = [undefined, undefined];
 elements.input.addEventListener(`mousemove`, () => {
@@ -114,6 +105,42 @@ export function getKey (options = {}, callback) {
 
 }
 
+function setCaretPosition(caretPos) {
+
+    if (elements.input.createTextRange) {
+        var range = elements.input.createTextRange();
+        range.move(`character`, caretPos);
+        range.select();
+    } else {
+        if (elements.input.selectionStart) {
+            elements.input.focus();
+            elements.input.setSelectionRange(caretPos, caretPos);
+        } else {
+            elements.input.focus();
+        }
+    }
+}
+
+function onKeyDown (e) {
+    if (!ENABLED)
+        return;
+    if (e.keyCode === 13) { // enter
+        e.preventDefault();
+        onSubmit();
+        return;
+    }
+    if ([35, 36, 37, 39].indexOf(e.keyCode) !== -1) { // end home left right
+        setTimeout(updateInput, 1); // update in the next frame
+    }
+    if (e.keyCode === 38 || e.keyCode === 40) { // up || down
+        setCaretPosition(
+            (elements.input.value = history.get(e.keyCode - 39)).length
+        );
+        console.log(elements.input.value);
+        updateInput();
+    }
+}
+
 /**
  * This function must call callback function with appropriate key code value.
  * @param {Event} event
@@ -190,6 +217,7 @@ function onSubmit () {
     readTimeout = 0;
     if (promptCallBack)
         promptCallBack(elements.input.value);
+    history.push(elements.input.value);
     promptCallBack = null;
     hideInput();
 }

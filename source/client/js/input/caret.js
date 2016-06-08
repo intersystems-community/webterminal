@@ -11,6 +11,9 @@ const IS_IE = window.navigator.userAgent.indexOf("MSIE ") !== -1
 let element = document.createElement(`div`);
 element.className = CLASS_NAME;
 
+/**
+ * Updates the caret position and visibility.
+ */
 export function update () {
     
     element.style.left =
@@ -26,6 +29,9 @@ export function update () {
     
 }
 
+/**
+ * Hides the caret.
+ */
 export function hide () {
 
     if (element.parentNode)

@@ -1,13 +1,12 @@
 import * as storage from "./storage";
 
-let STORAGE_NAME = "terminal-settings",
-    stored = storage.get(STORAGE_NAME);
+const STORAGE_NAME = "terminal-settings";
 
 /**
  * @readonly
  * @type {{SHOW_PROGRESS_INDICATOR: boolean, HIGHLIGHT_INPUT: boolean, AUTOCOMPLETE: boolean}}
  */
-export let OPTIONS = stored ? JSON.parse(stored) : {
+export let OPTIONS = JSON.parse(storage.get(STORAGE_NAME)) || {
     SHOW_PROGRESS_INDICATOR: true,
     HIGHLIGHT_INPUT: true,
     AUTOCOMPLETE: true

@@ -30,9 +30,9 @@ faviconLink.setAttribute(`rel`, `shortcut icon`);
 faviconLink.setAttribute(`href`,images.favicon);
 themeLink.setAttribute("rel", "stylesheet");
 terminal.appendChild(output);
-terminal.appendChild(themeLink);
 
 onWindowLoad(() => {
+    document.head.appendChild(themeLink);
     document.body.appendChild(terminal);
 });
 
