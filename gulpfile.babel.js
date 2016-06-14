@@ -75,8 +75,8 @@ gulp.task("js", ["clean", "css"], function () {
             },
             preserveComments: "some"
         }))
-        .pipe(replace(//g, "\\x0B"))
-        .pipe(replace(/\x1b/g, "\\x1B"))
+        .pipe(replace(/\x0b|\x1b/g, e => `\\x${ e === "\x0b" ? 0 : 1 }b`))
+        .pipe(replace(/[\x00-\x08]/g, e =>  `\\x0${ e.charCodeAt(0) }`))
         //.pipe(sourcemaps.write())
         .pipe(gulp.dest(`${ dest }/client/js`));
 });

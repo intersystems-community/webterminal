@@ -2,6 +2,7 @@ import * as elements from "../elements";
 import * as output from "../output";
 import * as caret from "./caret";
 import * as history from "./history";
+import * as grammar from "../autocomplete/index";
 
 export let ENABLED = false;
 
