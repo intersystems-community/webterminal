@@ -1,6 +1,7 @@
 export default {
     "commands": {
         "@suggestion": "command",
+        "@suggest": "*",
         "s": "commands.set",
         "set": {
             "$KWD": {
@@ -37,8 +38,10 @@ export default {
                 },
                 "!commands": "commands.do.{"
             },
-            "#": {
+            "#": { // todo: implement suggestion mechanism, then deal with ##class as expression
+                "@suggest": "#class",
                 "#": {
+                    "@suggest": "class",
                     "class": {
                         "(": {
                             "!className": {
@@ -62,7 +65,10 @@ export default {
     "var": {
         "^": {
             "@suggestion": "global",
-            "$KWD": "var.$KWD"
+            "$KWD": {
+                "@suggestion": "global",
+                "": "var.$KWD"
+            }
         },
         "@": "var",
         "$KWD": {

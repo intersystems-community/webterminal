@@ -35,7 +35,17 @@ function getStatePath (pathString) {
  * @param {string} stringPart
  */
 function getSuggestions (state, stringPart) {
-
+    let suggestions = [];
+    for (let s in state) {
+        if (!s || (s.length > 1 && (s[0] === "!" || s[0] === "@" || s[0] === "$")))
+            continue;
+        if (s.indexOf(stringPart) !== 0)
+            continue;
+        if (s.length <= stringPart.length)
+            continue;
+        suggestions.push(s.substr(stringPart.length));
+    }
+    return suggestions;
 }
 
 /**
@@ -46,9 +56,10 @@ function getSuggestions (state, stringPart) {
 export function suggest (string) {
     let lex = getLexicalString(string),
         state = grammar.commands,
+        suggestions, keyString,
         suggestion = "", stack = [], prop, abandoned = false;
     loop: for (let i = 0; i < lex.length + 1; i++) {
-        console.log("LEX:", lex[i]);
+        console.log(`Pos ${i}/${lex.length - 1}, lex=`, lex[i], `, State=`, state);
         if (typeof state === "string") {
             i--;
             if (state === "!") {
@@ -65,8 +76,25 @@ export function suggest (string) {
             state = getStatePath(state);
             continue;
         }
-        if (state["@suggestion"] && !suggestion)
-            suggestion = state["@suggestion"];
+        // if (state["@suggestion"] && !suggestion) {
+        //     suggestion = state["@suggestion"];
+        //     // suggestions = getSuggestions()
+        // }
+        if (i > lex.length - 1 && !suggestion && (state["@suggestion"] || state["@suggest"])) {
+            suggestion = state["@suggestion"] || "text";
+            keyString = (lex[i - 1] || lex[i]).v || lex[i - 1] || lex[i];
+            console.log(`Suggesting ${ suggestion } on ${ i } and ${lex[i - 1]}`, lex);
+            if (state["@suggest"] === "*") {
+                suggestions =
+                    getSuggestions(state, keyString);
+            } else if (state["@suggest"]) {
+                suggestions =
+                    state["@suggest"] instanceof Array ? state["@suggest"] : [state["@suggest"]];
+            }
+        }
+        if (i > lex.length - 1 && suggestion && (state["@suggestion"] || state["@suggest"])) {
+            keyString = (lex[i - 1] || lex[i]).v || lex[i - 1] || lex[i];
+        }
         let lexeme = lex[i]; // Symbol like ")" or object { v: "set", t: "$KWD" }
         if (!lexeme)
             continue;
@@ -120,6 +148,8 @@ export function suggest (string) {
     }
     return {
         suggestion: suggestion,
+        suggestions: suggestions || [],
+        keyString: keyString || "",
         state: state
     };
 }
