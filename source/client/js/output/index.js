@@ -3,6 +3,7 @@ import * as elements from "../elements";
 import { onWindowLoad } from "../lib";
 import { ESC_CHARS_MASK, applyEscapeSequence } from "./escStateMachine";
 import esc from "./esc";
+import { onInit } from "../init";
 
 export let SYMBOL_HEIGHT = 12; // in px
 export let SYMBOL_WIDTH = 8; // in px
@@ -12,6 +13,17 @@ export let LINE_WRAP_ENABLED = true; // todo
 export let SCROLLING_ENABLED = false;
 
 const LINE_UPDATE_TIMEOUT = 10;
+
+/**
+ * Terminal ready flag.
+ * @type {boolean}
+ */
+let INITIALIZED = false;
+
+onInit(() => {
+    INITIALIZED = true;
+    freeStack();
+});
 
 /**
  * Output stack. Each output operation will be written to stack first.
@@ -109,6 +121,8 @@ let $CARET_RESTRICTION_ON = true;
 export function print (text) {
 
     stack += text;
+    if (!INITIALIZED)
+        return;
     freeStack();
 
 }

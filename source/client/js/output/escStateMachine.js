@@ -24,6 +24,7 @@ function registerSequence (seq = "", f) {
 
 }
 
+// todo: test and delete
 window.stateTree = stateTree;
 
 for (let seq in esc) {
@@ -83,4 +84,5 @@ export function applyEscapeSequence (string = "") {
         : string.substr(l); // rest of the string
 }
 
+// todo: test and delete
 window.applyEscapeSequence = applyEscapeSequence;

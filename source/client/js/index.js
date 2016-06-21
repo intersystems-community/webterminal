@@ -2,6 +2,7 @@ import "babel-polyfill";
 import * as output from "./output";
 import * as input from "./input";
 import * as server from "./server";
+import { initDone } from "./init";
 
 let terminal = null;
 
@@ -88,6 +89,7 @@ function initDone () {
 function Terminal (setup = {}) {
 
     server.send("auth", setup.authKey);
+    initDone();
 
 }
 
