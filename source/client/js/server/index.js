@@ -6,7 +6,7 @@ import * as handlers from "./handlers";
 /*
  * WebSocket message body (parsed):
  * {
- *  h: "handlerName",
+ *  h: "HandlerName",
  *  d: "data"
  * }
  */
@@ -122,6 +122,9 @@ export function send (handler, data) {
     stack.push(message);
     freeStack();
 }
+
+// todo: remove after test
+window.send = send;
 
 /**
  * Connection between server and client is handled with instance of this function.

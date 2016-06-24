@@ -147,7 +147,6 @@ Method CheckUpdate() As %Status
 Method RequireAuthorization() As %Status
 {
     set data = ..GetMessage(..#AuthorizationTimeout)
-    set ^data = data
     return:(data.d = "") $$$NOTOK
     set authKey = data.d
     set ok = $$$NOTOK
@@ -202,65 +201,37 @@ Method RequireAuthorization() As %Status
     quit ok
 }
 
+/// See WebTerminal.Handlers
+Method ProcessRequest(handler As %String, data) As %Status [ Private ]
+{
+    try {
+        return $CLASSMETHOD("WebTerminal.Handlers", handler, $this, data)
+    } catch (e) { return e }
+}
+
 /// Main method for every new client.
-Method ClientLoop() As %Status
+Method ClientLoop() As %Status [ Private ]
 {
     job ##class(WebTerminal.Core).Loop():($NAMESPACE)
     if ($TEST '= 1) {
         do ..Send("error", "%noJob")
-        return 0
+        return $$$NOTOK
     }
     set ..corePID = $ZCHILD
     set ..childNamespace = $NAMESPACE
     do ..Send("prompt", ..childNamespace)
-    // set ^test = $JOB _ "->" _ $ZCHILD
-    // try {
+    //try { // temp
     for {
-
         set message = ..GetMessage()
         quit:(message = "") // if client is gone, finish looping
-        set data = message.d
-        set handler = message.h
-
-        if (handler = "execute") {
-            do ..Send("o", $CHAR(13, 10))
-            do ..SendChunk(..corePID, "m", message.d)
-            for {
-                set message = ..ReceiveChunk()
-                set flag = $LISTGET(message, 1)
-                set data = $LISTGET(message, 2)
-                if (flag = "o") {
-                    do ..Send("o", data)
-                } elseif (flag = "r") {
-                    set obj = ##class(%ZEN.proxyObject).%New()
-                    set obj.length = $LISTGET(data, 1)
-                    set obj.timeout = $LISTGET(data, 2)
-                    do ..Send("readString", obj)
-                    do ..SendChunk(..corePID, "m", ..GetMessage().d)
-                } elseif (flag = "c") {
-                    set obj = ##class(%ZEN.proxyObject).%New()
-                    set obj.timeout = data
-                    do ..Send("readChar", obj)
-                    do ..SendChunk(..corePID, "m", ..GetMessage().d)
-                } elseif (flag = "e") {
-                    set ..childNamespace = $LISTGET(data, 1)
-                    set err = $LISTGET(data, 2)
-                    if (err '= "") {
-                        do ..Send("execError", err)
-                    }
-                    quit // break for cycle
-                } else { // unknown response - just send it to the client
-                    do ..Send("o", data)
-                }
-            }
-            do ..Send("o", $CHAR(13, 10))
+        set status = ..ProcessRequest(message.h, message.d)
+        if (status '= "") && (status '= $$$OK) {
+            do ..Send("execError", $System.Status.GetErrorText(status))
             do ..Send("prompt", ..childNamespace)
-        } else { // error or unknown message
-            quit
+            continue
         }
-
     }
-    // } catch (e) { set ^err = $ZERROR }
+    //} catch (e) {  do ..Send("o", $System.Status.GetErrorText(e)) } // temp
 }
 
 /// This method sends basic login info to the user. Use this method to set client variables

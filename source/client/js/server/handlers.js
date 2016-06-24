@@ -2,6 +2,10 @@ import * as output from "../output";
 import * as input from "../input";
 import * as server from "./index";
 
+export function suggest (data) {
+    console.log(`Suggest`, data);
+}
+
 export function init (data = {}) {
     output.printLine(`Authorized ${ data["system"] } As ${ data["username"] }${
         data["name"] ? ` (${ data["name"] })` : ``
@@ -10,7 +14,7 @@ export function init (data = {}) {
 
 export function prompt (namespace) {
     input.prompt(`${ namespace } > `, {}, (str) => {
-        server.send("execute", str);
+        server.send("Execute", str);
     });
 }
 

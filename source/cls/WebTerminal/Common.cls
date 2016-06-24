@@ -107,7 +107,7 @@ ClassMethod GetJSONString(obj As %ZEN.proxyObject, pLevel As %Integer = 0, pForm
 					}
 				} ElseIf pFormat["o" || ##class(%ZEN.Auxiliary.jsonProvider).hasObjContent(tValue,.tVisited,pFormat) {
 					Do nextProp
-					set ser = ser _ $$$ZENJSONPROP(tProp,pFormat)_":"""""
+					set ser = ser _ $$$ZENJSONPROP(tProp,pFormat)_":[""todo: implement arrays in WebTerminal.Common.GetJSONString()""]"
 				}
 			} ElseIf pFormat["e" || $L(tValue) {
 				Do nextProp

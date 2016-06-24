@@ -88,7 +88,7 @@ function initDone () {
  */
 function Terminal (setup = {}) {
 
-    server.send("auth", setup.authKey);
+    server.send("Auth", setup.authKey);
     initDone();
 
 }

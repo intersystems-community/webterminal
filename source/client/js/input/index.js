@@ -173,6 +173,11 @@ function showInput () {
     updateInput();
 }
 
+// todo: onUpdate
+export function onUpdate () {
+
+}
+
 function updateInput () {
 
     if (!ENABLED)
