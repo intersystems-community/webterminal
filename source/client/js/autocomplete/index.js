@@ -1,4 +1,5 @@
 import grammar from "./grammar";
+import "./suggestor";
 
 /**
  * Differentiate strings, numbers and keywords, remove whitespaces.
@@ -9,9 +10,9 @@ function getLexicalString (string) {
         earr = [],
         i = 0;
     string.split(/[\s\t]+/g).forEach((e) => e.replace(
-        /[a-zA-Z][a-zA-Z0-9]*|"[^"]*"|[0-9]+(?:\.[0-9]+)?/gi,
+        /[a-zA-Z][a-zA-Z0-9\.]*|"[^"]*"|[0-9]+?(?:\.[0-9]+)?/gi,
         (s) => {
-            let symb = s[0] === "\"" ? "\x02" : /[0-9]/.test(s[0]) ? "\x00" : "\x01";
+            let symb = s[0] === "\"" ? "\x02" : /[0-9]|\./.test(s[0]) ? "\x00" : "\x01";
             earr.push({ v: s, t: symb === "\x01" ? "$KWD" : "$VAL" });
             return symb;
         }
@@ -54,6 +55,13 @@ function getSuggestions (state, stringPart) {
  * @returns {{suggestion: string, state: *}}
  */
 export function suggest (string) {
+    if (!string)
+        return {
+            suggestion: "",
+            suggestions: [],
+            keyString: "",
+            state: grammar.commands
+        };
     let lex = getLexicalString(string),
         state = grammar.commands,
         suggestions, keyString,

@@ -160,7 +160,7 @@ Line.prototype.print = function (text, position = this.text.length) {
         )
             this.graphicProperties[position] = toAssign;
         if (tempGP || !curPositions.length)
-            this.graphicProperties[endPos] = tempGP || null;
+            this.graphicProperties[endPos] = tempGP && Object.keys(tempGP).length ? tempGP : null;
         if (tempGP || hasAtEnd) {
             let o = {}, keys = Object.keys(this.graphicProperties).map(e=>+e).sort((a,b)=>a>b);
             for (let k of keys)

@@ -1,9 +1,22 @@
 import * as output from "../output";
 import * as input from "../input";
 import * as server from "./index";
+import * as suggestor from "../autocomplete/suggestor";
 
-export function suggest (data) {
-    console.log(`Suggest`, data);
+export function suggest (data = { for: 0, variants: [], base: "" }) {
+    let s = [];
+    for (let p in data.variants) {
+        let toPush, i;
+        if (data.base) {
+            if (data.variants[p].indexOf(data.base) === 0)
+                toPush = data.variants[p].substr(data.base.length);
+        } else toPush = data.variants[p];
+        if (!toPush)
+            continue;
+        s.push((i = toPush.indexOf(`.`)) > 0 ? toPush.substring(0, i) : toPush);
+    }
+    if (s.length)
+        suggestor.addSuggestions(data.for, s);
 }
 
 export function init (data = {}) {

@@ -60,5 +60,11 @@ export default {
             }
             output.setGraphicProperty(indices[i], `m${indices[i]}`);
         }
+    },
+    "\x1b[({[\\w\\-]+})m": (args) => {
+        let cls = args[0];
+        if (!cls)
+            return;
+        output.setGraphicProperty(9, cls);
     }
 }

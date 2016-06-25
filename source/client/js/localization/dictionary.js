@@ -39,11 +39,11 @@ export default {
         "{definition} \x1B[33m/define\x1B[0m {phrase}\x1B[32GReplace each next {phrase} with {definition}. To " +
         "get more information, call command without parameters.\r\n" +
         "\x1B[33m/VERSION\x1B[0m\x1B[32GOutput terminal application VERSION.\r\n" +
-        "\x1B[33m/update\x1B[0m\x1B[32GCheck for updates and prompt to update if new VERSION available.\r\n" +
+        "\x1B[33m/update\x1B[0m\x1B[32GCheck for updates and prompt to update if new VERSION is available.\r\n" +
         "\x1B[33m/settings\x1B[0m\x1B[32GShow or change terminal settings.\r\n" +
         "\x1B[33m/about\x1B[0m\x1B[32GProject information.\r\n\r\n" +
         "\x1B[4mControl keys:\x1B[0m\r\n" +
-        "\x1B[33mTAB\x1B[0m\x1B[32GComplete input if autocomplete variant available.\r\n" +
+        "\x1B[33mTAB\x1B[0m\x1B[32GComplete input if autocomplete variant is available.\r\n" +
         "\x1B[33mCTRL\x1B[0m\x1B[32GLeft/right control will switch next/previous available" +
         " autocomplete variant.\r\n",
         ru: `Caché WEB Terminal v${ VERSION }\r\n\r\n` +

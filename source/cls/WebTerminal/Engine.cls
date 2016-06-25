@@ -206,7 +206,7 @@ Method ProcessRequest(handler As %String, data) As %Status [ Private ]
 {
     try {
         return $CLASSMETHOD("WebTerminal.Handlers", handler, $this, data)
-    } catch (e) { return e }
+    } catch (e) { return e.AsSystemError() }
 }
 
 /// Main method for every new client.
@@ -226,8 +226,7 @@ Method ClientLoop() As %Status [ Private ]
         quit:(message = "") // if client is gone, finish looping
         set status = ..ProcessRequest(message.h, message.d)
         if (status '= "") && (status '= $$$OK) {
-            do ..Send("execError", $System.Status.GetErrorText(status))
-            do ..Send("prompt", ..childNamespace)
+            do ..Send("execError", status)
             continue
         }
     }

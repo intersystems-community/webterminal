@@ -45,9 +45,13 @@ ClassMethod Execute (client As WebTerminal.Engine, command As %String) As %Statu
     return $$$OK
 }
 
-ClassMethod GlobalAutocomplete (client As WebTerminal.Engine, part As %String) As %Status
+ClassMethod GlobalAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
 {
-    do client.Send("suggest", ##class(WebTerminal.Autocomplete).GetGlobals(client.childNamespace, part))
+    set obj = ##class(%ZEN.proxyObject).%New()
+    set obj.for = data.for
+    set obj.base = data.part
+    set obj.variants = ##class(WebTerminal.Autocomplete).GetGlobals(client.childNamespace, data.part)
+    do client.Send("suggest", obj)
     return $$$OK
 }
 
