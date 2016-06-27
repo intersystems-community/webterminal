@@ -66,6 +66,7 @@ export function suggest (string) {
         state = grammar.commands,
         suggestions, keyString,
         suggestion = "", stack = [], prop, abandoned = false;
+    console.log(`####### Lexical string:`, lex);
     loop: for (let i = 0; i < lex.length + 1; i++) {
         console.log(`Pos ${i}/${lex.length - 1}, lex=`, lex[i], `, State=`, state);
         if (typeof state === "string") {
@@ -91,7 +92,7 @@ export function suggest (string) {
         if (i > lex.length - 1 && !suggestion && (state["@suggestion"] || state["@suggest"])) {
             suggestion = state["@suggestion"] || "text";
             keyString = (lex[i - 1] || lex[i]).v || lex[i - 1] || lex[i];
-            console.log(`Suggesting ${ suggestion } on ${ i } and ${lex[i - 1]}`, lex);
+            console.log(`Suggesting ${ suggestion } on ${ i } and ${lex[i - 1]}, state `, state);
             if (state["@suggest"] === "*") {
                 suggestions =
                     getSuggestions(state, keyString);
@@ -139,6 +140,8 @@ export function suggest (string) {
                 continue loop;
             }
         }
+        if (!stack.length)
+            continue;
         console.log(`Popping stack`, stack.join(","));
         if (!(state = stack.pop())) {
             state = grammar.commands;

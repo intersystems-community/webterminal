@@ -4,7 +4,7 @@ import * as server from "./index";
 import * as suggestor from "../autocomplete/suggestor";
 
 export function suggest (data = { for: 0, variants: [], base: "" }) {
-    let s = [];
+    let s = [], lastPushed = "";
     for (let p in data.variants) {
         let toPush, i;
         if (data.base) {
@@ -13,7 +13,10 @@ export function suggest (data = { for: 0, variants: [], base: "" }) {
         } else toPush = data.variants[p];
         if (!toPush)
             continue;
-        s.push((i = toPush.indexOf(`.`)) > 0 ? toPush.substring(0, i) : toPush);
+        toPush = (i = toPush.indexOf(`.`)) > 0 ? toPush.substring(0, i) : toPush;
+        if (lastPushed === toPush)
+            continue;
+        s.push(lastPushed = toPush);
     }
     if (s.length)
         suggestor.addSuggestions(data.for, s);

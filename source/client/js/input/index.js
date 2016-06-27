@@ -24,7 +24,7 @@ window.addEventListener(`keydown`, (e) => {
 }, true);
 window.addEventListener(`click`, focusInput, true);
 elements.input.addEventListener(`input`, () => {
-    updateInput();
+    update();
     inputUpdated();
 });
 elements.input.addEventListener(`keydown`, (e) => {
@@ -39,7 +39,7 @@ elements.input.addEventListener(`mousemove`, () => {
     ) {
         lastMouseMoveSelection[0] = elements.input.selectionStart;
         lastMouseMoveSelection[1] = elements.input.selectionEnd;
-        updateInput();
+        update();
     }
 });
 
@@ -112,7 +112,7 @@ export function getKey (options = {}, callback) {
 
 }
 
-function setCaretPosition(caretPos) {
+export function setCaretPosition (caretPos) {
     focusInput();
     if (elements.input.createTextRange) {
         var range = elements.input.createTextRange();
@@ -122,6 +122,15 @@ function setCaretPosition(caretPos) {
         elements.input.setSelectionRange(caretPos, caretPos);
     }
     console.log(`Caret position is set to ${ caretPos }!`);
+}
+
+export function getCaretPosition () {
+    if (typeof elements.input.selectionEnd !== "undefined") {
+        return elements.input.selectionEnd;
+    } else if (document.selection && document.selection.createRange) {
+        return document.selection.createRange().getBookmark().charCodeAt(2) - 2;
+    }
+    return elements.input.length;
 }
 
 function keyDown (e) {
@@ -134,13 +143,13 @@ function keyDown (e) {
     }
     if ([35, 36, 37, 39].indexOf(e.keyCode) !== -1) { // end home left right
         setTimeout(() => {
-            updateInput();
+            update();
             inputUpdated();
         }, 1); // update in the next frame
     }
     if (e.keyCode === 38 || e.keyCode === 40) { // up || down
         elements.input.value = history.get(e.keyCode - 39);
-        updateInput();
+        update();
         inputUpdated();
         setTimeout(() => setCaretPosition(elements.input.value.length), 1);
     }
@@ -179,7 +188,7 @@ function showInput () {
     elements.input.style.textIndent = `${ (ORIGIN_CURSOR_X - 1) * output.SYMBOL_WIDTH }px`;
     elements.input.style.top = `${ ORIGIN_LINE_INDEX * output.SYMBOL_HEIGHT }px`;
     elements.output.appendChild(elements.input);
-    updateInput();
+    update();
 }
 
 function inputUpdated () {
@@ -194,10 +203,10 @@ export function setHint (string) {
     let oldHint = HINT;
     HINT = string;
     if (HINT !== oldHint)
-        updateInput();
+        update();
 }
 
-function updateInput () {
+export function update () {
 
     let extraLength = 0;
 

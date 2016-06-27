@@ -38,16 +38,28 @@ export default {
                 },
                 "!commands": "commands.do.{"
             },
-            "#": { // todo: implement suggestion mechanism, then deal with ##class as expression
-                "@suggest": "#class",
+            "#": {
+                "@suggest": "#class(",
                 "#": {
-                    "@suggest": "class",
+                    "@suggest": "*",
                     "class": {
                         "(": {
-                            "!className": {
+                            "@suggestion": "className",
+                            "$KWD": {
+                                "@suggestion": "className",
                                 ")": {
-                                    ",": {
-                                        "#": "commands.do.#"
+                                    ".": {
+                                        "@suggestion": "classMember",
+                                        "$KWD": {
+                                            "(": {
+                                                "!exp": {
+                                                    ",": "commands.do.#.#.class.(.$KWD.)...$KWD.(",
+                                                    ")": {
+                                                        ",": "commands.do"
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -55,12 +67,18 @@ export default {
                     }
                 }
             }
-        }
-    },
-    "className": {
-        "$KWD": {
-            ".": "className"
-        }
+        },
+        "k": "commands.kill",
+        "kill": {
+            ":": {
+                "!exp": {
+                    "$KWD": "commands.set.$KWD"
+                }
+            },
+            "$KWD": "commands"
+        },
+        "zwrite": "commands.write",
+        "zw": "commands.write"
     },
     "var": {
         "^": {
@@ -92,6 +110,24 @@ export default {
             "": "exp"
         },
         "!var": "exp.$VAL",
+        "#": {
+            "@suggest": "#class(",
+            "#": {
+                "@suggest": "*",
+                "class": {
+                    "(": {
+                        "@suggestion": "className",
+                        "$KWD": {
+                            ")": {
+                                ".": {
+                                    "#": "commands.do.#"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "$VAL": {
             "+": "exp",
             "-": "exp",

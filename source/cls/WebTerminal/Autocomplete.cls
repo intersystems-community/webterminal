@@ -155,4 +155,21 @@ ClassMethod GetGlobals(namespace As %String = "%SYS", beginning As %String = "")
     quit result
 }
 
+/// Return an array of class names in the namespace, which begin from "beginning".
+/// May be optimized!
+ClassMethod GetClass(namespace As %String = "%SYS", beginning As %String = "") As %ZEN.proxyObject
+{
+    set result = ##class(%ZEN.proxyObject).%New()
+    new $Namespace
+    set $Namespace = namespace
+    set rset = ##class(%ResultSet).%New("%Dictionary.CompiledClassQuery:Summary")
+    do rset.Execute()
+    set i = -1
+    while (rset.Next()) {
+        set r = rset.GetData(1)
+        set:(($FIND(r, beginning) - $LENGTH(beginning)) = 1) $PROPERTY(result, $Sequence(i)) = r
+    }
+    quit result
+}
+
 }
