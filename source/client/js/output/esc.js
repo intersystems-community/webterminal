@@ -50,21 +50,33 @@ export default {
                 continue;
             }
             if ((indices[i] === 38 || indices[i] === 48) && indices[i + 1] === 5) {
-                output.setGraphicProperty(
-                    indices[i],
-                    `m${indices[i]}`,
-                    `${indices[i] === 48 ? "background-" : ""}color:${ COLOR_8BIT[indices[i + 2]] }`
-                );
+                output.setGraphicProperty(indices[i], {
+                    class: `m${indices[i]}`,
+                    style: `${indices[i] === 48 ? "background-" : ""}color:${ COLOR_8BIT[indices[i + 2]] }`
+                });
                 i += 2;
                 continue;
             }
-            output.setGraphicProperty(indices[i], `m${indices[i]}`);
+            output.setGraphicProperty(indices[i], {
+                class: `m${indices[i]}`
+            });
         }
     },
     "\x1b[({[\\w\\-]+})m": (args) => {
         let cls = args[0];
         if (!cls)
             return;
-        output.setGraphicProperty(9, cls);
+        output.setGraphicProperty(9, { class: cls });
+    },
+    "\x1b!URL={[^\\x20]*} ({[^\\)]+})": ([url, text]) => {
+        output.setGraphicProperty(9, {
+            tag: "a",
+            attrs: {
+                href: url,
+                target: "_blank"
+            }
+        });
+        output.immediatePlainPrint(text);
+        output.clearGraphicProperty(9);
     }
 }

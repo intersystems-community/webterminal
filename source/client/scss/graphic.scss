@@ -1,5 +1,9 @@
 @import "mixins";
 
+a {
+    color: #00ce00;
+}
+
 .terminal .output .line {
 
     .g.m1 { /* bright */
@@ -30,7 +34,7 @@
         opacity: 0;
     }
 
-    //.g.m9 { // reserved for hint
+    //.g.m9 { // reserved for CWT
     //    opacity: 0.5;
     //}
 

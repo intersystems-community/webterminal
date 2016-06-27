@@ -1,10 +1,13 @@
 import "babel-polyfill";
+import "./network";
 import * as output from "./output";
 import * as input from "./input";
 import * as server from "./server";
 import { initDone } from "./init";
 
-let terminal = null;
+let onAuthHandlers = [],
+    AUTHORIZED = false,
+    terminal = null;
 
 export const VERSION = "/* @echo package.VERSION */";
 export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
@@ -19,6 +22,19 @@ export function initTerminal (options) {
     if (terminal)
         return terminal;
     return terminal = new Terminal(options);
+}
+
+export function onAuth (callback) {
+    if (AUTHORIZED) {
+        callback();
+        return;
+    }
+    onAuthHandlers.push(callback);
+}
+
+export function authDone () {
+    AUTHORIZED = true;
+    onAuthHandlers.forEach(h => h());
 }
 
 window.initTerminal = initTerminal;

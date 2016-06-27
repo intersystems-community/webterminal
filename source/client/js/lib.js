@@ -23,33 +23,29 @@ export function onWindowLoad (f) {
  *
  * @param url
  * @param {function} callback
- * @param [caching=false] - Cache the result.
  */
-export function get (url, callback, caching) {
+export function get (url, callback) {
 
-    var request = new XMLHttpRequest(),
-        s;
+    var request = new XMLHttpRequest();
 
-    caching = "cache=" + ((caching) ? 1 : Math.random());
-
-    request.onreadystatechange = function() {
+    request.onreadystatechange = () => {
 
         if (request.readyState === 4) {
 
             if (request.status === 200) {
-                callback.call(window, request.responseText, false);
+                let p = { error: "Parse error", data: request.responseText };
+                try { p = JSON.parse(request.responseText) } catch (e) {}
+                callback(p);
             } else {
-                callback.call(window, "", true);
+                callback({ error: `HTTP ${ request.status } error` });
             }
 
         }
 
     };
 
-    s = (url.indexOf("?") === -1) ? "?" : "&";
-
     try {
-        request.open("GET", url + s + caching, true);
+        request.open("GET", `${ url }?_=${ new Date().getTime() }`, true);
         request.send();
     } catch (e) {
         // huh?

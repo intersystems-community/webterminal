@@ -4,10 +4,15 @@ import * as caret from "./caret";
 import * as history from "./history";
 import * as grammar from "../autocomplete/index";
 
-export let ENABLED = false;
+export let ENABLED = false,
+    PROMPT_CLEARED = false;
 
 let ORIGIN_LINE_INDEX = 0,
     ORIGIN_CURSOR_X = 0,
+    PROMPT_START_LINE_INDEX = 0,
+    PROMPT_START_CURSOR_X = 0,
+    PROMPT_MESSAGE = "",
+    PROMPT_OPTIONS = {},
     HINT = "";
 
 let oldInputLength = 0,
@@ -63,6 +68,12 @@ export function focusInput () {
  */
 export function prompt (text, options = {}, callback) {
 
+    PROMPT_START_CURSOR_X = output.getCursorX();
+    PROMPT_START_LINE_INDEX = output.getCurrentLineIndex();
+    PROMPT_MESSAGE = text || "";
+    PROMPT_OPTIONS = options;
+    PROMPT_CLEARED = false;
+
     if (text)
         output.print(text);
     
@@ -77,6 +88,26 @@ export function prompt (text, options = {}, callback) {
     readLength = options.length ? options.length : 0;
     showInput();
 
+}
+
+export function clearPrompt () {
+    if (!ENABLED)
+        return;
+    output.setCursorYToLineIndex(PROMPT_START_LINE_INDEX);
+    output.setCursorX(PROMPT_START_CURSOR_X);
+    output.immediatePlainPrint(new Array(PROMPT_MESSAGE.length + elements.input.value.length + 1).join(" "))
+    output.setCursorYToLineIndex(PROMPT_START_LINE_INDEX);
+    output.setCursorX(PROMPT_START_CURSOR_X);
+    PROMPT_CLEARED = true;
+}
+
+/**
+ * Performs the last prompt
+ */
+export function reprompt () {
+    if (!ENABLED)
+        return;
+    prompt(PROMPT_MESSAGE, PROMPT_OPTIONS, promptCallBack);
 }
 
 /**

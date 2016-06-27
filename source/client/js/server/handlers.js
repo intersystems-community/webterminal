@@ -1,6 +1,7 @@
 import * as output from "../output";
 import * as input from "../input";
 import * as server from "./index";
+import * as terminal from "../index";
 import * as suggestor from "../autocomplete/suggestor";
 
 export function suggest (data = { for: 0, variants: [], base: "" }) {
@@ -26,6 +27,7 @@ export function init (data = {}) {
     output.printLine(`Authorized ${ data["system"] } As ${ data["username"] }${
         data["name"] ? ` (${ data["name"] })` : ``
     }`);
+    terminal.authDone();
 }
 
 export function prompt (namespace) {

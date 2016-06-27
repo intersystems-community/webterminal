@@ -4,6 +4,7 @@ import { onWindowLoad } from "../lib";
 import { ESC_CHARS_MASK, applyEscapeSequence } from "./escStateMachine";
 import esc from "./esc";
 import { onInit } from "../init";
+import * as input from "../input";
 
 export let SYMBOL_HEIGHT = 12; // in px
 export let SYMBOL_WIDTH = 8; // in px
@@ -457,19 +458,21 @@ function scrollDisplayPart (lineFrom, lineTo, amount) {
 /**
  * Sets the graphic property.
  * @param {number} key - The key of the property.
- * @param {string} [className] - The name of the class if needed.
- * @param {string} [style] - Style attribute for tag (if needed).
+ * @param {*} custom - Properties to assign.
  */
-export function setGraphicProperty (key, className, style) {
+export function setGraphicProperty (key, custom) {
 
     GRAPHIC_PROPERTIES[key] = {};
-    if (style)
-        GRAPHIC_PROPERTIES[key].style = style;
-    if (className)
-        GRAPHIC_PROPERTIES[key].class = className;
-
+    if (custom)
+        Object.assign(GRAPHIC_PROPERTIES[key], custom);
     // console.log(`GP is now`,GRAPHIC_PROPERTIES);
 
+}
+
+export function clearGraphicProperty (key) {
+    
+    delete GRAPHIC_PROPERTIES[key];
+    
 }
 
 /**
@@ -522,7 +525,7 @@ export function pushLines (number) {
 function freeStack () {
 
     if (!stack) return;
-
+    
     let pos, oldStack;
 
     while ((pos = stack.search(ESC_CHARS_MASK)) !== -1) {
@@ -543,6 +546,18 @@ function freeStack () {
 
 let changedLines = {},
     lineUpdateTimeout = 0;
+
+/**
+ * Print plain text without stacking it.
+ * @param {string} text
+ */
+export function immediatePlainPrint (text) {
+    return output(text);
+}
+
+export function newLine () {
+    esc["\r"](); esc["\n"]();
+}
 
 /**
  * Output plain text. Text must not include any non-printable characters.
