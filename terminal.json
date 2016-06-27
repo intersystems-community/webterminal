@@ -1,0 +1,12 @@
+{
+  "motd": "Find more about latest \u001b!URL=http://intersystems-ru.github.io/webterminal (WebTerminal).",
+  "versions": [
+    {
+      "v": "4.0.0-alpha.1",
+      "url": "http://intersystems-ru.github.io/webterminal/files/CacheWebTerminal-v4.0.0-alpha.1.xml",
+      "changes": [
+        "Initial version."
+      ]
+    }
+  ]
+}
