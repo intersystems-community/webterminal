@@ -1,5 +1,5 @@
 {
-  "motd": "Find more about latest \u001b!URL=http://intersystems-ru.github.io/webterminal (WebTerminal).",
+  "motd": "Find more about latest \u001b!URL=http://intersystems-ru.github.io/webterminal (WebTerminal). v4 is under development now, see the progress \u001b!URL=https://github.com/intersystems-ru/webterminal/issues/61 (here).",
   "versions": [
     {
       "v": "4.0.0-alpha.1",
