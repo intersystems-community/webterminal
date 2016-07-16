@@ -8,6 +8,13 @@
         "Terminal core is changed",
         "Almost full application rewrite"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.2",
+      "url": "http://intersystems-ru.github.io/webterminal/files/CacheWebTerminal-v4.0.0-alpha.2.xml",
+      "changes": [
+        "New update system"
+      ]
     }
   ]
 }
