@@ -597,6 +597,7 @@ function output (plainText = "") {
             delete changedLines[line];
         }
         lineUpdateTimeout = 0;
+        scrollDown();
     }, LINE_UPDATE_TIMEOUT);
 
 }
