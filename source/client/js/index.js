@@ -9,7 +9,7 @@ let onAuthHandlers = [],
     AUTHORIZED = false,
     terminal = null;
 
-export const VERSION = "/* @echo package.VERSION */";
+export const VERSION = "/* @echo package.version */";
 export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
 
 /**

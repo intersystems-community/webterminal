@@ -13,32 +13,31 @@ Class WebTerminal.Core Extends Common [ Not ProcedureBlock ]
 Method redirects() [ Private, ProcedureBlock = 0 ]
 {
 wstr(str)
-    do ..SendChunk($ZPARENT, "o", str)
-    quit
+    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", str)
 
 wchr(c)
-    do ..SendChunk($ZPARENT, "o", $CHAR(c))
+    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(c))
     quit
 
 wnl
-    do ..SendChunk($ZPARENT, "o", $CHAR(13, 10))
+    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(13, 10))
     quit
 
 wff
-    do ..SendChunk($ZPARENT, "o", $CHAR(12))
+    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(12))
     quit
 
 wtab(s)
-    do ..SendChunk($ZPARENT, "o", $CHAR(27) _ "[" _ (s + 1) _ "G")
+    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(27) _ "[" _ (s + 1) _ "G")
     quit
 
 rstr(length = 32656, timeout = 86400)
-    do ..SendChunk($ZPARENT, "r", $lb(length, timeout))
-    quit $LISTGET(..ReceiveChunk(), 2)
+    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "r", $lb(length, timeout))
+    quit $LISTGET(##class(WebTerminal.Common).ReceiveChunk(), 2)
 
 rchr(timeout = 86400)
-    do ..SendChunk($ZPARENT, "c", timeout)
-    quit $LISTGET(..ReceiveChunk(), 2)
+    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "c", timeout)
+    quit $LISTGET(##class(WebTerminal.Common).ReceiveChunk(), 2)
 }
 
 /// Retrieves a command text from the parent process.

@@ -367,5 +367,14 @@ export default {
     },
     "plRefPageSes": {
         en: "Please, refresh the web page to start a new session."
+    },
+    "noUpdUrl": {
+        en: "Unable to get update URL. Please, update \x1b!URL=%s (manually)."
+    },
+    "updReady": {
+        en: "\x1b[36mNew update is available.\x1b[0m \x1b!URL=%s (Click here) to install it now. Changelist:"
+    },
+    "updStart": {
+        en: "Updating WebTerminal... %s -> %s"
     }
 };
