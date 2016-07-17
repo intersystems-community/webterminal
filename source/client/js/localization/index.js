@@ -10,12 +10,12 @@ export let LOCALES = [];
 
 let STORAGE_NAME = "terminal-localization",
     DEFAULT_LOCALE = "en",
+    LEXEME_REGEX = /%([a-zA-Z0-9]+)(?:\(([^)]*)\))?/g,
     CURRENT_LOCALE = getLocale();
 
 function getLocales () {
     return (() => {
         let locales = [];
-        console.log(">", dictionary);
         //noinspection LoopStatementThatDoesntLoopJS
         for (let a in dictionary) {
             for (let b in dictionary[a]) {
@@ -24,6 +24,11 @@ function getLocales () {
             return locales;
         }
     })();
+}
+
+function lexemeDefined (str) {
+    if (str === "s" || str === "d") return false;
+    return dictionary.hasOwnProperty(str);
 }
 
 export function getLocale () {
@@ -75,6 +80,25 @@ export function get (locId, ...args) {
         return typeof args[++i] !== "undefined"
             ? ( part.charAt(1) === "s" ? args[i].toString() : parseFloat(args[i]) )
             : part;
+    });
+
+}
+
+export function parse (string, ...parameters) {
+
+    let i = 0;
+    return (string + "").replace(LEXEME_REGEX, (match, prop, args) => {
+        return lexemeDefined(prop)
+            ? get.apply(
+                window,
+                [prop].concat(
+                    args
+                        ? args.split(",").map( (str) => parse(str) )
+                        : undefined
+                )
+            )
+            : typeof parameters[i] !== "undefined" ? parameters[i++] // place parameter
+            : match; // return match if nothing found
     });
 
 }

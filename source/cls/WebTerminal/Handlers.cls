@@ -45,6 +45,11 @@ ClassMethod Execute (client As WebTerminal.Engine, command As %String) As %Statu
     return $$$OK
 }
 
+ClassMethod Update (client As WebTerminal.Engine, URL As %String)
+{
+    return ##class(WebTerminal.Updater).Update(client, URL)
+}
+
 ClassMethod GlobalAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
 {
     set obj = ##class(%ZEN.proxyObject).%New()

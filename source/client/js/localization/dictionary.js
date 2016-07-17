@@ -376,5 +376,35 @@ export default {
     },
     "updStart": {
         en: "Updating WebTerminal... %s -> %s"
+    },
+    "rSerUpd": {
+        en: "Requesting server to update..."
+    },
+    "sUpdSt": {
+        en: "Update started, please, do not close this window."
+    },
+    "sUpdRURL": {
+        en: "Requesting %s"
+    },
+    "sUpdGetOK": {
+        en: "Response downloaded."
+    },
+    "sUpdSCode": {
+        en: "Unable to update WebTerminal: HTTP request returned code %s."
+    },
+    "sUpdWTF": {
+        en: "Writing response to a temporary file..."
+    },
+    "sUpdLoad": {
+        en: "Importing new XML file..."
+    },
+    "sUpdCleanLog": {
+        en: "Deleting log file %s..."
+    },
+    "sUpdClean": {
+        en: "Deleting temporary file %s..."
+    },
+    "sUpdDone": {
+        en: "Update completed! Please, \x1b!URL=javascript:location.reload() (reload) the page."
     }
 };

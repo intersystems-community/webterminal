@@ -79,69 +79,6 @@ ClassMethod ParseError(string As %String) As %String
         $EXTRACT($PIECE(string, "<", 4), 2, *)
 }
 
-Method Update(version) As %Status
-{
-    set httprequest = ##class(%Net.HttpRequest).%New()
-    set httprequest.Server = "intersystems-ru.github.io"
-    do ..SendData("34", ..#ClientOutputLocalized)
-    do ..SendData(" http://intersystems-ru.github.io/webterminal/files/" _ version _ ".xml ")
-    do httprequest.Get("/webterminal/files/" _ version _ ".xml")
-    if (httprequest.HttpResponse.StatusCode '= 200) {
-        do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
-            _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
-        quit $$$NOTOK
-    }
-    do ..SendData($C(27)_"[32mOK" _ $C(27) _ "[0m")
-    if ($isobject(httprequest.HttpResponse.Data)) {
-        do ..SendData($C(13,10))
-        do ..SendData("35", ..#ClientOutputLocalized)
-        do ..SendData($C(13,10))
-        do ..SendData("Moving back to terminal's home namespace " _ ..InitialZNamespace _ "...")
-        zn ..InitialZNamespace
-        //do ..StartClearIO()
-        set stload = $System.OBJ.LoadStream(httprequest.HttpResponse.Data, "", .error, .items)
-        if $$$ISERR(stload) {
-            w $C(27)_"[31mFAILED" _ $C(27) _ "[0m " _ $System.Status.GetErrorText(stload)
-            quit $$$NOTOK
-        }
-        set logFileName = ##class(%File).SubDirectoryName(##class(%File).ManagerDirectory(),"CWTUpdateLog.txt")
-        open logFileName:("NRW"):5
-        set io = $IO
-        use logFileName
-        set st2 = $System.OBJ.CompileList(.items, "cuk /checkuptodate=none")
-        close logFileName
-        use io
-        if $$$ISERR(st2) { write $System.Status.GetErrorText(st2) quit $$$NOTOK }
-        //do ..EndClearIO()
-        if ##class(%File).Exists(logFileName) {
-            set stream = ##class(%Stream.FileCharacter).%New()
-            set sc = stream.LinkToFile(logFileName)
-            while 'stream.AtEnd {
-                set line = stream.Read()
-                do ..SendData(line)
-            }
-            do ##class(%File).Delete(logFileName)
-        }
-    }
-    quit $$$OK
-}
-
-Method CheckUpdate() As %Status
-{
-    set httprequest = ##class(%Net.HttpRequest).%New()
-    set httprequest.Server = "intersystems-ru.github.io"
-    do httprequest.Get("/webterminal/latestVersion")
-    if (httprequest.HttpResponse.StatusCode '= 200) {
-        do ..SendData($C(27)_"[31mFAIL" _ $C(27) _ "[0m (status code "
-            _ httprequest.HttpResponse.StatusCode _ ")" _ $C(13,10))
-        quit $$$NOTOK
-    }
-    if ($isobject(httprequest.HttpResponse.Data)) {
-        do ..SendData(httprequest.HttpResponse.Data.Read(), ..#ClientPromptUpdate)
-    }
-    quit $$$OK
-}
-
 /// This method holds process and expects only one package from
 /// the client - it includes authorization key.
 Method RequireAuthorization() As %Status
@@ -226,7 +163,8 @@ Method ClientLoop() As %Status [ Private ]
         quit:(message = "") // if client is gone, finish looping
         set status = ..ProcessRequest(message.h, message.d)
         if (status '= "") && (status '= $$$OK) {
-            do ..Send("execError", status)
+            set eType = $EXTRACT(status, 1, 1)
+            do ..Send("execError", $case(eType = 0, 1: $System.Status.GetErrorText(status), :status))
             continue
         }
     }

@@ -3,6 +3,7 @@ import * as input from "../input";
 import * as server from "./index";
 import * as terminal from "../index";
 import * as suggestor from "../autocomplete/suggestor";
+import * as locale from "../localization";
 
 export function suggest (data = { for: 0, variants: [], base: "" }) {
     let s = [], lastPushed = "";
@@ -61,4 +62,8 @@ export function readChar (data = {}) {
  */
 export function o (text = "") {
     output.print(text);
+}
+
+export function oLocalized (text = "") {
+    output.print(locale.parse(text));
 }
