@@ -22,6 +22,13 @@
       "changes": [
         "Extended API: onTerminalInit and onUserInput functions support"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.4",
+      "url": "http://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.4.xml",
+      "changes": [
+        "COS read command incorrect behavior fix"
+      ]
     }
   ]
 }
