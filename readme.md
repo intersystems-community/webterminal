@@ -109,7 +109,7 @@ The next table demonstrates available API. Left column are `terminal` object pro
 		<td>Description</td>
 	</tr>
 	<tr>
-        <td>onUserEntry(<b>cb</b>)</td>
+        <td>onUserInput(<b>cb</b>)</td>
         <td>
             <b>cb</b>(<u>text</u>, <u>mode</u>) is fired right after user press enter. Argument
             <code>text</code> is a <code>String</code> of user input, and
@@ -133,11 +133,17 @@ The next table demonstrates available API. Left column are `terminal` object pro
 Examples of usage:
 
 ```js
-document.querySelector("#terminal").contentWindow.onTerminalInit(function (terminal) {
-    terminal.onUserEntry(function (text, mode) {
-        if (mode === webTerminal.input.MODE_PROMPT) {
-            alert("User entered the next command: " + text);
-        }
-    });
+var iFrame = document.querySelector("#terminal");
+
+function onInput (text, mode) {
+	if (mode !== webTerminal.input.MODE_PROMPT)
+		return;
+	alert("User entered the next command: " + text);
+}
+
+iFrame.addEventListener("load", function () { // handle iFrame load event
+	iFrame.contentWindow.onTerminalInit(function (terminal) { // handle terminal init event
+		terminal.onUserInput(onInput);
+	});
 });
 ```
