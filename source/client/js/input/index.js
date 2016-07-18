@@ -27,7 +27,7 @@ let oldInputLength = 0,
 window.addEventListener(`keydown`, (e) => {
     focusInput();
     keyDown(e);
-    e.stopPropagation();
+    // e.stopPropagation();
 }, true);
 window.addEventListener(`click`, focusInput, true);
 elements.input.addEventListener(`input`, () => {
@@ -36,7 +36,7 @@ elements.input.addEventListener(`input`, () => {
 });
 elements.input.addEventListener(`keydown`, (e) => {
     keyDown(e);
-    e.stopPropagation();
+    // e.stopPropagation();
 });
 let lastMouseMoveSelection = [undefined, undefined];
 elements.input.addEventListener(`mousemove`, () => {

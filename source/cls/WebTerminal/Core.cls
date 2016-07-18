@@ -17,26 +17,22 @@ wstr(str)
 
 wchr(c)
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(c))
-    quit
 
 wnl
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(13, 10))
-    quit
 
 wff
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(12))
-    quit
 
 wtab(s)
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(27) _ "[" _ (s + 1) _ "G")
-    quit
 
 rstr(length = 32656, timeout = 86400)
-    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "r", $lb(length, timeout))
+    do ##class(WebTerminal.Common).SendChunk($ZPARENT, "r", $lb(length, timeout))
     quit $LISTGET(##class(WebTerminal.Common).ReceiveChunk(), 2)
 
 rchr(timeout = 86400)
-    quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "c", timeout)
+    do ##class(WebTerminal.Common).SendChunk($ZPARENT, "c", timeout)
     quit $LISTGET(##class(WebTerminal.Common).ReceiveChunk(), 2)
 }
 
