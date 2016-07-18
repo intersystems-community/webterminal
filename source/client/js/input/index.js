@@ -3,6 +3,7 @@ import * as output from "../output";
 import * as caret from "./caret";
 import * as history from "./history";
 import * as grammar from "../autocomplete/index";
+import { Terminal, userInput } from "../index";
 
 export let ENABLED = false,
     PROMPT_CLEARED = false;
@@ -13,7 +14,8 @@ let ORIGIN_LINE_INDEX = 0,
     PROMPT_START_CURSOR_X = 0,
     PROMPT_MESSAGE = "",
     PROMPT_OPTIONS = {},
-    HINT = "";
+    HINT = "",
+    MODE = 0;
 
 let oldInputLength = 0,
     promptCallBack = null,
@@ -68,6 +70,7 @@ export function focusInput () {
  */
 export function prompt (text, options = {}, callback) {
 
+    MODE = text ? Terminal.prototype.MODE_PROMPT : Terminal.prototype.MODE_READ;
     PROMPT_START_CURSOR_X = output.getCursorX();
     PROMPT_START_LINE_INDEX = output.getCurrentLineIndex();
     PROMPT_MESSAGE = text || "";
@@ -120,6 +123,8 @@ export function getKey (options = {}, callback) {
     if (ENABLED)
         onSubmit();
 
+    MODE = Terminal.prototype.MODE_READ_CHAR;
+
     // for mobile devices the keyboard needs to appear
     showInput();
     focusInput();
@@ -152,7 +157,6 @@ export function setCaretPosition (caretPos) {
     } else if (typeof elements.input.selectionStart !== "undefined") {
         elements.input.setSelectionRange(caretPos, caretPos);
     }
-    console.log(`Caret position is set to ${ caretPos }!`);
 }
 
 export function getCaretPosition () {
@@ -209,6 +213,7 @@ function handleKeyPress (event, callback) {
         code = char.charCodeAt(0);
     if (code > 31)
         output.print(char);
+    userInput(String.fromCharCode(code), MODE);
     callback(code);
 
 }
@@ -286,6 +291,7 @@ function onSubmit () {
     ENABLED = false;
     clearTimeout(readTimeout);
     readTimeout = 0;
+    userInput(elements.input.value, MODE);
     if (promptCallBack)
         promptCallBack(elements.input.value);
     history.push(elements.input.value);
@@ -294,6 +300,7 @@ function onSubmit () {
 }
 
 function hideInput () {
+    MODE = 0;
     if (elements.input.parentNode)
         elements.input.parentNode.removeChild(elements.input);
     ENABLED = false;

@@ -80,3 +80,64 @@ import
 
 Now, in `build` folder you will find `CacheWebTerminal-v*.xml` file ready to import. Every time you
 changes is ready to be tested, just run `gulp` command and import generated XML into Caché. 
+
+
+Integration and WebTerminal's API
+---------------------------------
+
+To embed WebTerminal to any other web application, you can use `<iframe>` tag.
+Example:
+
+```html
+<iframe id="terminal" src="http://127.0.0.1:57772/terminal/"></iframe>
+```
+
+To use WebTerminal's API, you need to get WebTerminal instance first. Use iframe's
+`onTerminalInit` function to get it.
+
+```js
+document.querySelector("#terminal").contentWindow.onTerminalInit(function (terminal) {
+    // now work with terminal object here!
+});
+```
+
+The next table demonstrates available API. Left column are `terminal` object properties.
+
+<table>
+	<tr>
+		<td>Function</td>
+		<td>Description</td>
+	</tr>
+	<tr>
+        <td>onUserEntry(<b>cb</b>)</td>
+        <td>
+            <b>cb</b>(<u>text</u>, <u>mode</u>) is fired right after user press enter. Argument
+            <code>text</code> is a <code>String</code> of user input, and
+            <code>mode</code> is a <code>Number</code>, which can be compared
+            with one of the terminal mode constants, such as <code>MODE_PROMPT</code>.
+        </td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+		<td>Constant</td>
+		<td>Description</td>
+	</tr>
+    <tr><td>MODE_PROMPT</td><td>Regular input (COS command)</td></tr>
+    <tr><td>MODE_SQL</td><td>Input in SQL mode (SQL command)</td></tr>
+    <tr><td>MODE_READ_CHAR</td><td>Prompt issued by COS <code>read c</code> command</td></tr>
+    <tr><td>MODE_CHAR</td><td>Prompt issued by COS <code>read *c</code> command</td></tr>
+</table>
+
+Examples of usage:
+
+```js
+document.querySelector("#terminal").contentWindow.onTerminalInit(function (terminal) {
+    terminal.onUserEntry(function (text, mode) {
+        if (mode === webTerminal.input.MODE_PROMPT) {
+            alert("User entered the next command: " + text);
+        }
+    });
+});
+```

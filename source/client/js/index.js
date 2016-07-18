@@ -6,8 +6,13 @@ import * as server from "./server";
 import { initDone } from "./init";
 
 let onAuthHandlers = [],
-    AUTHORIZED = false,
-    terminal = null;
+    userInputHandlers = [],
+    AUTHORIZED = false;
+
+/**
+ * @type {Terminal}
+ */
+export let terminal = null;
 
 export const VERSION = "/* @echo package.version */";
 export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
@@ -24,6 +29,8 @@ export function initTerminal (options) {
     return terminal = new Terminal(options);
 }
 
+window.initTerminal = initTerminal;
+
 export function onAuth (callback) {
     if (AUTHORIZED) {
         callback();
@@ -37,7 +44,9 @@ export function authDone () {
     onAuthHandlers.forEach(h => h());
 }
 
-window.initTerminal = initTerminal;
+export function userInput (text, mode) {
+    userInputHandlers.forEach((h) => h(text, mode));
+}
 
 /**
  * Registers the callback which will be executed after terminal initialization.
@@ -102,12 +111,32 @@ function initDone () {
  *     authKey: String
  * }}
  */
-function Terminal (setup = {}) {
+export function Terminal (setup = {}) {
 
     server.send("Auth", setup.authKey);
-    initDone();
+    initDone(this);
 
 }
+
+Terminal.prototype.MODE_PROMPT = 1;
+Terminal.prototype.MODE_SQL = 2;
+Terminal.prototype.MODE_READ = 3;
+Terminal.prototype.MODE_READ_CHAR = 4;
+
+/**
+ * Function accepts the callback, which is fired when user enter a command, character or a string.
+ * @param {terminalUserEntryCallback} callback
+ */
+Terminal.prototype.onUserInput = function (callback) {
+    userInputHandlers.push(callback);
+};
+
+/**
+ * Handles user input.
+ * @callback terminalUserEntryCallback
+ * @param {String} text
+ * @param {Number} mode
+ */
 
 /*
 Terminal.prototype.initialize = function () {
