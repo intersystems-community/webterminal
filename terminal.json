@@ -29,6 +29,14 @@
       "changes": [
         "COS read command incorrect behavior fix"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.5",
+      "url": "http://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.5.xml",
+      "changes": [
+        "Terminal client's API onUserInput solid performance",
+        "Terminal client's API extended with the print function"
+      ]
     }
   ]
 }
