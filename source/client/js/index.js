@@ -49,65 +49,9 @@ export function userInput (text, mode) {
 }
 
 /**
- * Registers the callback which will be executed after terminal initialization.
- * @param {function} callback ()
- */
-/*
-export function onInit (callback) {
-    if (INITIALIZED)
-        callback();
-    console.log(">>", initHandlers);
-    initHandlers.push(callback);
-}
-
-function initDone () {
-    INITIALIZED = true;
-    initHandlers.forEach(h => h());
-}*/
-
-/**
- * Main controller object for terminal application.
- *
+ * WebTerminal's API object.
  * @author ZitRo
- *
- * Architecture:
- *
- *    Globals - Some global definitions.
- *       ║
- *       ║           {CacheWebTerminalServer} - Default server adapter for InterSystems Caché.
- *       ║                      ║
- *       ╔ {TerminalController} ╣ - Controller, object that implements terminalQuery function and
- *       ║                      ║   uses terminal API for interaction with terminal application.
- *       ║                      ║
- *       ║                      ╠ {CacheAutocompleteController} - Stores and controls autocomplete.
- *       ║                      ╚ {CacheTracing} - Mechanism that controls tracing.
- *       ║
- *   {Terminal}
- *       ║
- *       ╠ {TerminalInitialDictionary} - Initial keywords of terminal.
- *       ╠ {TerminalElements} - Handles terminal DOM elements and elements structure. Modules can
- *       ║                      access this elements.
- *       ╠ {TerminalLocalization} - Object-database that obtain localizations.
- *       ╠ {TerminalStorage} - Persistent storage adapter for saving data.
- *       ╠ {TerminalFavorites} - Handles favored commands.
- *       ╠ {TerminalAutocomplete} - Holds autocomplete mechanism for terminal.
- *       ╠ {TerminalOutput} - Output mechanism of terminal.
- *       ║       ╚ {TerminalOutputLine} - Representation of one terminal line of text.
- *       ╠ {TerminalInput}
- *       ║       ╚ {TerminalInputCaret} - Visible caret.
- *       ║       ╚ {TerminalInputHistory} - Terminal command history.
- *       ╠ {TerminalHint} - Represents a floating string of text inside terminal.
- *       ╠ {TerminalDictionary} - All lexemes that form autocomplete database.
- *       ╠ {TerminalTheme} - Appearance controller for terminal.
- *       ╠ {TerminalParser} - Additional module highlighting the syntax.
- *       ╠ {TerminalIndicator} - Indicates command execution progress.
- *       ╚ {TerminalFavorites} - Favorites storage.
- *
- *
  * @param setup {{
- *     controller: TerminalController,
- *     [container]: HTMLElement,
- *     defaultNamespace: string,
  *     authKey: String
  * }}
  */
@@ -137,6 +81,15 @@ Terminal.prototype.onUserInput = function (callback) {
  * @param {String} text
  * @param {Number} mode
  */
+
+/**
+ * Print the text on terminal.
+ */
+Terminal.prototype.print = function (text) {
+    input.clearPrompt();
+    output.print(text);
+    input.reprompt();
+};
 
 /*
 Terminal.prototype.initialize = function () {

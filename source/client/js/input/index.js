@@ -208,12 +208,13 @@ function handleKeyPress (event, callback) {
     if ([16, 17, 18].indexOf(event.keyCode) !== -1) // shift, ctrl, alt
         return false;
 
-    hideInput();
     let char = String.fromCharCode(event.keyCode)[event.shiftKey ? "toUpperCase" : "toLowerCase"](),
-        code = char.charCodeAt(0);
+        code = char.charCodeAt(0),
+        mode = MODE;
+    hideInput();
     if (code > 31)
         output.print(char);
-    userInput(String.fromCharCode(code), MODE);
+    userInput(String.fromCharCode(code), mode);
     callback(code);
 
 }
@@ -288,16 +289,17 @@ export function update () {
 }
 
 function onSubmit () {
-    let value = elements.input.value; // value may change during userInput() call, keep on top
+    let value = elements.input.value, // value may change during userInput() call, keep on top
+        mode = MODE;
+    hideInput();
     ENABLED = false;
     clearTimeout(readTimeout);
     readTimeout = 0;
-    userInput(value, MODE);
+    userInput(value, mode);
     if (promptCallBack)
         promptCallBack(value);
     history.push(value);
     promptCallBack = null;
-    hideInput();
 }
 
 function hideInput () {

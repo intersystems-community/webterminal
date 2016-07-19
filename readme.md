@@ -117,6 +117,16 @@ The next table demonstrates available API. Left column are `terminal` object pro
             with one of the terminal mode constants, such as <code>MODE_PROMPT</code>.
         </td>
     </tr>
+    <tr>
+        <td>print(<b>text</b>)</td>
+        <td>
+            Prints <b>text</b> which can include special characters and
+            escape sequences. This function is input-safe, and you can
+            print event when terminal is requesting for input without
+            disrupting input. In this case the input will reappear
+            right after <b>text</b> printed. 
+        </td>
+    </tr>
 </table>
 
 <table>
@@ -130,20 +140,22 @@ The next table demonstrates available API. Left column are `terminal` object pro
     <tr><td>MODE_CHAR</td><td>Prompt issued by COS <code>read *c</code> command</td></tr>
 </table>
 
-Examples of usage:
+The next example demonstrates a way to intercept terminal's input:
 
 ```js
 var iFrame = document.querySelector("#terminal");
 
-function onInput (text, mode) {
-	if (mode !== webTerminal.input.MODE_PROMPT)
-		return;
-	alert("User entered the next command: " + text);
+function myInitHandler (terminal) {
+    terminal.onUserInput(function (text, mode) {
+        if (mode !== terminal.MODE_PROMPT)
+            return;
+        terminal.print("\r\nYou've just entered the next command: " + text);
+    });
 }
 
-iFrame.addEventListener("load", function () { // handle iFrame load event
-	iFrame.contentWindow.onTerminalInit(function (terminal) { // handle terminal init event
-		terminal.onUserInput(onInput);
-	});
+// At first, handle iFrame load event. Note that the load handler won't work
+// if this code is executed at the moment when iFrame is already initialized.
+iFrame.addEventListener("load", function () {
+    iFrame.contentWindow.onTerminalInit(myInitHandler); // handle terminal initialization
 });
 ```
