@@ -13,7 +13,7 @@ get("http://intersystems-ru.github.io/webterminal/terminal.json", (data = {}) =>
 
 function handleNetworkData (data) {
     input.clearPrompt();
-    console.log(data);
+    // console.log(data);
     if (data[`motd`])
         output.printLine(data[`motd`]);
     if (data[`versions`] instanceof Array)
@@ -21,7 +21,7 @@ function handleNetworkData (data) {
     input.reprompt();
 }
 
-console.log(terminal);
+// console.log(terminal);
 
 /**
  * Parses an array received from WebTerminal's home server.
@@ -32,7 +32,7 @@ function checkUpdate (versions) {
         hiVersion = "",
         updateURL = "";
     versions.forEach((version) => {
-        console.log(version.v, terminal.VERSION, versionGT(version.v, terminal.VERSION));
+        // console.log(version.v, terminal.VERSION, versionGT(version.v, terminal.VERSION));
         if (!versionGT(version.v, terminal.VERSION))
             return;
         (version[`changes`] || []).forEach((c) => changes.push(

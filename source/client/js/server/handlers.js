@@ -25,7 +25,7 @@ export function suggest (data = { for: 0, variants: [], base: "" }) {
 }
 
 export function init (data = {}) {
-    output.printLine(`Authorized ${ data["system"] } As ${ data["username"] }${
+    output.printLine(`CWTv${ terminal.VERSION } on ${ data["system"] } as ${ data["username"] }${
         data["name"] ? ` (${ data["name"] })` : ``
     }`);
     terminal.authDone();

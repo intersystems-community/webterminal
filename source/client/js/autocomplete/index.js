@@ -66,22 +66,22 @@ export function suggest (string) {
         state = grammar.commands,
         suggestions, keyString,
         suggestion = "", stack = [], prop, abandoned = false;
-    console.log(`####### Lexical string:`, lex);
+    // console.log(`####### Lexical string:`, lex);
     loop: for (let i = 0; i < lex.length + 1; i++) {
-        console.log(`Pos ${i}/${lex.length - 1}, lex=`, lex[i], `, State=`, state);
+        // console.log(`Pos ${i}/${lex.length - 1}, lex=`, lex[i], `, State=`, state);
         if (typeof state === "string") {
             i--;
             if (state === "!") {
                 suggestion = "";
                 state = stack.pop();
-                console.log(`Popping stack, getting`, state);
+                // console.log(`Popping stack, getting`, state);
                 if (!state) {// reset state
-                    console.log(`No stack, resetting state.`);
+                    // console.log(`No stack, resetting state.`);
                     state = grammar.commands;
                 }
                 continue;
             }
-            console.log(`Next state by ${state}`);
+            // console.log(`Next state by ${state}`);
             state = getStatePath(state);
             continue;
         }
@@ -92,7 +92,7 @@ export function suggest (string) {
         if (i > lex.length - 1 && !suggestion && (state["@suggestion"] || state["@suggest"])) {
             suggestion = state["@suggestion"] || "text";
             keyString = (lex[i - 1] || lex[i]).v || lex[i - 1] || lex[i];
-            console.log(`Suggesting ${ suggestion } on ${ i } and ${lex[i - 1]}, state `, state);
+            // console.log(`Suggesting ${ suggestion } on ${ i } and ${lex[i - 1]}, state `, state);
             if (state["@suggest"] === "*") {
                 suggestions =
                     getSuggestions(state, keyString);
@@ -108,12 +108,12 @@ export function suggest (string) {
         if (!lexeme)
             continue;
         if (state[prop = typeof lexeme === "string" ? lexeme : lexeme.v]) {
-            console.log(`Next state on ${prop}`);
+            // console.log(`Next state on ${prop}`);
             state = state[prop];
             continue;
         }
         if (typeof lexeme === "object" && state[lexeme.t]) {
-            console.log(`Next state on ${lexeme.t}`);
+            // console.log(`Next state on ${lexeme.t}`);
             state = state[lexeme.t];
             continue;
         }
@@ -130,19 +130,19 @@ export function suggest (string) {
                     stack.pop();
                     state = grammar.commands;
                 }
-                console.log(`Next state stacked to ${ st.substr(1) } and now`, stack.join(","));
+                // console.log(`Next state stacked to ${ st.substr(1) } and now`, stack.join(","));
                 continue loop;
             }
             if (st === "") {
                 i--;
-                console.log(`Next state on "": ${ state[st] }`);
+                // console.log(`Next state on "": ${ state[st] }`);
                 state = state[st];
                 continue loop;
             }
         }
         if (!stack.length)
             continue;
-        console.log(`Popping stack`, stack.join(","));
+        // console.log(`Popping stack`, stack.join(","));
         if (!(state = stack.pop())) {
             state = grammar.commands;
             if (abandoned) {
@@ -155,7 +155,7 @@ export function suggest (string) {
             i--;
             suggestion = "";
         }
-        console.log(`Now state is`, state);
+        // console.log(`Now state is`, state);
     }
     return {
         suggestion: suggestion,

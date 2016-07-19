@@ -288,13 +288,14 @@ export function update () {
 }
 
 function onSubmit () {
+    let value = elements.input.value; // value may change during userInput() call, keep on top
     ENABLED = false;
     clearTimeout(readTimeout);
     readTimeout = 0;
-    userInput(elements.input.value, MODE);
+    userInput(value, MODE);
     if (promptCallBack)
-        promptCallBack(elements.input.value);
-    history.push(elements.input.value);
+        promptCallBack(value);
+    history.push(value);
     promptCallBack = null;
     hideInput();
 }

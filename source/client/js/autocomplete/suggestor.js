@@ -18,14 +18,14 @@ export function addSuggestions (forSequence, newSuggestions = []) {
     if (!newSuggestions.length)
         return;
     suggestions = suggestions.concat(newSuggestions);
-    console.log(`New suggestions:`, suggestions);
+    // console.log(`New suggestions:`, suggestions);
     updateSuggestion();
 }
 
 function suggestByString (value = "", caretPos) {
     let string = value.substring(0, caretPos),
         suggestion = suggest(string);
-    console.log(`Suggestion:`, suggestion);
+    // console.log(`Suggestion:`, suggestion);
     ++sequence;
     variant = 0;
     suggestions = [];
