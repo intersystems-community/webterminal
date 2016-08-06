@@ -5,23 +5,25 @@ import * as terminal from "../index";
 import * as suggestor from "../autocomplete/suggestor";
 import * as locale from "../localization";
 
-export function suggest (data = { for: 0, variants: [], base: "" }) {
-    let s = [], lastPushed = "";
-    for (let p in data.variants) {
+export function suggest (data = { for: 0, variants: "", base: "" }) {
+    let suggestions = [],
+        lastPushed = "",
+        variants = data.variants ? data.variants.split(",") : [];
+    for (let variant of variants) {
         let toPush, i;
         if (data.base) {
-            if (data.variants[p].indexOf(data.base) === 0)
-                toPush = data.variants[p].substr(data.base.length);
-        } else toPush = data.variants[p];
+            if (variant.indexOf(data.base) === 0)
+                toPush = variant.substr(data.base.length);
+        } else toPush = variant;
         if (!toPush)
             continue;
         toPush = (i = toPush.indexOf(`.`)) > 0 ? toPush.substring(0, i) : toPush;
         if (lastPushed === toPush)
             continue;
-        s.push(lastPushed = toPush);
+        suggestions.push(lastPushed = toPush);
     }
-    if (s.length)
-        suggestor.addSuggestions(data.for, s);
+    if (suggestions.length)
+        suggestor.addSuggestions(data.for, suggestions);
 }
 
 export function init (data = {}) {

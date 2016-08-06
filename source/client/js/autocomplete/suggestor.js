@@ -25,7 +25,6 @@ export function addSuggestions (forSequence, newSuggestions = []) {
 function suggestByString (value = "", caretPos) {
     let string = value.substring(0, caretPos),
         suggestion = suggest(string);
-    // console.log(`Suggestion:`, suggestion);
     ++sequence;
     variant = 0;
     suggestions = [];
