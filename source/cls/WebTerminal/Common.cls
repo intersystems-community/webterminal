@@ -77,8 +77,9 @@ ClassMethod GetJSONString(obj As %ZEN.proxyObject, pLevel As %Integer = 0, pForm
 	#define ZENJSNUM(%num)					$fnumber(%num,"LON")
 	#define ZENJSISNUM(%val)				($IsValidNum(%val)&&(%val=+(%val)))
 	#define ZENJSTABLE(%format)				("JS"_$S(%format["u":"ML",1:""))
-	#define ZENJSONTABLE(%format)			("JSON"_$S((%format["u"):"ML",1:""))
-	#define ZENJSONESCAPE(%str,%format)		$S(%format["s":$ZCVT(%str,"O",$$$ZENJSONTABLE(%format)),1:$Replace($ZCVT(%str,"O",$$$ZENJSTABLE(%format)),"\'","'"))
+	//#define ZENJSONTABLE(%format)			("JSON"_$S((%format["u"):"ML",1:""))
+	// $$$ZENJSONTABLE is not supported in Cache 2013, and is not needed in most cases. Using $$$ZENJSTABLE instead.
+	#define ZENJSONESCAPE(%str,%format)		$S(%format["s":$ZCVT(%str,"O",$$$ZENJSTABLE(%format)),1:$Replace($ZCVT(%str,"O",$$$ZENJSTABLE(%format)),"\'","'"))
 	#define ZENJSONSTR(%str,%format)		(""""_$$$ZENJSONESCAPE(%str,%format)_"""")
 	#define ZENJSONPROP(%prop,%format)		$$$ZENJSONSTR(%prop,%format)
 	#define ZENJSONVALUE(%val,%format)		$S($$$ZENJSISNUM(%val):$$$ZENJSNUM(%val),$C(0)=(%val)||$ListValid(%val):"""""",1:$$$ZENJSONSTR(%val,%format))

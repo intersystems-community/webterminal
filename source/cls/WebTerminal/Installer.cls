@@ -66,7 +66,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     return:$$$ISERR(st) st
     
     set cspProperties("AutheEnabled") = $$$AutheUnauthenticated
-    set cspProperties("Description") = "An application representing the open socket for /terminal application. Required since 2016.* Cache versions changed WebSocket behavior. PLEASE LEAVE THIS APPLICATION UNAUTHENTICATED, but do not worry: the socket won't accept anyone without the key."
+    set cspProperties("Description") = "An application representing the open socket for /terminal application."
     set cspProperties("DispatchClass") = ""
     set role = ..GetDBRole(dbdir)
     set cspProperties("MatchRoles")=":%DB_CACHESYS" _ $case($get(role)'="", 1: ":"_role, :"")

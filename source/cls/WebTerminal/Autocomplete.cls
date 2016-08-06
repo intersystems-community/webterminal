@@ -150,7 +150,7 @@ ClassMethod GetGlobals(namespace As %String = "%SYS", beginning As %String = "")
     do rset.Execute($Namespace, beginning, 0)
     set i = -1
     while (rset.Next()) {
-        set $PROPERTY(result, $Sequence(i)) = rset.GetData(1)
+        set $PROPERTY(result, $Increment(i)) = rset.GetData(1)
     }
     quit result
 }
@@ -167,7 +167,7 @@ ClassMethod GetClass(namespace As %String = "%SYS", beginning As %String = "") A
     set i = -1
     while (rset.Next()) {
         set r = rset.GetData(1)
-        set:(($FIND(r, beginning) - $LENGTH(beginning)) = 1) $PROPERTY(result, $Sequence(i)) = r
+        set:(($FIND(r, beginning) - $LENGTH(beginning)) = 1) $PROPERTY(result, $Increment(i)) = r
     }
     quit result
 }
