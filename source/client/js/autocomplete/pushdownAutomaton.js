@@ -1,29 +1,21 @@
-const
-    TYPE_SPLIT = 1,
-    TYPE_CALL = 2,
-    TYPE_WHITESPACE = 3,
-    TYPE_OPT_WHITESPACE = 4,
-    TYPE_MERGE = 5,
-    TYPE_EXIT = 6,
-    TYPE_CHAR = 7,
-    TYPE_ANY = 8,
-    TYPE_ID = 9,
-    TYPE_BRANCH = 10,
-    TYPE_CONSTANT = 11;
+//  THIS MODULE IS INVOKED AT THE BUILD TIME. ANY ERRORS ARE REPORTED DURING THE GULP BUILD TASK  \\
 
-let debugTypes = {
-    1: "SPLIT",
-    2: "CALL",
-    3: "WHITESPACE",
-    4: "OPT_WHITESPACE",
-    5: "MERGE",
-    6: "EXIT",
-    7: "CHAR",
-    8: "ANY",
-    9: "ID",
-    10: "BRANCH",
-    11: "CONSTANT"
-};
+export const
+    // TYPE = 0 RESERVED
+    TYPE_WHITESPACE = 1, // PRESERVED BY LOGIC
+    TYPE_ID = 2, // PRESERVED BY LOGIC
+    TYPE_STRING = 3, // PRESERVED BY LOGIC
+    TYPE_CONSTANT = 4, // PRESERVED BY LOGIC
+    TYPE_CHAR = 5, // PRESERVED BY LOGIC
+    TYPE_EXIT = 6,
+    TYPE_MERGE = 7,
+    TYPE_ANY = 8,
+    TYPE_CALL = 9,
+    TYPE_BRANCH = 10,
+    TYPE_OPT_WHITESPACE = 11,
+    TYPE_TRY_CALL = 12,
+    TYPE_ALL = 13,
+    TYPE_SPLIT = 14;
 
 let automaton = [
 //    Current State | Current Symbol | Next State | Stack Control
@@ -47,6 +39,44 @@ let automaton = [
 //      [{ type: TYPE_CHAR, value: "," }, 4, 15]
 //   ]
 ];
+
+/**
+ * New generated indices sometimes may cause automaton rows to be empty. This function filters an
+ * empty rows.
+ * @param {[[[]]]} a
+ */
+function optimize (a) {
+    let automaton = a.slice();
+    for (let a in automaton) {
+        if (!automaton[a])
+            continue;
+        automaton[a] = automaton[a].slice();
+        for (let b in automaton[a]) {
+            automaton[a][b] = automaton[a][b].slice();
+        }
+    }
+    for (let i = 1; i < automaton.length; i++) {
+        if (automaton[i])
+            continue;
+        for (let a in automaton) { // automaton[a] === row
+            if (!automaton[a])
+                continue;
+            for (let b in automaton[a]) { // automaton[a][b] === cell
+                if (parseInt(automaton[a][b][1]) > i)
+                    automaton[a][b][1] -= 1;
+                if (parseInt(automaton[a][b][2]) > i)
+                    automaton[a][b][2] -= 1;
+            }
+        }
+        automaton.splice(i, 1);
+        i--;
+    }
+    return automaton;
+}
+
+export function getAutomatonTable () {
+    return optimize(automaton);
+}
 
 function getTablePiece (thisArg) {
     return thisArg instanceof TablePiece ? thisArg : new TablePiece(true);
@@ -75,11 +105,14 @@ function group (type) {
 export let branch = TablePiece.prototype.branch = group(TYPE_BRANCH);
 export let call = TablePiece.prototype.call = group(TYPE_CALL);
 export let char = TablePiece.prototype.char = group(TYPE_CHAR);
+export let string = TablePiece.prototype.string = group(TYPE_STRING);
 export let id = TablePiece.prototype.id = group(TYPE_ID);
 export let any = TablePiece.prototype.any = group(TYPE_ANY);
+export let all = TablePiece.prototype.all = group(TYPE_ALL);
 export let whitespace = TablePiece.prototype.whitespace = group(TYPE_WHITESPACE);
 export let optWhitespace = TablePiece.prototype.optWhitespace = group(TYPE_OPT_WHITESPACE);
 export let constant = TablePiece.prototype.constant = group(TYPE_CONSTANT);
+export let tryCall = group(TYPE_TRY_CALL);
 TablePiece.prototype.end = function () {
     if (!this.built)
         this.buildTable();
@@ -122,6 +155,7 @@ let ruleIndices = { /* "doArgument": 5, "expression": 29, ... */ }; // used by r
 
 let currentIndex = 0;
 function getNewIndex () {
+    console.log(`Getting new index ${currentIndex} -> ${currentIndex + 1}`);
     return ++currentIndex;
 }
 
@@ -144,13 +178,18 @@ function buildTable (rule, chain) {
 function printTable () {
     console.log(`Index\tTable`);
     let table = [];
-    for (let i in automaton) {
-        for (let r of automaton[i]) {
-            table.push([+i].concat(r[0] ? (debugTypes[r[0].type] + (r[0].value ? ` (${r[0].value})` : "")) : r[0]).concat(r.slice(1)));
-            // console.log(`${i}\t`, r[0], "\t\t\t\t\t\t\t\t\t|", r[1], "\t\t|", r[2] || "");
+    console.log(automaton);
+    let oa = optimize(automaton);
+    console.log(oa);
+    for (let i in oa) {
+        for (let r of oa[i]) {
+            table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value})` : ""))
+                : r[0]).concat(r.slice(1)));
         }
     }
-    console.table(table);
+    if (console.table)
+        console.table(table);
+    console.log(oa);
 }
 
 /**
@@ -164,14 +203,10 @@ function getCell (index) {
     return automaton[index];
 }
 
-function isAnySymbolSet (index) {
-    return getCell(index).length === 0;
-}
-
 function processChain (chain, branchingStack, startingIndex) {
     let index = typeof startingIndex === "undefined" ? getNewIndex() : startingIndex,
-        stack = [],
-        backStack = [];
+        stack = [], // which rows are awaiting to be completed
+        backStack = []; // which rows are awaiting to be completed with stack
     function completeStack (completeWith) {
         console.log(index, "Attempt to complete stack");
         if (!stack.length)
@@ -194,8 +229,7 @@ function processChain (chain, branchingStack, startingIndex) {
         case TYPE_CHAR:
         case TYPE_ID:
         case TYPE_CONSTANT:
-        case TYPE_WHITESPACE:
-        case TYPE_OPT_WHITESPACE: { // DONE
+        case TYPE_WHITESPACE: { // DONE
             completeStack();
             completeBackStack();
             let cell = getCell(index);
@@ -212,11 +246,27 @@ function processChain (chain, branchingStack, startingIndex) {
                 stack.push(e);
             }
         } break;
+        case TYPE_OPT_WHITESPACE: {
+            completeStack();
+            completeBackStack();
+            let e1 = [{ type: TYPE_WHITESPACE, value: undefined }],
+                e2 = [null];
+            getCell(index).push(e1, e2);
+            stack.push(e1, e2);
+        } break;
         case TYPE_ANY: { // DONE
             completeStack();
             completeBackStack();
             console.log(index, "Pushing primitive", [null]);
             let e = [null];
+            getCell(index).push(e);
+            stack.push(e);
+        } break;
+        case TYPE_ALL: { // DONE
+            completeStack();
+            completeBackStack();
+            console.log(index, "Pushing primitive", [true]);
+            let e = [true];
             getCell(index).push(e);
             stack.push(e);
         } break;
@@ -255,11 +305,24 @@ function processChain (chain, branchingStack, startingIndex) {
                 completeStack(getRuleIndex(elem.value));
             } else {
                 let e = [null, getRuleIndex(elem.value)];
-                console.log("FAKING ", e, "TO BACKSTACK");
+                console.log("MOVING ", e, "TO BACKSTACK");
                 getCell(index).push(e);
                 backStack.push(e);
                 index = getNewIndex();
             }
+        } break;
+        case TYPE_TRY_CALL: { // DONE
+            console.log(index, "TRY CALLING ", elem.value, `(-> ${ ruleIndices[elem.value] })`);
+            if (stack.length) { // exceptional case
+                console.log(`[!] tryCall() potential invalid usage, check the grammar chain.`);
+                completeStack();
+                completeBackStack();
+            }
+            let e = [0, getRuleIndex(elem.value)];
+            console.log("MOVING ", e, "TO BACKSTACK");
+            getCell(index).push(e);
+            backStack.push(e);
+            index = getNewIndex();
         } break;
         case TYPE_EXIT: { // DONE
             console.log("EXITING, stack:", stack, ", backStack:", backStack);

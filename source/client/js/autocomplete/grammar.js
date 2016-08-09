@@ -1,12 +1,15 @@
+//  THIS MODULE IS INVOKED AT THE BUILD TIME. ANY ERRORS ARE REPORTED DURING THE GULP BUILD TASK  \\
+
 import {
-    rule, id, char, split, any, branch, merge, exit, constant, call
+    rule, id, char, string, split, any, all, branch, merge, exit, constant, call, tryCall,
+    getAutomatonTable
 } from "./pushdownAutomaton";
 
 // ---------------------------------- CONTRIBUTION GUIDELINE ------------------------------------ \\
 //     This module describes the Caché ObjectScript language with JavaScript semantics. Follow    \\
 // the simple rules listed below to add/remove/fix any autocomplete and highlight-related issues. \\
 //                                                                                                \\
-// Introduction                                                                                   \\
+//     Introduction                                                                                   \\
 //     To get an intelligent autocomplete/syntax highlight which WebTerminal has, there is a need \\
 // to teach machine how to parse code. We will tell it the general rules of how the character     \\
 // sequences (COS code) must be placed, and it will look ahead to predict which ones it can       \\
@@ -21,19 +24,22 @@ import {
 //                                characters cannot be matched with char().
 // id("write")                    Matches keyword "write".
 // constant()                     Matches any positive numeric constant.
+// whitespace()                   Matches one or more whitespace characters.
+// optWhitespace()                Matches any number of whitespace characters, or no characters.
 // branch()                       Creates a label in the chain.
 // merge()                        Returns to a label in the chain. This is the last chain element.
 // split(...)                     Allows to split the chain and math one of <...>.
 // any()                          Matches if nothing else is matched. Used as the last split()
-//                                argument.
+//                                argument. Does not take the match.
+// all()                          Matches anything and takes the match.
 // call("ruleName")               Call another rule and continue chain when rule exits.
 // exit()                         Exit the chain
 // end()                          Must be an end point of any chain.
 //                                                                                                \\
-// Defining new rules basics                                                                      \\
+//     Defining New Rules Basics                                                                  \\
 //     Let's say we need to describe a rule for "write 12" (write any number) statement.          \\
 //
-// EXAMPLE 1: match "write 12"
+//     EXAMPLE 1: match "write 12"
 // | rule("test").id("write").whitespace().constant().exit().end()
 //       |             |           |           |        |     |
 //       > rule("test") starts a new chain, and creates a new rule named "test".
@@ -48,7 +54,7 @@ import {
 //                                                            |
 //                                                end() must close the rule()
 //
-// EXAMPLE 2: match "1+(3+4)"
+//     EXAMPLE 2: match "1+(3+4)"
 //     Let's start by matching a number.
 // | rule("expr").constant().exit().end()
 //     In this case, our rule will match only this: "1", "100500", "10.123", ".10", etc. Next, let's
@@ -61,9 +67,20 @@ import {
 //     This task can't be described by one chain. We need some sort of "recursive" chain depending
 // on what symbols we have. See the right example:
 // | rule("expr").split(
-// |     constant().char("+").call("expr")
-// |     char("(").call("expr").char(")").call("expr") todo
+// |     constant()
+// |     char("(").call("expr").char(")")
+// | ).split(
+// |     char("+").call("expr"),
+// |     any()
 // | ).exit().end()
+//
+//     Typical Grammar Mistakes
+// | <...>.split(
+// |     optWhitespace().char("+"),
+// |     char("!")
+// | ).<...>
+//     Explanation: symbol "!" will never be matched, as optWhitespace() matches in any case.
+//
 
 rule("COS").branch().call("command").whitespace().merge().end();
 // EXPLANATION:
@@ -87,30 +104,48 @@ rule("command").split(
 ).end();
 
 rule("doArgument").split(
-    char("^").id({ type: "routine" }).exit(),
-    call("inlineExecutable").split(
+    char("^").id({ type: "routine" }),
+    call("class").split(
         char(":").call("expression"),
         any()
-    ).exit()
-).end();
+    )
+).exit().end();
 
 rule("expression").split(
     constant(),
-    char("(").call("expression").char(")")
+    char("(").call("expression").char(")"),
+    string(),
+    tryCall("class")
 ).split(
     split(
         char("+"),
         char("-"),
         char("*"),
-        char("/")
+        char("/"),
+        char("_")
     ).call("expression"),
     any()
 ).exit().end();
 
-rule("inlineExecutable").split(
+rule("class").split(
     char("#").char("#").split(
         id("class").char("(").id({ type: "classname" }).char(")").char(".")
             .id({ type: "publicClassMember" }),
         id("super")
     )
 ).exit().end();
+
+rule("argumentList").call("expression").split(
+    char(",").optWhitespace().call("expression"),
+    any()
+).exit().end();
+
+// ------------------------------- DANGER ZONE: DO NOT EDIT BELOW ------------------------------- \\
+
+/**
+ * Returns automaton. Evaluated at compile time.
+ * @returns {[[[*, *, *]]]} - [match, next, stack]
+ */
+export function getAutomaton () {
+    return getAutomatonTable();
+}

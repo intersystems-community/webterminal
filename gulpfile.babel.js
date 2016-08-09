@@ -11,8 +11,10 @@ import browserify from "browserify";
 import babelify from "babelify";
 import sourceStream from "vinyl-source-stream";
 import buffer from "vinyl-buffer";
-//import sourcemaps from "gulp-sourcemaps";
 import fs from "fs";
+import preprocessify from "preprocessify";
+//import sourcemaps from "gulp-sourcemaps";
+import { getAutomaton } from "./source/client/js/autocomplete/grammar";
 
 let INSTALLER_CLASS_NAME = `${ pkg["packageName"] }.Installer`;
 
@@ -23,10 +25,11 @@ let dir = __dirname,
         context: {
             package: pkg,
             compileAfter: "", // is set during "pre-cls" task.
-            themes: "" // is set after css move task
+            themes: "", // is set after css move task
+            autocompleteAutomaton: []
         }
     },
-    themes = [];
+    themes = []; // reassigned
 
 function themesReady () { // triggered when build is done
     themes = fs.readdirSync(`${ dest }/client/css/themes`);
@@ -35,7 +38,19 @@ function themesReady () { // triggered when build is done
     }).join("");
 }
 
-gulp.task("clean", function () {
+gulp.task("prepare", function (cb) {
+    console.log(`Compiling autocomplete rules...`);
+    try {
+        context.context.autocompleteAutomaton = JSON.stringify(getAutomaton());
+    } catch (e) {
+        console.error.apply(console, e);
+        cb(e);
+    }
+    console.log(`Autocomplete ready.`);
+    cb();
+});
+
+gulp.task("clean", ["prepare"], function () {
     return gulp.src(dest, { read: false })
         .pipe(rimraf());
 });
@@ -56,9 +71,15 @@ gulp.task("scss", ["clean"], () => {
 });
 
 gulp.task("js", ["clean", "css"], function () {
+    // return gulp.src("./source/client/js/**/*.js")
+    //     .pipe(preprocess(context))
+    //     .pipe(gulp.dest(`${ dest }/client/js`));
     let bundler = browserify({
         entries: `${source}/client/js/index.js`,
         debug: true
+    }).transform(preprocessify, {
+        includeExtensions: ['.js'],
+        context: context.context
     });
     bundler.transform("babelify", { presets: ["es2015"] });
     return bundler.bundle()
@@ -66,12 +87,11 @@ gulp.task("js", ["clean", "css"], function () {
         .pipe(sourceStream("index.js"))
         .pipe(buffer())
         //.pipe(sourcemaps.init({ loadMaps: true }))
-        .pipe(preprocess(context))
         .pipe(uglify({
             output: {
                 ascii_only: true,
                 width: 25000,
-                max_line_len: 25000
+                max_line_len: 15000
             },
             preserveComments: "some"
         }))

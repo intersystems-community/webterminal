@@ -62,7 +62,7 @@ export default {
             });
         }
     },
-    "\x1b[({[\\w\\-]+})m": (args) => {
+    "\x1b[({[\\w\\-]+})m": (args) => { // print element of class
         let cls = args[0];
         if (!cls)
             return;
