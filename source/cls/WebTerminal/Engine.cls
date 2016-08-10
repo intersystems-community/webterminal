@@ -32,6 +32,7 @@ Method GetMessage(timeout As %Numeric) As %ZEN.proxyObject
 Method Send(handler As %String, data = "") As %Status
 {
     return:((handler = "o") && (..echo = 0)) $$$OK
+    return:(handler = "o") ..Write("o"_data) // Enables 2013.2 support (no JSON)
     set obj = ##class(%ZEN.proxyObject).%New()
     set obj.h = handler
     set obj.d = data

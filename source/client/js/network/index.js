@@ -5,7 +5,7 @@ import * as output from "../output";
 import * as locale from "../localization";
 import "./update";
 
-get("http://intersystems-ru.github.io/webterminal/terminal.json", (data = {}) => {
+get("https://intersystems-ru.github.io/webterminal/terminal.json", (data = {}) => {
     if (data.error || typeof data[`motd`] === "undefined")
         return;
     terminal.onAuth(() => handleNetworkData(data));
@@ -54,7 +54,7 @@ function checkUpdate (versions) {
     ));
     if (!updateURL) {
         output.printLine(
-            locale.get(`noUpdUrl`, `http://intersystems-ru.github.io/webterminal/#downloads`)
+            locale.get(`noUpdUrl`, `https://intersystems-ru.github.io/webterminal/#downloads`)
         );
         return;
     }

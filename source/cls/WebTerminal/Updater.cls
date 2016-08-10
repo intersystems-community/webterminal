@@ -4,13 +4,29 @@
 Class WebTerminal.Updater
 {
 
+/// SSL configuration name used for HTTPS requests.
+Parameter SSLConfigName = "WebTerminalSSL";
+
+ClassMethod GetSSLConfigurationName () As %String
+{
+    new $namespace
+    zn "%SYS"
+    if ('##class(Security.SSLConfigs).Exists(..#SSLConfigName)) {
+        set st = ##class(Security.SSLConfigs).Create(..#SSLConfigName)
+        return:(st '= 1) "UnableToCreateSSLConfig:"_$System.Status.GetErrorText(st)
+    }
+    return ..#SSLConfigName
+}
+
 ClassMethod Update (client As WebTerminal.Engine, URL As %String) As %Status
 {
     do client.Send("oLocalized", "%sUpdSt"_$CHAR(13, 10))
     set request = ##class(%Net.HttpRequest).%New()
     set request.Server = $PIECE(URL, "/", 3)
     set request.Location = $PIECE(URL, "/", 4, *)
-    do client.Send("oLocalized", "%sUpdRURL("_request.Server_"/"_request.Location_")"_$CHAR(13, 10))
+    set request.Https = 1
+    set request.SSLConfiguration = ..GetSSLConfigurationName()
+    do client.Send("oLocalized", "%sUpdRURL(https://"_request.Server_"/"_request.Location_")"_$CHAR(13, 10))
     set status = request.Get()
     do client.Send("oLocalized", "%sUpdGetOK"_$CHAR(13, 10))
     return:(status '= $$$OK) status

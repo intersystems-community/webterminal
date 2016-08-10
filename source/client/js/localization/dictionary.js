@@ -267,11 +267,11 @@ export default {
     },
     43: {
         en: `Caché WEB Terminal v${ VERSION }\r\nAuthor:\x1B[20GZitRo ` +
-        "(+NikitaSavchenko)\r\nProject:\x1B[20Ghttp://intersystems-ru.github.io/" +
+        "(+NikitaSavchenko)\r\nProject:\x1B[20Ghttps://intersystems-ru.github.io/" +
         "webterminal\r\nRepository:\x1B[20Ghttps://github.com/intersystems-ru/" +
         `webterminal\r\n2013-${ new Date().getFullYear() } ©`,
         ru: `Caché WEB Terminal v${ VERSION }\r\nАвтор:\x1B[20GZitRo ` +
-        "(+NikitaSavchenko)\r\nПроект:\x1B[20Ghttp://intersystems-ru.github.io/" +
+        "(+NikitaSavchenko)\r\nПроект:\x1B[20Ghttps://intersystems-ru.github.io/" +
         "webterminal\r\nРепозиторий:\x1B[20Ghttps://github.com/intersystems-ru/" +
         `webterminal\r\n2013-${ new Date().getFullYear() } ©`
     },
@@ -390,7 +390,7 @@ export default {
         en: "Response downloaded."
     },
     "sUpdSCode": {
-        en: "Unable to update WebTerminal: HTTP request returned code %s."
+        en: "Unable to update WebTerminal: HTTPS request returned code %s."
     },
     "sUpdWTF": {
         en: "Writing response to a temporary file..."

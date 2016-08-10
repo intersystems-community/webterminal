@@ -9,6 +9,7 @@ let UPDATING = false;
 window.updateTerminal = function (version, url) {
     if (UPDATING)
         return;
+    url = url.replace(/^http:/, "https:");
     UPDATING = true;
     input.clearPrompt();
     output.printLine(locale.get(`updStart`, terminal.VERSION, version));
