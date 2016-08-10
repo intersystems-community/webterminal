@@ -229,7 +229,8 @@ function processChain (chain, branchingStack, startingIndex) {
         case TYPE_CHAR:
         case TYPE_ID:
         case TYPE_CONSTANT:
-        case TYPE_WHITESPACE: { // DONE
+        case TYPE_WHITESPACE:
+        case TYPE_STRING: { // DONE
             completeStack();
             completeBackStack();
             let cell = getCell(index);

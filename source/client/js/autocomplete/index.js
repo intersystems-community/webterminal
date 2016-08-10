@@ -6,13 +6,15 @@ import {
     TYPE_CHAR
 } from "./pushdownAutomaton";
 
-const LEXEMES_SPLIT =
-    /([\s\t]+)|([a-z]+[a-z0-9]*)|("(?:"(?=")"|[^"])*")|([0-9]*\.[0-9]+|[0-9]+)|([^])/gi;
+const
+    LEXEMES_SPLIT =
+        /([\s\t]+)|([a-z]+[a-z0-9]*)|("(?:"(?=")"|[^"])*(?:"|$))|([0-9]*\.[0-9]+|[0-9]+)|([^])/gi,
+    DEFAULT_CLASSES = ["", "", "string", "constant", ""];
 
 let wrap = (a) => a,
     automaton = wrap(/* @echo autocompleteAutomaton */);
 
-// printAutomaton(automaton);
+printAutomaton(automaton);
 
 function printAutomaton (oa) {
     if (!oa)
@@ -42,7 +44,11 @@ function splitString (string) {
     while ((matches = LEXEMES_SPLIT.exec(string)) !== null) {
         for (let i = 1; i < matches.length; i++) {
             if (matches[i]) {
-                result.push({ type: i, value: matches[i] });
+                result.push({
+                    type: i,
+                    value: matches[i],
+                    class:  DEFAULT_CLASSES[i - 1] || ""
+                });
                 break;
             }
         }
@@ -51,11 +57,13 @@ function splitString (string) {
     return result;
 }
 
-function process (string) {
+function process (string, cursorPos = string.length) {
     let tape = splitString(string),
         stack = [], // holds state numbers
         tryStack = [],
-        state = 1,
+        INITIAL_STATE = 1,
+        parsedStringLength = 0,
+        state = INITIAL_STATE,
         pos = 0,
         maxPos = 0,
         ruleIndex = 0,
@@ -74,6 +82,7 @@ function process (string) {
         if (stack.length > letsTry[2]) {
             stack = stack.slice(0, letsTry[2]);
         }
+        parsedStringLength = letsTry[3];
         console.log(`${ state } | [${ (tape[pos] || {}).value }] Now stack is`, stack.slice());
         return false;
     }
@@ -102,15 +111,20 @@ function process (string) {
                 // match all
                 if (lexeme.type === TYPE_WHITESPACE)
                     whiteSpaceMatched = true;
+                if (typeof lexeme.value === "string")
+                    parsedStringLength += lexeme.value.length;
             } else if (rule[0] === 0) { // try call
-                tryStack.push([state, ruleIndex, stack.length]);
+                tryStack.push([state, ruleIndex, stack.length, parsedStringLength]);
                 pos--;
             } else if (rule[0].type === TYPE_WHITESPACE) {
                 if (whiteSpaceMatched) {
                     pos--;
+                    // change lexeme as well?
                 } else {
                     if (rule[0].type !== lexeme.type)
                         continue;
+                    if (typeof lexeme.value === "string")
+                        parsedStringLength += lexeme.value.length;
                 }
                 whiteSpaceMatched = true;
             } else if (rule[0].type === TYPE_ID) {
@@ -119,15 +133,27 @@ function process (string) {
                 if (typeof rule[0].value === "string") {
                     if (lexeme.value !== rule[0].value)
                         continue;
-                } // when rule[0].value is object, we match any ID
+                } else if (
+                    typeof rule[0].value === "object" && typeof rule[0].value.value !== "undefined"
+                ) {
+                    if (lexeme.value !== rule[0].value.value)
+                        continue;
+                }
+                if (typeof lexeme.value === "string")
+                    parsedStringLength += lexeme.value.length;
+                // when rule[0].value is object and no rule[0].value.value is set, we match any ID
                 whiteSpaceMatched = false;
             } else if (rule[0].type === TYPE_STRING) {
                 if (rule[0].type !== lexeme.type)
                     continue;
+                if (typeof lexeme.value === "string")
+                    parsedStringLength += lexeme.value.length;
                 whiteSpaceMatched = false;
             } else if (rule[0].type === TYPE_CONSTANT) {
                 if (rule[0].type !== lexeme.type)
                     continue;
+                if (typeof lexeme.value === "string")
+                    parsedStringLength += lexeme.value.length;
                 whiteSpaceMatched = false;
             } else if (rule[0].type === TYPE_CHAR) {
                 if (rule[0].type !== lexeme.type)
@@ -135,11 +161,26 @@ function process (string) {
                 if (typeof rule[0].value === "string") {
                     if (lexeme.value !== rule[0].value)
                         continue;
-                } // when rule[0].value is object, we match any CHAR
+                } else if (
+                    typeof rule[0].value === "object" && typeof rule[0].value.value !== "undefined"
+                ) {
+                    if (lexeme.value !== rule[0].value.value)
+                        continue;
+                }
+                if (typeof lexeme.value === "string")
+                    parsedStringLength += lexeme.value.length;
+                // when rule[0].value is object and no rule[0].value.value is set, we match any CHAR
                 whiteSpaceMatched = false;
             }
             // ...
             console.log(`${ state } | [${ lexeme.value }] Match found [ruleIndex = ${ ruleIndex }]`);
+            if (
+                rule[0]
+                && typeof rule[0].value === "object"
+                && rule[0].value.class
+            ) {
+                lexeme.class = rule[0].value.class;
+            }
             if (typeof rule[2] !== "undefined") {
                 console.log(`${ state } | [${ lexeme.value }] Pushing ${ rule[2] } to stack [ruleIndex = ${ ruleIndex }]`);
                 stack.push(rule[2]);
@@ -164,12 +205,21 @@ function process (string) {
                 } [ruleIndex = ${ ruleIndex }]`
             );
             if (error()) { // not the last - predict
-                if (pos + 1 < tape.length) {
-                    ruleIndex = 0;
-                    state = 1;
-                    console.error(`No rule for`, (tape[pos] || {}).value || "", `at state ${ state }`);
+                ruleIndex = 0;
+                state = INITIAL_STATE;
+                whiteSpaceMatched = false;
+                if (tape[pos]) {
+                    if (typeof tape[pos].value === "string")
+                        parsedStringLength += tape[pos].value.length;
+                    tape[pos].class = "error";
+                    pos++;
                 }
-                pos++; // finalize to suggest
+                console.log(
+                    `[!] Missing rule for`, (tape[pos] || { value: tape[pos] }).value || "",
+                    `at state ${ state }. Stack:`, stack, `TryStack:`, tryStack
+                );
+                stack = [];
+                tryStack = [];
             }
         } else {
             lastSucceededState = state;
@@ -183,6 +233,8 @@ function process (string) {
     console.log(
         `Complete! My state is ${ state }. Last succeeded state is ${ lastSucceededState
         }. Stack:`, stack, `Try Stack:`, tryStack);
+    console.log(`Tape:`, tape);
+    console.log(`Parsed length: ${ parsedStringLength } of actual length ${ string.length }`);
 }
 
 if (typeof window !== "undefined") // todo: debug

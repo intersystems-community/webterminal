@@ -96,18 +96,24 @@ rule("COS").branch().call("command").whitespace().merge().end();
 // As a result, rule "root" is an infinite loop, as merge() at the end always starts the chain over.
 
 rule("command").split(
-    id(["d", "do"]).whitespace().branch().call("doArgument").optWhitespace().split(
+    id([
+        { value: "d", class: "keyword" },
+        { value: "do", class: "keyword" }
+    ]).whitespace().branch().call("doArgument").optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     ),
-    id(["w", "write"]).whitespace().branch().call("expression").optWhitespace().split(
+    id([
+        { value: "w", class: "keyword" },
+        { value: "write", class: "keyword" }
+    ]).whitespace().branch().call("expression").optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     )
 ).end();
 
 rule("doArgument").split(
-    char("^").id({ type: "routine" }),
+    char({ value: "^", class: "global" }).id({ type: "routine" }),
     call("class").split(
         char(":").call("expression"),
         any()
@@ -131,10 +137,12 @@ rule("expression").split(
 ).exit().end();
 
 rule("class").split(
-    char("#").char("#").split(
-        id("class").char("(").id({ type: "classname" }).char(")").char(".")
-            .id({ type: "publicClassMember" }),
-        id("super")
+    char({ value: "#", class: "keyword" }).char({ value: "#", class: "keyword" }).split(
+        id({ value: "class", class: "keyword" }).char("(").branch().id({ type: "classname" }).split(
+            char({ value: ".", type: "classname" }).merge(),
+            char(")").char(".").id({ type: "publicClassMember" })
+        ),
+        id({ value: "super", class: "keyword" })
     )
 ).exit().end();
 
