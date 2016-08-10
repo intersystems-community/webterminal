@@ -109,6 +109,18 @@ The next table demonstrates available API. Left column are `terminal` object pro
 		<td>Description</td>
 	</tr>
 	<tr>
+        <td>execute(<b>command</b>, <b>options</b>)</td>
+        <td>
+            Executes the COS <b>command</b> right as if it is entered
+            to the terminal. However, <b>options</b> provide an
+            additional flags setup.<br/>
+            <b>options.echo</b> (<b>false</b> by default) - prints the
+            <b>command</b> on the screen.<br/>
+            <b>options.prompt</b> (<b>false</b> by default) - prompts
+            the user after execution (prints "NAMESPACE > " as well).
+        </td>
+    </tr>
+	<tr>
         <td>onUserInput(<b>cb</b>)</td>
         <td>
             <b>cb</b>(<u>text</u>, <u>mode</u>) is fired right after user press enter. Argument
@@ -146,6 +158,9 @@ The next example demonstrates a way to intercept terminal's input:
 var iFrame = document.querySelector("#terminal");
 
 function myInitHandler (terminal) {
+    terminal.execute("set hiddenVariable = 7", {
+        echo: false // the default is false, this is just a demo
+    });
     terminal.onUserInput(function (text, mode) {
         if (mode !== terminal.MODE_PROMPT)
             return;

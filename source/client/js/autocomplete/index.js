@@ -12,7 +12,7 @@ const LEXEMES_SPLIT =
 let wrap = (a) => a,
     automaton = wrap(/* @echo autocompleteAutomaton */);
 
-printAutomaton(automaton);
+// printAutomaton(automaton);
 
 function printAutomaton (oa) {
     if (!oa)

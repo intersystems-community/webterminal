@@ -8,40 +8,55 @@
 Class WebTerminal.Handlers
 {
 
-ClassMethod Execute (client As WebTerminal.Engine, command As %String) As %Status
+/// data can be either string or %ZEN.proxyObject. In case of proxyObject, the command is hold in
+/// data.command property, and it may have some other control properties.
+ClassMethod Execute (client As WebTerminal.Engine, data) As %Status
 {
+    if $IsObject(data) {
+        set command = data.command
+        if (data.echo = 0) {
+            set client.echo = 0
+        }
+    } else {
+        set command = data
+    }
     do client.Send("o", $CHAR(13, 10))
     do client.SendChunk(client.corePID, "m", command)
     for {
         set message = client.ReceiveChunk()
         set flag = $LISTGET(message, 1)
-        set data = $LISTGET(message, 2)
+        set chunk = $LISTGET(message, 2)
         if (flag = "o") {
-            do client.Send("o", data)
+            do client.Send("o", chunk)
         } elseif (flag = "r") {
             set obj = ##class(%ZEN.proxyObject).%New()
-            set obj.length = $LISTGET(data, 1)
-            set obj.timeout = $LISTGET(data, 2)
+            set obj.length = $LISTGET(chunk, 1)
+            set obj.timeout = $LISTGET(chunk, 2)
             do client.Send("readString", obj)
             do client.SendChunk(client.corePID, "m", client.GetMessage().d)
         } elseif (flag = "c") {
             set obj = ##class(%ZEN.proxyObject).%New()
-            set obj.timeout = data
+            set obj.timeout = chunk
             do client.Send("readChar", obj)
             do client.SendChunk(client.corePID, "m", client.GetMessage().d)
         } elseif (flag = "e") {
-            set client.childNamespace = $LISTGET(data, 1)
-            set err = $LISTGET(data, 2)
+            set client.childNamespace = $LISTGET(chunk, 1)
+            set err = $LISTGET(chunk, 2)
             if (err '= "") {
                 do client.Send("execError", err)
             }
             quit // break for cycle
         } else { // unknown response - just send it to the client
-            do client.Send("o", data)
+            do client.Send("o", chunk)
         }
     }
     do client.Send("o", $CHAR(13, 10))
-    do client.Send("prompt", client.childNamespace)
+    if $IsObject(data) {
+        if (data.echo = 0) {
+            set client.echo = 1
+        }
+    }
+    do:('($IsObject(data) && (data.prompt = 0))) client.Send("prompt", client.childNamespace)
     return $$$OK
 }
 

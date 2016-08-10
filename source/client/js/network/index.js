@@ -35,8 +35,10 @@ function checkUpdate (versions) {
         // console.log(version.v, terminal.VERSION, versionGT(version.v, terminal.VERSION));
         if (!versionGT(version.v, terminal.VERSION))
             return;
-        (version[`changes`] || []).forEach((c) => changes.push(
-            "\x1b[2m" + (version.v + ":           ").substring(0, 16) + "\x1b[0m"
+        (version[`changes`] || []).forEach((c, i) => changes.push(
+            "\x1b[2m"
+            + ((i === 0 ? version.v : "") + `${ i === 0 ? ":" : "" }                        `)
+                .substring(0, 16) + "\x1b[0m"
             + (typeof c === `string` ? c : c[`text`] || "")
         ));
         if (versionGT(version.v, hiVersion)) {

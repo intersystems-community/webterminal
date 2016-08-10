@@ -15,6 +15,9 @@ Property corePID As %Numeric [ InitialExpression = 0 ];
 /// The last known namespace in child process.
 Property childNamespace As %String;
 
+/// Output flag
+Property echo As %Boolean [ InitialExpression = 1 ];
+
 Method GetMessage(timeout As %Numeric) As %ZEN.proxyObject
 {
     #define err(%e, %s) if (%e '= $$$OK) { set obj = ##class(%ZEN.proxyObject).%New() set obj.error = %s return obj }
@@ -28,6 +31,7 @@ Method GetMessage(timeout As %Numeric) As %ZEN.proxyObject
 
 Method Send(handler As %String, data = "") As %Status
 {
+    return:((handler = "o") && (..echo = 0)) $$$OK
     set obj = ##class(%ZEN.proxyObject).%New()
     set obj.h = handler
     set obj.d = data
@@ -143,7 +147,10 @@ Method ProcessRequest(handler As %String, data) As %Status [ Private ]
 {
     try {
         return $CLASSMETHOD("WebTerminal.Handlers", handler, $this, data)
-    } catch (e) { return e.AsSystemError() }
+    } catch (e) {
+        set ..echo = 1
+        return e.AsSystemError()
+    }
 }
 
 /// Main method for every new client.
@@ -162,6 +169,7 @@ Method ClientLoop() As %Status [ Private ]
         set message = ..GetMessage()
         quit:(message = "") // if client is gone, finish looping
         set status = ..ProcessRequest(message.h, message.d)
+        set ..echo = 1
         if (status '= "") && (status '= $$$OK) {
             set eType = $EXTRACT(status, 1, 1)
             do ..Send("execError", $case(eType = 0, 1: $System.Status.GetErrorText(status), :status))

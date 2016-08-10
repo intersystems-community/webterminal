@@ -43,33 +43,33 @@ function suggestByString (value = "", caretPos) {
     updateSuggestion();
 }
 
-onInit(() => input.onUpdate(suggestByString));
-
-/// ALT key handler
-onInit(() => input.onKeyDown((e) => {
-    if (e.keyCode !== 18 || !suggestions.length)
-        return;
-    let direction = e.code === "AltLeft" || e.location === 1 ? 1 : -1;
-    variant = (variant + direction + suggestions.length) % suggestions.length;
-    updateSuggestion();
-    e.preventDefault();
-}));
-
-/// TAB key handler
-onInit(() => input.onKeyDown((e) => {
-    if (e.keyCode !== 9)
-        return;
-    e.preventDefault();
-    if (!suggestions.length || !suggestions[variant])
-        return;
-
-    let caretPos = input.getCaretPosition();
-    inputElement.value = inputElement.value.substring(0, caretPos) + suggestions[variant]
-        + inputElement.value.substring(caretPos, inputElement.value.length);
-    input.setCaretPosition(caretPos + suggestions[variant].length);
-    input.setHint("");
-    suggestByString(inputElement.value, input.getCaretPosition());
-
-    variant = 0;
-    suggestions = [];
-}));
+// onInit(() => input.onUpdate(suggestByString));
+//
+// /// ALT key handler
+// onInit(() => input.onKeyDown((e) => {
+//     if (e.keyCode !== 18 || !suggestions.length)
+//         return;
+//     let direction = e.code === "AltLeft" || e.location === 1 ? 1 : -1;
+//     variant = (variant + direction + suggestions.length) % suggestions.length;
+//     updateSuggestion();
+//     e.preventDefault();
+// }));
+//
+// /// TAB key handler
+// onInit(() => input.onKeyDown((e) => {
+//     if (e.keyCode !== 9)
+//         return;
+//     e.preventDefault();
+//     if (!suggestions.length || !suggestions[variant])
+//         return;
+//
+//     let caretPos = input.getCaretPosition();
+//     inputElement.value = inputElement.value.substring(0, caretPos) + suggestions[variant]
+//         + inputElement.value.substring(caretPos, inputElement.value.length);
+//     input.setCaretPosition(caretPos + suggestions[variant].length);
+//     input.setHint("");
+//     suggestByString(inputElement.value, input.getCaretPosition());
+//
+//     variant = 0;
+//     suggestions = [];
+// }));

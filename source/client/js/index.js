@@ -17,6 +17,12 @@ export let terminal = null;
 export const VERSION = "/* @echo package.version */";
 export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
 
+let NAMESPACE = "USER";
+
+export function setNamespace (ns) {
+    return NAMESPACE = ns;
+}
+
 /**
  * Returns terminal instance.
  * @param options
@@ -84,11 +90,22 @@ Terminal.prototype.onUserInput = function (callback) {
 
 /**
  * Print the text on terminal.
+ * @param {string} text
  */
 Terminal.prototype.print = function (text) {
     input.clearPrompt();
     output.print(text);
     input.reprompt();
+};
+
+/**
+ * Print the text on terminal.
+ * @param {string} command
+ * @param {boolean=false} echo
+ * @param {boolean=false} prompt
+ */
+Terminal.prototype.execute = function (command, { echo = false, prompt = false } = {}) {
+    server.send("Execute", { command, echo: +echo, prompt: +prompt });
 };
 
 /*
