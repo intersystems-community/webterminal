@@ -37,6 +37,15 @@
         "Terminal client's API onUserInput solid performance",
         "Terminal client's API extended with the print function"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.8",
+      "url": "http://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.8.xml",
+      "changes": [
+        "Caché 2013 compatibility fix",
+        "Temporary disabled autocomplete",
+        "Terminal API extend with the \"execute\" function"
+      ]
     }
   ]
 }
