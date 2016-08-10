@@ -1,15 +1,11 @@
 //  THIS MODULE IS INVOKED AT THE BUILD TIME. ANY ERRORS ARE REPORTED DURING THE GULP BUILD TASK  \\
-
-import {
-    rule, id, char, string, split, any, all, branch, merge, exit, constant, call, tryCall,
-    getAutomatonTable
-} from "./pushdownAutomaton";
-
+//                                                                                                \\
 // ---------------------------------- CONTRIBUTION GUIDELINE ------------------------------------ \\
+//                                                                                                \\
 //     This module describes the Caché ObjectScript language with JavaScript semantics. Follow    \\
 // the simple rules listed below to add/remove/fix any autocomplete and highlight-related issues. \\
 //                                                                                                \\
-//     Introduction                                                                                   \\
+//     Introduction                                                                               \\
 //     To get an intelligent autocomplete/syntax highlight which WebTerminal has, there is a need \\
 // to teach machine how to parse code. We will tell it the general rules of how the character     \\
 // sequences (COS code) must be placed, and it will look ahead to predict which ones it can       \\
@@ -81,6 +77,13 @@ import {
 // | ).<...>
 //     Explanation: symbol "!" will never be matched, as optWhitespace() matches in any case.
 //
+
+import {
+    rule, id, char, string, split, any, all, branch, merge, exit, constant, call, tryCall,
+    getAutomatonTable
+} from "./pushdownAutomaton";
+
+// Rules definition start
 
 rule("COS").branch().call("command").whitespace().merge().end();
 // EXPLANATION:

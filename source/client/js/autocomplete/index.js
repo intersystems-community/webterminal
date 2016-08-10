@@ -59,6 +59,7 @@ function process (string) {
         pos = 0,
         maxPos = 0,
         ruleIndex = 0,
+        whiteSpaceMatched = false,
         lastSucceededState = state,
         count = 0,
         MAX_LOOP = 100;
@@ -99,12 +100,19 @@ function process (string) {
                 pos--;
             } else if (rule[0] === true) {
                 // match all
-            } else if (rule[0] === 0) {
+                if (lexeme.type === TYPE_WHITESPACE)
+                    whiteSpaceMatched = true;
+            } else if (rule[0] === 0) { // try call
                 tryStack.push([state, ruleIndex, stack.length]);
                 pos--;
             } else if (rule[0].type === TYPE_WHITESPACE) {
-                if (rule[0].type !== lexeme.type)
-                    continue;
+                if (whiteSpaceMatched) {
+                    pos--;
+                } else {
+                    if (rule[0].type !== lexeme.type)
+                        continue;
+                }
+                whiteSpaceMatched = true;
             } else if (rule[0].type === TYPE_ID) {
                 if (rule[0].type !== lexeme.type)
                     continue;
@@ -112,12 +120,15 @@ function process (string) {
                     if (lexeme.value !== rule[0].value)
                         continue;
                 } // when rule[0].value is object, we match any ID
+                whiteSpaceMatched = false;
             } else if (rule[0].type === TYPE_STRING) {
                 if (rule[0].type !== lexeme.type)
                     continue;
+                whiteSpaceMatched = false;
             } else if (rule[0].type === TYPE_CONSTANT) {
                 if (rule[0].type !== lexeme.type)
                     continue;
+                whiteSpaceMatched = false;
             } else if (rule[0].type === TYPE_CHAR) {
                 if (rule[0].type !== lexeme.type)
                     continue;
@@ -125,6 +136,7 @@ function process (string) {
                     if (lexeme.value !== rule[0].value)
                         continue;
                 } // when rule[0].value is object, we match any CHAR
+                whiteSpaceMatched = false;
             }
             // ...
             console.log(`${ state } | [${ lexeme.value }] Match found [ruleIndex = ${ ruleIndex }]`);
@@ -148,25 +160,25 @@ function process (string) {
         }
         if (!ok) {
             console.log(
-                `${ state } | [${ tape[pos].value }] Finalized, not OK; pos = ${ pos + 1 }/${ tape.length
+                `${ state } | [${ (tape[pos] || {}).value || "" }] Finalized, not OK; pos = ${ pos + 1 }/${ tape.length
                 } [ruleIndex = ${ ruleIndex }]`
             );
             if (error()) { // not the last - predict
                 if (pos + 1 < tape.length) {
                     ruleIndex = 0;
                     state = 1;
-                    console.error(`No rule for`, tape[pos].value, `at state ${ state }`);
+                    console.error(`No rule for`, (tape[pos] || {}).value || "", `at state ${ state }`);
                 }
                 pos++; // finalize to suggest
             }
         } else {
             lastSucceededState = state;
             ruleIndex = 0;
-            console.log(`${ state } | [${ tape[pos].value }] Finalized, OK! [ruleIndex = ${ ruleIndex }]`);
+            console.log(`${ state } | [${ (tape[pos] || {}).value || "" }] Finalized, OK! [ruleIndex = ${ ruleIndex }]`);
         }
     }
     if (count >= MAX_LOOP) {
-        console.error(`Statement`, tape, `looped more than ${ MAX_LOOP } times, exiting.`);
+        console.error(`Statement`, tape, `looped more than ${ MAX_LOOP } times without a progress, exiting.`);
     }
     console.log(
         `Complete! My state is ${ state }. Last succeeded state is ${ lastSucceededState
