@@ -3,7 +3,7 @@
   "versions": [
     {
       "v": "4.0.0-alpha.1",
-      "url": "http://intersystems-ru.github.io/webterminal/files/CacheWebTerminal-v4.0.0-alpha.1.xml",
+      "url": "https://intersystems-ru.github.io/webterminal/files/CacheWebTerminal-v4.0.0-alpha.1.xml",
       "changes": [
         "Terminal core is changed",
         "Almost full application rewrite"
@@ -11,28 +11,28 @@
     },
     {
       "v": "4.0.0-alpha.2",
-      "url": "http://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.2.xml",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.2.xml",
       "changes": [
         "New update system"
       ]
     },
     {
       "v": "4.0.0-alpha.3",
-      "url": "http://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.3.xml",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.3.xml",
       "changes": [
         "Extended API: onTerminalInit and onUserInput functions support"
       ]
     },
     {
       "v": "4.0.0-alpha.4",
-      "url": "http://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.4.xml",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.4.xml",
       "changes": [
         "COS read command incorrect behavior fix"
       ]
     },
     {
       "v": "4.0.0-alpha.5",
-      "url": "http://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.5.xml",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.5.xml",
       "changes": [
         "Terminal client's API onUserInput solid performance",
         "Terminal client's API extended with the print function"
@@ -40,11 +40,19 @@
     },
     {
       "v": "4.0.0-alpha.8",
-      "url": "http://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.8.xml",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.8.xml",
       "changes": [
         "Caché 2013 compatibility fix",
         "Temporary disabled autocomplete",
         "Terminal API extend with the \"execute\" function"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.10",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.10.xml",
+      "changes": [
+        "Security update, now updating over https",
+        "Caché 2013 output fix"
       ]
     }
   ]
