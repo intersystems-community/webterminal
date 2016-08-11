@@ -13,7 +13,7 @@ const
 
 let wrap = (a) => a,
     automaton = wrap(/* @echo autocompleteAutomaton */),
-    rules = wrap({ "CWTInput": 1 }); // todo: add rules mapping: { "COS": 1, "rule": state }
+    rules = wrap(/* @echo ruleMappings */); // { "CWTSpecial": 1, "rule": state }
 
 printAutomaton(automaton);
 
@@ -32,6 +32,7 @@ function printAutomaton (oa) {
     }
     if (console.table)
         console.table(table);
+    console.log(rules);
 }
 
 /**

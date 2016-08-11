@@ -80,7 +80,7 @@
 
 import {
     rule, id, char, string, split, any, all, branch, merge, exit, constant, call, tryCall,
-    getAutomatonTable
+    getAutomatonTable, getRuleMappings as grm
 } from "./pushdownAutomaton";
 
 // Rules definition start
@@ -168,4 +168,8 @@ rule("argumentList").call("expression").split(
  */
 export function getAutomaton () {
     return getAutomatonTable();
+}
+
+export function getRuleMappings () {
+    return grm();
 }

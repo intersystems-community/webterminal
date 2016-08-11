@@ -14,7 +14,7 @@ import buffer from "vinyl-buffer";
 import fs from "fs";
 import preprocessify from "preprocessify";
 //import sourcemaps from "gulp-sourcemaps";
-import { getAutomaton } from "./source/client/js/autocomplete/grammar";
+import { getAutomaton, getRuleMappings } from "./source/client/js/autocomplete/grammar";
 
 let INSTALLER_CLASS_NAME = `${ pkg["packageName"] }.Installer`;
 
@@ -26,7 +26,8 @@ let dir = __dirname,
             package: pkg,
             compileAfter: "", // is set during "pre-cls" task.
             themes: "", // is set after css move task
-            autocompleteAutomaton: []
+            autocompleteAutomaton: [],
+            ruleMappings: {}
         }
     },
     themes = []; // reassigned
@@ -42,6 +43,7 @@ gulp.task("prepare", function (cb) {
     console.log(`Compiling autocomplete rules...`);
     try {
         context.context.autocompleteAutomaton = JSON.stringify(getAutomaton());
+        context.context.ruleMappings = JSON.stringify(getRuleMappings());
     } catch (e) {
         console.error.apply(console, e);
         cb(e);

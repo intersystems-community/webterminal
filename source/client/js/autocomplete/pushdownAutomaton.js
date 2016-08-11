@@ -41,6 +41,12 @@ let automaton = [
 ];
 
 /**
+ * Holds positions of assigned
+ * @type {Object.<string, number>}
+ */
+let ruleMappings = { /* "doArgument": 5, "expression": 29, ... */ }; // used by rule() and call()
+
+/**
  * New generated indices sometimes may cause automaton rows to be empty. This function filters an
  * empty rows.
  * @param {[[[]]]} a
@@ -76,6 +82,10 @@ function optimize (a) {
 
 export function getAutomatonTable () {
     return optimize(automaton);
+}
+
+export function getRuleMappings () {
+    return ruleMappings;
 }
 
 function getTablePiece (thisArg) {
@@ -147,12 +157,6 @@ TablePiece.prototype.buildTable = function () {
     buildTable(this.ruleName, this.chain);
 };
 
-/**
- * Holds positions of assigned
- * @type {Object.<string, number>}
- */
-let ruleIndices = { /* "doArgument": 5, "expression": 29, ... */ }; // used by rule() and call()
-
 let currentIndex = 0;
 function getNewIndex () {
     console.log(`Getting new index ${currentIndex} -> ${currentIndex + 1}`);
@@ -160,9 +164,9 @@ function getNewIndex () {
 }
 
 function getRuleIndex (rule) {
-    if (!ruleIndices.hasOwnProperty(rule))
-        ruleIndices[rule] = getNewIndex();
-    return ruleIndices[rule];
+    if (!ruleMappings.hasOwnProperty(rule))
+        ruleMappings[rule] = getNewIndex();
+    return ruleMappings[rule];
 }
 
 function buildTable (rule, chain) {
@@ -299,7 +303,7 @@ function processChain (chain, branchingStack, startingIndex) {
             console.log("stack:", stack, "backStack:", backStack);
         } break;
         case TYPE_CALL: { // DONE
-            console.log(index, "CALLING ", elem.value, `(-> ${ ruleIndices[elem.value] })`);
+            console.log(index, "CALLING ", elem.value, `(-> ${ ruleMappings[elem.value] })`);
             if (stack.length) {
                 console.log("MOVING ", stack, "TO BACKSTACK");
                 backStack = backStack.concat(stack);
@@ -313,7 +317,7 @@ function processChain (chain, branchingStack, startingIndex) {
             }
         } break;
         case TYPE_TRY_CALL: { // DONE
-            console.log(index, "TRY CALLING ", elem.value, `(-> ${ ruleIndices[elem.value] })`);
+            console.log(index, "TRY CALLING ", elem.value, `(-> ${ ruleMappings[elem.value] })`);
             if (stack.length) { // exceptional case
                 console.log(`[!] tryCall() potential invalid usage, check the grammar chain.`);
                 completeStack();
