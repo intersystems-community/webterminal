@@ -69,6 +69,7 @@ function process (string, cursorPos = string.length) {
         ruleIndex = 0,
         whiteSpaceMatched = false,
         lastSucceededState = state,
+        suggestState = 0,
         count = 0,
         MAX_LOOP = 100;
     function error () {
@@ -222,10 +223,20 @@ function process (string, cursorPos = string.length) {
                 tryStack = [];
             }
         } else {
+            let nextLength = tape[pos] ? tape[pos].value.length : 0;
             lastSucceededState = state;
             ruleIndex = 0;
-            console.log(`${ state } | [${ (tape[pos] || {}).value || "" }] Finalized, OK! [ruleIndex = ${ ruleIndex }]`);
+            console.log(`${ state } | Try to set suggestState, ${parsedStringLength} <= ${cursorPos} < ${parsedStringLength+nextLength}`);
+            if (parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength) {
+                console.log(`${ state } | [${ (tape[pos] || {}).value || "" }] Setting suggestState=${lastSucceededState} as ${parsedStringLength} <= ${cursorPos} < ${parsedStringLength+nextLength}`);
+                suggestState = lastSucceededState;
+            }
+            console.log(`${ state } | [${ (tape[pos] || {}).value || "" }] Finalized, OK! [ruleIndex = ${ ruleIndex }] Parsed=${ parsedStringLength }/${ string.length }`);
         }
+    }
+    if (!suggestState) {
+        console.log(`Setting suggestState=${lastSucceededState} as it wasn't set until the end.`);
+        suggestState = lastSucceededState;
     }
     if (count >= MAX_LOOP) {
         console.error(`Statement`, tape, `looped more than ${ MAX_LOOP } times without a progress, exiting.`);
@@ -234,7 +245,10 @@ function process (string, cursorPos = string.length) {
         `Complete! My state is ${ state }. Last succeeded state is ${ lastSucceededState
         }. Stack:`, stack, `Try Stack:`, tryStack);
     console.log(`Tape:`, tape);
-    console.log(`Parsed length: ${ parsedStringLength } of actual length ${ string.length }`);
+    console.log(`Parsed length: ${ parsedStringLength } of actual length ${ string.length }. Suggest state: ${ suggestState }`);
+    return {
+        lexemes: tape
+    };
 }
 
 if (typeof window !== "undefined") // todo: debug
