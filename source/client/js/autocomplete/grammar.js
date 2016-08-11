@@ -85,7 +85,10 @@ import {
 
 // Rules definition start
 
-rule("COS").branch().call("command").whitespace().merge().end();
+rule("CWTInput").split(
+    char({ value: "/", class: "special" }).call("CWTSpecial").exit(),
+    any().branch().call("cosCommand").whitespace().merge()
+).end();
 // EXPLANATION:
 // rule("root")      Defines a new rule named "root".
 // .branch()         Defines a new label in the current branch.
@@ -95,7 +98,13 @@ rule("COS").branch().call("command").whitespace().merge().end();
 // .end()            Builds the rule.
 // As a result, rule "root" is an infinite loop, as merge() at the end always starts the chain over.
 
-rule("command").split(
+rule("CWTSpecial").split(
+    id({ value: "help", class: "special" }),
+    id({ value: "about", class: "special" }),
+    id({ value: "info", class: "special" })
+).exit().end();
+
+rule("cosCommand").split(
     id([
         { value: "d", class: "keyword" },
         { value: "do", class: "keyword" }
