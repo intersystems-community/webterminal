@@ -38,7 +38,7 @@ function printAutomaton (oa) {
 /**
  * Split the string to the lexical parts. There are five: whitespace, id, string, constant and char.
  * @param {string} string
- * @returns {{ type: number, value: * }[]}
+ * @returns {{ type: number, value: *, class: string }[]}
  */
 function splitString (string) {
     let matches,
@@ -270,6 +270,8 @@ function process (string, cursorPos = string.length) {
                 while ((state = stack.pop()) === 0) {
                     console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ lexeme.value }] Still popping stack...`, stack.slice());
                 }
+                if (typeof state === "undefined")
+                    state = 0; // forever loop
                 console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ lexeme.value }] Now stack is`, stack.slice());
             } else {
                 state = rule[1];

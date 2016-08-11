@@ -90,12 +90,16 @@ rule("CWTInput").split(
     any().branch().call("cosCommand").whitespace().merge()
 ).end();
 // EXPLANATION:
-// rule("root")      Defines a new rule named "root".
-// .branch()         Defines a new label in the current branch.
-// .call("command")  Jumps to the "command" rule. Continues the chain after "command" rule exits.
-// .whitespace()     Matches one or more space characters.
-// .merge()          Returns to the last defined label.
-// .end()            Builds the rule.
+// rule("CWTInput")    Defines a new rule named "CWTInput".
+// .split(a, b, ...)   Allows multiple choices.
+// char()              Matches a character. Assigns a class to this character.
+// .call("CWTSpecial") Calls "CWTSpecial" rule and continues chain when "CWTSpecial" exits.
+// .exit()             Exits the rule.
+// .branch()           Defines a new label in the current branch.
+// .call("command")    Jumps to the "command" rule. Continues the chain after "command" rule exits.
+// .whitespace()       Matches one or more space characters.
+// .merge()            Returns to the last defined label.
+// .end()              Builds the rule.
 // As a result, rule "root" is an infinite loop, as merge() at the end always starts the chain over.
 
 rule("CWTSpecial").split(

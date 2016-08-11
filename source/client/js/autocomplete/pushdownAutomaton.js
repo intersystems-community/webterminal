@@ -61,6 +61,7 @@ function optimize (a) {
             automaton[a][b] = automaton[a][b].slice();
         }
     }
+    automaton[0] = [[true, 0]];
     for (let i = 1; i < automaton.length; i++) {
         if (automaton[i])
             continue;
