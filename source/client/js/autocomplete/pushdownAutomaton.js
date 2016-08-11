@@ -107,7 +107,12 @@ function TablePiece (built) {
 function group (type) {
     return function (v) {
         let tp = getTablePiece(this);
-        tp.chain.push({ type: type, value: v });
+        tp.chain.push({
+            type: type,
+            value: (type === TYPE_CHAR || type === TYPE_ID) && typeof v !== "object"
+                ? typeof v === "undefined" ? {} : { value: v }
+                : v
+        });
         return tp;
     };
 }

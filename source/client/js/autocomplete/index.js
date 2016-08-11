@@ -26,7 +26,7 @@ function printAutomaton (oa) {
         if (!oa[i])
             continue;
         for (let r of oa[i]) {
-            table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value})` : ""))
+            table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value.value || r[0].value})` : ""))
                 : r[0]).concat(r.slice(1)));
         }
     }
@@ -59,8 +59,67 @@ function splitString (string) {
     return result;
 }
 
-function suggest (state, subString = "") {
-    console.log(`Suggesting from state ${ state } with "${ subString }"`);
+function suggest (state, base = "") {
+    const BEEN = [];
+    console.log(`Suggesting from state ${ state } with "${ base }"`);
+    // match null | TYPE_CHAR (multiple) | TYPE_ID (once)
+    function collect (state, base, cls = null, type = null) {
+        if (BEEN[state]) // prevent looping
+            return [];
+        BEEN[state] = true;
+        let rule = automaton[state],
+            arr = [];
+        if (!rule) {
+            console.error(`No state ${ state }`);
+            return [];
+        }
+        for (let row of rule) {
+            if (row[0] === null) {
+                if (row[1] === 0)
+                    break;
+                arr = arr.concat(collect(row[1], base));
+                break;
+            }
+            if (row[0] === true || row[0] === 0)
+                continue;
+            if (row[0].type !== TYPE_CHAR && row[0].type !== TYPE_ID)
+                continue;
+            if (cls && row[0].value.class && row[0].value.class !== cls
+                || type && row[0].value.type && row[0].value.type !== type)
+                continue;
+            if (row[0].type === TYPE_CHAR) {
+                if (base !== "" && row[0].value.value.indexOf(base) !== 0)
+                    continue;
+                if (row[1] === 0)
+                    continue;
+                let a = collect(
+                    row[1],
+                    base.substr(1),
+                    row[0].value.class || cls,
+                    row[0].value.type || type
+                );
+                for (let r of a)
+                    arr.push([ row[0].value ].concat(r));
+            }
+            if (row[0].type === TYPE_ID) {
+                if (base !== "" && typeof row[0].value.value === "string") {
+                    if (row[0].value.value.indexOf(base) === 0) {
+                        arr.push([{
+                            value: row[0].value.value.substr(base.length),
+                            class: row[0].value.class,
+                            type: row[0].value.type
+                        }]);
+                    } // else continue (default)
+                } else {
+                    arr.push([ row[0].value ]);
+                }
+            }
+        }
+        return arr;
+    }
+    let suggestions = collect(state, base);
+    console.log(`Suggestions:`, suggestions);
+    return suggestions;
 }
 
 function process (string, cursorPos = string.length) {

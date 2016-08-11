@@ -147,9 +147,10 @@ rule("expression").split(
 
 rule("class").split(
     char({ value: "#", class: "keyword" }).char({ value: "#", class: "keyword" }).split(
-        id({ value: "class", class: "keyword" }).char("(").branch().id({ type: "classname" }).split(
-            char({ value: ".", type: "classname" }).merge(),
-            char(")").char(".").id({ type: "publicClassMember" })
+        id({ value: "class", class: "keyword" }).char("(").branch()
+            .id({ type: "classname", class: "classname" }).split(
+                char({ value: ".", type: "classname", class: "classname" }).merge(),
+                char(")").char(".").id({ type: "publicClassMember" })
         ),
         id({ value: "super", class: "keyword" })
     )
