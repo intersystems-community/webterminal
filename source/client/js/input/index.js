@@ -3,9 +3,12 @@ import * as output from "../output";
 import * as caret from "./caret";
 import * as history from "./history";
 import { Terminal, userInput } from "../index";
+import { process as processString } from "../autocomplete";
 
 export let ENABLED = false,
     PROMPT_CLEARED = false;
+
+const SELECTION_CLASS = "selected";
 
 let ORIGIN_LINE_INDEX = 0,
     ORIGIN_CURSOR_X = 0,
@@ -97,7 +100,9 @@ export function clearPrompt () {
         return;
     output.setCursorYToLineIndex(PROMPT_START_LINE_INDEX);
     output.setCursorX(PROMPT_START_CURSOR_X);
-    output.immediatePlainPrint(new Array(PROMPT_MESSAGE.length + elements.input.value.length + 1).join(" "))
+    output.immediatePlainPrint(
+        new Array(PROMPT_MESSAGE.length + elements.input.value.length + 1).join(" ")
+    );
     output.setCursorYToLineIndex(PROMPT_START_LINE_INDEX);
     output.setCursorX(PROMPT_START_CURSOR_X);
     PROMPT_CLEARED = true;
@@ -244,39 +249,59 @@ export function setHint (string) {
 
 export function update () {
 
-    let extraLength = 0;
-
     if (!ENABLED)
         return;
 
     output.setCursorYToLineIndex(ORIGIN_LINE_INDEX);
     output.setCursorX(ORIGIN_CURSOR_X);
-    if (
-        typeof elements.input.selectionStart !== "undefined"
-        && typeof elements.input.selectionEnd !== "undefined"
-    ) {
-        output.print(elements.input.value.substring(0, elements.input.selectionStart));
-        let val = elements.input.value.substring(
-            elements.input.selectionStart,
-            elements.input.selectionEnd
-        );
-        if (val) {
-            output.print(`\x1b[7m${ val }\x1b[0m`);
+
+    let selStart = typeof elements.input.selectionStart === "undefined" // some old browsers
+            ? elements.input.value.length // can be improved with something like getCaretPos() f-n
+            : elements.input.selectionStart,
+        selEnd = typeof elements.input.selectionEnd === "undefined"
+            ? elements.input.value.length
+            : elements.input.selectionEnd,
+        selLen = selEnd - selStart,
+        { lexemes } = processString(elements.input.value, selStart),
+        printedLength = 0, printingClass = "";
+
+    for (let i = 0; i < lexemes.length; i++) {
+        let inSelStart = printedLength <= selStart && selStart < printedLength + lexemes[i].value.length,
+            inSelEnd = printedLength <= selEnd && selEnd < printedLength + lexemes[i].value.length;
+        if (lexemes[i].class !== printingClass) {
+            printingClass = lexemes[i].class;
+            if (!(selLen > 0 && selStart < printedLength && printedLength < selEnd))
+                output.print(`\x1B[${ printingClass === "" ? 0 : "(" + printingClass + ")" }m`);
         }
+        if (inSelStart) {
+            output.print(lexemes[i].value.substring(0, selStart - printedLength));
+            caret.update();
+            if (selLen > 0)
+                output.print(`\x1B[(${ SELECTION_CLASS })m`);
+        }
+        if (inSelEnd) {
+            output.print(lexemes[i].value.substring(inSelStart ? selStart - printedLength : 0, selEnd - printedLength));
+        } else if (inSelStart) {
+            output.print(lexemes[i].value.substr(selStart - printedLength));
+        }
+        if (inSelEnd) {
+            if (selLen > 0)
+                output.print(`\x1B[${ printingClass === "" ? 0 : "(" + printingClass + ")" }m`);
+            output.print(lexemes[i].value.substr(selEnd - printedLength));
+        }
+        if (!inSelStart && !inSelEnd)
+            output.print(lexemes[i].value);
+        printedLength += lexemes[i].value.length;
+    }
+    if (selStart === printedLength)
         caret.update();
-        if (HINT && !val) {
-            output.print(`\x1b[(hint)m${ HINT }\x1b[0m`);
-            extraLength = HINT.length;
-        }
-        output.print(elements.input.value.substring(
-            elements.input.selectionEnd,
-            elements.input.value.length
-        ));
+    if (printingClass)
+        output.print(`\x1B[0m`);
+
+    if (printedLength < oldInputLength) {// erase old characters
+        output.print((new Array(oldInputLength - printedLength + 1)).join(" "));
     }
-    if (elements.input.value.length < oldInputLength) {// erase old characters
-        output.print((new Array(oldInputLength - elements.input.value.length + 1)).join(" "));
-    }
-    oldInputLength = elements.input.value.length + extraLength;
+    oldInputLength = printedLength;
 
     let h = (output.getCurrentLineIndex() - ORIGIN_LINE_INDEX + 1) * output.SYMBOL_HEIGHT;
     if (elements.input.style.height !== `${ h }px`)

@@ -106,6 +106,44 @@ a {
         background-color: white;
     }
 
+    .g.keyword {
+        color: #4898ff;
+    }
+
+    .g.string {
+        color: #00c700;
+    }
+
+    .g.constant {
+        color: cyan;
+    }
+
+    .g.special {
+        color: yellow;
+    }
+
+    .g.variable {
+        color: lightsalmon;
+    }
+
+    .g.selected {
+        color: white;
+        background-color: royalblue;
+    }
+
+    .g.error {
+        border-bottom: 1px dashed red;
+        display: inline-block;
+    }
+
+    .g.global {
+        color: #ef6913;
+    }
+
+    .g.classname {
+        color: cyan;
+    }
+
 }
 
 @include keyframes(blink) {

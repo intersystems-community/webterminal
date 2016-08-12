@@ -80,7 +80,7 @@
 
 import {
     rule, id, char, string, split, any, all, branch, merge, exit, constant, call, tryCall,
-    getAutomatonTable, getRuleMappings as grm
+    optWhitespace, getAutomatonTable, getRuleMappings as grm
 } from "./pushdownAutomaton";
 
 // Rules definition start
@@ -119,7 +119,25 @@ rule("cosCommand").split(
     id([
         { value: "w", class: "keyword" },
         { value: "write", class: "keyword" }
-    ]).whitespace().branch().call("expression").optWhitespace().split(
+    ]).whitespace().branch().split(
+        char({ value: "!", class: "special" }),
+        call("expression")
+    ).optWhitespace().split(
+        char(",").optWhitespace().merge(), // -> loop to the last branch
+        any().exit()
+    ),
+    id([
+        { value: "s", class: "keyword" },
+        { value: "set", class: "keyword" }
+    ]).whitespace().branch().call("variable").optWhitespace().char("=").optWhitespace()
+        .call("expression").optWhitespace().split(
+            char(",").optWhitespace().merge(), // -> loop to the last branch
+            any().exit()
+        ),
+    id([
+        { value: "k", class: "keyword" },
+        { value: "kill", class: "keyword" }
+    ]).whitespace().branch().call("variable").optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     )
@@ -137,16 +155,28 @@ rule("expression").split(
     constant(),
     char("(").call("expression").char(")"),
     string(),
+    tryCall("variable"),
     tryCall("class")
-).split(
+).optWhitespace().split(
     split(
         char("+"),
         char("-"),
         char("*"),
         char("/"),
         char("_")
-    ).call("expression"),
+    ).optWhitespace().call("expression"),
     any()
+).exit().end();
+
+rule("variable").split(
+    id({ class: "variable" }),
+    char({ value: "^", class: "global" }).branch().id({ class: "global" }).split(
+        char({ value: ".", class: "global" }).merge(),
+        any()
+    ).split(
+        char("(").call("argumentList").char(")"),
+        any()
+    )
 ).exit().end();
 
 rule("class").split(
@@ -154,14 +184,20 @@ rule("class").split(
         id({ value: "class", class: "keyword" }).char("(").branch()
             .id({ type: "classname", class: "classname" }).split(
                 char({ value: ".", type: "classname", class: "classname" }).merge(),
-                char(")").char(".").id({ type: "publicClassMember" })
+                char(")").char(".").id({ type: "publicClassMember" }).split(
+                    char("(").call("argumentList").char(")"),
+                    any()
+                )
         ),
         id({ value: "super", class: "keyword" })
     )
 ).exit().end();
 
-rule("argumentList").call("expression").split(
-    char(",").optWhitespace().call("expression"),
+rule("argumentList").split(
+    tryCall("expression").branch().split(
+        char(",").optWhitespace().call("expression").merge(),
+        any()
+    ),
     any()
 ).exit().end();
 
