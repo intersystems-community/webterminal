@@ -54,6 +54,13 @@
         "Security update, now updating over https",
         "Caché 2013 output fix"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.15",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.15.xml",
+      "changes": [
+        "Basic intelligent syntax highlighting for do, set, write and kill statements"
+      ]
     }
   ]
 }
