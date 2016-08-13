@@ -3,7 +3,7 @@ import * as output from "../output";
 import * as caret from "./caret";
 import * as history from "./history";
 import { Terminal, userInput } from "../index";
-import { process as processString } from "../autocomplete";
+import { process as processString } from "../parser";
 
 export let ENABLED = false,
     PROMPT_CLEARED = false;

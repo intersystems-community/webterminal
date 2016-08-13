@@ -76,11 +76,10 @@
 // |     char("!")
 // | ).<...>
 //     Explanation: symbol "!" will never be matched, as optWhitespace() matches in any case.
-//
 
 import {
     rule, id, char, string, split, any, all, branch, merge, exit, constant, call, tryCall,
-    optWhitespace, getAutomatonTable, getRuleMappings as grm
+    optWhitespace
 } from "./pushdownAutomaton";
 
 // Rules definition start
@@ -200,17 +199,3 @@ rule("argumentList").split(
     ),
     any()
 ).exit().end();
-
-// ------------------------------- DANGER ZONE: DO NOT EDIT BELOW ------------------------------- \\
-
-/**
- * Returns automaton. Evaluated at compile time.
- * @returns {[[[*, *, *]]]} - [match, next, stack]
- */
-export function getAutomaton () {
-    return getAutomatonTable();
-}
-
-export function getRuleMappings () {
-    return grm();
-}

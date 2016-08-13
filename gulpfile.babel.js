@@ -14,7 +14,7 @@ import buffer from "vinyl-buffer";
 import fs from "fs";
 import preprocessify from "preprocessify";
 //import sourcemaps from "gulp-sourcemaps";
-import { getAutomaton, getRuleMappings } from "./source/client/js/autocomplete/grammar";
+import { getAutomaton, getRuleMappings } from "./source/client/js/parser/_build";
 
 let INSTALLER_CLASS_NAME = `${ pkg["packageName"] }.Installer`;
 

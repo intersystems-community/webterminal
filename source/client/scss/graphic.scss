@@ -132,8 +132,20 @@ a {
     }
 
     .g.error {
-        border-bottom: 1px dashed red;
+
         display: inline-block;
+        position: relative;
+
+        &:after {
+            content: "";
+            position: absolute;
+            display: block;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            border-top: 1px dashed red;
+        }
+
     }
 
     .g.global {

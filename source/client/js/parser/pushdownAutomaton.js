@@ -343,5 +343,3 @@ function processChain (chain, branchingStack, startingIndex) {
     }}
     return [stack, backStack];
 }
-
-export default automaton;
