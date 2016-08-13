@@ -295,10 +295,10 @@ export function update () {
     }
     if (selStart === printedLength)
         caret.update();
-    if (printingClass)
+    if (printingClass || printedLength < oldInputLength)
         output.print(`\x1B[0m`);
 
-    if (printedLength < oldInputLength) {// erase old characters
+    if (printedLength < oldInputLength) { // erase old characters
         output.print((new Array(oldInputLength - printedLength + 1)).join(" "));
     }
     oldInputLength = printedLength;

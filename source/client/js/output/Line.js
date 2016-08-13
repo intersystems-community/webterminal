@@ -34,9 +34,9 @@ export function Line (index) {
     
     /**
      * Array of graphic properties. The null value symbolizes that reset is needed.
-     * @type {Object<Number,Object<Number,null|{class:String,style:String}>>}
+     * @type {(Number|{class:String,style:String,tag:string,attrs:Object<string,*>[]})[]}
      */
-    this.graphicProperties = {};
+    this.graphicProperties = [];
 
     this.setIndex(index);
     elements.output.appendChild(this._lineElement);
@@ -51,82 +51,111 @@ Line.prototype.setIndex = function (index) {
     this._lineElement.style.top = `${ index * SYMBOL_HEIGHT }px`;
 };
 
+function getElement (gp, text) {
+    let classes = ["g"],
+        styles = [],
+        tag = "span",
+        attrs = [];
+    for (let i = 0; i < gp.length; i += 2) {
+        if (gp[i + 1].class)
+            classes.push(gp[i + 1].class);
+        if (gp[i + 1].styles)
+            styles.push(gp[i + 1].styles);
+        if (gp[i + 1].attrs)
+            for (let a in gp[i + 1].attrs)
+                attrs.push([a, gp[i + 1].attrs[a]]);
+        if (gp[i + 1].tag)
+            tag = gp[i + 1].tag;
+    }
+    let el = document.createElement(tag);
+    el.classList = classes.join(" ");
+    if (styles.length)
+        el.setAttribute("style", styles.join(";"));
+    for (let a of attrs)
+        el.setAttribute(a[0], a[1]);
+    el.textContent = text;
+    return el;
+}
+
 /**
  * Renders text to html.
  */
 Line.prototype.render = function () {
 
-    let html = [],
-        keys = Object.keys(this.graphicProperties),
-        ind = [].concat(this.graphicProperties[0] ? [] : 0).concat(keys).concat(WIDTH);
+    let tempDisplay = this._lineElement.style.display;
+    this._lineElement.style.display = "none";
+    this._lineElement.innerHTML = "";
 
-    for (let i = 1; i < ind.length; i++) {
-        let classes = [],
-            styles = [],
-            tag = "span",
-            attrs = [],
-            ps = this.graphicProperties[ind[i - 1]];
-        for (let c in ps) {
-            if (ps[c].class)
-                classes.push(ps[c].class);
-            if (ps[c].style)
-                styles.push(ps[c].style);
-            if (ps[c].tag)
-                tag = ps[c].tag;
-            if (ps[c].attrs) {
-                for (let a in ps[c].attrs) {
-                    attrs.push(`${a}='${ ps[c].attrs[a] }'`);
-                }
-            }
-        }
-        html.push(`<${ tag } class="g${ classes.length ? " " + classes.join(" ") : "" }" style="${
-            styles.join("") }"${ attrs.length ? " " + attrs.join(" ") : "" }>${
-            this.text.substring(ind[i - 1], ind[i])
-                .replace(/[&<]/g, s => s === "&" ? "&amp;" : "&lt;")
-            }</${ tag }>`);
+    // let html = [],
+    //     ind = [].concat(this.graphicProperties[0] ? [] : 0).concat(keys).concat(WIDTH);
+    //
+    // for (let i = 1; i < ind.length; i++) {
+    //     let classes = [],
+    //         styles = [],
+    //         tag = "span",
+    //         attrs = [],
+    //         ps = this.graphicProperties[ind[i - 1]];
+    //     for (let c in ps) {
+    //         if (ps[c].class)
+    //             classes.push(ps[c].class);
+    //         if (ps[c].style)
+    //             styles.push(ps[c].style);
+    //         if (ps[c].tag)
+    //             tag = ps[c].tag;
+    //         if (ps[c].attrs) {
+    //             for (let a in ps[c].attrs) {
+    //                 attrs.push(`${a}='${ ps[c].attrs[a] }'`);
+    //             }
+    //         }
+    //     }
+    //     html.push(`<${ tag } class="g${ classes.length ? " " + classes.join(" ") : "" }" style="${
+    //         styles.join("") }"${ attrs.length ? " " + attrs.join(" ") : "" }>${
+    //         this.text.substring(ind[i - 1], ind[i])
+    //             .replace(/[&<]/g, s => s === "&" ? "&amp;" : "&lt;")
+    //         }</${ tag }>`);
+    // }
+
+    let lastI = 0;
+    for (let i = 0; i < this.text.length; i++) {
+        if (typeof this.graphicProperties[i] === "undefined")
+            continue;
+        if (lastI !== i)
+            this._lineElement.appendChild(
+                getElement(this.graphicProperties[lastI] || [], this.text.substring(lastI, i))
+            );
+        lastI = i;
     }
+    if (this.text.length > 0)
+        this._lineElement.appendChild(
+            getElement(this.graphicProperties[lastI] || [], this.text.substr(lastI))
+        );
 
-    this._lineElement.innerHTML = html.join("");
+    // console.log(`Rendered with`, JSON.parse(JSON.stringify(this.graphicProperties)));
 
-    /*var positions = [],
-        i,
-        lineText = "",
-        temp, styled;
-
-    for (i in this.graphicProperties) {
-        positions.push(parseInt(i));
-    }
-
-    //console.log(`Lime GM's:`, this.graphicProperties);
-
-    positions.sort(function(a, b) { return a - b; });
-
-    if (positions[0] !== 0) positions.unshift(0);
-
-    for (i = 0; i < positions.length; i++) {
-        temp = "g"; styled = "";
-        for (let a in this.graphicProperties[positions[i]]) {
-            temp += " m" + a;
-            //if (a.style) styled += (styled ? ";" : "") + a.style + " ";
-        }
-        // (this.graphicProperties[positions[i]] || []).every(function(a) {
-        //     temp += "m " + a.index;
-        //     if (a.style) styled += (styled ? ";" : "") + a.style + " ";
-        //     return true;
-        // }, this);
-        if (temp) temp = "<span class=\"" + temp + "\"" + (styled ? "style=\""
-            + styled.replace("\"", "&quot;") + "\"" : "") + ">";
-        lineText += temp + this.text.substring(
-                positions[i] || 0,
-                positions[i + 1] || this.text.length
-        ).replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span>";
-    }
-
-    if (!lineText) lineText = this.text.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-
-    this._lineElement.innerHTML = lineText;*/
+    this._lineElement.style.display = tempDisplay;
 
 };
+
+function collect (posArr, from = 0, to, init = [], clean = false) {
+    let arr = init;
+    for (let i = from; i < to; i++) {
+        if (typeof posArr[i] === "undefined")
+            continue;
+        arr = posArr[i];
+        if (clean)
+            posArr[i] = undefined;
+    }
+    return arr;
+}
+
+function equal (arr1, arr2) {
+    if (arr1.length !== arr2.length)
+        return false;
+    for (let i = 0; i < arr1.length; i++)
+        if (arr1[i] !== arr2[i])
+            return false;
+    return true;
+}
 
 /**
  * Writes plain text to line starting from position. If line overflows, overflowing text will be
@@ -134,126 +163,35 @@ Line.prototype.render = function () {
  *
  * @param {string} text - Bare text without any non-character symbols. Any html character
  *                        will be replaced with matching entities.
- * @param {number} [position] - Position to insert text to.
+ * @param {number} [startPos] - Position to insert text to.
  * @returns {string}
  */
-Line.prototype.print = function (text, position = this.text.length) {
+Line.prototype.print = function (text, startPos = this.text.length) {
 
-    let part = text.substr(0, WIDTH - position),
-        isAnyGP = Object.keys(GRAPHIC_PROPERTIES).length,
-        curPositions = Object.keys(this.graphicProperties);
+    let part = text.substr(0, WIDTH - startPos),
+        endPos = startPos + part.length;
 
-    if (isAnyGP || (curPositions.length && !isAnyGP)) {
-        let endPos = position + part.length,
-            tempGP, hasAtEnd, before, toAssign;
-        for (let i = 0; i < curPositions.length; i++) {
-            let pos = curPositions[i];
-            if (pos < position) {
-                before = this.graphicProperties[pos];
-                continue;
-            }
-            if (hasAtEnd = pos >= endPos)
-                continue;
-            if (!tempGP || this.graphicProperties[pos] === null) {
-                delete this.graphicProperties[pos];
-                tempGP = {};
-            }
-            for (let p in this.graphicProperties[pos]) {
-                tempGP[p] = this.graphicProperties[pos][p];
-                delete this.graphicProperties[pos];
-            }
-        }
-        if (
-            before !== (toAssign = isAnyGP ? Object.assign({}, GRAPHIC_PROPERTIES) : null)
-            && (JSON.stringify(before) !== JSON.stringify(toAssign)) // prevent adding same props
-        )
-            this.graphicProperties[position] = toAssign;
-        if (tempGP || !curPositions.length)
-            this.graphicProperties[endPos] = tempGP && Object.keys(tempGP).length ? tempGP : null;
-        if (tempGP || hasAtEnd) {
-            let o = {}, keys = Object.keys(this.graphicProperties).map(e=>+e).sort((a,b)=>a>b);
-            for (let k of keys)
-                o[k] = this.graphicProperties[k];
-            this.graphicProperties = o;
-        }
+    let before = collect(this.graphicProperties, 0, startPos, []),
+        then = collect(this.graphicProperties, startPos, endPos, before, true);
+
+    // console.log(`Printing from ${ startPos } ${ part.length } characters. Before:`, JSON.parse(JSON.stringify(before)), `Then:`, JSON.parse(JSON.stringify(then)));
+
+    if (!equal(before, GRAPHIC_PROPERTIES))
+        this.graphicProperties[startPos] = GRAPHIC_PROPERTIES.slice();
+    // console.log(`( ${then.length}|| ${GRAPHIC_PROPERTIES.length}) && !${equal(then, GRAPHIC_PROPERTIES)} && ${position} + ${part.length} < ${text.length}`, JSON.parse(JSON.stringify(collect(this.graphicProperties, position + part.length, position + part.length + 1, then))));
+    if ((then.length || GRAPHIC_PROPERTIES.length) && !equal(then, GRAPHIC_PROPERTIES) && endPos < this.text.length) {
+        this.graphicProperties[endPos] = collect(this.graphicProperties, endPos, endPos + 1, then);
+        if (GRAPHIC_PROPERTIES.length === 0 && this.graphicProperties[endPos].length === 0)
+            this.graphicProperties[endPos] = undefined;
     }
 
     // console.log(`line GP now`, this.graphicProperties);
 
-    this.text = position < this.text.length
-        ? this.text.substring(0, position) + part + this.text.substr(position + part.length)
-        : this.text + new Array(position - this.text.length + 1).join(" ") + part;
+    this.text = startPos < this.text.length
+        ? this.text.substring(0, startPos) + part + this.text.substr(endPos)
+        : this.text + new Array(startPos - this.text.length + 1).join(" ") + part;
     //this.render();
     return part.length === text.length ? "" : text.substr(part.length);
-
-    /*var i, writePart;
-
-    if (typeof position === "undefined") position = this.text.length;
-
-    writePart = text.substr(0, WIDTH - position);
-
-    if (position > this.text.length) {
-        this.text += (new Array(position - this.text.length + 1)).join(" ");
-    }
-
-    this.text = this.text.splice(position, writePart.length, writePart);
-
-    // seek any graphic rendition indexes to the end of writable part
-    for (i = position; i < position + writePart.length; i++) {
-        if (this.graphicProperties.hasOwnProperty(i.toString())) {
-            this.graphicProperties[position + writePart.length] =
-                (this.graphicProperties[position + writePart.length] || [])
-                    .concat(this.graphicProperties[i]);
-            delete this.graphicProperties[i];
-        }
-    }
-
-    // optimize array: exclude zeros. I believe that tactics may be optimized.
-    if (this.graphicProperties[position + writePart.length] instanceof Array) {
-        for (i = 0; i < this.graphicProperties[position + writePart.length].length; i++) {
-            if (this.graphicProperties[position + writePart.length][i].index === 0) {
-                this.graphicProperties[position + writePart.length].splice(0, i + 1);
-                i = 0;
-            }
-        }
-        this.graphicProperties[position + writePart.length] =
-            this.graphicProperties[position + writePart.length].filter(function(elem, pos, a) {
-            for (i = 0; i < pos; i++) {
-                if (a[pos].index === a[i].index) return false;
-            }
-            return true;
-        });
-    }
-
-    let gm = getGraphicProperties();
-    if (Object.keys(gm).length) {
-
-        this.graphicProperties[position] = [];
-
-        // set new attributes
-        for (i in gm) {
-            this.graphicProperties[position].push({
-                index: parseInt(i) || i,
-                style: gm[i].style
-            });
-        }
-
-    } else {
-
-        this.graphicProperties[position] = [{
-            index: 0
-        }];
-
-    }
-
-    if (!this.renderTimeout) {
-        this.renderTimeout = setTimeout(() => {
-            this.render();
-            this.renderTimeout = 0;
-        }, 25);
-    }
-
-    return text.substr(writePart.length, text.length);*/
 
 };
 

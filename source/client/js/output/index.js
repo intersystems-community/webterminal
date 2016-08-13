@@ -40,10 +40,11 @@ let stack = "";
 export let TOP_LINE_INDEX = 0;
 
 /**
- * Object that includes current graphic rendition flags as a key.
- * @type {{number: { class: string, style: string }}}
+ * Object that includes current graphic rendition flag pairs [key, props].
+ * [key, object, nextKey, object2, ...]
+ * @type {(number|{[class]: string, [style]: string, [tag]: string, [attrs]: Object<string,*>[]})[]}
  */
-export let GRAPHIC_PROPERTIES = {};
+export let GRAPHIC_PROPERTIES = [];
 
 /**
  * Array of Line instances currently on the screen.
@@ -121,6 +122,7 @@ let $CARET_RESTRICTION_ON = true;
 
 export function print (text) {
 
+    // console.log("PRINTING", text.replace(/\x1b/g, `<ESC>`));
     stack += text;
     if (!INITIALIZED)
         return;
@@ -458,20 +460,28 @@ function scrollDisplayPart (lineFrom, lineTo, amount) {
 /**
  * Sets the graphic property.
  * @param {number} key - The key of the property.
- * @param {*} custom - Properties to assign.
+ * @param {Object} custom - Properties to assign.
  */
-export function setGraphicProperty (key, custom) {
+export function setGraphicProperty (key, custom = {}) {
 
-    GRAPHIC_PROPERTIES[key] = {};
-    if (custom)
-        Object.assign(GRAPHIC_PROPERTIES[key], custom);
-    // console.log(`GP is now`,GRAPHIC_PROPERTIES);
+    if (GRAPHIC_PROPERTIES.indexOf(key) !== -1)
+        clearGraphicProperty(key);
+    GRAPHIC_PROPERTIES.push(key, {
+        class: custom.class,
+        style: custom.style,
+        tag: custom.tag,
+        attrs: custom.attrs
+    });
+    // console.log(`GP is now`, JSON.parse(JSON.stringify(GRAPHIC_PROPERTIES)));
 
 }
 
 export function clearGraphicProperty (key) {
     
-    delete GRAPHIC_PROPERTIES[key];
+    let i = GRAPHIC_PROPERTIES.indexOf(key);
+    if (i !== -1)
+        GRAPHIC_PROPERTIES.splice(i, 2);
+    // console.log(`GP is now`, JSON.parse(JSON.stringify(GRAPHIC_PROPERTIES)));
     
 }
 
@@ -479,8 +489,8 @@ export function clearGraphicProperty (key) {
  * Clears all previously assigned graphic properties.
  */
 export function resetGraphicProperties () {
-    GRAPHIC_PROPERTIES = {};
-    // console.log(`GP is now`,GRAPHIC_PROPERTIES);
+    GRAPHIC_PROPERTIES = [];
+    // console.log(`GP is now`, JSON.parse(JSON.stringify(GRAPHIC_PROPERTIES)));
 }
 
 /**
