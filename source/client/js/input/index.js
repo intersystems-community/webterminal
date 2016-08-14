@@ -4,6 +4,7 @@ import * as caret from "./caret";
 import * as history from "./history";
 import { Terminal, userInput } from "../index";
 import { process as processString } from "../parser";
+import { showSuggestions } from "../autocomplete";
 
 export let ENABLED = false,
     PROMPT_CLEARED = false;
@@ -16,7 +17,6 @@ let ORIGIN_LINE_INDEX = 0,
     PROMPT_START_CURSOR_X = 0,
     PROMPT_MESSAGE = "",
     PROMPT_OPTIONS = {},
-    HINT = "",
     MODE = 0;
 
 let oldInputLength = 0,
@@ -173,8 +173,9 @@ export function getCaretPosition () {
 }
 
 function keyDown (e) {
-    if (!ENABLED)
+    if (!ENABLED || e.cancelBubble)
         return;
+    e.cancelBubble = true;
     if (e.keyCode === 13) { // enter
         e.preventDefault();
         onSubmit();
@@ -240,11 +241,15 @@ export function onUpdate (handler) {
     updateHandlers.push(handler);
 }
 
-export function setHint (string) {
-    let oldHint = HINT;
-    HINT = string;
-    if (HINT !== oldHint)
-        update();
+export function setValue (value, caretPosition) {
+    elements.input.value = value;
+    if (caretPosition)
+        setCaretPosition(caretPosition);
+    update();
+}
+
+export function getValue () {
+    return elements.input.value;
 }
 
 export function update () {
@@ -262,7 +267,7 @@ export function update () {
             ? elements.input.value.length
             : elements.input.selectionEnd,
         selLen = selEnd - selStart,
-        { lexemes } = processString(elements.input.value, selStart),
+        { lexemes, suggestions } = processString(elements.input.value, selStart),
         printedLength = 0, printingClass = "";
 
     for (let i = 0; i < lexemes.length; i++) {
@@ -309,6 +314,8 @@ export function update () {
 
     if (ENABLED && readLength && elements.input.value.length >= readLength)
         onSubmit();
+
+    showSuggestions(elements.input.value.length > 0, suggestions);
 
 }
 

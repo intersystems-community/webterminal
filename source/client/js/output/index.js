@@ -4,7 +4,6 @@ import { onWindowLoad } from "../lib";
 import { ESC_CHARS_MASK, applyEscapeSequence } from "./escStateMachine";
 import esc from "./esc";
 import { onInit } from "../init";
-import * as input from "../input";
 
 export let SYMBOL_HEIGHT = 12; // in px
 export let SYMBOL_WIDTH = 8; // in px
@@ -75,12 +74,24 @@ export function getCursorY () {
     return cursor.y;
 }
 
+export function getLinesNumber () {
+    return lines.length;
+}
+
 /**
  * Returns line index of the current caret position.
  * @returns {number}
  */
 export function getCurrentLineIndex () {
     return getLineByCursorY(cursor.y).INDEX;
+}
+
+/**
+ * Returns top line index.
+ * @returns {number}
+ */
+export function getTopLineIndex () {
+    return TOP_LINE_INDEX;
 }
 
 /**

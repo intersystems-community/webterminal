@@ -1,0 +1,23 @@
+@import "mixins";
+
+.terminal .hintBox {
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 300px;
+    max-width: 75%;
+    height: 0;
+    overflow: visible;
+    z-index: 100;
+
+    > div {
+
+        position: absolute;
+        @include transition(all .3s ease);
+        color: gray;
+        border-radius: 10px;
+
+    }
+
+}

@@ -296,6 +296,3 @@ export function process (string, cursorPos = string.length) {
         suggestions: suggest(suggestState, subString)
     };
 }
-
-if (typeof window !== "undefined") // todo: debug
-    window.process = process;

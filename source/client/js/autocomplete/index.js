@@ -3,6 +3,9 @@ import {
     TYPE_ID,
     TYPE_CHAR
 } from "../parser/pushdownAutomaton";
+import { onInit } from "../init";
+import * as input from "../input";
+import hint from "./hint";
 
 export function suggest (state, base = "") {
     const BEEN = [],
@@ -45,7 +48,8 @@ export function suggest (state, base = "") {
                     row[0].value.type || type
                 );
                 for (let r of a)
-                    arr.push([ row[0].value ].concat(r));
+                    if (r[0] && r[0].value) // suggest only / ids with value
+                        arr.push([ row[0].value ].concat(r));
             }
             if (row[0].type === TYPE_ID) {
                 if (base !== "" && typeof row[0].value.value === "string") {
@@ -64,4 +68,30 @@ export function suggest (state, base = "") {
         return arr;
     }
     return collect(state, base);
+}
+
+onInit(() => input.onKeyDown((e) => {
+    if (!hint.visible)
+        return;
+    if (e.keyCode === 17) { // CTRL
+        hint.next(e.location === 2 ? -1 : 1);
+    } else if (e.keyCode === 9) { // TAB
+        e.preventDefault();
+        let val = input.getValue(),
+            pos = input.getCaretPosition(),
+            v = hint.get();
+        input.setValue(val.substr(0, pos) + v + val.substr(pos), pos + v.length);
+    }
+}));
+
+export function showSuggestions (show, suggestions = []) {
+
+    let s = suggestions.filter(s => !!s[0].value).map(arr => arr.map(e => e.value).join(""));
+    if (show && s.length) {
+        hint.add(s);
+        hint.show();
+    } else {
+        hint.hide();
+    }
+
 }

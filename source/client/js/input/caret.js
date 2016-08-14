@@ -11,15 +11,26 @@ const IS_IE = window.navigator.userAgent.indexOf("MSIE ") !== -1
 let element = document.createElement(`div`);
 element.className = CLASS_NAME;
 
+let x = 0,
+    y = 0;
+
+export function getX () {
+    return x;
+}
+
+export function getY () {
+    return y;
+}
+
 /**
  * Updates the caret position and visibility.
  */
 export function update () {
     
     element.style.left =
-        `${ (getCursorX() - 1) * SYMBOL_WIDTH }px`;
+        `${ (x = getCursorX() - 1) * SYMBOL_WIDTH }px`;
     element.style.top =
-        `${ TOP_LINE_INDEX * SYMBOL_HEIGHT + (getCursorY() - 1) * SYMBOL_HEIGHT }px`;
+        `${ TOP_LINE_INDEX * SYMBOL_HEIGHT + (y = getCursorY() - 1) * SYMBOL_HEIGHT }px`;
 
     if (IS_IE) // do not show caret in older IE: it has it's own input caret
         return;
