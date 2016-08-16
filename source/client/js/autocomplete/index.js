@@ -71,12 +71,14 @@ export function suggest (state, base = "") {
 }
 
 onInit(() => input.onKeyDown((e) => {
-    if (!hint.visible)
-        return;
     if (e.keyCode === 17) { // CTRL
+        if (!hint.visible)
+            return;
         hint.next(e.location === 2 ? -1 : 1);
     } else if (e.keyCode === 9) { // TAB
         e.preventDefault();
+        if (!hint.visible)
+            return;
         let val = input.getValue(),
             pos = input.getCaretPosition(),
             v = hint.get();

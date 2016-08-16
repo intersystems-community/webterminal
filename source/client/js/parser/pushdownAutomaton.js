@@ -15,7 +15,8 @@ export const
     TYPE_OPT_WHITESPACE = 11,
     TYPE_TRY_CALL = 12,
     TYPE_ALL = 13,
-    TYPE_SPLIT = 14;
+    TYPE_NONE = 14,
+    TYPE_SPLIT = 15;
 
 let automaton = [
 //    Current State | Current Symbol | Next State | Stack Control
@@ -61,7 +62,7 @@ function optimize (a) {
             automaton[a][b] = automaton[a][b].slice();
         }
     }
-    automaton[0] = [[true, 0]];
+    automaton[0] = [[false, 0]]; // automaton first row always fails
     for (let i = 1; i < automaton.length; i++) {
         if (automaton[i])
             continue;
@@ -125,6 +126,7 @@ export let string = TablePiece.prototype.string = group(TYPE_STRING);
 export let id = TablePiece.prototype.id = group(TYPE_ID);
 export let any = TablePiece.prototype.any = group(TYPE_ANY);
 export let all = TablePiece.prototype.all = group(TYPE_ALL);
+export let none = TablePiece.prototype.none = group(TYPE_NONE);
 export let whitespace = TablePiece.prototype.whitespace = group(TYPE_WHITESPACE);
 export let optWhitespace = TablePiece.prototype.optWhitespace = group(TYPE_OPT_WHITESPACE);
 export let constant = TablePiece.prototype.constant = group(TYPE_CONSTANT);
@@ -273,11 +275,12 @@ function processChain (chain, branchingStack, startingIndex) {
             getCell(index).push(e);
             stack.push(e);
         } break;
-        case TYPE_ALL: { // DONE
+        case TYPE_ALL:
+        case TYPE_NONE: { // DONE
             completeStack();
             completeBackStack();
             console.log(index, "Pushing primitive", [true]);
-            let e = [true];
+            let e = [elem.type === TYPE_ALL];
             getCell(index).push(e);
             stack.push(e);
         } break;

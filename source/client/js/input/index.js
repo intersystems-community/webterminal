@@ -315,7 +315,7 @@ export function update () {
     if (ENABLED && readLength && elements.input.value.length >= readLength)
         onSubmit();
 
-    showSuggestions(elements.input.value.length > 0, suggestions);
+    showSuggestions(selStart > 0 && elements.input.value.length > 0 && selLen === 0, suggestions);
 
 }
 

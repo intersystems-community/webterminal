@@ -28,6 +28,7 @@
 // any()                          Matches if nothing else is matched. Used as the last split()
 //                                argument. Does not take the match.
 // all()                          Matches anything and takes the match.
+// none()                         Does not match anything (gives error) and takes the match.
 // call("ruleName")               Call another rule and continue chain when rule exits.
 // exit()                         Exit the chain
 // end()                          Must be an end point of any chain.
@@ -78,7 +79,7 @@
 //     Explanation: symbol "!" will never be matched, as optWhitespace() matches in any case.
 
 import {
-    rule, id, char, string, split, any, all, branch, merge, exit, constant, call, tryCall,
+    rule, id, char, string, split, any, all, none, branch, merge, exit, constant, call, tryCall,
     optWhitespace
 } from "./pushdownAutomaton";
 

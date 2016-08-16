@@ -86,6 +86,7 @@ export function process (string, cursorPos = string.length) {
         count = 0,
         MAX_LOOP = 100,
         subString = "";
+    // console.log("-----------");
     function error () {
         if (lastErrorAt < pos) {
             lastErrorAt = pos;
@@ -128,6 +129,11 @@ export function process (string, cursorPos = string.length) {
             // );
             if (rule[0] === null) {
                 pos--;
+            } else if (rule[0] === false) {
+                // match none
+                // if (typeof lexeme.value === "string")
+                //     parsedStringLength += lexeme.value.length;
+                break;
             } else if (rule[0] === true) {
                 // match all
                 if (lexeme.type === TYPE_WHITESPACE)
@@ -241,12 +247,15 @@ export function process (string, cursorPos = string.length) {
             // );
             if (error()) { // not the last - predict
                 ruleIndex = 0;
-                state = INITIAL_STATE;
+                state = 0;
                 whiteSpaceMatched = false;
                 if (tape[pos]) {
                     if (typeof tape[pos].value === "string")
                         parsedStringLength += tape[pos].value.length;
-                    tape[pos].class = "error";
+                    console.log(`Error at pos=${pos}`);
+                    if (lastErrorAt <= pos) {
+                        tape[pos].class = "error";
+                    }
                     pos++;
                 }
                 // console.log(
@@ -255,29 +264,43 @@ export function process (string, cursorPos = string.length) {
                 // );
                 stack = [];
                 tryStack = [];
+                let nextLength = tape[pos] ? tape[pos].value.length : 1;
+                // console.log(`!suggestState && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength`);
+                // console.log(`!${suggestState} && ${parsedStringLength} <= ${cursorPos} && ${cursorPos} < ${parsedStringLength} + ${nextLength}`);
+                if (!suggestState && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength && tape[pos - 1] && tape[pos - 1].type === TYPE_ID) {
+                    // console.log(`Setting suggestState=${lastSucceededState} as it wasn't set until the end. lastErrorAt=${lastErrorAt}, pos=${pos}`);
+                    suggestState = lastSucceededState;
+                    if (!subString && pos - 1 === lastErrorAt) {
+                        subString = tape[pos - 1].value;
+                    }
+                }
             }
         } else {
-            let nextLength = tape[pos] ? tape[pos].value.length : 0;
+            let nextLength = tape[pos] ? tape[pos].value.length : 1;
+            // console.log(`Now OK`);
             // console.log(`${ state } (${parsedStringLength}/${string.length}) | Try to set suggestState, ${pos} > ${lastErrorAt} && ${parsedStringLength} <= ${cursorPos} < ${parsedStringLength+nextLength}`);
             if (pos > lastErrorAt) {
+                // console.log(`lastSucceededState = state (${lastSucceededState} = ${state})`);
                 lastSucceededState = state;
                 // console.log(`${ state } (${parsedStringLength}/${string.length}) | Setting lastSucceeded state to ${state}`);
             }
             ruleIndex = 0;
             if (pos > lastErrorAt && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength) {
                 // console.log(`${ state } | [${ (tape[pos] || {}).value || "" }] Setting suggestState=${lastSucceededState} as ${parsedStringLength} <= ${cursorPos} < ${parsedStringLength+nextLength}`);
+                // console.log(`suggestState = lastSucceededState (${suggestState} = ${lastSucceededState})`);
                 suggestState = lastSucceededState;
             }
             // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ (tape[pos] || {}).value || "" }] Finalized, OK! [ruleIndex = ${ ruleIndex }] Parsed=${ parsedStringLength }/${ string.length }`);
         }
     }
-    if (!suggestState) {
-        // console.log(`Setting suggestState=${lastSucceededState} as it wasn't set until the end. lastErrorAt=${lastErrorAt}, pos=${pos}`);
-        suggestState = lastSucceededState;
-        if (!subString && pos - 1 === lastErrorAt && tape[pos - 1] && tape[pos - 1].type === TYPE_ID) {
-            subString = tape[pos - 1].value;
-        }
-    }
+    // if (!suggestState) {
+    //     // console.log(`Setting suggestState=${lastSucceededState} as it wasn't set until the end. lastErrorAt=${lastErrorAt}, pos=${pos}`);
+    //     suggestState = lastSucceededState;
+    //     if (!subString && pos - 1 === lastErrorAt && tape[pos - 1] && tape[pos - 1].type === TYPE_ID) {
+    //         subString = tape[pos - 1].value;
+    //     }
+    // }
+    console.log(`Suggest state: ${suggestState}, Substring: ${subString}`);
     if (count >= MAX_LOOP) {
         console.error(`Statement`, tape, `looped more than ${ MAX_LOOP } times without a progress, exiting.`);
     }
@@ -293,6 +316,6 @@ export function process (string, cursorPos = string.length) {
     }
     return {
         lexemes: tape,
-        suggestions: suggest(suggestState, subString)
+        suggestions: suggestState === 0 ? [] : suggest(suggestState, subString)
     };
 }

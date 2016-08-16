@@ -43,7 +43,10 @@ Hint.prototype.add = function (hints = []) {
     this.element.textContent = "";
     this.lastSeek = 0;
 
-    this.update();
+    if (this.variants.length)
+        this.update();
+    else
+        this.hide();
 
 };
 
@@ -133,6 +136,7 @@ Hint.prototype.show = function () {
 };
 
 Hint.prototype.hide = function () {
+    this.visible = false;
     this.element.style.display = "none";
 };
 
