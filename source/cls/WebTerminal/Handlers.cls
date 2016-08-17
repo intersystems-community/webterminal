@@ -65,6 +65,21 @@ ClassMethod Update (client As WebTerminal.Engine, URL As %String)
     return ##class(WebTerminal.Updater).Update(client, URL)
 }
 
+ClassMethod LocalAutocomplete(client As WebTerminal.Engine, data)
+{
+	do client.SendChunk(client.corePID, "a")
+	set list = $LISTGET(client.ReceiveChunk(), 2)
+	set obj = ##class(%ZEN.proxyObject).%New()
+	for i=3:3:$LISTLENGTH(list) {
+		set obj2 = ##class(%ZEN.proxyObject).%New()
+		set obj2.isOref = $LISTGET(list, i - 1)
+		set obj2.value = $LISTGET(list, i)
+		set $PROPERTY(obj, $LISTGET(list, i - 2)) = obj2
+	}
+    do client.Send("ac", obj)
+	return $$$OK
+}
+
 ClassMethod GlobalAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
 {
     set obj = ##class(%ZEN.proxyObject).%New()

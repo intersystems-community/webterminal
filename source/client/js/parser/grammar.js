@@ -171,10 +171,13 @@ rule("expression").split(
 ).exit().end();
 
 rule("variable").split(
-    id({ class: "variable" }),
-    char({ value: "^", class: "global" }).branch().id({ class: "global" }).split(
-        char({ value: ".", class: "global" }).merge(),
-        any()
+    id({ class: "variable", type: "variable" }),
+    char({ value: "%", class: "variable", type: "variable" })
+        .id({ class: "variable", type: "variable" }),
+    char({ value: "^", class: "global", type: "global" }).branch()
+        .id({ class: "global", type: "global" }).split(
+            char({ value: ".", class: "global", type: "global" }).merge(),
+            any()
     ).split(
         char("(").call("argumentList").char(")"),
         any()

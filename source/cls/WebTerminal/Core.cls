@@ -36,17 +36,35 @@ rchr(timeout = 86400)
     quit $LISTGET(##class(WebTerminal.Common).ReceiveChunk(), 2)
 }
 
+ClassMethod VarList() As %String [ ProcedureBlock = 1 ]
+{
+    if $data(%)
+    new % set %=$select($test:$LISTBUILD("%"),1:"")
+    set:$data(%0) %=%_$LISTBUILD("%0")
+    new %0 set %0="%0"
+    for {
+        set %0=$ORDER(@%0)
+        quit:%0=""
+        set %=%_$LISTBUILD(%0, $IsObject(@%0), @%0)
+    }
+    quit %
+}
+
 /// Retrieves a command text from the parent process.
 /// Terminates itself if the parent process is dead.
 ClassMethod WaitCommand() As %String [ ProcedureBlock = 1 ]
 {
-    set data = ..ReceiveChunk()
-    set flag = $LISTGET(data, 1)
-    if (flag = "m") {
-        return $LISTGET(data, 2)
-    } else { // end or unexpected
-        do $system.Process.Terminate($JOB, 2)
-        return ""
+    for {
+        set data = ..ReceiveChunk()
+        set flag = $LISTGET(data, 1)
+        if (flag = "m") { // message
+            return $LISTGET(data, 2)
+        } elseif (flag = "a") { // autocomplete
+            do ##class(WebTerminal.Common).SendChunk($ZPARENT, "a", ..VarList())
+        } else { // end or unexpected
+            do $system.Process.Terminate($JOB, 2)
+            return ""
+        }
     }
 }
 

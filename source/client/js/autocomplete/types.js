@@ -43,5 +43,13 @@ export default {
                 return;
             cb(d.split(",").map(s => s.substr(par.length)));
         });
+    },
+    "variable": (collector, cb) => {
+        let v = collectOfType(collector, "variable");
+        server.send("LocalAutocomplete", null, (d) => {
+            if (!d)
+                return;
+            cb(Object.keys(d).filter(s => s.indexOf(v) === 0).map(s => s.substr(v.length)));
+        });
     }
 }
