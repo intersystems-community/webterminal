@@ -118,7 +118,9 @@ rule("cosCommand").split(
     ),
     id([
         { value: "w", class: "keyword" },
-        { value: "write", class: "keyword" }
+        { value: "write", class: "keyword" },
+        { value: "zw", class: "keyword" },
+        { value: "zwrite", class: "keyword" }
     ]).whitespace().branch().split(
         char({ value: "!", class: "special" }),
         call("expression")
@@ -180,21 +182,27 @@ rule("variable").split(
 ).exit().end();
 
 rule("class").split(
-    char({ value: "#", class: "keyword" }).char({ value: "#", class: "keyword" }).split(
-        id({ value: "class", class: "keyword" }).char("(").split(
+    char({ value: "#", class: "special" }).char({ value: "#", class: "special" }).split(
+        id({ value: "class", class: "special" }).char({ value: "(", class: "special" }).split(
             char({ value: "%", type: "classname", class: "classname" }),
             any()
         ).branch().id({ type: "classname", class: "classname" }).split(
             char({ value: ".", type: "classname", class: "classname" }).merge(),
-            char(")").char(".").split(
-                char({ value: "%", type: "publicClassMember" }),
-                any()
-            ).id({ type: "publicClassMember" }).split(
-                char("(").call("argumentList").char(")"),
-                any()
+            char({ value: ")", class: "special" }).char(".").split(
+                char({ value: "#", type: "parameter", class: "keyword" })
+                    .id({ type: "parameter", class: "keyword" }),
+                split(
+                    char({ value: "%", type: "publicClassMember", class: "keyword" }),
+                    any()
+                ).id({ type: "publicClassMember", class: "keyword" }).split(
+                    char("(").call("argumentList").char(")")
+                )
             )
         ),
-        id({ value: "super", class: "keyword" })
+        id({ value: "super", class: "special" })
+            .char({ value: "(", class: "special" })
+            .call("argumentList")
+            .char({ value: ")", class: "special" })
     )
 ).exit().end();
 

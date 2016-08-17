@@ -110,7 +110,7 @@ export function showSuggestions (show, suggestions = [], collector = []) {
                 staticSuggestions.push(s);
             }
         } else if (row[0].type && typeof types[row[0].type] === "function") { // type
-            types[row[0].type](collector, (v) => {
+            types[row[0].type](collector.slice(), (v) => {
                 if (current !== CURRENT)
                     return;
                 console.log(v);

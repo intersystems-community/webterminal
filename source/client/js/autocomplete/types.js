@@ -7,6 +7,8 @@ function collectOfType (collector, type) {
             break;
         arr.push(collector[i].value);
     }
+    if (arr.length)
+        collector.splice(collector.length - arr.length, arr.length);
     return arr.reverse().join("");
 }
 
@@ -22,6 +24,24 @@ export default {
                     ? s.substring(subStr.length, dotPos + 1)
                     : s.substr(subStr.length);
             }).filter((s, i, arr) => arr[i - 1] ? arr[i - 1] !== s : true));
+        });
+    },
+    "publicClassMember": (collector, cb) => {
+        let subStr = collectOfType(collector, "publicClassMember"),
+            cls = collectOfType(collector, "classname");
+        server.send("ClassMemberAutocomplete", { className: cls, part: subStr }, (d) => {
+            if (!d || !(d.length > 0))
+                return;
+            cb(d.split(",").map(s => s.substr(subStr.length)));
+        });
+    },
+    "parameter": (collector, cb) => {
+        let par = collectOfType(collector, "parameter").substr(1), // remove the "#" symbol
+            cls = collectOfType(collector, "classname");
+        server.send("ParameterAutocomplete", { className: cls, part: par }, (d) => {
+            if (!d || !(d.length > 0))
+                return;
+            cb(d.split(",").map(s => s.substr(par.length)));
         });
     }
 }

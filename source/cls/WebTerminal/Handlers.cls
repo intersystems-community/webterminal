@@ -81,4 +81,16 @@ ClassMethod ClassAutocomplete (client As WebTerminal.Engine, part As %String) As
     return $$$OK
 }
 
+ClassMethod ClassMemberAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
+{
+    do client.Send(, ##class(WebTerminal.Autocomplete).GetPublicClassMembers(client.childNamespace, data.className, data.part))
+    return $$$OK
+}
+
+ClassMethod ParameterAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
+{
+    do client.Send(, ##class(WebTerminal.Autocomplete).GetParameters(client.childNamespace, data.className, data.part))
+    return $$$OK
+}
+
 }
