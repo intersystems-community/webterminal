@@ -20,24 +20,24 @@ let wrap = (a) => a,
 export function getAutomaton () {
     return automaton;
 }
-// printAutomaton(automaton);
-// function printAutomaton (oa) {
-//     if (!oa)
-//         return;
-//     let table = [];
-//     console.log(oa);
-//     for (let i in oa) {
-//         if (!oa[i])
-//             continue;
-//         for (let r of oa[i]) {
-//             table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value.value || r[0].value})` : ""))
-//                 : r[0]).concat(r.slice(1)));
-//         }
-//     }
-//     if (console.table)
-//         console.table(table);
-//     console.log(rules);
-// }
+printAutomaton(automaton);
+function printAutomaton (oa) {
+    if (!oa)
+        return;
+    let table = [];
+    console.log(oa);
+    for (let i in oa) {
+        if (!oa[i])
+            continue;
+        for (let r of oa[i]) {
+            table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value.value || r[0].value})` : ""))
+                : r[0]).concat(r.slice(1)));
+        }
+    }
+    if (console.table)
+        console.table(table);
+    console.log(rules);
+}
 
 /**
  * Split the string to the lexical parts. There are five: whitespace, id, string, constant and char.
@@ -82,6 +82,7 @@ export function process (string, cursorPos = string.length) {
         whiteSpaceMatched = false,
         lastSucceededState = state,
         suggestState = 0,
+        collector = [], // collects all IDs which have "type"
         lastErrorAt = -1, // pos in tape, not in string
         count = 0,
         MAX_LOOP = 100,
@@ -104,6 +105,9 @@ export function process (string, cursorPos = string.length) {
         }
         parsedStringLength = letsTry[3];
         pos = letsTry[4];
+        if (!suggestState && collector.length > letsTry[5]) {
+            collector = collector.slice(0, letsTry[5]);
+        }
         // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ (tape[pos] || {}).value }] Now stack is`, stack.slice());
         return false;
     }
@@ -116,7 +120,9 @@ export function process (string, cursorPos = string.length) {
             maxPos = pos;
             count = 0;
         }
-        let ok = false;
+        let ok = false,
+            startFromState = state,
+            startSub;
         // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ tape[pos].value
         //     }] Begin look through the rule. [ruleIndex = ${ ruleIndex }] Stack`, stack.slice());
         for (; ruleIndex < automaton[state].length; ruleIndex++) {
@@ -141,7 +147,7 @@ export function process (string, cursorPos = string.length) {
                 if (typeof lexeme.value === "string")
                     parsedStringLength += lexeme.value.length;
             } else if (rule[0] === 0) { // try call
-                tryStack.push([state, ruleIndex, stack.length, parsedStringLength, pos]);
+                tryStack.push([state, ruleIndex, stack.length, parsedStringLength, pos, collector.length]);
                 // console.log(
                 //     `${ state } (${parsedStringLength}/${string.length}) | Pushing to tryStack `, tryStack[tryStack.length - 1] ,` [ruleIndex = ${ ruleIndex }]`
                 // );
@@ -175,6 +181,7 @@ export function process (string, cursorPos = string.length) {
                 if (typeof lexeme.value === "string")
                     parsedStringLength += lexeme.value.length;
                 // when rule[0].value is object and no rule[0].value.value is set, we match any ID
+                startSub = lexeme.value;
                 whiteSpaceMatched = false;
             } else if (rule[0].type === TYPE_STRING) {
                 if (rule[0].type !== lexeme.type)
@@ -207,12 +214,14 @@ export function process (string, cursorPos = string.length) {
             }
             // ...
             // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ lexeme.value }] Match found [ruleIndex = ${ ruleIndex }]`);
-            if (
-                rule[0]
-                && typeof rule[0].value === "object"
-                && rule[0].value.class
-            ) {
-                lexeme.class = rule[0].value.class;
+            if (rule[0] && typeof rule[0].value === "object") {
+                if (rule[0].value.class)
+                    lexeme.class = rule[0].value.class;
+                if (!suggestState && rule[0].value.type)
+                    collector.push({
+                        type: rule[0].value.type,
+                        value: lexeme.value
+                    });
             }
             if (typeof rule[2] !== "undefined") {
                 // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ lexeme.value }] Pushing ${ rule[2] } to stack [ruleIndex = ${ ruleIndex }]`);
@@ -252,7 +261,7 @@ export function process (string, cursorPos = string.length) {
                 if (tape[pos]) {
                     if (typeof tape[pos].value === "string")
                         parsedStringLength += tape[pos].value.length;
-                    console.log(`Error at pos=${pos}`);
+                    // console.log(`Error at pos=${pos}`);
                     if (lastErrorAt <= pos) {
                         tape[pos].class = "error";
                     }
@@ -270,7 +279,7 @@ export function process (string, cursorPos = string.length) {
                 if (!suggestState && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength && tape[pos - 1] && tape[pos - 1].type === TYPE_ID) {
                     // console.log(`Setting suggestState=${lastSucceededState} as it wasn't set until the end. lastErrorAt=${lastErrorAt}, pos=${pos}`);
                     suggestState = lastSucceededState;
-                    if (!subString && pos - 1 === lastErrorAt) {
+                    if (pos - 1 === lastErrorAt) {
                         subString = tape[pos - 1].value;
                     }
                 }
@@ -288,7 +297,9 @@ export function process (string, cursorPos = string.length) {
             if (pos > lastErrorAt && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength) {
                 // console.log(`${ state } | [${ (tape[pos] || {}).value || "" }] Setting suggestState=${lastSucceededState} as ${parsedStringLength} <= ${cursorPos} < ${parsedStringLength+nextLength}`);
                 // console.log(`suggestState = lastSucceededState (${suggestState} = ${lastSucceededState})`);
-                suggestState = lastSucceededState;
+                suggestState = tape[pos - 1] && tape[pos - 1].type === TYPE_ID ? startFromState : lastSucceededState;
+                if (startSub)
+                    subString = startSub;
             }
             // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ (tape[pos] || {}).value || "" }] Finalized, OK! [ruleIndex = ${ ruleIndex }] Parsed=${ parsedStringLength }/${ string.length }`);
         }
@@ -300,7 +311,6 @@ export function process (string, cursorPos = string.length) {
     //         subString = tape[pos - 1].value;
     //     }
     // }
-    console.log(`Suggest state: ${suggestState}, Substring: ${subString}`);
     if (count >= MAX_LOOP) {
         console.error(`Statement`, tape, `looped more than ${ MAX_LOOP } times without a progress, exiting.`);
     }
@@ -316,6 +326,7 @@ export function process (string, cursorPos = string.length) {
     }
     return {
         lexemes: tape,
-        suggestions: suggestState === 0 ? [] : suggest(suggestState, subString)
+        suggestions: suggestState === 0 ? [] : suggest(suggestState, subString),
+        collector: collector
     };
 }

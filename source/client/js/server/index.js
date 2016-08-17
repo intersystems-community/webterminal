@@ -20,7 +20,9 @@ let CONNECTED = false;
 let ws,
     stack = [],
     reconnectTimeout = 0,
-    firstMessage;
+    firstMessage,
+    nextCallbackId = 1,
+    callbacks = {};
 
 try {
     connect();
@@ -36,7 +38,7 @@ function connect () {
     ws.addEventListener(`close`, onClose);
     ws.addEventListener(`error`, onError);
     ws.addEventListener(`message`, (m) => {
-        if (m.data[0] === "o") { // Enables 2013.2 support (no JSON)
+        if (m.data[0] === "o") { // Enables 2013.2 support (no JSON correct escaping)
             onMessage({ h: "o", d: m.data.slice(1) });
             return;
         }
@@ -86,14 +88,21 @@ function onClose (e) {
 }
 
 function onMessage (data = {}) {
-    if (data.h) {
+    if (data._cb) {
+        if (!callbacks[data._cb]) {
+            printLine(`\r\n` + localize(`eInt`, `E.server.index.3 (${ data._cb })`));
+            return;
+        }
+        callbacks[data._cb](data.d);
+        delete callbacks[data._cb];
+    } else if (data.h) {
         if (typeof handlers[data.h] === "function") {
             handlers[data.h](data.d);
         } else {
             printLine(`\r\n` + localize(`eInt`, `E.server.index.1 (${ data.h })`));
         }
     } else {
-        printLine(`\r\n` + localize(`eInt`, `E.server.index.2 (${ data })`));
+        printLine(`\r\n` + localize(`eInt`, `E.server.index.2 (${ JSON.stringify(data) })`));
     }
 }
 
@@ -116,12 +125,17 @@ function freeStack () {
  * Send message to a server.
  * @param {string} handler - Handler name.
  * @param {*} data
+ * @param {function} [callback]
  */
-export function send (handler, data) {
+export function send (handler, data, callback) {
     let message = {
-        h: handler,
-        d: data
+        d: data,
+        h: handler
     };
+    if (typeof callback === "function") {
+        message._cb = nextCallbackId;
+        callbacks[nextCallbackId++] = callback;
+    }
     if (!firstMessage)
         firstMessage = message;
     stack.push(message);

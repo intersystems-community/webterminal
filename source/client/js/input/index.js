@@ -267,7 +267,7 @@ export function update () {
             ? elements.input.value.length
             : elements.input.selectionEnd,
         selLen = selEnd - selStart,
-        { lexemes, suggestions } = processString(elements.input.value, selStart),
+        { lexemes, suggestions, collector } = processString(elements.input.value, selStart),
         printedLength = 0, printingClass = "";
 
     for (let i = 0; i < lexemes.length; i++) {
@@ -315,7 +315,11 @@ export function update () {
     if (ENABLED && readLength && elements.input.value.length >= readLength)
         onSubmit();
 
-    showSuggestions(selStart > 0 && elements.input.value.length > 0 && selLen === 0, suggestions);
+    showSuggestions(
+        selStart > 0 && elements.input.value.length > 0 && selLen === 0,
+        suggestions,
+        collector
+    );
 
 }
 

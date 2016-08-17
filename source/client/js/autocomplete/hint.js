@@ -19,6 +19,7 @@ function Hint () {
     this.displayUnder = true;
     this.displayInLine = true;
     this.lastSeek = 1;
+    this.firstDisplay = true;
 
     /**
      * @type {string[]}
@@ -33,21 +34,29 @@ Hint.prototype.add = function (hints = []) {
     if (!(hints instanceof Array))
         hints = [hints];
 
-    this.maxVariantLength = 0;
+    this.reset();
     this.variants = hints.map((h) => {
         if (h.length > this.maxVariantLength)
             this.maxVariantLength = h.length;
         return { value: h, element: null };
     });
-    this.variant = 0;
-    this.element.textContent = "";
-    this.lastSeek = 0;
 
-    if (this.variants.length)
+    if (this.variants.length) {
         this.update();
-    else
+        this.show();
+    } else {
         this.hide();
+    }
 
+};
+
+Hint.prototype.reset = function () {
+    this.element.textContent = "";
+    this.variants = [];
+    this.variant = 0;
+    this.lastSeek = 0;
+    this.maxVariantLength = 0;
+    this.firstDisplay = true;
 };
 
 Hint.prototype.get = function () {
@@ -69,8 +78,6 @@ Hint.prototype.updateVariants = function () {
 
     let displayable = this.variants.slice(this.variant, this.variant + MAX_HINTS),
         property = this.displayUnder ? "top" : "bottom";
-    // if (!this.displayUnder)
-    //     displayable.reverse();
 
     function displayed (e) {
         for (let a of displayable) { if (a.element === e) return a; } return null;
@@ -89,15 +96,19 @@ Hint.prototype.updateVariants = function () {
     for (let i = 0; i < displayable.length; i++) {
         let v = displayable[i];
         if (!v.element || v.element.DECAY) {
+            let seek = Math.sign(this.lastSeek) * Math.min(Math.abs(this.lastSeek), MAX_HINTS);
             v.element = document.createElement(`div`);
             v.element.textContent = v.value;
+            if (!this.firstDisplay)
+                v.element.style.opacity = 0;
             v.element.style[property] = `${
-                (i + this.lastSeek) * output.SYMBOL_HEIGHT
+                (i + seek) * output.SYMBOL_HEIGHT
             }px`;
             this.element.appendChild(v.element);
         }
         setTimeout(((v) => () => {
             v.style[property] = `${ i * output.SYMBOL_HEIGHT }px`;
+            v.style.opacity = 1;
         })(v.element), 25);
     }
 
@@ -127,15 +138,21 @@ Hint.prototype.update = function () {
 
     this.updateVariants();
 
+    this.firstDisplay = false;
+
 };
 
 Hint.prototype.show = function () {
+    if (this.visible)
+        return;
     this.visible = true;
     this.update();
     this.element.style.display = "block";
 };
 
 Hint.prototype.hide = function () {
+    if (!this.visible)
+        return;
     this.visible = false;
     this.element.style.display = "none";
 };

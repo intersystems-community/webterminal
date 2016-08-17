@@ -18,6 +18,9 @@ Property childNamespace As %String;
 /// Output flag
 Property echo As %Boolean [ InitialExpression = 1 ];
 
+/// Output flag
+Property handler As %Boolean [ InitialExpression = 0, Private ];
+
 Method GetMessage(timeout As %Numeric) As %ZEN.proxyObject
 {
     #define err(%e, %s) if (%e '= $$$OK) { set obj = ##class(%ZEN.proxyObject).%New() set obj.error = %s return obj }
@@ -29,12 +32,15 @@ Method GetMessage(timeout As %Numeric) As %ZEN.proxyObject
     return obj
 }
 
-Method Send(handler As %String, data = "") As %Status
+Method Send(handler As %String = "", data = "") As %Status
 {
     return:((handler = "o") && (..echo = 0)) $$$OK
     return:(handler = "o") ..Write("o"_data) // Enables 2013.2 support (no JSON)
     set obj = ##class(%ZEN.proxyObject).%New()
     set obj.h = handler
+    if (..handler '= 0) {
+        set obj."_cb" = ..handler
+    }
     set obj.d = data
     return ..Write(..GetJSONString(obj))
 }
@@ -169,7 +175,9 @@ Method ClientLoop() As %Status [ Private ]
     for {
         set message = ..GetMessage()
         quit:(message = "") // if client is gone, finish looping
+        if (message."_cb" '= "") { set ..handler = message."_cb" }
         set status = ..ProcessRequest(message.h, message.d)
+        set ..handler = 0
         set ..echo = 1
         if (status '= "") && (status '= $$$OK) {
             set eType = $EXTRACT(status, 1, 1)

@@ -181,13 +181,18 @@ rule("variable").split(
 
 rule("class").split(
     char({ value: "#", class: "keyword" }).char({ value: "#", class: "keyword" }).split(
-        id({ value: "class", class: "keyword" }).char("(").branch()
-            .id({ type: "classname", class: "classname" }).split(
-                char({ value: ".", type: "classname", class: "classname" }).merge(),
-                char(")").char(".").id({ type: "publicClassMember" }).split(
-                    char("(").call("argumentList").char(")"),
-                    any()
-                )
+        id({ value: "class", class: "keyword" }).char("(").split(
+            char({ value: "%", type: "classname", class: "classname" }),
+            any()
+        ).branch().id({ type: "classname", class: "classname" }).split(
+            char({ value: ".", type: "classname", class: "classname" }).merge(),
+            char(")").char(".").split(
+                char({ value: "%", type: "publicClassMember" }),
+                any()
+            ).id({ type: "publicClassMember" }).split(
+                char("(").call("argumentList").char(")"),
+                any()
+            )
         ),
         id({ value: "super", class: "keyword" })
     )

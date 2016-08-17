@@ -6,10 +6,14 @@ import {
 import { onInit } from "../init";
 import * as input from "../input";
 import hint from "./hint";
+import types from "./types";
+
+export let CURRENT = 0;
 
 export function suggest (state, base = "") {
     const BEEN = [],
         automaton = getAutomaton();
+    console.log(`Suggest state: ${state}, Substring: ${base}`);
     // console.log(`Suggesting from state ${ state } with "${ base }"`);
     // match null | TYPE_CHAR (multiple) | TYPE_ID (once)
     function collect (state, base, cls = null, type = null) {
@@ -86,12 +90,41 @@ onInit(() => input.onKeyDown((e) => {
     }
 }));
 
-export function showSuggestions (show, suggestions = []) {
+function addVariants (variants = []) {
+    hint.add(variants);
+}
 
-    let s = suggestions.filter(s => !!s[0].value).map(arr => arr.map(e => e.value).join(""));
-    if (show && s.length) {
-        hint.add(s);
-        hint.show();
+export function showSuggestions (show, suggestions = [], collector = []) {
+
+    let suggesting = false,
+        current = CURRENT + 1,
+        staticSuggestions = [];
+
+    hint.reset();
+
+    if (show) for (let row of suggestions) {
+        if (row[0].value) { // text
+            let s = row.map(e => e.value).join("");
+            if (s.length) {
+                suggesting = true;
+                staticSuggestions.push(s);
+            }
+        } else if (row[0].type && typeof types[row[0].type] === "function") { // type
+            types[row[0].type](collector, (v) => {
+                if (current !== CURRENT)
+                    return;
+                console.log(v);
+                addVariants(v);
+            });
+            suggesting = true;
+        }
+    }
+
+    if (staticSuggestions.length)
+        hint.add(staticSuggestions);
+
+    if (suggesting && show) {
+        CURRENT++;
     } else {
         hint.hide();
     }
