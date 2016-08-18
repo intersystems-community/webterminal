@@ -223,7 +223,8 @@ rule("expression").split(
     char("(").call("expression").char(")"),
     string(),
     tryCall("variable"),
-    tryCall("class")
+    tryCall("class"),
+    tryCall("function")
 ).optWhitespace().split(
     split(
         char("+"),
@@ -287,6 +288,14 @@ rule("class").split(
             .call("argumentList")
             .char({ value: ")", class: "special" })
     )
+).exit().end();
+
+rule("function").char({ value: "$", class: "keyword" }).split(
+    char({ value: "$", class: "keyword" }),
+    any()
+).id({ class: "keyword" }).split(
+    char("(").call("argumentList").char(")"),
+    any()
 ).exit().end();
 
 rule("argumentList").split(
