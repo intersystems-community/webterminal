@@ -84,8 +84,10 @@ export function process (string, cursorPos = string.length) {
         suggestState = 0,
         collector = [], // collects all IDs which have "type"
         lastErrorAt = -1, // pos in tape, not in string
+        firstErrorAt = -1, // pos in tape as well
         count = 0,
         MAX_LOOP = 100,
+        suggestingAt = -1,
         subString = "";
     // console.log("-----------");
     function error () {
@@ -94,6 +96,8 @@ export function process (string, cursorPos = string.length) {
         }
         // console.log(`${ state } (${parsedStringLength}/${string.length}) | Errored at ${ pos } (lastErroredAt=${ lastErrorAt })`);
         if (!tryStack.length) {
+            if (firstErrorAt === -1)
+                firstErrorAt = Math.max(pos, lastErrorAt);
             return true;
         }
         // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ (tape[pos] || {}).value }] Popping tryStack with`, tryStack[tryStack.length - 1]);
@@ -217,11 +221,14 @@ export function process (string, cursorPos = string.length) {
             if (rule[0] && typeof rule[0].value === "object") {
                 if (rule[0].value.class)
                     lexeme.class = rule[0].value.class;
-                if (!suggestState) {
+                // console.log(`Thinking about collecting`,!suggestState,rule[0].value);
+                if (!suggestState || suggestingAt === pos) {
                     if (rule[0].value.type && rule[0].value.type !== "*") {
                         collector.push({
                             type: rule[0].value.type,
-                            value: lexeme.value
+                            value: suggestingAt === -1 ? lexeme.value : lexeme.value.substring(
+                                0, cursorPos - (parsedStringLength - lexeme.value.length)
+                            )
                         });
                     } else if (rule[0].value.type === "*") {
 
@@ -286,12 +293,11 @@ export function process (string, cursorPos = string.length) {
                 let nextLength = tape[pos] ? tape[pos].value.length : 1;
                 // console.log(`!suggestState && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength`);
                 // console.log(`!${suggestState} && ${parsedStringLength} <= ${cursorPos} && ${cursorPos} < ${parsedStringLength} + ${nextLength}`);
-                if (!suggestState && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength && tape[pos - 1] && tape[pos - 1].type === TYPE_ID) {
+                // console.log(firstErrorAt, pos - 1);
+                if (!suggestState && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength && tape[pos - 1] && tape[pos - 1].type === TYPE_ID && firstErrorAt === pos - 1) {
                     // console.log(`Setting suggestState=${lastSucceededState} as it wasn't set until the end. lastErrorAt=${lastErrorAt}, pos=${pos}`);
                     suggestState = lastSucceededState;
-                    if (pos - 1 === lastErrorAt) {
-                        subString = tape[pos - 1].value;
-                    }
+                    subString = tape[pos - 1].value;
                 }
             }
         } else {
@@ -304,9 +310,11 @@ export function process (string, cursorPos = string.length) {
                 // console.log(`${ state } (${parsedStringLength}/${string.length}) | Setting lastSucceeded state to ${state}`);
             }
             ruleIndex = 0;
+            // console.log(nextLength, parsedStringLength, cursorPos);
             if (pos > lastErrorAt && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength) {
                 // console.log(`${ state } | [${ (tape[pos] || {}).value || "" }] Setting suggestState=${lastSucceededState} as ${parsedStringLength} <= ${cursorPos} < ${parsedStringLength+nextLength}`);
                 // console.log(`suggestState = lastSucceededState (${suggestState} = ${lastSucceededState})`);
+                suggestingAt = pos;
                 suggestState = tape[pos - 1] && tape[pos - 1].type === TYPE_ID ? startFromState : lastSucceededState;
                 if (startSub)
                     subString = startSub;
@@ -329,6 +337,7 @@ export function process (string, cursorPos = string.length) {
     //     }. Stack:`, stack, `Try Stack:`, tryStack);
     // console.log(`Tape:`, tape);
     // console.log(`Parsed length: ${ parsedStringLength } of actual length ${ string.length }. Suggest state: ${ suggestState }`);
+    // console.log(collector.slice());
     if (parsedStringLength !== string.length) {
         console.error(`Oops, you've caught a rare exception! parsedStringLength != string.length (${
             parsedStringLength } != ${ string.length }) for '${ string
