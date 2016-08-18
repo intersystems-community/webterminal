@@ -32,13 +32,6 @@ onInit(() => {
 let stack = "";
 
 /**
- * Terminal output are based on lines of rendered text. This variable shows which line number
- * will define Y = 1 caret position.
- * @type {number}
- */
-export let TOP_LINE_INDEX = 0;
-
-/**
  * Object that includes current graphic rendition flag pairs [key, props].
  * [key, object, nextKey, object2, ...]
  * @type {(number|{[class]: string, [style]: string, [tag]: string, [attrs]: Object<string,*>[]})[]}
@@ -91,7 +84,7 @@ export function getCurrentLineIndex () {
  * @returns {number}
  */
 export function getTopLineIndex () {
-    return TOP_LINE_INDEX;
+    return Math.max(lines.length - HEIGHT, 0);
 }
 
 /**
@@ -100,7 +93,7 @@ export function getTopLineIndex () {
  * @returns {boolean}
  */
 export function setCursorYToLineIndex (index) {
-    return setCursorY(index - TOP_LINE_INDEX + 1, false);
+    return setCursorY(index - getTopLineIndex() + 1, false);
 }
 
 /**
@@ -395,6 +388,7 @@ export function setCursorX (x) {
  */
 export function setCursorY (y, restrict = true) {
     cursor.y = restrict ? Math.max(1, Math.min(HEIGHT, y)) : y;
+    getLineByCursorY(cursor.y); // ensures line exists
     return y === cursor.y;
 }
 
@@ -435,6 +429,8 @@ function disableScrolling () {
  * todo: test
  */
 function scrollDisplayPart (lineFrom, lineTo, amount) {
+
+    let TOP_LINE_INDEX = getTopLineIndex();
 
     getLineByIndex(TOP_LINE_INDEX + lineTo); // ensure that line exists
     
@@ -505,42 +501,26 @@ export function resetGraphicProperties () {
 }
 
 /**
- * @returns {Line}
- */
-function getTopLine () {
-
-    var u;
-
-    for (u = lines.length; u <= TOP_LINE_INDEX; u++) {
-        lines[u] = new Line(u);
-    }
-
-    return lines[TOP_LINE_INDEX];
-
-}
-
-/**
  * Returns current line. New lines will be added if they does not exists.
  * @returns {Line}
  */
 function getCurrentLine () {
 
-    return getLineByCursorY(getCursorY());
+    return getLineByIndex(getTopLineIndex() + cursor.y - 1);
 
 }
+
+// todo: remove
+export function getLinesL () { return lines.length; }
 
 /**
  * Add empty lines to the bottom and update TOP_LINE_INDEX if necessary.
  * @param {number} number
  */
 export function pushLines (number) {
-    let oldI = TOP_LINE_INDEX;
     for (; number > 0; number--) {
         lines.push(new Line(lines.length));
     }
-    TOP_LINE_INDEX = Math.max(oldI, lines.length - HEIGHT);
-    if (oldI !== TOP_LINE_INDEX)
-        setCursorY(getCursorY() - (TOP_LINE_INDEX - oldI));
 }
 
 function freeStack () {
@@ -631,11 +611,10 @@ function output (plainText = "") {
  */
 function getLineByIndex (index) {
 
-    var u;
+    var toPush = Math.max(index - lines.length + 1, 0);
 
-    for (u = lines.length; u <= index; u++) {
-        lines[u] = new Line(u);
-    }
+    if (toPush > 0)
+        pushLines(toPush);
 
     return lines[index];
 
@@ -646,7 +625,7 @@ function getLineByIndex (index) {
  * @returns {Line}
  */
 function getLineByCursorY (y) {
-    return getLineByIndex(TOP_LINE_INDEX + (y - 1));
+    return getLineByIndex(getTopLineIndex() + (y - 1));
 }
 
 /**
@@ -664,7 +643,7 @@ export function clear () {
  * Scrolls terminal window to actual view.
  */
 export function scrollDown () {
-    elements.output.scrollTop = TOP_LINE_INDEX * SYMBOL_HEIGHT;
+    elements.output.scrollTop = getTopLineIndex() * SYMBOL_HEIGHT;
 }
 
 /**

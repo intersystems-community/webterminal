@@ -72,6 +72,7 @@ Terminal.prototype.MODE_PROMPT = 1;
 Terminal.prototype.MODE_SQL = 2;
 Terminal.prototype.MODE_READ = 3;
 Terminal.prototype.MODE_READ_CHAR = 4;
+Terminal.prototype.MODE_SPECIAL = 1;
 
 /**
  * Function accepts the callback, which is fired when user enter a command, character or a string.

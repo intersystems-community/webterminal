@@ -69,8 +69,9 @@ export function focusInput () {
  * @param {string} text - String, which will be printed before prompt.
  * @param {{ [timeout]: number, [length]: number }} options - Timeout in seconds.
  * @param {function} callback
+ * @param {boolean=false} specialEnabled - Enable special CWT's commands.
  */
-export function prompt (text, options = {}, callback) {
+export function prompt (text, options = {}, callback, specialEnabled = false) {
 
     MODE = text ? Terminal.prototype.MODE_PROMPT : Terminal.prototype.MODE_READ;
     PROMPT_START_CURSOR_X = output.getCursorX();

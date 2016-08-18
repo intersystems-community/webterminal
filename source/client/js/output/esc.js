@@ -10,8 +10,9 @@ export default {
         if (output.SCROLLING_ENABLED) {
             // todo
         } else {
-            if (output.getCursorY() >= output.HEIGHT)
+            if (output.getCursorY() + 1 > output.HEIGHT) {
                 output.pushLines(1);
+            }
             output.setCursorY(output.getCursorY() + 1);
         }
     },

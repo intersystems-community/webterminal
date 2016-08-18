@@ -150,6 +150,7 @@ The next table demonstrates available API. Left column are `terminal` object pro
     <tr><td>MODE_SQL</td><td>Input in SQL mode (SQL command)</td></tr>
     <tr><td>MODE_READ_CHAR</td><td>Prompt issued by COS <code>read c</code> command</td></tr>
     <tr><td>MODE_CHAR</td><td>Prompt issued by COS <code>read *c</code> command</td></tr>
+    <tr><td>MODE_SPECIAL</td><td>Special CWT's input (commands like /help, /config etc)</td></tr>
 </table>
 
 The next example demonstrates a way to intercept terminal's input:
