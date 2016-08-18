@@ -61,6 +61,16 @@
       "changes": [
         "Basic intelligent syntax highlighting for do, set, write and kill statements"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.26",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.26.xml",
+      "changes": [
+        "Output algorithm optimization and fixes",
+        "Error highlight behavior change",
+        "Autocomplete for keywords, class names, class members, variables and variable members",
+        "Enhanced COS grammar"
+      ]
     }
   ]
 }
