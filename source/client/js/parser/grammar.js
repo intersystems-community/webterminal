@@ -78,6 +78,71 @@
 // | ).<...>
 //     Explanation: symbol "!" will never be matched, as optWhitespace() matches in any case.
 
+//     BASIC HOW-TO
+// For example, let's take an "id()" chain element. Actually, you can specify the same not only for
+// id() element, but for char(), whitespace(), string() and constant() as well.
+// Chain element example                         Explanation
+// id()                                          Matches any identifier (/[a-zA-Z][a-zA-Z0-9]/).
+// char()                                        Matches any character (character is everything
+//                                               which is not a: string, constant, identifier,
+//                                               whitespace).
+// char("#")                                     Matches an exact character "#".
+// char({ value: "#" })                          The same as in example above, matches the exact
+//                                               character "#", this is just another form of spec.
+// id({ value: "super" })                        Matches identifier of exact value "class".
+// id({ value: "super", class: "keyword" })      Matches identifier of exact value "class" and
+//                                               highlights the output with the CSS style "keyword".
+// id({ type: "variable" })                      Basically, again, matches any identifier. But now
+//                                               it assigns the type to this ID. This means a lot
+//                                               for autocomplete: check autocomplete/types.js
+//                                               module. By having a type, WebTerminal can suggest
+//                                               variants to complete this identifier with. The
+//                                               suggesting logic is written in types.js module.
+//                                               In this example, suggesting mechanism will take
+//                                               this identifier as local variable and try to
+//                                               suggest the ending of it.
+// id({ type: "a", class: "b", value: "c" })     Combine any properties in the way you need!
+// id({ type: "a" }).char(";").id({ type: "b" }) Now let's go deeper. In types.js module, there is
+//                                               an argument passed named "collector". This argument
+//                                               contains matched chain elements, which have "type",
+//                                               and if there are anything between those elements,
+//                                               type "," is inserted. Collector is always an array.
+//                                               So for this example collector is the next:
+//                                               ["a", ",", "b"]. NOTE: the actual collector's value
+//                                               is [
+//                                                   { value: "?", type: "a" },
+//                                                   { value: "", type: "," },
+//                                                   { value: "?", type: "b" }
+//                                                  ], but for the shorten form here only the type
+//                                               will be specified as an array value. Please keep in
+//                                               mind that collector's array element is an object,
+//                                               which type is specified and the value is equal to
+//                                               the matched value.
+// id({ type: "a" }).char(":").id().char(";")    Collector is ["a", ","]
+// char("#").char("#").id({ value: "class" })    Collector is [","] (as no types specified at all)
+// id({ type: "a" }).char(";").id({ type: "b" }) Collector allows to build a login that finds a
+//                                               complex syntax constructions and the chain gives
+//                                               you control on how to collect things to collector.
+//                                               Here collector will be ["a", ",", "b"], which
+//                                               allows us to say that identifiers with types "a"
+//                                               and "b" is separated by something.
+// split(char({ value: "%", type: "a" }), any()) Here is a tiny example of how you can suggest a COS
+// .id({ type: "a" })                            variable name. Now collector is of type ["a", "a"],
+//                                               note that it doesn't has a separating ",", as
+//                                               matching elements go in a line. For example, in
+//                                               string "%Nikita" collector values will be
+//                                               ["%", "Nikita"], and you can join last N elements
+//                                               of the same type to get a base "%Nikita" for
+//                                               suggesting.
+// id({ type: "var" }).char(".")                 In this example you would probably need to access
+// .id({ type: "classMember" })                  "variable" without having a delimiter "," in the
+//                                               collector, which is ["var", ",", "classMember"].
+// id({ type: "var" })                           To make collector's value ["var", "classMember"],
+// .char({ value: ".", type: "*" })              or to avoid adding a "," to collector, assign type
+// .id({ type: "classMember" })                  "*" to chain elements which should not appear in
+//                                               collector. todo: check if we need "*" actually.
+//                                               todo: collectOfType can handle the task without "*"
+
 import {
     rule, id, char, string, split, any, all, none, branch, merge, exit, constant, call, tryCall,
     optWhitespace
@@ -171,9 +236,14 @@ rule("expression").split(
 ).exit().end();
 
 rule("variable").split(
-    id({ class: "variable", type: "variable" }),
-    char({ value: "%", class: "variable", type: "variable" })
-        .id({ class: "variable", type: "variable" }),
+    split(
+        id({ class: "variable", type: "variable" }),
+        char({ value: "%", class: "variable", type: "variable" })
+            .id({ class: "variable", type: "variable" })
+    ).branch().split(
+        char({ value: ".", type: "*" }).call("member").merge(),
+        any()
+    ),
     char({ value: "^", class: "global", type: "global" }).branch()
         .id({ class: "global", type: "global" }).split(
             char({ value: ".", class: "global", type: "global" }).merge(),
@@ -184,6 +254,15 @@ rule("variable").split(
     )
 ).exit().end();
 
+rule("member").split(
+    char({ value: "%", type: "member" }),
+    char({ value: "#", type: "member" }),
+    any()
+).id({ type: "member" }).split(
+    char("(").call("argumentList").char(")"),
+    any()
+).exit().end();
+
 rule("class").split(
     char({ value: "#", class: "special" }).char({ value: "#", class: "special" }).split(
         id({ value: "class", class: "special" }).char({ value: "(", class: "special" }).split(
@@ -191,15 +270,16 @@ rule("class").split(
             any()
         ).branch().id({ type: "classname", class: "classname" }).split(
             char({ value: ".", type: "classname", class: "classname" }).merge(),
-            char({ value: ")", class: "special" }).char(".").split(
-                char({ value: "#", type: "parameter", class: "keyword" })
-                    .id({ type: "parameter", class: "keyword" }),
-                split(
-                    char({ value: "%", type: "publicClassMember", class: "keyword" }),
-                    any()
-                ).id({ type: "publicClassMember", class: "keyword" }).split(
-                    char("(").call("argumentList").char(")")
-                )
+            char({ value: ")", class: "special", type: "*" }).char({ value: ".", type: "*" })
+                .split(
+                    char({ value: "#", type: "parameter", class: "keyword" })
+                        .id({ type: "parameter", class: "keyword" }),
+                    split(
+                        char({ value: "%", type: "publicClassMember", class: "keyword" }),
+                        any()
+                    ).id({ type: "publicClassMember", class: "keyword" }).split(
+                        char("(").call("argumentList").char(")")
+                    )
             )
         ),
         id({ value: "super", class: "special" })

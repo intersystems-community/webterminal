@@ -47,7 +47,7 @@ ClassMethod VarList() As %String [ ProcedureBlock = 1 ]
         quit:%0=""
         set %=%_$LISTBUILD(%0, $IsObject(@%0), @%0)
     }
-    quit %
+    return %
 }
 
 /// Retrieves a command text from the parent process.

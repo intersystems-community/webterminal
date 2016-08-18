@@ -127,7 +127,7 @@ Hint.prototype.update = function () {
 
     this.displayInLine = x + width < output.WIDTH;
     this.displayUnder = lineIndex + height + 1 < Math.max(linesNumber, output.HEIGHT);
-    console.log(`Display under: ${ this.displayUnder }, in line: ${ this.displayInLine }`);
+    // console.log(`Display under: ${ this.displayUnder }, in line: ${ this.displayInLine }`);
     this.element.style.top = `${
         ((this.displayUnder ? lineIndex + 1: lineIndex - height)
         + (this.displayInLine ? this.displayUnder ? -1 : 1 : 0)) * output.SYMBOL_HEIGHT

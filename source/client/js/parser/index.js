@@ -20,24 +20,24 @@ let wrap = (a) => a,
 export function getAutomaton () {
     return automaton;
 }
-printAutomaton(automaton);
-function printAutomaton (oa) {
-    if (!oa)
-        return;
-    let table = [];
-    console.log(oa);
-    for (let i in oa) {
-        if (!oa[i])
-            continue;
-        for (let r of oa[i]) {
-            table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value.value || r[0].value})` : ""))
-                : r[0]).concat(r.slice(1)));
-        }
-    }
-    if (console.table)
-        console.table(table);
-    console.log(rules);
-}
+// printAutomaton(automaton);
+// function printAutomaton (oa) {
+//     if (!oa)
+//         return;
+//     let table = [];
+//     console.log(oa);
+//     for (let i in oa) {
+//         if (!oa[i])
+//             continue;
+//         for (let r of oa[i]) {
+//             table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value.value || r[0].value})` : ""))
+//                 : r[0]).concat(r.slice(1)));
+//         }
+//     }
+//     if (console.table)
+//         console.table(table);
+//     console.log(rules);
+// }
 
 /**
  * Split the string to the lexical parts. There are five: whitespace, id, string, constant and char.
@@ -217,11 +217,21 @@ export function process (string, cursorPos = string.length) {
             if (rule[0] && typeof rule[0].value === "object") {
                 if (rule[0].value.class)
                     lexeme.class = rule[0].value.class;
-                if (!suggestState && rule[0].value.type)
-                    collector.push({
-                        type: rule[0].value.type,
-                        value: lexeme.value
-                    });
+                if (!suggestState) {
+                    if (rule[0].value.type && rule[0].value.type !== "*") {
+                        collector.push({
+                            type: rule[0].value.type,
+                            value: lexeme.value
+                        });
+                    } else if (rule[0].value.type === "*") {
+
+                    } else if (!collector[collector.length - 1] || collector[collector.length - 1].type !== ",") {
+                        collector.push({
+                            type: ",",
+                            value: ""
+                        });
+                    }
+                }
             }
             if (typeof rule[2] !== "undefined") {
                 // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ lexeme.value }] Pushing ${ rule[2] } to stack [ruleIndex = ${ ruleIndex }]`);

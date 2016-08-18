@@ -102,6 +102,29 @@ ClassMethod ClassMemberAutocomplete (client As WebTerminal.Engine, data As %ZEN.
     return $$$OK
 }
 
+ClassMethod MemberAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
+{
+    do client.SendChunk(client.corePID, "a")
+    set list = $LISTGET(client.ReceiveChunk(), 2)
+    set isOref = 0
+    set value = ""
+    for i=3:3:$LISTLENGTH(list) {
+        if $LISTGET(list, i - 2) = data.variable {
+            set isOref = $LISTGET(list, i - 1)
+            set value = $LISTGET(list, i)
+            quit
+        }
+    }
+    if isOref {
+        do client.Send(, ##class(WebTerminal.Autocomplete).GetClassMembers(
+            client.childNamespace, $PIECE(value, "@", 2), data.part
+        ))
+    } else {
+        do client.Send(, 0)
+    }
+    return $$$OK
+}
+
 ClassMethod ParameterAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
 {
     do client.Send(, ##class(WebTerminal.Autocomplete).GetParameters(client.childNamespace, data.className, data.part))

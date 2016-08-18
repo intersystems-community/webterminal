@@ -26,7 +26,7 @@ ClassMethod GetClass(namespace As %String = "%SYS", beginning As %String = "") A
     return ids
 }
 
-/// Returns a comma-delimited string of class members in the class of namespace.
+/// Returns a comma-delimited string of public class members (accessible through ##class() construction) in the class of namespace.
 ClassMethod GetPublicClassMembers(namespace As %String = "%SYS", className As %String = "", beginning As %String = "") As %String
 {
     new $Namespace
@@ -34,6 +34,22 @@ ClassMethod GetPublicClassMembers(namespace As %String = "%SYS", className As %S
     set pattern = $REPLACE(beginning, "%", "!%") _ "%"
     &sql(select LIST(Name) into :names from %Dictionary.CompiledMethod WHERE parent=:className AND ClassMethod=1 AND Name like :pattern ESCAPE '!')
     return names
+}
+
+/// Returns a comma-delimited string of class members in the class of namespace.
+ClassMethod GetClassMembers(namespace As %String = "%SYS", className As %String = "", beginning As %String = "") As %String
+{
+    new $Namespace
+    set $Namespace = namespace
+    if $EXTRACT(beginning, 1) = "#" {
+        set ps = ..GetParameters(namespace, className, $EXTRACT(beginning, 2, $LENGTH(beginning)))
+        return:(ps = "") ps
+        return "#"_$REPLACE(ps, ",", ",#")
+    }
+    set pattern = $REPLACE(beginning, "%", "!%") _ "%"
+    &sql(select LIST(Name) into :methods from %Dictionary.CompiledMethod WHERE parent=:className AND Name like :pattern ESCAPE '!')
+    &sql(select LIST(Name) into :props from %Dictionary.CompiledProperty WHERE parent=:className AND Name like :pattern ESCAPE '!')
+    return $case((methods '= "") && (props '= ""), 1: methods _ "," _ props, : methods _ props)
 }
 
 /// Returns a comma-delimited string of class members in the class of namespace.

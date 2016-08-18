@@ -51,5 +51,16 @@ export default {
                 return;
             cb(Object.keys(d).filter(s => s.indexOf(v) === 0).map(s => s.substr(v.length)));
         });
+    },
+    "member": (collector, cb) => {
+        let mem = collectOfType(collector, "member"),
+            v = collectOfType(collector, "variable");
+        if (!v)
+            return;
+        server.send("MemberAutocomplete", { variable: v, part: mem }, (d) => {
+            if (!d)
+                return;
+            cb(d.split(",").filter(s => s.indexOf(mem) === 0).map(s => s.substr(mem.length)));
+        });
     }
 }

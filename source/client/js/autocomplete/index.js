@@ -13,7 +13,7 @@ export let CURRENT = 0;
 export function suggest (state, base = "") {
     const BEEN = [],
         automaton = getAutomaton();
-    console.log(`Suggest state: ${state}, Substring: ${base}`);
+    // console.log(`Suggest state: ${state}, Substring: ${base}`);
     // console.log(`Suggesting from state ${ state } with "${ base }"`);
     // match null | TYPE_CHAR (multiple) | TYPE_ID (once)
     function collect (state, base, cls = null, type = null) {
@@ -113,7 +113,6 @@ export function showSuggestions (show, suggestions = [], collector = []) {
             types[row[0].type](collector.slice(), (v) => {
                 if (current !== CURRENT)
                     return;
-                console.log(v);
                 addVariants(v);
             });
             suggesting = true;
