@@ -2,6 +2,8 @@ import * as elements from "../elements";
 import * as output from "../output";
 import * as caret from "./caret";
 import * as history from "./history";
+import special from "./special";
+import * as locale from "../localization";
 import { Terminal, userInput } from "../index";
 import { process as processString } from "../parser";
 import { showSuggestions } from "../autocomplete";
@@ -24,7 +26,8 @@ let oldInputLength = 0,
     readTimeout = 0,
     readLength = 0,
     updateHandlers = [],
-    keyDownHandlers = [];
+    keyDownHandlers = [],
+    lastParsedString = [];
 
 window.addEventListener(`keydown`, (e) => {
     focusInput();
@@ -258,8 +261,8 @@ export function update () {
     if (!ENABLED)
         return;
 
-    const highlight = SPECIAL_ENABLED,
-          autocomplete = SPECIAL_ENABLED;
+    const HIGHLIGHT = SPECIAL_ENABLED,
+          SUGGEST = SPECIAL_ENABLED;
 
     output.setCursorYToLineIndex(ORIGIN_LINE_INDEX);
     output.setCursorX(ORIGIN_CURSOR_X);
@@ -272,13 +275,13 @@ export function update () {
             : elements.input.selectionEnd,
         selLen = selEnd - selStart,
         { lexemes, suggestions, collector } =
-            processString(elements.input.value, selStart, autocomplete, highlight),
+            processString(elements.input.value, selStart, SUGGEST, HIGHLIGHT),
         printedLength = 0, printingClass = "";
 
     for (let i = 0; i < lexemes.length; i++) {
         let inSelStart = printedLength <= selStart && selStart < printedLength + lexemes[i].value.length,
             inSelEnd = printedLength <= selEnd && selEnd < printedLength + lexemes[i].value.length;
-        if (highlight && lexemes[i].class !== printingClass) {
+        if (HIGHLIGHT && lexemes[i].class !== printingClass) {
             printingClass = lexemes[i].class;
             if (!(selLen > 0 && selStart < printedLength && printedLength < selEnd))
                 output.print(`\x1B[${ printingClass === "" ? 0 : "(" + printingClass + ")" }m`);
@@ -317,11 +320,15 @@ export function update () {
     if (elements.input.style.height !== `${ h }px`)
         elements.input.style.height = `${ h }px`;
 
-    if (ENABLED && readLength && elements.input.value.length >= readLength)
+    if (ENABLED && readLength && elements.input.value.length >= readLength) {
         onSubmit();
+        return;
+    }
+
+    lastParsedString = lexemes;
 
     showSuggestions(
-        selStart > 0 && elements.input.value.length > 0 && selLen === 0,
+        SUGGEST && selStart > 0 && elements.input.value.length > 0 && selLen === 0,
         suggestions,
         collector
     );
@@ -330,7 +337,24 @@ export function update () {
 
 function onSubmit () {
     let value = elements.input.value, // value may change during userInput() call, keep on top
-        mode = MODE;
+        mode = MODE,
+        firstVal = (lastParsedString[0] || {}).value,
+        secondVal = (lastParsedString[1] || {}).value;
+    console.log(lastParsedString[1], secondVal, special);
+    if (SPECIAL_ENABLED && firstVal === "/") {
+        if (typeof special[secondVal] === "function") {
+            output.print(`\r\n`);
+            special[secondVal](lastParsedString);
+            output.print(`\r\n`);
+        } else {
+            if (typeof secondVal === "undefined")
+                output.print(`\r\n${ locale.get(`askEnSpec`) }\r\n`);
+            else
+                output.print(`\r\n${ locale.get(`noSpecComm`, secondVal) }\r\n`);
+        }
+        reprompt();
+        return;
+    }
     ENABLED = false;
     clearTimeout(readTimeout);
     readTimeout = 0;

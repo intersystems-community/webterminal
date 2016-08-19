@@ -169,7 +169,6 @@ rule("CWTInput").split(
 
 rule("CWTSpecial").split(
     id({ value: "help", class: "special" }),
-    id({ value: "about", class: "special" }),
     id({ value: "info", class: "special" })
 ).exit().end();
 

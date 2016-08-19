@@ -5,7 +5,7 @@
   "printableName": "Cache Web Terminal",
   "description": "Web-based terminal emulator for Caché administering.",
   "author": "ZitRo",
-  "version": "4.0.0-alpha.30",
+  "version": "4.0.0-alpha.31",
   "releaseNumber": 26,
   "scripts": {
     "build": "gulp"

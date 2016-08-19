@@ -1,5 +1,3 @@
-import { VERSION } from "../index";
-
 /**
  * Different localizations for terminal application.
  *
@@ -18,8 +16,8 @@ import { VERSION } from "../index";
  * function are passed.
  */
 export default {
-    "help": {
-        en: `Caché WEB Terminal v${ VERSION }\r\n\r\n` +
+    "oldHelp": {
+        en: `Caché WEB Terminal v/* @echo package.version */\r\n\r\n` +
         "\x1B[4mAvailable commands:\x1B[0m\r\n" +
         "\x1B[33m/help\x1B[0m\x1B[32GShow the help information you are reading now.\r\n" +
         "\x1B[33m/autocomplete\x1B[0m [sys]\x1B[32GPerforms autocomplete data loading. The system autocomplete" +
@@ -46,7 +44,7 @@ export default {
         "\x1B[33mTAB\x1B[0m\x1B[32GComplete input if autocomplete variant is available.\r\n" +
         "\x1B[33mCTRL\x1B[0m\x1B[32GLeft/right control will switch next/previous available" +
         " autocomplete variant.\r\n",
-        ru: `Caché WEB Terminal v${ VERSION }\r\n\r\n` +
+        ru: `Caché WEB Terminal v/* @echo package.version */\r\n\r\n` +
         "\x1B[4mДоступные команды:\x1B[0m\r\n" +
         "\x1B[33m/help\x1B[0m\x1B[32GПоказать вспомагательную информацию, которую вы сейчас читаете.\r\n" +
         "\x1B[33m/autocomplete\x1B[0m [sys]\x1B[32GПодгружает данные для автодополнения. Файлы системного автодополнения" +
@@ -266,11 +264,11 @@ export default {
         ru: "Невозможно изменить тему на %s."
     },
     43: {
-        en: `Caché WEB Terminal v${ VERSION }\r\nAuthor:\x1B[20GZitRo ` +
+        en: `Caché WEB Terminal v/* @echo package.version */\r\nAuthor:\x1B[20GZitRo ` +
         "(+NikitaSavchenko)\r\nProject:\x1B[20Ghttps://intersystems-ru.github.io/" +
         "webterminal\r\nRepository:\x1B[20Ghttps://github.com/intersystems-ru/" +
         `webterminal\r\n2013-${ new Date().getFullYear() } ©`,
-        ru: `Caché WEB Terminal v${ VERSION }\r\nАвтор:\x1B[20GZitRo ` +
+        ru: `Caché WEB Terminal v/* @echo package.version */\r\nАвтор:\x1B[20GZitRo ` +
         "(+NikitaSavchenko)\r\nПроект:\x1B[20Ghttps://intersystems-ru.github.io/" +
         "webterminal\r\nРепозиторий:\x1B[20Ghttps://github.com/intersystems-ru/" +
         `webterminal\r\n2013-${ new Date().getFullYear() } ©`
@@ -406,5 +404,38 @@ export default {
     },
     "sUpdDone": {
         en: "Update completed! Please, \x1b!URL=javascript:location.reload() (reload) the page."
+    },
+    "askEnSpec": {
+        en: "Please, enter the special command. Try entering \x1b[(special)m/help\x1b[0m first.",
+        ru: "Пожалуйста, введите специальную команду. Начните с ввода \x1b[(special)m/help\x1b[0m, например."
+    },
+    "noSpecComm": {
+        en: "There is no special command \x1b[(special)m/%s\x1b[0m. Please, enter \x1b[(special)m/help\x1b[0m to get a list of available commands.",
+        ru: "Специальная команда \x1b[(special)m/%s\x1b[0m не существует. Пожалуйста, введите \x1b[(special)m/help\x1b[0m чтобы узнать список доступных команд."
+    },
+    "help": {
+        en:
+`\x1b[1mCaché WEB Terminal v\x1b[(keyword)m/* @echo package.version */\x1b[0m
+\r
+\r\x1B[4mAvailable commands:\x1B[0m
+\r\x1B[(special)m/help\x1B[0m\x1B[32GDisplay the short documentation (like you just did).
+\r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.`,
+        ru: "Помощь на русском языке временно отсутствует!"
+    },
+    "info": {
+        en:
+`Caché WEB Terminal v/* @echo package.version */
+\rAuthor:\x1B[32G\x1b!URL=https://github.com/zitros (ZitRo) (Nikita Savchenko)
+\rProject:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Homepage)
+\rRepository:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
+\rBug/Feature Tracker:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
+\r2013-${ new Date().getFullYear() } ©`,
+        ru:
+`Caché WEB Terminal v/* @echo package.version */
+\rАвтор:\x1B[32G\x1b!URL=https://github.com/zitros (ZitRo) (Никита Савченко)
+\rПроект:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Главная страница)
+\rРепозиторий:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
+\rБаг/Фич трекер:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
+\r2013-${ new Date().getFullYear() } ©`
     }
 };
