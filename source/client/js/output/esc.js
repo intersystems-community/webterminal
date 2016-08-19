@@ -40,6 +40,9 @@ export default {
             output.setCursorY(1);
         }
     },
+    "\x1b[{\\d*}G": (args) => {
+        output.setCursorX(+args[0]);
+    },
     "\x1b[{\\d*};\"{[^\"]}\"p": (args) => { // define key
         console.log("\\key!", args); // todo
     },

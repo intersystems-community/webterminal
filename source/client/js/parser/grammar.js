@@ -229,7 +229,11 @@ rule("cosCommand").split(
     ).optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
-    )
+    ),
+    id([
+        { value: "zn", class: "keyword" },
+        { value: "znspace", class: "keyword" }
+    ]).call("postCondition").whitespace().string().exit()
 ).end();
 
 rule("postCondition").split(
@@ -238,12 +242,9 @@ rule("postCondition").split(
 ).exit().end();
 
 rule("doArgument").split(
-    char({ value: "^", class: "global" }).id({ type: "routine" }),
-    call("class").split(
-        char(":").call("expression"),
-        any()
-    )
-).exit().end();
+    char({ value: "^", class: "global" }).id({ type: "routine", class: "global" }),
+    call("class")
+).call("postCondition").exit().end();
 
 rule("expression").split(
     constant(),
