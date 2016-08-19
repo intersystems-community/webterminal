@@ -15,8 +15,8 @@ let ORIGIN_LINE_INDEX = 0,
     ORIGIN_CURSOR_X = 0,
     PROMPT_START_LINE_INDEX = 0,
     PROMPT_START_CURSOR_X = 0,
-    PROMPT_MESSAGE = "",
-    PROMPT_OPTIONS = {},
+    PROMPT_ARGUMENTS = [],
+    SPECIAL_ENABLED = false,
     MODE = 0;
 
 let oldInputLength = 0,
@@ -76,9 +76,9 @@ export function prompt (text, options = {}, callback, specialEnabled = false) {
     MODE = text ? Terminal.prototype.MODE_PROMPT : Terminal.prototype.MODE_READ;
     PROMPT_START_CURSOR_X = output.getCursorX();
     PROMPT_START_LINE_INDEX = output.getCurrentLineIndex();
-    PROMPT_MESSAGE = text || "";
-    PROMPT_OPTIONS = options;
+    PROMPT_ARGUMENTS = arguments;
     PROMPT_CLEARED = false;
+    SPECIAL_ENABLED = specialEnabled;
 
     if (text)
         output.print(text);
@@ -102,7 +102,7 @@ export function clearPrompt () {
     output.setCursorYToLineIndex(PROMPT_START_LINE_INDEX);
     output.setCursorX(PROMPT_START_CURSOR_X);
     output.immediatePlainPrint(
-        new Array(PROMPT_MESSAGE.length + elements.input.value.length + 1).join(" ")
+        new Array(PROMPT_ARGUMENTS[0].length + elements.input.value.length + 1).join(" ")
     );
     output.setCursorYToLineIndex(PROMPT_START_LINE_INDEX);
     output.setCursorX(PROMPT_START_CURSOR_X);
@@ -115,7 +115,7 @@ export function clearPrompt () {
 export function reprompt () {
     if (!ENABLED)
         return;
-    prompt(PROMPT_MESSAGE, PROMPT_OPTIONS, promptCallBack);
+    prompt.apply(this, PROMPT_ARGUMENTS);
 }
 
 /**
@@ -258,6 +258,9 @@ export function update () {
     if (!ENABLED)
         return;
 
+    const highlight = SPECIAL_ENABLED,
+          autocomplete = SPECIAL_ENABLED;
+
     output.setCursorYToLineIndex(ORIGIN_LINE_INDEX);
     output.setCursorX(ORIGIN_CURSOR_X);
 
@@ -268,13 +271,14 @@ export function update () {
             ? elements.input.value.length
             : elements.input.selectionEnd,
         selLen = selEnd - selStart,
-        { lexemes, suggestions, collector } = processString(elements.input.value, selStart),
+        { lexemes, suggestions, collector } =
+            processString(elements.input.value, selStart, autocomplete, highlight),
         printedLength = 0, printingClass = "";
 
     for (let i = 0; i < lexemes.length; i++) {
         let inSelStart = printedLength <= selStart && selStart < printedLength + lexemes[i].value.length,
             inSelEnd = printedLength <= selEnd && selEnd < printedLength + lexemes[i].value.length;
-        if (lexemes[i].class !== printingClass) {
+        if (highlight && lexemes[i].class !== printingClass) {
             printingClass = lexemes[i].class;
             if (!(selLen > 0 && selStart < printedLength && printedLength < selEnd))
                 output.print(`\x1B[${ printingClass === "" ? 0 : "(" + printingClass + ")" }m`);
@@ -327,7 +331,6 @@ export function update () {
 function onSubmit () {
     let value = elements.input.value, // value may change during userInput() call, keep on top
         mode = MODE;
-    hideInput();
     ENABLED = false;
     clearTimeout(readTimeout);
     readTimeout = 0;
@@ -336,6 +339,7 @@ function onSubmit () {
         promptCallBack(value);
     history.push(value);
     promptCallBack = null;
+    hideInput();
 }
 
 function hideInput () {

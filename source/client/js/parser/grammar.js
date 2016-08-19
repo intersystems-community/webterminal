@@ -213,7 +213,16 @@ rule("cosCommand").split(
         { value: "read", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
         string(),
-        id({ class: "variable", type: "variable" }),
+        split(
+            id({ class: "variable", type: "variable" }).split(
+                char({ value: "#", class: "special" }).call("expression"),
+                any()
+            ),
+            char({ value: "*", class: "special" }).id({ class: "variable", type: "variable" })
+        ).split(
+            char({ value: ":", class: "special" }).call("expression"),
+            any()
+        ),
         split(
             char({ value: "!", class: "special" }),
             char({ value: "#", class: "special" })

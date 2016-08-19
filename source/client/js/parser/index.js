@@ -67,9 +67,12 @@ function splitString (string) {
  * State machine processes the string.
  * @param {string} string - String to process.
  * @param cursorPos - Cursor position in this string. Has influence on autocomplete suggestions.
+ * @param {boolean=true} suggestionsEnabled
+ * @param {boolean=true} highlight
  * @returns {{lexemes: {type: number, value: *, class: string}[], suggestions: *}}
  */
-export function process (string, cursorPos = string.length) {
+export function process (string, cursorPos = string.length, suggestionsEnabled = true,
+ highlight = true) {
     let tape = splitString(string),
         stack = [], // holds state numbers
         tryStack = [],
@@ -89,6 +92,12 @@ export function process (string, cursorPos = string.length) {
         MAX_LOOP = 100,
         suggestingAt = -1,
         subString = "";
+    if (!highlight && !suggestionsEnabled)
+        return {
+            lexemes: tape,
+            suggestions: [],
+            collector: []
+        };
     // console.log("-----------");
     function error () {
         if (lastErrorAt < pos) {
@@ -345,7 +354,9 @@ export function process (string, cursorPos = string.length) {
     }
     return {
         lexemes: tape,
-        suggestions: suggestState === 0 ? [] : suggest(suggestState, subString),
+        suggestions: suggestState === 0 || !suggestionsEnabled
+            ? []
+            : suggest(suggestState, subString),
         collector: collector
     };
 }
