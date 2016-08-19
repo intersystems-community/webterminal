@@ -81,7 +81,7 @@ ClassMethod Loop() As %Status
 	for {
 	    do ##class(%Device).ReDirectIO($$$YES)
 	    set $ZERROR = ""
-    	try { xecute ..WaitCommand() } catch exception {}
+    	try { xecute ..WaitCommand() } catch {}
     	do ##class(%Device).ReDirectIO($$$NO)
 	    do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, $ZERROR))
 	}

@@ -177,7 +177,7 @@ rule("cosCommand").split(
     id([
         { value: "d", class: "keyword" },
         { value: "do", class: "keyword" }
-    ]).whitespace().branch().call("doArgument").optWhitespace().split(
+    ]).call("postCondition").whitespace().branch().call("doArgument").optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     ),
@@ -186,7 +186,7 @@ rule("cosCommand").split(
         { value: "write", class: "keyword" },
         { value: "zw", class: "keyword" },
         { value: "zwrite", class: "keyword" }
-    ]).whitespace().branch().split(
+    ]).call("postCondition").whitespace().branch().split(
         char({ value: "!", class: "special" }),
         call("expression")
     ).optWhitespace().split(
@@ -196,7 +196,7 @@ rule("cosCommand").split(
     id([
         { value: "s", class: "keyword" },
         { value: "set", class: "keyword" }
-    ]).whitespace().branch().call("variable").optWhitespace().char("=").optWhitespace()
+    ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().char("=").optWhitespace()
         .call("expression").optWhitespace().split(
             char(",").optWhitespace().merge(), // -> loop to the last branch
             any().exit()
@@ -204,11 +204,38 @@ rule("cosCommand").split(
     id([
         { value: "k", class: "keyword" },
         { value: "kill", class: "keyword" }
-    ]).whitespace().branch().call("variable").optWhitespace().split(
+    ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().split(
+        char(",").optWhitespace().merge(), // -> loop to the last branch
+        any().exit()
+    ),
+    id([
+        { value: "r", class: "keyword" },
+        { value: "read", class: "keyword" }
+    ]).call("postCondition").whitespace().branch().split(
+        string(),
+        id({ class: "variable", type: "variable" }),
+        split(
+            char({ value: "!", class: "special" }),
+            char({ value: "#", class: "special" })
+        ).branch().split(
+            split(
+                char({ value: "!", class: "special" }),
+                char({ value: "#", class: "special" })
+            ).merge(),
+            char({ value: "?", class: "special" }).call("expression"),
+            any()
+        ),
+        char({ value: "?", class: "special" }).call("expression")
+    ).optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     )
 ).end();
+
+rule("postCondition").split(
+    char(":").call("expression"),
+    any()
+).exit().end();
 
 rule("doArgument").split(
     char({ value: "^", class: "global" }).id({ type: "routine" }),
@@ -245,14 +272,16 @@ rule("variable").split(
         char({ value: ".", type: "*" }).call("member").merge(),
         any()
     ),
-    char({ value: "^", class: "global", type: "global" }).branch()
-        .id({ class: "global", type: "global" }).split(
-            char({ value: ".", class: "global", type: "global" }).merge(),
-            any()
-    ).split(
-        char("(").call("argumentList").char(")"),
+    call("global")
+).exit().end();
+
+rule("global").char({ value: "^", class: "global", type: "global" }).branch()
+    .id({ class: "global", type: "global" }).split(
+        char({ value: ".", class: "global", type: "global" }).merge(),
         any()
-    )
+).split(
+    char("(").call("argumentList").char(")"),
+    any()
 ).exit().end();
 
 rule("member").split(
