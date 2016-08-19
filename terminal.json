@@ -71,6 +71,16 @@
         "Autocomplete for keywords, class names, class members, variables and variable members",
         "Enhanced COS grammar"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.31",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.31.xml",
+      "changes": [
+        "Enhanced grammar with read, znspace commands and post-conditions.",
+        "Enabled special commands: help & info",
+        "Empty line miss when scrolling starts fix",
+        "Redundant variable set after the error fix"
+      ]
     }
   ]
 }
