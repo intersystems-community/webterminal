@@ -340,7 +340,6 @@ function onSubmit () {
         mode = MODE,
         firstVal = (lastParsedString[0] || {}).value,
         secondVal = (lastParsedString[1] || {}).value;
-    console.log(lastParsedString[1], secondVal, special);
     if (SPECIAL_ENABLED && firstVal === "/") {
         if (typeof special[secondVal] === "function") {
             output.print(`\r\n`);

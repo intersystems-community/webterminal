@@ -29,6 +29,15 @@ export default {
             }
         }
     },
+    "\x1bH": () => {
+        output.setTabAt(output.getCursorX());
+    },
+    "\x1b[g": () => {
+        output.clearTab(output.getCursorX());
+    },
+    "\x1b[3g": () => {
+        output.clearTab();
+    },
     "\x1b[{\\d*}{;?}{\\d*}H": (args) => { // cursor home
         if (args[0] || args[2]) {
             if (args[0])

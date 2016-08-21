@@ -1,6 +1,7 @@
 import * as storage from "../storage";
 
 const STORAGE_NAME = `terminal-history`;
+const SIZE = 200;
 
 let history = (JSON.parse(storage.get(STORAGE_NAME)) || [""]),
     current = history.length - 1;
@@ -21,6 +22,8 @@ export function get (increment = 0) {
  * @param {string} string
  */
 export function push (string) {
+    if (!string)
+        return;
     if (history[history.length - 1] !== "")
         history.push("");
     history[history.length - 1] = string;
@@ -30,5 +33,5 @@ export function push (string) {
 }
 
 function save () {
-    storage.set(STORAGE_NAME, JSON.stringify(history));
+    storage.set(STORAGE_NAME, JSON.stringify(history.slice(-SIZE)));
 }

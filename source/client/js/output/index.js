@@ -112,18 +112,6 @@ let scrolling = {
  */
 let tabs = [];
 
-/**
- * When enabled, caret position will be limited in [1, WIDTH] by X and [1, HEIGHT] by Y axis.
- *
- * This enables terminal to print content out of it's viewport.
- *
- * MAKE SURE TO SET "true" VALUE BACK IN THE SAME CODE SCOPE WHEN USED.
- *
- * @type {boolean} flag
- * @deprecated
- */
-let $CARET_RESTRICTION_ON = true;
-
 export function print (text) {
 
     // console.log("PRINTING", text.replace(/\x1b/g, `<ESC>`));
@@ -156,7 +144,7 @@ export function setTabAt (x) {
  * Clear tabs. If position is not defined, clears all tabs.
  * @param {number} [x]
  */
-function clearTab (x) {
+export function clearTab (x) {
     let i;
     if (x) {
         if ((i = tabs.indexOf(x)) !== -1)
@@ -509,9 +497,6 @@ function getCurrentLine () {
     return getLineByIndex(getTopLineIndex() + cursor.y - 1);
 
 }
-
-// todo: remove
-export function getLinesL () { return lines.length; }
 
 /**
  * Add empty lines to the bottom and update TOP_LINE_INDEX if necessary.

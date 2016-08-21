@@ -250,7 +250,10 @@ rule("postCondition").split(
 ).exit().end();
 
 rule("doArgument").split(
-    char({ value: "^", class: "global" }).id({ type: "routine", class: "global" }),
+    char({ value: "^", class: "global" }).branch().id({ type: "routine", class: "global" }).split(
+        char({ value: ".", type: "routine", class: "global" }).merge(),
+        any()
+    ),
     call("class")
 ).call("postCondition").exit().end();
 
