@@ -81,6 +81,16 @@
         "Empty line miss when scrolling starts fix",
         "Redundant variable set after the error fix"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.33",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.33.xml",
+      "changes": [
+        "Enhanced authorization algorithm, now terminal requires a key in a different request",
+        "Tab control escape sequences add",
+        "Grammar enhance for do statements",
+        "Command history related fixes"
+      ]
     }
   ]
 }
