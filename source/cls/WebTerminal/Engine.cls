@@ -3,6 +3,9 @@
 Class WebTerminal.Engine Extends (%CSP.WebSocket, Common, Trace, Autocomplete)
 {
 
+/// Connection key expires in 1 hour.
+Parameter WSKEYEXPIRES = 3600;
+
 Property CurrentNamespace As %String;
 
 Property InitialZName As %String;
@@ -21,10 +24,10 @@ Property echo As %Boolean [ InitialExpression = 1 ];
 /// Output flag
 Property handler As %Boolean [ InitialExpression = 0, Private ];
 
-Method GetMessage(timeout As %Numeric) As %ZEN.proxyObject
+Method GetMessage(timeout As %Integer = 86400) As %ZEN.proxyObject
 {
     #define err(%e, %s) if (%e '= $$$OK) { set obj = ##class(%ZEN.proxyObject).%New() set obj.error = %s return obj }
-    set data = ..Read()
+    set data = ..Read(,,timeout)
     set st = 1
     $$$err(st, "WebSocket read error")
     set st = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(data, , .obj, 1)
@@ -95,58 +98,50 @@ ClassMethod ParseError(string As %String) As %String
 Method RequireAuthorization() As %Status
 {
     set data = ..GetMessage(..#AuthorizationTimeout)
-    return:(data.d = "") $$$NOTOK
-    set authKey = data.d
-    set ok = $$$NOTOK
+    return:('$IsObject(data.d)) $case(data.error = "", 1: "Unresolved request format", :data.error)
+    set authKey = data.d.key
+    set namespace = data.d.ns
 
-    set namespace = ""
-    set pos = $FIND(authKey, "#")
-    if pos '= 0 {
-        set namespace = $EXTRACT(authKey, pos, *)
-        set authKey = $EXTRACT(authKey, 1, pos-2)
-    }
-
-    /*
-     * Find given CSPSessionCookie in WebTerminal auth global. If found, grant access.
-     */
-    SET key = $ORDER(^WebTerminal("AuthUser", ""))
-    WHILE (key '= "") {
+    set key = $ORDER(^WebTerminal("AuthUser", ""))
+    set list = ""
+    while (key '= "") {
         set lb = $GET(^WebTerminal("AuthUser", key))
         if ((lb '= "") && (key = authKey)) {
-
-            // setup privileges
-            set username = $LISTGET(lb, 1) // user name
-            set ns = $namespace
-            zn "%SYS"
-            do ##class(Security.Users).Get(username, .userProps)
-            zn ns
-            continue:($order(userProps("")) = "")
-
-            set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
-            set loginStatus = $System.Security.Login(username) // login user
-
-            kill ^WebTerminal("AuthUser", key)
-
-            set ok = loginStatus
-
+            set list = lb
         }
-
-        // kill "old" auth tickets
         set time = $LISTGET(lb, 2)
-        if (time '= "") && ($System.SQL.DATEDIFF("s", time, $h) > 100) { // if older than 100 sec
+        if (time '= "") && ($System.SQL.DATEDIFF("s", time, $h) > ..#WSKEYEXPIRES) {
             kill ^WebTerminal("AuthUser", key)
         }
-
-        SET key = $ORDER(^WebTerminal("AuthUser", key))
+        set key = $ORDER(^WebTerminal("AuthUser", key))
     }
 
-    if (namespace '= "") {
-        try { // in case user may specify namespace that does not exists
-            znspace namespace
-        } catch (e) {  }
+    if (list = "") { // not found
+        return "Invalid key"
     }
 
-    quit ok
+    set username = $LISTGET(lb, 1)
+    set ns = $Namespace
+    znspace "%SYS"
+    do ##class(Security.Users).Get(username, .userProps)
+    znspace ns
+
+    if $get(userProps("Enabled")) '= 1 {
+        return "User " _ username _ " is not enabled in the system"
+    }
+
+    set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
+    set loginStatus = $System.Security.Login(username)
+
+    if (loginStatus '= 1) {
+        return "Unable to log in as " _ username
+    }
+
+    if (namespace) {
+        znspace namespace
+    }
+
+    quit ""
 }
 
 /// See WebTerminal.Handlers
@@ -202,11 +197,13 @@ Method SendLoginInfo()
 /// Triggered when new connection established.
 Method Server() As %Status
 {
-    if ($$$ISOK(..RequireAuthorization())) {
+    set authMessage = ..RequireAuthorization()
+    if (authMessage = "") {
         set ..CurrentNamespace = $Znspace
         do ..SendLoginInfo()
         do ..ClientLoop()
     } else {
+        do ..Send("oLocalized", "%wsRefuse(" _ authMessage _ ")")
         do ..EndServer()
     }
 

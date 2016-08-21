@@ -2,17 +2,14 @@ import "babel-polyfill";
 import "./network";
 import * as output from "./output";
 import * as input from "./input";
+import * as locale from "./localization";
 import * as server from "./server";
 import { initDone } from "./init";
+import { get } from "./lib";
 
 let onAuthHandlers = [],
     userInputHandlers = [],
     AUTHORIZED = false;
-
-/**
- * @type {Terminal}
- */
-export let terminal = null;
 
 export const VERSION = "/* @echo package.version */";
 export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
@@ -22,20 +19,6 @@ let NAMESPACE = "USER";
 export function setNamespace (ns) {
     return NAMESPACE = ns;
 }
-
-/**
- * Returns terminal instance.
- * @param options
- * @avoidUsing - use direct methods instead.
- * @returns {*}
- */
-export function initTerminal (options) {
-    if (terminal)
-        return terminal;
-    return terminal = new Terminal(options);
-}
-
-window.initTerminal = initTerminal;
 
 export function onAuth (callback) {
     if (AUTHORIZED) {
@@ -57,13 +40,9 @@ export function userInput (text, mode) {
 /**
  * WebTerminal's API object.
  * @author ZitRo
- * @param setup {{
- *     authKey: String
- * }}
  */
-export function Terminal (setup = {}) {
+export function Terminal () {
 
-    server.send("Auth", setup.authKey);
     initDone(this);
 
 }
@@ -108,6 +87,31 @@ Terminal.prototype.print = function (text) {
 Terminal.prototype.execute = function (command, { echo = false, prompt = false } = {}) {
     server.send("Execute", { command, echo: +echo, prompt: +prompt });
 };
+
+function initialize () {
+    new Terminal();
+    let text = locale.get(`beforeInit`);
+    output.printLine(text);
+    get("auth", (obj) => {
+        if (!obj.key) {
+            output.printLine(locale.get(`unSerRes`), JSON.stringify(obj));
+            return;
+        }
+        try {
+            output.print(`\x1b[1;1H` + (new Array(text.length + 1)).join(` `) + `\x1b[1;1H`);
+            server.connect({
+                key: obj.key
+            });
+        } catch (e) {
+            output.printLine(locale.get(`wsErr`, e.toString()));
+        }
+    });
+}
+
+window[addEventListener ? `addEventListener` : `attachEvent`](
+    addEventListener ? `load` : `onload`,
+    initialize
+);
 
 /*
 Terminal.prototype.initialize = function () {

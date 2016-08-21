@@ -4,21 +4,16 @@ Class WebTerminal.StaticContent
 {
 
 /// Write the contents of xData tag
-ClassMethod Write(Const As %String, Auth As %String) As %Status
+ClassMethod Write(Const As %String) As %Status
 {
-    set Auth = $get(Auth, "")
     set obj = ##class(%Dictionary.CompiledXData).%OpenId("WebTerminal.StaticContent||"_Const)
-    quit:(obj = "") $$$OK
+    return:(obj = "") $$$OK
     set xdata = obj.Data
-    set status=##class(%XML.TextReader).ParseStream(xdata, .textreader)
+    set status = ##class(%XML.TextReader).ParseStream(xdata, .textreader)
     while textreader.Read() { if (textreader.NodeType="chars") {
-        if (Auth '= "") {// authorization key injection
-            write $REPLACE(textreader.Value, "createTerminal()", "createTerminal('"_Auth_"','"_%request.Get("NS")_"')")
-        } else {
-            write textreader.Value
-        }
+        write textreader.Value
     } }
-    quit $$$OK
+    return $$$OK
 }
 
 XData Themecache

@@ -437,5 +437,17 @@ export default {
 \rРепозиторий:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
 \rБаг/Фич трекер:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
 \r2013-${ new Date().getFullYear() } ©`
+    },
+    "beforeInit": {
+        en: "Terminal load complete. Getting auth key...",
+        ru: "Терминал загружен. Получение ключа для авторизации..."
+    },
+    "unSerRes": {
+        en: "Unknown server response: %s",
+        ru: "Неопознанный ответ сервера: %s"
+    },
+    "wsRefuse": {
+        en: "Server refused WebSocket connection with the next message: %s",
+        ru: "Сервер отклонил соединение через WebSocket со следующим сообщением: %s"
     }
 };

@@ -22,18 +22,15 @@ let ws,
     reconnectTimeout = 0,
     firstMessage,
     nextCallbackId = 1,
-    callbacks = {};
+    callbacks = {},
+    firstConnectParameters = {};
 
-try {
-    connect();
-} catch (e) {
-    printLine(localize(`wsErr`, e.toString()));
-}
-
-function connect () {
+export function connect (params) {
     clearTimeout(reconnectTimeout);
     reconnectTimeout = 0;
     ws = getNewWs();
+    if (params)
+        firstConnectParameters = params;
     ws.addEventListener(`open`, onOpen);
     ws.addEventListener(`close`, onClose);
     ws.addEventListener(`error`, onError);
@@ -65,6 +62,7 @@ function getNewWs () {
 
 function onOpen () {
     CONNECTED = true;
+    send("Auth", firstConnectParameters);
     freeStack();
 }
 
@@ -72,16 +70,18 @@ function onError (e) {
     printLine(localize(`wsErr`, e.toString()));
 }
 
+function reconnect () {
+    printLine(localize(`plRefPageSes`)); // todo: restore session [https://community.intersystems.com/post/it-possible-not-terminate-jobbed-process-when-parent-process-terminates]
+    stack.unshift(firstMessage);
+    connect();
+}
+
 function onClose (e) {
     CONNECTED = false;
     if (e.code !== 1000) {
         printLine(`\r\n${ localize(`wsConnLost`, e.code) }`);
         printLine(localize(`reConn`, RECONNECT_IN / 1000));
-        reconnectTimeout = setTimeout(() => {
-            printLine(localize(`plRefPageSes`)); // todo: restore session [https://community.intersystems.com/post/it-possible-not-terminate-jobbed-process-when-parent-process-terminates]
-            // stack.unshift(firstMessage);
-            // connect();
-        }, RECONNECT_IN);
+        reconnectTimeout = setTimeout(reconnect, RECONNECT_IN);
     } else {
         printLine(localize(`seeYou`));
     }
@@ -114,7 +114,7 @@ function freeStack () {
             ws.send(JSON.stringify(m));
         } catch (e) {
             if (!reconnectTimeout)
-                reconnectTimeout = setTimeout(connect, RECONNECT_IN);
+                reconnectTimeout = setTimeout(reconnect, RECONNECT_IN);
             return true;
         }
         return false;
