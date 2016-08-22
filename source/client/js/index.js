@@ -9,7 +9,8 @@ import { get } from "./lib";
 
 let onAuthHandlers = [],
     userInputHandlers = [],
-    AUTHORIZED = false;
+    AUTHORIZED = false,
+    terminal = null;
 
 export const VERSION = "/* @echo package.version */";
 export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
@@ -22,20 +23,29 @@ export function setNamespace (ns) {
 
 export function onAuth (callback) {
     if (AUTHORIZED) {
-        callback();
+        callback(terminal);
         return;
     }
     onAuthHandlers.push(callback);
 }
 
 export function authDone () {
+    if (AUTHORIZED)
+        return;
     AUTHORIZED = true;
-    onAuthHandlers.forEach(h => h());
+    onAuthHandlers.forEach(h => h(terminal));
 }
 
 export function userInput (text, mode) {
     userInputHandlers.forEach((h) => h(text, mode));
 }
+
+/**
+ * Register the callback which will be executed right after terminal is initialized. This callback
+ * is simultaneously triggered if WebTerminal initialization is already done.
+ * @param {terminalInitCallback} callback
+ */
+window.onTerminalInit = onAuth;
 
 /**
  * WebTerminal's API object.
@@ -89,7 +99,7 @@ Terminal.prototype.execute = function (command, { echo = false, prompt = false }
 };
 
 function initialize () {
-    new Terminal();
+    terminal = new Terminal();
     let text = locale.get(`beforeInit`);
     output.printLine(text);
     get("auth", (obj) => {

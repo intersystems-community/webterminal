@@ -101,6 +101,7 @@ document.querySelector("#terminal").contentWindow.onTerminalInit(function (termi
 });
 ```
 
+This function is triggered after WebTerminal establish an authorized connection.  
 The next table demonstrates available API. Left column are `terminal` object properties.
 
 <table>

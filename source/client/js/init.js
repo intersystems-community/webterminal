@@ -24,13 +24,6 @@ export function initDone (webTerminal) {
 }
 
 /**
- * Register the callback which will be executed right after terminal is initialized. This callback
- * is simultaneously triggered if WebTerminal initialization is already done.
- * @param {terminalInitCallback} callback
- */
-window.onTerminalInit = onInit;
-
-/**
  * Handles WebTerminal's initialization.
  * @callback terminalInitCallback
  * @param {Terminal} terminal
