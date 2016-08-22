@@ -24,9 +24,6 @@ function registerSequence (seq = "", f) {
 
 }
 
-// todo: test and delete
-window.stateTree = stateTree;
-
 for (let seq in esc) {
     registerSequence(seq, esc[seq]);
 }

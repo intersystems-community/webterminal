@@ -22,8 +22,10 @@ export function get (increment = 0) {
  * @param {string} string
  */
 export function push (string) {
-    if (!string)
+    if (!string || history[history.length - 2] === string) {
+        current = history.length - 1;
         return;
+    }
     if (history[history.length - 1] !== "")
         history.push("");
     history[history.length - 1] = string;

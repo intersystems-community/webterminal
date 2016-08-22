@@ -145,7 +145,7 @@
 
 import {
     rule, id, char, string, split, any, all, none, branch, merge, exit, constant, call, tryCall,
-    optWhitespace
+    optWhitespace, whitespace
 } from "./pushdownAutomaton";
 
 // Rules definition start
@@ -182,22 +182,32 @@ rule("cosCommand").split(
     ),
     id([
         { value: "w", class: "keyword" },
-        { value: "write", class: "keyword" },
+        { value: "write", class: "keyword" }
+    ]).call("postCondition").whitespace().branch().split(
+        char({ value: "!", class: "special" }),
+        tryCall("expression"),
+        tryCall("termSpecial"),
+        any()
+    ).optWhitespace().split(
+        char(",").optWhitespace().merge(),
+        any().exit()
+    ),
+    id([
         { value: "zw", class: "keyword" },
         { value: "zwrite", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
-        char({ value: "!", class: "special" }),
-        call("expression")
+        tryCall("expression"),
+        any()
     ).optWhitespace().split(
-        char(",").optWhitespace().merge(), // -> loop to the last branch
+        char(",").optWhitespace().merge(),
         any().exit()
-    ),
+    ).exit(),
     id([
         { value: "s", class: "keyword" },
         { value: "set", class: "keyword" }
     ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().char("=").optWhitespace()
         .call("expression").optWhitespace().split(
-            char(",").optWhitespace().merge(), // -> loop to the last branch
+            char(",").optWhitespace().merge(),
             any().exit()
         ),
     id([
@@ -222,18 +232,7 @@ rule("cosCommand").split(
             char({ value: ":", class: "special" }).call("expression"),
             any()
         ),
-        split(
-            char({ value: "!", class: "special" }),
-            char({ value: "#", class: "special" })
-        ).branch().split(
-            split(
-                char({ value: "!", class: "special" }),
-                char({ value: "#", class: "special" })
-            ).merge(),
-            char({ value: "?", class: "special" }).call("expression"),
-            any()
-        ),
-        char({ value: "?", class: "special" }).call("expression")
+        call("termSpecial")
     ).optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
@@ -243,6 +242,21 @@ rule("cosCommand").split(
         { value: "znspace", class: "keyword" }
     ]).call("postCondition").whitespace().string().exit()
 ).end();
+
+rule("termSpecial").split(
+    split(
+        char({ value: "!", class: "special" }),
+        char({ value: "#", class: "special" })
+    ).branch().split(
+        split(
+            char({ value: "!", class: "special" }),
+            char({ value: "#", class: "special" })
+        ).merge(),
+        char({ value: "?", class: "special" }).call("expression"),
+        any()
+    ),
+    char({ value: "?", class: "special" }).call("expression")
+).exit().end();
 
 rule("postCondition").split(
     char(":").call("expression"),
@@ -260,6 +274,7 @@ rule("doArgument").split(
 rule("expression").split(
     constant(),
     char("(").call("expression").char(")"),
+    char("'").call("expression"),
     string(),
     tryCall("variable"),
     tryCall("class"),
@@ -270,7 +285,17 @@ rule("expression").split(
         char("-"),
         char("*"),
         char("/"),
-        char("_")
+        char("_"),
+        char("="),
+        char(["<", ">"]).split(
+            char("="),
+            any()
+        ),
+        char("&").split(
+            char("&"),
+            any()
+        ),
+        char("|").char("|")
     ).optWhitespace().call("expression"),
     any()
 ).exit().end();

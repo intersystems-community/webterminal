@@ -6,19 +6,16 @@ import { COLOR_8BIT } from "./const";
  * stack.
  */
 export default {
+    "\u000C": () => {
+        output.clear();
+    },
     "\n": () => {
-        if (output.SCROLLING_ENABLED) {
-            // todo
-        } else {
-            if (output.getCursorY() + 1 > output.HEIGHT) {
-                output.pushLines(1);
-            }
-            output.setCursorY(output.getCursorY() + 1);
-        }
+        output.scrollDisplay(1);
     },
     "\r": () => {
         output.setCursorX(1);
     },
+    // tab control
     "\t": () => {
         let x = output.getCursorX(),
             tabs = output.getTabs();
@@ -38,6 +35,28 @@ export default {
     "\x1b[3g": () => {
         output.clearTab();
     },
+    // scrolling
+    "\x1b[r": () => {
+        output.disableScrolling();
+    },
+    "\x1b[{\\d*}{;?}{\\d*}r": (args) => {
+        let start = args[0] || 1,
+            end = args[2] || output.HEIGHT;
+        if (!args[1])
+            start = args[0] || args[2];
+        if (!start) {
+            output.disableScrolling();
+            return;
+        }
+        output.enableScrolling(start, end);
+    },
+    "\x1bD": () => {
+        output.scrollDisplay(1);
+    },
+    "\x1bM": () => {
+        output.scrollDisplay(-1);
+    },
+    //
     "\x1b[{\\d*}{;?}{\\d*}H": (args) => { // cursor home
         if (args[0] || args[2]) {
             if (args[0])

@@ -41,7 +41,8 @@ export function suggest (state, base = "") {
                 || type && row[0].value.type && row[0].value.type !== type)
                 continue;
             if (row[0].type === TYPE_CHAR) {
-                if (base !== "" && row[0].value.value.indexOf(base) !== 0)
+                if (base !== ""&& (typeof row[0].value === "string"
+                        ? row[0].value : row[0].value.value).indexOf(base) !== 0)
                     continue;
                 if (row[1] === 0)
                     continue;

@@ -161,13 +161,13 @@ export let split = TablePiece.prototype.split = function () {
 
 TablePiece.prototype.buildTable = function () {
     this.built = true;
-    console.log("Building table", this.ruleName, ":", this.chain);
+    // console.log("Building table", this.ruleName, ":", this.chain);
     buildTable(this.ruleName, this.chain);
 };
 
 let currentIndex = 0;
 function getNewIndex () {
-    console.log(`Getting new index ${currentIndex} -> ${currentIndex + 1}`);
+    // console.log(`Getting new index ${currentIndex} -> ${currentIndex + 1}`);
     return ++currentIndex;
 }
 
@@ -178,31 +178,31 @@ function getRuleIndex (rule) {
 }
 
 function buildTable (rule, chain) {
-    console.log("Chain", chain);
+    // console.log("Chain", chain);
     let left = processChain(chain, [], getRuleIndex(rule));
     if (left[0].length || left[1].length) {
         console.error("Not completed state. Stack", left[0], ", BackStack:", left[1]);
         throw new Error("There is a mistake in grammar definition. Please, make sure all chains are exited or looped.");
     }
-    printTable();
+    // printTable();
 }
 
-function printTable () {
-    console.log(`Index\tTable`);
-    let table = [];
-    console.log(automaton);
-    let oa = optimize(automaton);
-    console.log(oa);
-    for (let i in oa) {
-        for (let r of oa[i]) {
-            table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value})` : ""))
-                : r[0]).concat(r.slice(1)));
-        }
-    }
-    if (console.table)
-        console.table(table);
-    console.log(oa);
-}
+// function printTable () {
+//     console.log(`Index\tTable`);
+//     let table = [];
+//     console.log(automaton);
+//     let oa = optimize(automaton);
+//     console.log(oa);
+//     for (let i in oa) {
+//         for (let r of oa[i]) {
+//             table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value})` : ""))
+//                 : r[0]).concat(r.slice(1)));
+//         }
+//     }
+//     if (console.table)
+//         console.table(table);
+//     console.log(oa);
+// }
 
 /**
  * Guarantees to return a cell.
@@ -220,24 +220,25 @@ function processChain (chain, branchingStack, startingIndex) {
         stack = [], // which rows are awaiting to be completed
         backStack = []; // which rows are awaiting to be completed with stack
     function completeStack (completeWith) {
-        console.log(index, "Attempt to complete stack");
+        // console.log(index, "Attempt to complete stack");
         if (!stack.length)
             return;
-        console.log(index, "Completing Stack", stack);
+        // console.log(index, "Completing Stack", stack);
         index = getNewIndex();
         stack.forEach(e => e[1] = typeof completeWith === "undefined" ? index : completeWith);
         stack = [];
     }
     function completeBackStack (completeWith) {
-        console.log(index, "Attempt to complete back stack");
+        // console.log(index, "Attempt to complete back stack");
         if (!backStack.length)
             return;
-        console.log(index, "Completing BackStack", stack);
+        // console.log(index, "Completing BackStack", stack);
         backStack.forEach(e => e[2] = typeof completeWith === "undefined" ? index : completeWith);
         backStack = [];
     }
-    console.log("Iterating over actual chain:", chain, `${chain.length}`);
-    for (let ii in chain) { let elem = chain[ii]; console.log("Processing chain element", elem, `${ii}/${chain.length}`); switch (elem.type) {
+    // console.log("Iterating over actual chain:", chain, `${chain.length}`);
+    // console.log("Processing chain element", elem, `${ii}/${chain.length}`);
+    for (let ii in chain) { let elem = chain[ii]; switch (elem.type) {
         case TYPE_CHAR:
         case TYPE_ID:
         case TYPE_CONSTANT:
@@ -246,7 +247,7 @@ function processChain (chain, branchingStack, startingIndex) {
             completeStack();
             completeBackStack();
             let cell = getCell(index);
-            console.log(index, "Pushing primitive", elem);
+            // console.log(index, "Pushing primitive", elem);
             if (elem.value instanceof Array) {
                 for (let v of elem.value) {
                     let e = [{ type: elem.type, value: v }];
@@ -270,7 +271,7 @@ function processChain (chain, branchingStack, startingIndex) {
         case TYPE_ANY: { // DONE
             completeStack();
             completeBackStack();
-            console.log(index, "Pushing primitive", [null]);
+            // console.log(index, "Pushing primitive", [null]);
             let e = [null];
             getCell(index).push(e);
             stack.push(e);
@@ -279,7 +280,7 @@ function processChain (chain, branchingStack, startingIndex) {
         case TYPE_NONE: { // DONE
             completeStack();
             completeBackStack();
-            console.log(index, "Pushing primitive", [true]);
+            // console.log(index, "Pushing primitive", [true]);
             let e = [elem.type === TYPE_ALL];
             getCell(index).push(e);
             stack.push(e);
@@ -287,12 +288,12 @@ function processChain (chain, branchingStack, startingIndex) {
         case TYPE_BRANCH: { // DONE
             completeStack();
             completeBackStack();
-            console.log("Pushing", index, "to branching stack");
+            // console.log("Pushing", index, "to branching stack");
             branchingStack = branchingStack.concat(index);
         } break;
         case TYPE_MERGE: { // DONE
             let to = branchingStack.pop();
-            console.log("Getting", to, "from branching stack");
+            // console.log("Getting", to, "from branching stack");
             if (typeof index === "undefined")
                 throw new Error("Unmatched 'merge()': no matching 'branch()' in the chain.");
             // getCell(index).forEach(a => a[1] = to); // getCell(index)
@@ -302,44 +303,44 @@ function processChain (chain, branchingStack, startingIndex) {
         case TYPE_SPLIT: { // DONE
             completeStack();
             completeBackStack();
-            console.log(index, "SPLITTING", elem.value);
+            // console.log(index, "SPLITTING", elem.value);
             for (let c of elem.value) {
                 let temp = processChain(c, branchingStack, index);
-                console.log("GOT BACK", temp);
+                // console.log("GOT BACK", temp);
                 stack = stack.concat(temp[0]);
                 backStack = backStack.concat(temp[1]);
             }
-            console.log("stack:", stack, "backStack:", backStack);
+            // console.log("stack:", stack, "backStack:", backStack);
         } break;
         case TYPE_CALL: { // DONE
-            console.log(index, "CALLING ", elem.value, `(-> ${ ruleMappings[elem.value] })`);
+            // console.log(index, "CALLING ", elem.value, `(-> ${ ruleMappings[elem.value] })`);
             if (stack.length) {
-                console.log("MOVING ", stack, "TO BACKSTACK");
+                // console.log("MOVING ", stack, "TO BACKSTACK");
                 backStack = backStack.concat(stack);
                 completeStack(getRuleIndex(elem.value));
             } else {
                 let e = [null, getRuleIndex(elem.value)];
-                console.log("MOVING ", e, "TO BACKSTACK");
+                // console.log("MOVING ", e, "TO BACKSTACK");
                 getCell(index).push(e);
                 backStack.push(e);
                 index = getNewIndex();
             }
         } break;
         case TYPE_TRY_CALL: { // DONE
-            console.log(index, "TRY CALLING ", elem.value, `(-> ${ ruleMappings[elem.value] })`);
+            // console.log(index, "TRY CALLING ", elem.value, `(-> ${ ruleMappings[elem.value] })`);
             if (stack.length) { // exceptional case
-                console.log(`[!] tryCall() potential invalid usage, check the grammar chain.`);
+                // console.log(`[!] tryCall() potential invalid usage, check the grammar chain.`);
                 completeStack();
                 completeBackStack();
             }
             let e = [0, getRuleIndex(elem.value)];
-            console.log("MOVING ", e, "TO BACKSTACK");
+            // console.log("MOVING ", e, "TO BACKSTACK");
             getCell(index).push(e);
             backStack.push(e);
             index = getNewIndex();
         } break;
         case TYPE_EXIT: { // DONE
-            console.log("EXITING, stack:", stack, ", backStack:", backStack);
+            // console.log("EXITING, stack:", stack, ", backStack:", backStack);
             completeStack(0);
             completeBackStack(0);
         } break;

@@ -39,6 +39,7 @@ export function Line (index) {
     this.graphicProperties = [];
 
     this.setIndex(index);
+    this._lineElement.style.height = `${ SYMBOL_HEIGHT }px`;
     elements.output.appendChild(this._lineElement);
 
 }
@@ -48,6 +49,7 @@ export function Line (index) {
  */
 Line.prototype.setIndex = function (index) {
     this.INDEX = index;
+    this._lineElement.setAttribute("index", index);
     this._lineElement.style.top = `${ index * SYMBOL_HEIGHT }px`;
 };
 

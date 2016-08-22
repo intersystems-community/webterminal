@@ -5,14 +5,23 @@ import { ESC_CHARS_MASK, applyEscapeSequence } from "./escStateMachine";
 import esc from "./esc";
 import { onInit } from "../init";
 
+const LINE_UPDATE_TIMEOUT = 10;
+
 export let SYMBOL_HEIGHT = 12; // in px
 export let SYMBOL_WIDTH = 8; // in px
 export let WIDTH = 0, // in symbols
            HEIGHT = 0;
 export let LINE_WRAP_ENABLED = true; // todo
-export let SCROLLING_ENABLED = false;
 
-const LINE_UPDATE_TIMEOUT = 10;
+/**
+ * Defines if scrolling is activated on the screen.
+ * @type {{enabled: boolean, lineStart: number, lineEnd: number}}
+ */
+let scrolling = {
+    enabled: false,
+    lineStart: 1,
+    lineEnd: 1
+};
 
 /**
  * Terminal ready flag.
@@ -95,16 +104,6 @@ export function getTopLineIndex () {
 export function setCursorYToLineIndex (index) {
     return setCursorY(index - getTopLineIndex() + 1, false);
 }
-
-/**
- * Defines if scrolling is activated on the screen.
- * @type {{enabled: boolean, lineStart: number, lineEnd: number}}
- */
-let scrolling = {
-    enabled: false,
-    lineStart: 0,
-    lineEnd: 0
-};
 
 /**
  * Holds the tab positions.
@@ -210,14 +209,14 @@ const CONTROL_SEQUENCES = {
             setCursorX(getCursorX() - (parseInt(params) || 1));
         } else { // scroll down
             if (scrolling.enabled) {
-                scrollDisplayPart(scrolling.lineStart, scrolling.lineEnd, -1);
+                scrollDisplay(scrolling.lineStart, scrolling.lineEnd, -1);
             }
         }
     },
 
     "M": function () { // scroll up
         if (scrolling.enabled) {
-            scrollDisplayPart(scrolling.lineStart, scrolling.lineEnd, 1);
+            scrollDisplay(scrolling.lineStart, scrolling.lineEnd, 1);
         }
     },
 
@@ -385,16 +384,11 @@ export function setCursorY (y, restrict = true) {
  * @param {number} lineStart
  * @param {number} lineEnd
  */
-function enableScrolling (lineStart, lineEnd) {
-
-    if (lineEnd > HEIGHT || lineStart < 1 || lineEnd < lineStart) {
-        console.warn("Wrong scrolling borders: ", lineStart, lineEnd);
-        return;
-    }
+export function enableScrolling (lineStart, lineEnd) {
 
     scrolling.enabled = true;
-    scrolling.lineStart = lineStart;
-    scrolling.lineEnd = lineEnd;
+    scrolling.lineStart = Math.max(lineStart, 1);
+    scrolling.lineEnd = Math.min(lineEnd, HEIGHT);
     setCursorX(1);
     setCursorY(1);
 
@@ -403,52 +397,53 @@ function enableScrolling (lineStart, lineEnd) {
 /**
  * Disables scrolling.
  */
-function disableScrolling () {
+export function disableScrolling () {
 
     scrolling.enabled = false;
+    setCursorX(1);
+    setCursorY(1);
 
 }
 
 /**
  * Scroll part of display. This function will erase lines that overflow scroll region.
- * @param {number} lineFrom - Home line is 1.
- * @param {number} lineTo - Home line is 1.
- * @param {number} amount - Positive number will scroll display UP.
+ * @param {number} amount - 1 or -1. Positive number will scroll display UP.
  * todo: test
  */
-function scrollDisplayPart (lineFrom, lineTo, amount) {
+export function scrollDisplay (amount) {
 
-    let TOP_LINE_INDEX = getTopLineIndex();
+    let cy = getCursorY();
 
-    getLineByIndex(TOP_LINE_INDEX + lineTo); // ensure that line exists
-    
-    let newLine,
-        affectiveLines = lines.slice(
-            TOP_LINE_INDEX + lineFrom - 1, TOP_LINE_INDEX + lineTo
-        ),
-        len = affectiveLines.length,
-        aliveLines = affectiveLines.
-            slice(Math.min(Math.max(0, amount), len), Math.max(Math.min(len, len + amount), 0)),
-        linesToAppend = affectiveLines.length - aliveLines.length,
-        i,
-        affectedLines;
-
-    for (i = 0; i < linesToAppend; i++) { // lines to append === lines to kill
-        affectiveLines[amount > 0 ? "shift" : "pop"]().remove();
+    if (
+        !scrolling.enabled
+        || !((scrolling.lineStart === cy && amount < 0) || (scrolling.lineEnd === cy && amount > 0))
+    ) {
+        if (cy + amount > HEIGHT) {
+            pushLines(1);
+        }
+        setCursorY(cy + amount);
+        return;
     }
 
-    for (i = 0; i < linesToAppend; i++) {
-        aliveLines[amount > 0 ? "push" : "unshift"].call(
-            aliveLines,
-            newLine = new Line(TOP_LINE_INDEX + lineFrom - 1 - Math.sign(amount)*i) // todo: fix
-        );
-    }
+    let TOP_LINE_INDEX = getTopLineIndex(),
+        up = scrolling.lineStart === cy;
 
-    lines.splice.apply(lines,
-        affectedLines = [TOP_LINE_INDEX + lineFrom - 1, aliveLines.length].concat(aliveLines)
+    getLineByIndex(TOP_LINE_INDEX + scrolling.lineEnd); // ensure that line exists
+
+    let aliveLines = lines.slice(
+        TOP_LINE_INDEX + scrolling.lineStart - 1, TOP_LINE_INDEX + scrolling.lineEnd
     );
-    
-    affectedLines.forEach((line, i) => line.setIndex(TOP_LINE_INDEX + lineFrom - 1 + i));
+
+    aliveLines[up ? "pop" : "shift"]().remove();
+    for (let l of aliveLines)
+        l.setIndex(l.INDEX + (up ? 1 : -1));
+    aliveLines[up ? "unshift" : "push"](
+        new Line(TOP_LINE_INDEX + (up ? scrolling.lineStart : scrolling.lineEnd) - 1)
+    );
+    lines.splice.apply(
+        lines,
+        [TOP_LINE_INDEX + scrolling.lineStart - 1, aliveLines.length].concat(aliveLines)
+    );
 
 }
 
@@ -617,8 +612,12 @@ function getLineByCursorY (y) {
  * Clears output field.
  */
 export function clear () {
-    freeStack();
-    pushLines(HEIGHT);
+    scrollDisplay(1);
+    let i = getTopLineIndex() + getCursorY() - 1,
+        m = lines.length,
+        r = m - i - 1,
+        t = lines.length - getTopLineIndex();
+    pushLines(Math.max(HEIGHT - r, t));
     setCursorX(1);
     setCursorY(1);
     scrollDown();
@@ -643,12 +642,12 @@ function sizeChanged () {
         lastOverflowProperty = elements.output.style.overflowY;
 
     elements.output.style.overflowY = "scroll";
+    testScrollbar.className = LINE_CLASS_NAME;
 
     elements.output.appendChild(testScrollbar);
     scrollBarWidth = elements.output.offsetWidth - testScrollbar.offsetWidth;
     elements.output.style.overflowY = lastOverflowProperty;
 
-    tel.className = LINE_CLASS_NAME;
     tel.innerHTML = "XXXXXXXXXX";
     testScrollbar.appendChild(tel);
 
