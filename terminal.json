@@ -91,6 +91,16 @@
         "Grammar enhance for do statements",
         "Command history related fixes"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.41",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.41.xml",
+      "changes": [
+        "Grammar enhancements",
+        "Full VT-100 standard escape sequences support",
+        "WebTerminal API's onTerminalInit now fired after authorization success",
+        "Fixes to command history"
+      ]
     }
   ]
 }
