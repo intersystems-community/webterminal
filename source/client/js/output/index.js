@@ -487,7 +487,7 @@ export function resetGraphicProperties () {
  * Returns current line. New lines will be added if they does not exists.
  * @returns {Line}
  */
-function getCurrentLine () {
+export function getCurrentLine () {
 
     return getLineByIndex(getTopLineIndex() + cursor.y - 1);
 
@@ -604,7 +604,7 @@ function getLineByIndex (index) {
  * @param {number} y
  * @returns {Line}
  */
-function getLineByCursorY (y) {
+export function getLineByCursorY (y) {
     return getLineByIndex(getTopLineIndex() + (y - 1));
 }
 

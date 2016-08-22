@@ -2,6 +2,10 @@ import * as output from "./index";
 import { COLOR_8BIT } from "./const";
 import * as server from "../server";
 
+let cursorHome,
+    savedCursorPosition = [],
+    savedGraphicProperties = {};
+
 /**
  * DO NOT use output.print function inside: it may bring unexpected result as print function uses
  * stack.
@@ -57,7 +61,7 @@ export default {
     "\x1bM": () => {
         output.scrollDisplay(-1);
     },
-    // device status
+    // status
     "\x1b[c": () => {
         server.send(`i`, `\x1b10c`);
     },
@@ -69,9 +73,27 @@ export default {
     },
     "\x1bc": () => {
         // Reset terminal settings to default. Caché TERM does not reset settings, indeed.
+        output.LINE_WRAP_ENABLED = true;
     },
-    //
-    "\x1b[{\\d*}{;?}{\\d*}H": (args) => { // cursor home
+    "\x1b[7h": () => {
+        output.LINE_WRAP_ENABLED = true;
+    },
+    "\x1b[7l": () => {
+        output.LINE_WRAP_ENABLED = false;
+    },
+    // font control
+    "\x1b(": () => {
+        // set default font
+    },
+    "\x1b)": () => {
+        // set alternate font
+    },
+    // printing
+    "\x1b[{\\d*}i": () => {
+        window.print();
+    },
+    // cursor control
+    "\x1b[{\\d*}{;?}{\\d*}H": cursorHome = (args) => {
         if (args[0] || args[2]) {
             if (args[0])
                 output.setCursorY(+args[0]);
@@ -82,9 +104,80 @@ export default {
             output.setCursorY(1);
         }
     },
+    "\x1b[{\\d*}{;?}{\\d*}f": cursorHome,
+    "\x1b[{\\d*}A": (args) => {
+        output.setCursorY(Math.max(1, output.getCursorY() - (+args[0] || 1)));
+    },
+    "\x1b[{\\d*}B": (args) => {
+        output.setCursorY(Math.min(output.HEIGHT, output.getCursorY() + (+args[0] || 1)));
+    },
+    "\x1b[{\\d*}C": (args) => {
+        output.setCursorX(Math.min(output.WIDTH, output.getCursorX() + (+args[0] || 1)));
+    },
+    "\x1b[{\\d*}D": (args) => {
+        output.setCursorX(Math.max(1, output.getCursorX() - (+args[0] || 1)));
+    },
     "\x1b[{\\d*}G": (args) => {
         output.setCursorX(+args[0]);
     },
+    "\x1b[s": () => {
+        savedCursorPosition = [output.getCursorX(), output.getCursorY()];
+    },
+    "\x1b[u": () => {
+        if (!savedCursorPosition.length)
+            return;
+        output.setCursorX(savedCursorPosition[0]);
+        output.setCursorY(savedCursorPosition[1]);
+    },
+    "\x1b7": () => {
+        savedCursorPosition = [output.getCursorX(), output.getCursorY()];
+        savedGraphicProperties = JSON.parse(JSON.stringify(output.GRAPHIC_PROPERTIES));
+    },
+    "\x1b8": () => {
+        if (!savedCursorPosition.length)
+            return;
+        output.setCursorX(savedCursorPosition[0]);
+        output.setCursorY(savedCursorPosition[1]);
+        output.GRAPHIC_PROPERTIES = JSON.parse(JSON.stringify(savedGraphicProperties));
+    },
+    // erasing text
+    "\x1b[K": () => {
+        let pos = output.getCursorX(),
+            gp = output.GRAPHIC_PROPERTIES;
+        output.resetGraphicProperties();
+        output.getCurrentLine().print(new Array(output.WIDTH - pos + 2).join(" "), pos - 1);
+        output.GRAPHIC_PROPERTIES = gp;
+    },
+    "\x1b[1K": () => {
+        let pos = output.getCursorX(),
+            gp = output.GRAPHIC_PROPERTIES;
+        output.resetGraphicProperties();
+        output.getCurrentLine().print(new Array(pos + 1).join(" "), 0);
+        output.GRAPHIC_PROPERTIES = gp;
+    },
+    "\x1b[2K": () => {
+        output.getCurrentLine().clear();
+    },
+    "\x1b[J": () => {
+        let y = output.getCursorY();
+        for (; y < output.HEIGHT + 1; y++) {
+            output.getLineByCursorY(y).clear();
+        }
+    },
+    "\x1b[1J": () => {
+        let y = output.getCursorY();
+        for (; y > 0; y--) {
+            output.getLineByCursorY(y).clear();
+        }
+    },
+    "\x1b[2J": () => {
+        for (let y = 1; y < output.HEIGHT + 1; y++) {
+            output.getLineByCursorY(y).clear();
+        }
+        output.setCursorX(1); // Caché TERM does not set cursor to it's home position.
+        output.setCursorY(1); // But standard requires this.
+    },
+    //
     "\x1b[{\\d*};\"{[^\"]}\"p": (args) => { // define key
         console.log("\\key!", args); // todo
     },
