@@ -1,5 +1,6 @@
 import * as output from "./index";
 import { COLOR_8BIT } from "./const";
+import * as server from "../server";
 
 /**
  * DO NOT use output.print function inside: it may bring unexpected result as print function uses
@@ -55,6 +56,19 @@ export default {
     },
     "\x1bM": () => {
         output.scrollDisplay(-1);
+    },
+    // device status
+    "\x1b[c": () => {
+        server.send(`i`, `\x1b10c`);
+    },
+    "\x1b[5n": () => {
+        server.send(`i`, `\x1b0n`);
+    },
+    "\x1b[6n": () => {
+        server.send(`i`, `\x1b[${ output.getCursorY() };${ output.getCursorY() }n`);
+    },
+    "\x1bc": () => {
+        // Reset terminal settings to default. Caché TERM does not reset settings, indeed.
     },
     //
     "\x1b[{\\d*}{;?}{\\d*}H": (args) => { // cursor home
