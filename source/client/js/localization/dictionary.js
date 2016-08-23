@@ -347,7 +347,8 @@ export default {
         ru: "Невозможно обработать ответ сервера: %s"
     },
     "reConn": {
-        en: "Attempting to restore session in %n seconds..."
+        en: "Attempting to restore session in %n seconds...",
+        ru: "Попытка восстановления сессии через %n секунд..."
     },
     "seeYou": {
         en: "See you!",
@@ -362,49 +363,64 @@ export default {
         ru: "Невозможно запустить новый Job"
     },
     "wsConnLost": {
-        en: "WebTerminal lost connection with server (code %n)."
+        en: "WebTerminal lost connection with server (code %n).",
+        ru: "Веб-терминал потерял соединение с сервером (код %n)"
     },
     "plRefPageSes": {
-        en: "Please, refresh the web page to start a new session."
+        en: "Please, refresh the web page to start a new session.",
+        ru: "Пожалуйста, обновите страницу чтобы начать новую сессию."
     },
     "noUpdUrl": {
-        en: "Unable to get update URL. Please, update \x1b!URL=%s (manually)."
+        en: "Unable to get update URL. Please, update \x1b!URL=%s (manually).",
+        ru: "Не получается получить URL обновления. Пожалуйста, выполните обновление \x1b!URL=%s (вручную)."
     },
     "updReady": {
-        en: "\x1b[36mNew update is available.\x1b[0m \x1b!URL=%s (Click here) to install it now. Changelist:"
+        en: "\x1b[36mNew update is available.\x1b[0m \x1b!URL=%s (Click here) to install it now. Changelist:",
+        ru: "\x1b[36mДоступно обновление.\x1b[0m \x1b!URL=%s (Нажмите тут) чтобы установить его сейчас. Список изменений:"
     },
     "updStart": {
-        en: "Updating WebTerminal... %s -> %s"
+        en: "Updating WebTerminal... %s -> %s",
+        ru: "WebTerminal обновляется... %s -> %s"
     },
     "rSerUpd": {
-        en: "Requesting server to update..."
+        en: "Requesting server to update...",
+        ru: "Просим сервер обновиться..."
     },
     "sUpdSt": {
-        en: "Update started, please, do not close this window."
+        en: "Update started, please, do not close this window.",
+        ru: "Обновление началось, пожалуйста, не закрывайте это окно."
     },
     "sUpdRURL": {
-        en: "Requesting %s"
+        en: "Requesting %s",
+        ru: "Запрашиваем %s"
     },
     "sUpdGetOK": {
-        en: "Response downloaded."
+        en: "Response downloaded.",
+        ru: "Ответ загружен."
     },
     "sUpdSCode": {
-        en: "Unable to update WebTerminal: HTTPS request returned code %s."
+        en: "Unable to update WebTerminal: HTTPS request ended with the code %s.",
+        ru: "Невозможно обновить веб-терминал: HTTPS-запрос завершился с кодом %s."
     },
     "sUpdWTF": {
-        en: "Writing response to a temporary file..."
+        en: "Writing the response to a temporary file...",
+        ru: "Записываем ответ во временный файл..."
     },
     "sUpdLoad": {
-        en: "Importing new XML file..."
+        en: "Importing new XML file...",
+        ru: "Импортируем новый XML-файл..."
     },
     "sUpdCleanLog": {
-        en: "Deleting log file %s..."
+        en: "Deleting log file %s...",
+        ru: "Удаляем файл с логами %s..."
     },
     "sUpdClean": {
-        en: "Deleting temporary file %s..."
+        en: "Deleting temporary file %s...",
+        ru: "Удаляем временный файл %s..."
     },
     "sUpdDone": {
-        en: "Update completed! Please, \x1b!URL=javascript:location.reload() (reload) the page."
+        en: "Update completed! Please, \x1b!URL=javascript:location.reload() (reload) the page.",
+        ru: "Обновление завершено! Пожалуйста, \x1b!URL=javascript:location.reload() (обновите) страницу."
     },
     "askEnSpec": {
         en: "Please, enter the special command. Try entering \x1b[(special)m/help\x1b[0m first.",
@@ -422,7 +438,7 @@ export default {
 \r\x1B[(special)m/help\x1B[0m\x1B[32GDisplay the short documentation (like you just did).
 \r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
 \r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.`,
-        ru: "Помощь на русском языке временно отсутствует, потому мы покажем вам помощь на английском:\r\n" + temp
+        ru: "Помощь на русском языке временно отсутствует, поэтому мы покажем вам помощь на английском:\r\n" + temp
     },
     "info": {
         en:
