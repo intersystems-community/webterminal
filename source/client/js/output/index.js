@@ -657,6 +657,8 @@ function sizeChanged () {
     WIDTH = Math.floor( (elements.terminal.offsetWidth - scrollBarWidth) / SYMBOL_WIDTH );
     HEIGHT = Math.floor( elements.terminal.offsetHeight / SYMBOL_HEIGHT );
 
+    elements.input.style.width = `${ WIDTH * SYMBOL_WIDTH }px`;
+
     elements.output.removeChild(testScrollbar);
     
     // elements.output.style.width = `${ WIDTH * SYMBOL_WIDTH + scrollBarWidth }px`;
