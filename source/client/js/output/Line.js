@@ -70,7 +70,7 @@ function getElement (gp, text) {
             tag = gp[i + 1].tag;
     }
     let el = document.createElement(tag);
-    el.classList = classes.join(" ");
+    el.className = classes.join(" ");
     if (styles.length)
         el.setAttribute("style", styles.join(";"));
     for (let a of attrs)
@@ -87,35 +87,6 @@ Line.prototype.render = function () {
     let tempDisplay = this._lineElement.style.display;
     this._lineElement.style.display = "none";
     this._lineElement.innerHTML = "";
-
-    // let html = [],
-    //     ind = [].concat(this.graphicProperties[0] ? [] : 0).concat(keys).concat(WIDTH);
-    //
-    // for (let i = 1; i < ind.length; i++) {
-    //     let classes = [],
-    //         styles = [],
-    //         tag = "span",
-    //         attrs = [],
-    //         ps = this.graphicProperties[ind[i - 1]];
-    //     for (let c in ps) {
-    //         if (ps[c].class)
-    //             classes.push(ps[c].class);
-    //         if (ps[c].style)
-    //             styles.push(ps[c].style);
-    //         if (ps[c].tag)
-    //             tag = ps[c].tag;
-    //         if (ps[c].attrs) {
-    //             for (let a in ps[c].attrs) {
-    //                 attrs.push(`${a}='${ ps[c].attrs[a] }'`);
-    //             }
-    //         }
-    //     }
-    //     html.push(`<${ tag } class="g${ classes.length ? " " + classes.join(" ") : "" }" style="${
-    //         styles.join("") }"${ attrs.length ? " " + attrs.join(" ") : "" }>${
-    //         this.text.substring(ind[i - 1], ind[i])
-    //             .replace(/[&<]/g, s => s === "&" ? "&amp;" : "&lt;")
-    //         }</${ tag }>`);
-    // }
 
     let lastI = 0;
     for (let i = 0; i < this.text.length; i++) {

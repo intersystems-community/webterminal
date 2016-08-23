@@ -119,7 +119,12 @@ export function clearPrompt () {
 export function reprompt () {
     if (!ENABLED)
         return;
+    let val = elements.input.value,
+        p = elements.input.selectionEnd;
     prompt.apply(this, PROMPT_ARGUMENTS);
+    elements.input.value = val;
+    setCaretPosition(p);
+    update();
 }
 
 /**
@@ -343,6 +348,8 @@ function onSubmit () {
         secondVal = (lastParsedString[1] || {}).value;
     history.push(value);
     if (SPECIAL_ENABLED && firstVal === "/") {
+        userInput(value, Terminal.prototype.MODE_SPECIAL);
+        elements.input.value = "";
         if (typeof special[secondVal] === "function") {
             output.print(`\r\n`);
             special[secondVal](lastParsedString);
@@ -356,10 +363,10 @@ function onSubmit () {
         reprompt();
         return;
     }
+    userInput(value, mode);
     ENABLED = false;
     clearTimeout(readTimeout);
     readTimeout = 0;
-    userInput(value, mode);
     if (promptCallBack)
         promptCallBack(value);
     promptCallBack = null;

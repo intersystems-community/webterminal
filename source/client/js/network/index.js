@@ -16,21 +16,18 @@ if (config.get(`updateCheck`)) {
 
 function handleNetworkData (data) {
     input.clearPrompt();
-    // console.log(data);
     if (data[`motd`])
         output.printLine(data[`motd`]);
     if (data[`versions`] instanceof Array)
-        checkUpdate(data[`versions`]);
+        printUpdate(data[`versions`]);
     input.reprompt();
 }
-
-// console.log(terminal);
 
 /**
  * Parses an array received from WebTerminal's home server.
  * @param versions
  */
-function checkUpdate (versions) {
+function printUpdate (versions) {
     let changes = [],
         hiVersion = "",
         updateURL = "";

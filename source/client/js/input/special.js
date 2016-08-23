@@ -18,7 +18,7 @@ export default {
                 longest = 0;
             for (let p in list) if (p.length > longest) longest = p.length;
             longest += 2;
-            output.print(`${ locale.get(`availConf`) }\r\n`);
+            output.print(`${ locale.get(`availConfLoc`) }\r\n`);
             for (let p in list) {
                 output.print(`\x1b[(variable)m${ p }\x1b[0m\x1b[${ longest }G= \x1b[(constant)m${
                     list[p] }\x1b[0m\r\n`);

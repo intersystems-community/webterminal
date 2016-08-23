@@ -452,9 +452,9 @@ export default {
         en: "Server refused WebSocket connection with the next message: %s",
         ru: "Сервер отклонил соединение через WebSocket со следующим сообщением: %s"
     },
-    "availConf": {
-        en: "WebTerminal's local configuration:",
-        ru: "Локальная конфигурация веб-терминала:"
+    "availConfLoc": {
+        en: "WebTerminal's local configuration (persists in the browser):",
+        ru: "Локальная конфигурация веб-терминала (хранится в браузере):"
     },
     "confHintSet": {
         en: "To change any option, enter \x1b[(special)m/config\x1b[0m \x1b[(variable)mkey\x1b" +

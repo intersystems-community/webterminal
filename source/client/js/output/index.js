@@ -113,15 +113,12 @@ let tabs = [];
 
 export function print (text) {
 
-    // console.log("PRINTING", text.replace(/\x1b/g, `<ESC>`));
     stack += text;
     if (!INITIALIZED)
         return;
     freeStack();
 
 }
-
-window.out = print; // todo: remove after test
 
 export function printLine (text) {
     print(`${ text }\r\n`);
