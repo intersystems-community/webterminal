@@ -268,6 +268,10 @@ rule("doArgument").split(
         char({ value: ".", type: "routine", class: "global" }).merge(),
         any()
     ),
+    id({ class: "variable", type: "variable" }).char({ value: ".", type: "*" }).split(
+        char({ value: "%", type: "memberMethod" }),
+        any()
+    ).id({ type: "memberMethod" }).char("(").call("argumentList").char(")"),
     call("class")
 ).call("postCondition").exit().end();
 

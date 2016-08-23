@@ -37,7 +37,7 @@ ClassMethod GetPublicClassMembers(namespace As %String = "%SYS", className As %S
 }
 
 /// Returns a comma-delimited string of class members in the class of namespace.
-ClassMethod GetClassMembers(namespace As %String = "%SYS", className As %String = "", beginning As %String = "") As %String
+ClassMethod GetClassMembers(namespace As %String = "%SYS", className As %String = "", beginning As %String = "", methodsOnly = "") As %String
 {
     new $Namespace
     set $Namespace = namespace
@@ -47,8 +47,11 @@ ClassMethod GetClassMembers(namespace As %String = "%SYS", className As %String 
         return "#"_$REPLACE(ps, ",", ",#")
     }
     set pattern = $REPLACE(beginning, "%", "!%") _ "%"
-    &sql(select LIST(Name) into :methods from %Dictionary.CompiledMethod WHERE parent=:className AND Name like :pattern ESCAPE '!')
-    &sql(select LIST(Name) into :props from %Dictionary.CompiledProperty WHERE parent=:className AND Name like :pattern ESCAPE '!')
+    set props = ""
+    &sql(select LIST(Name) into :methods from %Dictionary.CompiledMethod WHERE parent=:className AND Private = 0 AND Name like :pattern ESCAPE '!')
+    if (methodsOnly = "") {
+        &sql(select LIST(Name) into :props from %Dictionary.CompiledProperty WHERE parent=:className AND Name like :pattern ESCAPE '!')
+    }
     return $case((methods '= "") && (props '= ""), 1: methods _ "," _ props, : methods _ props)
 }
 
@@ -60,6 +63,21 @@ ClassMethod GetParameters(namespace As %String = "%SYS", className As %String = 
     set pattern = $REPLACE(beginning, "%", "!%") _ "%"
     &sql(select LIST(Name) into :names from %Dictionary.CompiledParameter WHERE parent=:className AND Name like :pattern ESCAPE '!')
     return names
+}
+
+/// Returns a comma-delimited string of routine names in the namespace, which begin from "beginning".
+ClassMethod GetRoutines(namespace As %String = "%SYS", beginning As %String = "") As %String
+{
+    set result = ""
+    set pattern = beginning _ "*.*"
+    new $Namespace
+    set $Namespace = namespace
+    set rset = ##class(%ResultSet).%New("%Library.Routine:RoutineList")
+    do rset.Execute(pattern, , , $Namespace)
+    while (rset.Next()) {
+        set result = result _ $case(result = "", 1:"", :",") _ $PIECE(rset.GetData(1), ".", 1, *-1)
+    }
+    return result
 }
 
 }

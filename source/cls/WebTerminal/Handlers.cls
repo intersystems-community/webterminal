@@ -96,6 +96,12 @@ ClassMethod ClassAutocomplete (client As WebTerminal.Engine, part As %String) As
     return $$$OK
 }
 
+ClassMethod RoutineAutocomplete (client As WebTerminal.Engine, part As %String) As %Status
+{
+    do client.Send(, ##class(WebTerminal.Autocomplete).GetRoutines(client.childNamespace, part))
+    return $$$OK
+}
+
 ClassMethod ClassMemberAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
 {
     do client.Send(, ##class(WebTerminal.Autocomplete).GetPublicClassMembers(client.childNamespace, data.className, data.part))
@@ -117,7 +123,7 @@ ClassMethod MemberAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxy
     }
     if isOref {
         do client.Send(, ##class(WebTerminal.Autocomplete).GetClassMembers(
-            client.childNamespace, $PIECE(value, "@", 2), data.part
+            client.childNamespace, $PIECE(value, "@", 2), data.part, data.methodsOnly
         ))
     } else {
         do client.Send(, 0)

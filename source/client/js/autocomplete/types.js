@@ -62,5 +62,29 @@ export default {
                 return;
             cb(d.split(",").filter(s => s.indexOf(mem) === 0).map(s => s.substr(mem.length)));
         });
+    },
+    "memberMethod": (collector, cb) => {
+        let mem = collectOfType(collector, "memberMethod"),
+            v = collectOfType(collector, "variable");
+        if (!v)
+            return;
+        server.send("MemberAutocomplete", { variable: v, part: mem, methodsOnly: 1 }, (d) => {
+            if (!d)
+                return;
+            cb(d.split(",").filter(s => s.indexOf(mem) === 0).map(s => s.substr(mem.length)));
+        });
+    },
+    "routine": (collector, cb) => {
+        let subStr = collectOfType(collector, "routine");
+        server.send("RoutineAutocomplete", subStr, (d) => {
+            if (!d || !(d.length > 0))
+                return;
+            cb(d.split(",").filter(s => !/\.[0-9]+$/.test(s)).map(s => {
+                let dotPos = s.indexOf(".", subStr.length);
+                return dotPos > 0
+                    ? s.substring(subStr.length, dotPos + 1)
+                    : s.substr(subStr.length);
+            }).filter((s, i, arr) => arr[i - 1] ? arr[i - 1] !== s : true));
+        });
     }
 }
