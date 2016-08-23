@@ -101,6 +101,14 @@
         "WebTerminal API's onTerminalInit now fired after authorization success",
         "Fixes to command history"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.44",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.44.xml",
+      "changes": [
+        "Suggesting routine names in do statements",
+        "Grammar enhancements and method suggesting improvements"
+      ]
     }
   ]
 }
