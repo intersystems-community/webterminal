@@ -111,14 +111,15 @@
       ]
     },
     {
-      "v": "4.0.0-alpha.49",
-      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.49.xml",
+      "v": "4.0.0-alpha.50",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.50.xml",
       "changes": [
         "Terminal behavior is now configurable with \u001b[(special)m/config\u001b[0m special command",
         "Server renaming feature add. Type \u001b[(special)m/config\u001b[0m \u001b[(variable)mserverName\u001b[0m = \u001b[(string)m\"Local Server\"\u001b[0m to set a browser's tab name.",
         "Fix output for non-Chrome browsers",
         "Fix update message clears the input",
-        "Cyrillic characters serialization fix"
+        "Cyrillic characters serialization fix",
+        "Russian translation to all phrases add"
       ]
     }
   ]
