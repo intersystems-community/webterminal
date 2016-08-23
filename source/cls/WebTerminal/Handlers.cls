@@ -137,4 +137,11 @@ ClassMethod ParameterAutocomplete (client As WebTerminal.Engine, data As %ZEN.pr
     return $$$OK
 }
 
+ClassMethod serverNameConfigSet (client As WebTerminal.Engine, value As %String = "") As %Status
+{
+    set ^WebTerminal("Name") = value
+    do client.Send(, 1)
+    return $$$OK
+}
+
 }

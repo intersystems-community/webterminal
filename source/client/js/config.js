@@ -1,5 +1,6 @@
 import * as storage from "./storage";
 import * as locale from "./localization";
+import * as server from "./server";
 import { onInit } from "./init";
 
 const STORAGE_NAME = `terminal-config`;
@@ -30,6 +31,10 @@ const metadata = { // those keys that are not listed in this object are invalid 
         default: true,
         values: boolean,
         transform: boolTransform
+    },
+    serverName: {
+        default: "",
+        global: true
     }
 };
 
@@ -50,9 +55,10 @@ export function get (key) {
  * @param {Set} updated
  */
 function onUpdate (updated) {
-    if (updated.has("language")) {
+    if (updated.has("language"))
         locale.setLocale(config.language);
-    }
+    if (updated.has("serverName"))
+        document.title = config.serverName;
     storage.set(STORAGE_NAME, JSON.stringify(config));
 }
 
@@ -60,24 +66,45 @@ function onUpdate (updated) {
  *
  * @param {string} key
  * @param {*} value
+ * @param {boolean} localOnly - Updates only the local values.
  * @returns {String} - Error message or an empty string if no errors happened.
  */
-export function set (key, value) {
+export function set (key, value, localOnly = false) {
     if (!metadata.hasOwnProperty(key))
         return locale.get(`confNoKey`, key);
     if (metadata[key].values && metadata[key].values.indexOf(value) === -1)
         return locale.get(`confInvVal`, key,
             metadata[key].values.map(v => `\x1b[(constant)m${ v }\x1b[0m`).join(", "));
-    config[key] = metadata[key].transform ? metadata[key].transform(value) : value;
+    let v = metadata[key].transform ? metadata[key].transform(value) : value,
+        oldConfig = config[key];
+    if (!localOnly && metadata[key].global) {
+        server.send(`${ key }ConfigSet`, v, (ok) => {
+            if (ok === 1)
+                return;
+            config[key] = oldConfig;
+            onUpdate(new Set([key]));
+        });
+    }
+    config[key] = v;
     onUpdate(new Set([key]));
     return "";
 }
 
 export function reset () {
-    config = Object.assign({}, defaults);
+    for (let p in config) {
+        if (!metadata[p].global)
+            config[p] = metadata[p].default;
+    }
     onUpdate(new Set(Object.keys(metadata)));
 }
 
 export function list () {
-    return Object.assign({}, config);
+    let o = {};
+    for (let p in config) {
+        o[p] = {
+            value: config[p],
+            global: !!metadata[p].global
+        };
+    }
+    return o;
 }

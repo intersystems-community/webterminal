@@ -32,6 +32,7 @@ export function init (data = {}) {
         output.printLine(`CWTv${ terminal.VERSION } ${ data["system"] }:\x1b[(keyword)m${
             data["username"] }\x1b[0m${ data["name"] ? ` (${ data["name"] })` : `` }`);
     }
+    config.set(`serverName`, data["name"], true);
     document.title = `${ data["name"] || data["system"] } - WebTerminal`;
     terminal.authDone();
 }

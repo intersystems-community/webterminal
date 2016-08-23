@@ -177,6 +177,7 @@ rule("CWTSpecial").split(
             id({ value: "initMessage", class: "variable" }),
             id({ value: "suggestions", class: "variable" }),
             id({ value: "syntaxHighlight", class: "variable" }),
+            id({ value: "serverName", class: "variable" }),
             id({ class: "variable" })
         ).optWhitespace()
             .char("=").optWhitespace().split(

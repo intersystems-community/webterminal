@@ -71,7 +71,7 @@ ClassMethod ReceiveChunk() As %String
 /// t - indent with tab character<br/>
 /// u - output pre-converted to UTF-8 instead of in native internal format<br/>
 /// w - Windows-style cr/lf newline<br/>
-ClassMethod GetJSONString(obj As %ZEN.proxyObject, format As %String = "aeous") As %String [ ProcedureBlock = 0 ]
+ClassMethod GetJSONString(obj As %ZEN.proxyObject, format As %String = "aeos") As %String [ ProcedureBlock = 0 ]
 {
     set tOldIORedirected = ##class(%Device).ReDirectIO()
     set tOldMnemonic = ##class(%Device).GetMnemonicRoutine()

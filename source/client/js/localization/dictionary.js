@@ -456,11 +456,15 @@ export default {
         en: "WebTerminal's local configuration (persists in the browser):",
         ru: "Локальная конфигурация веб-терминала (хранится в браузере):"
     },
+    "availConfGlob": {
+        en: "WebTerminal's global configuration (persists on the server):",
+        ru: "Глобальная конфигурация веб-терминала (хранится на сервере):"
+    },
     "confHintSet": {
         en: "To change any option, enter \x1b[(special)m/config\x1b[0m \x1b[(variable)mkey\x1b" +
-            "[0m = \x1b[(constant)mvalue\x1b[0m. Enter \x1b[(special)m/config\x1b[0m \x1b[(global)mdefault\x1b[0m to reset configuration.",
+            "[0m = \x1b[(constant)mvalue\x1b[0m. Enter \x1b[(special)m/config\x1b[0m \x1b[(global)mdefault\x1b[0m to reset \x1b[4mlocal\x1b[0m configuration.",
         ru: "Чтобы изменить опцию, введите \x1b[(special)m/config\x1b[0m \x1b[(variable)mключ\x1b" +
-        "[0m = \x1b[(constant)mзначение\x1b[0m. Введите \x1b[(special)m/config\x1b[0m \x1b[(global)mdefault\x1b[0m чтобы сбросить конфигурацию."
+        "[0m = \x1b[(constant)mзначение\x1b[0m. Введите \x1b[(special)m/config\x1b[0m \x1b[(global)mdefault\x1b[0m чтобы сбросить \x1b[4mлокальную\x1b[0m конфигурацию."
     },
     "confNoKey": {
         en: "No option \x1b[(variable)m%s\x1b[0m.",
