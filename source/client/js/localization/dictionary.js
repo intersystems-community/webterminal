@@ -15,6 +15,7 @@
  * Symbols "%s" or "%n" will be replaced by string or number respectively if arguments to "get"
  * function are passed.
  */
+let temp;
 export default {
     "oldHelp": {
         en: `Caché WEB Terminal v/* @echo package.version */\r\n\r\n` +
@@ -414,25 +415,26 @@ export default {
         ru: "Специальная команда \x1b[(special)m/%s\x1b[0m не существует. Пожалуйста, введите \x1b[(special)m/help\x1b[0m чтобы узнать список доступных команд."
     },
     "help": {
-        en:
-`\x1b[1mCaché WEB Terminal v\x1b[(keyword)m/* @echo package.version */\x1b[0m
+        en: temp =
+`\x1b[1mCaché WEB Terminal \x1b[(keyword)mv/* @echo package.version */\x1b[0m
 \r
 \r\x1B[4mAvailable commands:\x1B[0m
 \r\x1B[(special)m/help\x1B[0m\x1B[32GDisplay the short documentation (like you just did).
-\r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.`,
-        ru: "Помощь на русском языке временно отсутствует!"
+\r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
+\r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.`,
+        ru: "Помощь на русском языке временно отсутствует, потому мы покажем вам помощь на английском:\r\n" + temp
     },
     "info": {
         en:
 `Caché WEB Terminal v/* @echo package.version */
-\rAuthor:\x1B[32G\x1b!URL=https://github.com/zitros (ZitRo) (Nikita Savchenko)
+\rAuthor:\x1B[32G\x1b!URL=https://github.com/zitros (Nikita Savchenko) (ZitRo)
 \rProject:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Homepage)
 \rRepository:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
 \rBug/Feature Tracker:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
 \r2013-${ new Date().getFullYear() } ©`,
         ru:
 `Caché WEB Terminal v/* @echo package.version */
-\rАвтор:\x1B[32G\x1b!URL=https://github.com/zitros (ZitRo) (Никита Савченко)
+\rАвтор:\x1B[32G\x1b!URL=https://github.com/zitros (Никита Савченко) (ZitRo)
 \rПроект:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Главная страница)
 \rРепозиторий:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
 \rБаг/Фич трекер:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
@@ -449,5 +451,23 @@ export default {
     "wsRefuse": {
         en: "Server refused WebSocket connection with the next message: %s",
         ru: "Сервер отклонил соединение через WebSocket со следующим сообщением: %s"
+    },
+    "availConf": {
+        en: "WebTerminal's local configuration:",
+        ru: "Локальная конфигурация веб-терминала:"
+    },
+    "confHintSet": {
+        en: "To change any option, enter \x1b[(special)m/config\x1b[0m \x1b[(variable)mkey\x1b" +
+            "[0m = \x1b[(constant)mvalue\x1b[0m. Enter \x1b[(special)m/config\x1b[0m \x1b[(global)mdefault\x1b[0m to reset configuration.",
+        ru: "Чтобы изменить опцию, введите \x1b[(special)m/config\x1b[0m \x1b[(variable)mключ\x1b" +
+        "[0m = \x1b[(constant)mзначение\x1b[0m. Введите \x1b[(special)m/config\x1b[0m \x1b[(global)mdefault\x1b[0m чтобы сбросить конфигурацию."
+    },
+    "confNoKey": {
+        en: "No option \x1b[(variable)m%s\x1b[0m.",
+        ru: "Нет опции \x1b[(variable)m%s\x1b[0m."
+    },
+    "confInvVal": {
+        en: "Invalid value for \x1b[(variable)m%s\x1b[0m. Only the next values available: %s",
+        ru: "Недопустимое значение для \x1b[(variable)m%s\x1b[0m. Допустимы только следующие значения: %s"
     }
 };

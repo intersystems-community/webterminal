@@ -4,6 +4,7 @@ import * as server from "./index";
 import * as terminal from "../index";
 import * as suggestor from "../autocomplete/suggestor";
 import * as locale from "../localization";
+import * as config from "../config";
 
 export function suggest (data = { for: 0, variants: "", base: "" }) {
     let suggestions = [],
@@ -27,9 +28,11 @@ export function suggest (data = { for: 0, variants: "", base: "" }) {
 }
 
 export function init (data = {}) {
-    output.printLine(`CWTv${ terminal.VERSION } on ${ data["system"] } as ${ data["username"] }${
-        data["name"] ? ` (${ data["name"] })` : ``
-    }`);
+    if (config.get("initMessage")) {
+        output.printLine(`CWTv${ terminal.VERSION } ${ data["system"] }:\x1b[(keyword)m${
+            data["username"] }\x1b[0m${ data["name"] ? ` (${ data["name"] })` : `` }`);
+    }
+    document.title = `${ data["name"] || data["system"] } - WebTerminal`;
     terminal.authDone();
 }
 

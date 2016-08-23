@@ -11,9 +11,9 @@ export let LOCALES = [];
 let STORAGE_NAME = "terminal-localization",
     DEFAULT_LOCALE = "en",
     LEXEME_REGEX = /%([a-zA-Z0-9]+)(?:\(([^)]*)\))?/g,
-    CURRENT_LOCALE = getLocale();
+    CURRENT_LOCALE = suggestLocale(); // overridden by config
 
-function getLocales () {
+export function getLocales () {
     return (() => {
         let locales = [];
         //noinspection LoopStatementThatDoesntLoopJS
@@ -31,11 +31,21 @@ function lexemeDefined (str) {
     return dictionary.hasOwnProperty(str);
 }
 
+export function suggestLocale () {
+    let lang = navigator.language;
+    if (!LOCALES.length)
+        LOCALES = getLocales();
+    if (LOCALES.indexOf(lang) === -1) {
+        lang = DEFAULT_LOCALE;
+    }
+    return lang;
+}
+
 export function getLocale () {
 
     let lang = storage.get(STORAGE_NAME);
 
-    if (LOCALES.length)
+    if (!LOCALES.length)
         LOCALES = getLocales();
 
     if (!lang || LOCALES.indexOf(lang) === -1) {
@@ -45,7 +55,7 @@ export function getLocale () {
         }
     }
 
-    return CURRENT_LOCALE = lang;
+    return lang;
 
 }
 

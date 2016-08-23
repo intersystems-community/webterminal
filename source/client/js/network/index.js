@@ -4,12 +4,15 @@ import * as terminal from "../index";
 import * as output from "../output";
 import * as locale from "../localization";
 import "./update";
+import * as config from "../config";
 
-get("https://intersystems-ru.github.io/webterminal/terminal.json", (data = {}) => {
-    if (data.error || typeof data[`motd`] === "undefined")
-        return;
-    terminal.onAuth(() => handleNetworkData(data));
-});
+if (config.get(`updateCheck`)) {
+    get("https://intersystems-ru.github.io/webterminal/terminal.json", (data = {}) => {
+        if (data.error || typeof data[`motd`] === "undefined")
+            return;
+        terminal.onAuth(() => handleNetworkData(data));
+    });
+}
 
 function handleNetworkData (data) {
     input.clearPrompt();

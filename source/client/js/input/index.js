@@ -7,6 +7,7 @@ import * as locale from "../localization";
 import { Terminal, userInput } from "../index";
 import { process as processString } from "../parser";
 import { showSuggestions } from "../autocomplete";
+import * as config from "../config";
 
 export let ENABLED = false,
     PROMPT_CLEARED = false;
@@ -261,8 +262,8 @@ export function update () {
     if (!ENABLED)
         return;
 
-    const HIGHLIGHT = SPECIAL_ENABLED,
-          SUGGEST = SPECIAL_ENABLED;
+    const HIGHLIGHT = SPECIAL_ENABLED && config.get("syntaxHighlight"),
+          SUGGEST = SPECIAL_ENABLED && config.get("suggestions");
 
     output.setCursorYToLineIndex(ORIGIN_LINE_INDEX);
     output.setCursorX(ORIGIN_CURSOR_X);
@@ -275,7 +276,7 @@ export function update () {
             : elements.input.selectionEnd,
         selLen = selEnd - selStart,
         { lexemes, suggestions, collector } =
-            processString(elements.input.value, selStart, SUGGEST, HIGHLIGHT),
+            processString(elements.input.value, selStart, SUGGEST),
         printedLength = 0, printingClass = "";
 
     for (let i = 0; i < lexemes.length; i++) {
@@ -340,6 +341,7 @@ function onSubmit () {
         mode = MODE,
         firstVal = (lastParsedString[0] || {}).value,
         secondVal = (lastParsedString[1] || {}).value;
+    history.push(value);
     if (SPECIAL_ENABLED && firstVal === "/") {
         if (typeof special[secondVal] === "function") {
             output.print(`\r\n`);
@@ -360,7 +362,6 @@ function onSubmit () {
     userInput(value, mode);
     if (promptCallBack)
         promptCallBack(value);
-    history.push(value);
     promptCallBack = null;
     hideInput();
 }

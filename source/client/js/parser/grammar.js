@@ -169,6 +169,22 @@ rule("CWTInput").split(
 
 rule("CWTSpecial").split(
     id({ value: "help", class: "special" }),
+    id({ value: "config", class: "special" }).whitespace().split(
+        id({ value: "default", class: "global" }),
+        split(
+            id({ value: "updateCheck", class: "variable" }),
+            id({ value: "language", class: "variable" }),
+            id({ value: "initMessage", class: "variable" }),
+            id({ value: "suggestions", class: "variable" }),
+            id({ value: "syntaxHighlight", class: "variable" }),
+            id({ class: "variable" })
+        ).optWhitespace()
+            .char("=").optWhitespace().split(
+            id({ class: "constant" }),
+            string({ class: "string" }),
+            constant({ class: "constant" })
+        )
+    ),
     id({ value: "info", class: "special" })
 ).exit().end();
 
