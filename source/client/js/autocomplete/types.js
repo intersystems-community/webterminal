@@ -26,6 +26,19 @@ export default {
             }).filter((s, i, arr) => arr[i - 1] ? arr[i - 1] !== s : true));
         });
     },
+    "global": (collector, cb) => {
+        let subStr = collectOfType(collector, "global").substr(1);
+        server.send("GlobalAutocomplete", subStr, (d) => {
+            if (!d || !(d.length > 0))
+                return;
+            cb(d.split(",").map(s => {
+                let dotPos = s.indexOf(".", subStr.length);
+                return dotPos > 0
+                    ? s.substring(subStr.length, dotPos + 1)
+                    : s.substr(subStr.length);
+            }).filter((s, i, arr) => arr[i - 1] ? arr[i - 1] !== s : true));
+        });
+    },
     "publicClassMember": (collector, cb) => {
         let subStr = collectOfType(collector, "publicClassMember"),
             cls = collectOfType(collector, "classname");
