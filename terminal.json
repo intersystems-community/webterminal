@@ -121,6 +121,16 @@
         "Cyrillic characters serialization fix",
         "Russian translation to all phrases add"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.53",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.53.xml",
+      "changes": [
+        "Analytics and error reports collecting add",
+        "Installer improvements",
+        "Grammar enhanced with out parameters",
+        "Escape sequences processing improvements"
+      ]
     }
   ]
 }
