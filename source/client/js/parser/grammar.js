@@ -386,9 +386,14 @@ rule("function").char({ value: "$", class: "keyword" }).split(
 ).exit().end();
 
 rule("argumentList").split(
-    tryCall("expression").branch().split(
-        char(",").optWhitespace().call("expression").merge(),
-        any()
-    ),
+    tryCall("nonEmptyArgumentList"),
+    any()
+).exit().end();
+
+rule("nonEmptyArgumentList").branch().split(
+    char({ value: ".", class: "argument" }).id({ class: "argument" }),
+    call("expression")
+).split(
+    char(",").optWhitespace().merge(),
     any()
 ).exit().end();

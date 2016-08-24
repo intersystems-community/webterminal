@@ -62,7 +62,9 @@ ClassMethod Execute (client As WebTerminal.Engine, data) As %Status
 
 ClassMethod Update (client As WebTerminal.Engine, URL As %String)
 {
-    return ##class(WebTerminal.Updater).Update(client, URL)
+    set st = ##class(WebTerminal.Updater).Update(client, URL)
+    do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+    return st
 }
 
 ClassMethod LocalAutocomplete(client As WebTerminal.Engine, data)

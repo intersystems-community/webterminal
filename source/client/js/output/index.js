@@ -451,9 +451,9 @@ export function scrollDisplay (amount) {
  */
 export function setGraphicProperty (key, custom = {}) {
 
-    if (GRAPHIC_PROPERTIES.indexOf(key) !== -1)
-        clearGraphicProperty(key);
-    GRAPHIC_PROPERTIES.push(key, {
+    if (GRAPHIC_PROPERTIES.indexOf(+key) !== -1)
+        clearGraphicProperty(+key);
+    GRAPHIC_PROPERTIES.push(+key, {
         class: custom.class,
         style: custom.style,
         tag: custom.tag,
@@ -465,7 +465,7 @@ export function setGraphicProperty (key, custom = {}) {
 
 export function clearGraphicProperty (key) {
     
-    let i = GRAPHIC_PROPERTIES.indexOf(key);
+    let i = GRAPHIC_PROPERTIES.indexOf(+key);
     if (i !== -1)
         GRAPHIC_PROPERTIES.splice(i, 2);
     // console.log(`GP is now`, JSON.parse(JSON.stringify(GRAPHIC_PROPERTIES)));

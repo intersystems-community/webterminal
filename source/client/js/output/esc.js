@@ -188,10 +188,15 @@ export default {
                 output.resetGraphicProperties();
                 continue;
             }
-            if ((indices[i] === 38 || indices[i] === 48) && indices[i + 1] === 5) {
-                output.setGraphicProperty(indices[i], {
+            if (indices[i] === "22") {
+                output.clearGraphicProperty(1);
+                output.clearGraphicProperty(2);
+                continue;
+            }
+            if ((indices[i] === "38" || indices[i] === "48") && indices[i + 1] === "5") {
+                output.setGraphicProperty(+indices[i], {
                     class: `m${indices[i]}`,
-                    style: `${indices[i] === 48 ? "background-" : ""}color:${ COLOR_8BIT[indices[i + 2]] }`
+                    style: `${indices[i] === "48" ? "background-" : ""}color:${ COLOR_8BIT[indices[i + 2]] }`
                 });
                 i += 2;
                 continue;
