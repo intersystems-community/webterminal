@@ -12,7 +12,7 @@ export default {
     "info": () => {
         output.print(locale.get(`info`) + `\r\n`);
     },
-    "config": (string) => {
+    "config": (strings) => {
 
         let out = (list, pad, global) => {
             for (let p in list) {
@@ -23,7 +23,7 @@ export default {
             }
         };
 
-        if (string.length < 4) {
+        if (strings.length < 4) {
             let list = config.list(),
                 longest = 0;
             for (let p in list) if (p.length > longest) longest = p.length;
@@ -35,17 +35,17 @@ export default {
             output.print(`${ locale.get(`confHintSet`) }\r\n`);
             return;
         }
-        let defaults = string.filter(v => v.class === "global")[0];
+        let defaults = strings.filter(v => v.class === "global")[0];
         if (defaults) {
             config.reset();
             return;
         }
-        if (string.length < 5) {
+        if (strings.length < 5) {
             output.print(`${ locale.get(`confHintSet`) }\r\n`);
             return;
         }
-        let key = string.filter(v => v.class === "variable")[0],
-            val = string.filter(v => v.class === "constant" || v.class === "string")[0];
+        let key = strings.filter(v => v.class === "variable")[0],
+            val = strings.filter(v => v.class === "constant" || v.class === "string")[0];
         if (!key || !val) {
             output.print(`${ locale.get(`confHintSet`) }\r\n`);
             return;

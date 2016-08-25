@@ -27,11 +27,10 @@ Property handler As %Boolean [ InitialExpression = 0, Private ];
 Method GetMessage(timeout As %Integer = 86400) As %ZEN.proxyObject
 {
     #define err(%e, %s) if (%e '= $$$OK) { set obj = ##class(%ZEN.proxyObject).%New() set obj.error = %s return obj }
-    set data = ..Read(,,timeout)
-    set st = 1
-    $$$err(st, "WebSocket read error")
+    set data = ..Read(, .st, timeout)
+    $$$err(st, "%wsReadErr: "_$System.Status.GetErrorText(st))
     set st = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(data, , .obj, 1)
-    $$$err(st, "WebSocket message parse error")
+    $$$err(st, "%wsParseErr: "_$System.Status.GetErrorText(st))
     return obj
 }
 
@@ -170,6 +169,10 @@ Method ClientLoop() As %Status [ Private ]
     for {
         set message = ..GetMessage()
         quit:(message = "") // if client is gone, finish looping
+        if (message.error) {
+            set st = ..Send("error", message.error)
+            quit
+        }
         if (message."_cb" '= "") { set ..handler = message."_cb" }
         set status = ..ProcessRequest(message.h, message.d)
         set ..handler = 0
@@ -191,6 +194,8 @@ Method SendLoginInfo()
     set obj.username = $USERNAME
     set obj.name = $get(^WebTerminal("Name"))
     set obj.system = $SYSTEM
+    set obj.firstLaunch = ($get(^WebTerminal("FirstLaunch"), 1) '= 0)
+    set ^WebTerminal("FirstLaunch") = 0
     do ..Send("init", obj)
 }
 
@@ -202,6 +207,7 @@ Method Server() As %Status
         set ..CurrentNamespace = $Znspace
         do ..SendLoginInfo()
         do ..ClientLoop()
+        do ..Send("oLocalized", "%wsAbnormal")
     } else {
         do ..Send("oLocalized", "%wsRefuse(" _ authMessage _ ")")
         do ..EndServer()

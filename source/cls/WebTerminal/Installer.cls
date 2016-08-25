@@ -49,6 +49,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
 	new $Namespace
 	set ns = $Namespace // ought to be package home namespace!
     set ^WebTerminal("HomeNamespace") = ns
+    set ^WebTerminal("FirstLaunch") = 1
     write !, "Installing WebTerminal application to " _ ns
     set dbdir = $$$defdir
     set $Namespace = "%SYS"

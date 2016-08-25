@@ -437,7 +437,11 @@ export default {
 \r\x1B[4mAvailable commands:\x1B[0m
 \r\x1B[(special)m/help\x1B[0m\x1B[32GDisplay the short documentation (like you just did).
 \r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
-\r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.`,
+\r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
+\r
+\r\x1b[4mKeys:\x1b[0m
+\r\x1B[(special)mTAB\x1B[0m\x1B[32GComplete the input with proposed autocomplete variant.
+\r\x1B[(special)mRight/left CTRL\x1B[0m\x1B[32GSwitch autocomplete variant when multiple are available.`,
         ru: "Помощь на русском языке временно отсутствует, поэтому мы покажем вам помощь на английском:\r\n" + temp
     },
     "info": {
@@ -468,6 +472,18 @@ export default {
         en: "Server refused WebSocket connection with the next message: %s",
         ru: "Сервер отклонил соединение через WebSocket со следующим сообщением: %s"
     },
+    "wsReadErr": {
+        en: "WebSocket read error",
+        ru: "Ошибка WebSocket при чтении"
+    },
+    "wsParseErr": {
+        en: "WebSocket message parse error",
+        ru: "Ошбика десереализации WebSocket-фрейма"
+    },
+    "wsAbnormal": {
+        en: "WebSocket abnormal exit occurred",
+        ru: "Произошло нетрадиционное закрытие WebSocket-соединения"
+    },
     "availConfLoc": {
         en: "WebTerminal's local configuration (persists in the browser):",
         ru: "Локальная конфигурация веб-терминала (хранится в браузере):"
@@ -489,5 +505,9 @@ export default {
     "confInvVal": {
         en: "Invalid value for \x1b[(variable)m%s\x1b[0m. Only the next values available: %s",
         ru: "Недопустимое значение для \x1b[(variable)m%s\x1b[0m. Допустимы только следующие значения: %s"
+    },
+    "firstLaunchMessage": {
+        en: "Welcome to WebTerminal! Type \x1b[(special)m/help\x1b[0m special command to see how to use all the features.",
+        ru: "Добро пожаловать в веб-терминал! Введите специальную команду \x1b[(special)m/help\x1b[0m чтобы узнать обо всех его особенностях."
     }
 };

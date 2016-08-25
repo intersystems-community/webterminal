@@ -31,6 +31,8 @@ export function init (data = {}) {
     if (config.get("initMessage")) {
         output.printLine(`CWTv${ terminal.VERSION } ${ data["system"] }:\x1b[(keyword)m${
             data["username"] }\x1b[0m${ data["name"] ? ` (${ data["name"] })` : `` }`);
+        if (data["firstLaunch"])
+            output.printLine(locale.get(`firstLaunchMessage`));
     }
     config.set(`serverName`, data["name"], true);
     document.title = `${ data["name"] || data["system"] } - WebTerminal`;
@@ -49,6 +51,10 @@ export function execError (message = "") {
         message.replace(/^(<.*>)/, `\x1b[31m$1\x1b[0m`)
             .replace(/zLoop\+[0-9]+\^WebTerminal\.Core\.[0-9]+/, "")
     );
+}
+
+export function error (message = "") {
+    output.print(`\x1b[31m${ locale.parse(message) }\x1b[0m`);
 }
 
 export function readString (data = {}) {
