@@ -131,6 +131,14 @@
         "Grammar enhanced with out parameters",
         "Escape sequences processing improvements"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.55",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.55.xml",
+      "changes": [
+        "Initial welcome message add",
+        "Better WebSocket error reporting"
+      ]
     }
   ]
 }
