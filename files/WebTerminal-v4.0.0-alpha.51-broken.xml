@@ -1122,7 +1122,7 @@ This method is invoked when a class is compiled.</Description>
 	    do ##class(WebTerminal.Analytics).ReportInstallStatus(1)
     }
     
-    return st
+    return $$$ERROR(5001, "Test Error!")
 ]]></Implementation>
 </Method>
 
@@ -1763,7 +1763,7 @@ SSL configuration name used for HTTPS requests.</Description>
     open logFile:("NRW")
     use logFile
     do $System.OBJ.DeletePackage("WebTerminal")
-    set loadStatus = do $SYSTEM.OBJ.Load(tempFile, "c")
+    set loadStatus = $SYSTEM.OBJ.Load(tempFile, "c")
     close logFile
     use io
 
