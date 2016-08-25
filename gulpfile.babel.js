@@ -59,6 +59,7 @@ gulp.task("clean", ["prepare"], function () {
 
 gulp.task("html", ["clean"], function () {
     return gulp.src(`${ source }/client/index.html`)
+        .pipe(preprocess(context))
         .pipe(gulp.dest(`${ dest }/client`));
 });
 
@@ -73,9 +74,6 @@ gulp.task("scss", ["clean"], () => {
 });
 
 gulp.task("js", ["clean", "css"], function () {
-    // return gulp.src("./source/client/js/**/*.js")
-    //     .pipe(preprocess(context))
-    //     .pipe(gulp.dest(`${ dest }/client/js`));
     let bundler = browserify({
         entries: `${source}/client/js/index.js`,
         debug: true
