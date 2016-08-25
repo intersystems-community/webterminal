@@ -5,6 +5,7 @@ import * as terminal from "../index";
 import * as suggestor from "../autocomplete/suggestor";
 import * as locale from "../localization";
 import * as config from "../config";
+import * as analytics from "../analytics";
 
 export function suggest (data = { for: 0, variants: "", base: "" }) {
     let suggestions = [],
@@ -34,6 +35,7 @@ export function init (data = {}) {
         if (data["firstLaunch"])
             output.printLine(locale.get(`firstLaunchMessage`));
     }
+    analytics.collect(data);
     config.set(`serverName`, data["name"], true);
     document.title = `${ data["name"] || data["system"] } - WebTerminal`;
     terminal.authDone();

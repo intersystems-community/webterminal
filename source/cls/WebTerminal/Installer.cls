@@ -1,5 +1,5 @@
 /// Importing this class will install Cache WEB Terminal properly.
-Class WebTerminal.Installer Extends %Projection.AbstractProjection [ DependsOn = (Engine, Core, Router, StaticContent, Autocomplete, Analytics, Trace, Updater) ]
+Class WebTerminal.Installer Extends %Projection.AbstractProjection [ DependsOn = Router ]
 {
 
 Parameter DispatchClass = "WebTerminal.Router";

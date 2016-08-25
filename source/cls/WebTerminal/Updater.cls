@@ -18,6 +18,30 @@ ClassMethod GetSSLConfigurationName () As %String
     return ..#SSLConfigName
 }
 
+ClassMethod WriteAndDelete (client As WebTerminal.Engine, file As %String) As %Status
+{
+    if ##class(%File).Exists(file) {
+        set stream = ##class(%Stream.FileCharacter).%New()
+        set sc = stream.LinkToFile(file)
+        while 'stream.AtEnd {
+            do client.Send("o", stream.Read()_$CHAR(13, 10))
+        }
+        do client.Send("oLocalized", "%sUpdCleanLog("_file_")"_$CHAR(13, 10))
+        do ##class(%File).Delete(file)
+    } else {
+        do client.Send("oLocalized", "%sUpdNoFile")
+    }
+    return $$$OK
+}
+
+ClassMethod Stop (client  As WebTerminal.Engine, status As %Status) As %Status
+{
+    if ($$$ISERR(status)) {
+        do client.Send("oLocalized", "%sUpdErr("_$System.Status.GetErrorText(status)_")"_$C(13, 10))
+    }
+    return status
+}
+
 ClassMethod Update (client As WebTerminal.Engine, URL As %String) As %Status
 {
     do client.Send("oLocalized", "%sUpdSt"_$CHAR(13, 10))
@@ -51,31 +75,62 @@ ClassMethod Update (client As WebTerminal.Engine, URL As %String) As %Status
     }
     do file.Close()
 
-    do client.Send("oLocalized", "%sUpdLoad"_$CHAR(13, 10))
+    set backupFile = ##class(%File).TempFilename("xml")
+    do client.Send("oLocalized", "%sUpdBack("_backupFile_")"_$CHAR(13, 10))
 
     set logFile = ##class(%File).TempFilename("txt")
-    open logFile:("NRW"):5
     set io = $IO
+
+    open logFile:("NW")
     use logFile
-    set loadStatus = $SYSTEM.OBJ.Load(tempFile, "c")
+    set exportStatus = $System.OBJ.Export("WebTerminal.*.CLS", backupFile)
     close logFile
     use io
 
-    if ##class(%File).Exists(logFile) {
-        set stream = ##class(%Stream.FileCharacter).%New()
-        set sc = stream.LinkToFile(logFile)
-        while 'stream.AtEnd {
-            do client.Send("o", stream.Read()_$CHAR(13, 10))
-        }
-        do client.Send("oLocalized", "%sUpdCleanLog("_logFile_")"_$CHAR(13, 10))
-        do ##class(%File).Delete(logFile)
+    do ..WriteAndDelete(client, logFile)
+    if ($$$ISERR(exportStatus)) {
+        do ##class(WebTerminal.Analytics).ReportInstallStatus(exportStatus, "Update")
+        return ..Stop(client, exportStatus)
     }
+    do client.Send("oLocalized", "%sUpdRemLoad"_$CHAR(13, 10))
+
+    open logFile:("NW")
+    use logFile
+    write $C(27)_"[2m"
+    do $System.OBJ.DeletePackage("WebTerminal")
+    write $C(27)_"[0m", !
+    set loadStatus = $SYSTEM.OBJ.Load(tempFile, "c")
+
+    // At this moment WebTerminal's code can be broken, totally changed or deleted. Do not call
+    // WebTerminal's methods until terminal is restored / fully updated
+
+    if '$$$ISOK(loadStatus) { // roll back
+        write !, $C(27)_"[(wrong)m==FAILED=="_$C(27)_"[0m", !,
+            $System.Status.GetErrorText(loadStatus), !, !,
+            $C(27)_"[(special)m==RESTORING=="_$C(27)_"[0m", !
+        do $SYSTEM.OBJ.Load(backupFile, "c")
+    }
+
+    // end
+
+    close logFile
+    use io
+    do ..WriteAndDelete(client, logFile)
 
     do client.Send("oLocalized", "%sUpdClean("_tempFile_")"_$CHAR(13, 10))
     do ##class(%File).Delete(tempFile)
+    do client.Send("oLocalized", "%sUpdClean("_backupFile_")"_$CHAR(13, 10, 13, 10))
+    do ##class(%File).Delete(backupFile)
+    if '$$$ISOK(loadStatus) {
+        do ..Stop(client, loadStatus)
+        do client.Send("oLocalized", $CHAR(13, 10)_"%sUpdRes"_$CHAR(13, 10))
+    }
     do client.Send("oLocalized", "%sUpdDone"_$CHAR(13, 10))
 
+    do ##class(WebTerminal.Analytics).ReportInstallStatus(loadStatus, "Update")
+
     return $$$OK
+
 }
 
 }

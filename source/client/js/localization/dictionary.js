@@ -387,8 +387,8 @@ export default {
         ru: "Просим сервер обновиться..."
     },
     "sUpdSt": {
-        en: "Update started, please, do not close this window.",
-        ru: "Обновление началось, пожалуйста, не закрывайте это окно."
+        en: "Update started, please, \x1b[4mdo not close this window\x1b[0m.",
+        ru: "Обновление началось, пожалуйста, \x1b[4mне закрывайте это окно.\x1b[0m"
     },
     "sUpdRURL": {
         en: "Requesting %s",
@@ -403,12 +403,36 @@ export default {
         ru: "Невозможно обновить веб-терминал: HTTPS-запрос завершился с кодом %s."
     },
     "sUpdWTF": {
-        en: "Writing the response to a temporary file...",
-        ru: "Записываем ответ во временный файл..."
+        en: "Writing WebTerminal's new version a temporary file...",
+        ru: "Записываем новую версию веб-терминала во временный файл..."
     },
-    "sUpdLoad": {
-        en: "Importing new XML file...",
-        ru: "Импортируем новый XML-файл..."
+    "sUpdErr": {
+        en: "Update \x1b[31mfailed\x1b[0m! Error: %s",
+        ru: "Обновление \x1b[31mне получилось\x1b[0m! Ошибка: %s"
+    },
+    "sUpdRes": {
+        en: "Update failed. Possibly, the new WebTerminal version is not compatible with your "
+            + "system anymore, or the update was not tested for this system. Please report this "
+            + "issue \x1b!URL=https://github.com/intersystems-ru/webterminal/issues (here) and "
+            + "attach the update log. You can try waiting some time (finite or infinite) until this"
+            + " problem is identified and fixed.",
+        ru: `Обновление не удалось. Возможно, новая версия веб-терминала больше не совместима `
+            + `с вашей системой, или обновление не было протестировано для неё. Пожалуйста, обратитесь в `
+            + `\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (поддержку) с `
+            + `вопросом, прикрепив лог обновления или подождите некоторое количество времени `
+            + `(конечное или бесконечное), пока проблема не будет выявлена и исправлена.`
+    },
+    "sUpdBack": {
+        en: "Backing up current version to %s...",
+        ru: "Сохраняем резервную копию текущей версии в %s..."
+    },
+    "sUpdRemLoad": {
+        en: "Deleting old version and importing a new one...",
+        ru: "Удаляем прошлую версию и импортируем новую..."
+    },
+    "sUpdNoFile": {
+        en: "No file %s",
+        ru: "Нет файла %s"
     },
     "sUpdCleanLog": {
         en: "Deleting log file %s...",
@@ -438,6 +462,7 @@ export default {
 \r\x1B[(special)m/help\x1B[0m\x1B[32GDisplay the short documentation (like you just did).
 \r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
 \r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
+\r\x1B[(special)m/update\x1B[0m\x1B[32GChecks for available updates. It is always recommended to turn update checks in config to not to miss important update.
 \r
 \r\x1b[4mKeys:\x1b[0m
 \r\x1B[(special)mTAB\x1B[0m\x1B[32GComplete the input with proposed autocomplete variant.

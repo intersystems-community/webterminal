@@ -373,7 +373,7 @@ function onSubmit () {
     hideInput();
 }
 
-function hideInput () {
+export function hideInput () {
     MODE = 0;
     if (elements.input.parentNode)
         elements.input.parentNode.removeChild(elements.input);

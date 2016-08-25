@@ -34,6 +34,7 @@ Method GetMessage(timeout As %Integer = 86400) As %ZEN.proxyObject
     return obj
 }
 
+/// Do not remove this method in future versions of WebTerminal, it is used by update.
 Method Send(handler As %String = "", data = "") As %Status
 {
     return:((handler = "o") && (..echo = 0)) $$$OK
@@ -195,6 +196,8 @@ Method SendLoginInfo()
     set obj.name = $get(^WebTerminal("Name"))
     set obj.system = $SYSTEM
     set obj.firstLaunch = ($get(^WebTerminal("FirstLaunch"), 1) '= 0)
+    set obj.InstanceGUID = ##class(%SYS.System).InstanceGUID()
+    set obj.zv = $ZVersion
     set ^WebTerminal("FirstLaunch") = 0
     do ..Send("init", obj)
 }

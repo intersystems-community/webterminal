@@ -1,6 +1,7 @@
 import * as locale from "../localization";
 import * as output from "../output";
 import * as config from "../config";
+import { checkUpdate } from "../network";
 
 /**
  * Special commands handler. Each key of this object is a command of type "/<key>".
@@ -56,5 +57,8 @@ export default {
         );
         if (res !== "")
             output.print(`${ res }\r\n`);
+    },
+    "update": () => {
+        checkUpdate();
     }
 }

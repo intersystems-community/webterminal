@@ -186,7 +186,8 @@ rule("CWTSpecial").split(
             constant({ class: "constant" })
         )
     ),
-    id({ value: "info", class: "special" })
+    id({ value: "info", class: "special" }),
+    id({ value: "update", class: "special" })
 ).exit().end();
 
 rule("cosCommand").split(

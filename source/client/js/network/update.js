@@ -11,7 +11,7 @@ window.updateTerminal = function (version, url) {
         return;
     url = url.replace(/^http:/, "https:");
     UPDATING = true;
-    input.clearPrompt();
+    input.hideInput();
     output.printLine(locale.get(`updStart`, terminal.VERSION, version));
     output.printLine(`URL: ${ url }`);
     output.printLine(locale.get(`rSerUpd`));

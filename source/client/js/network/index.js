@@ -7,6 +7,10 @@ import "./update";
 import * as config from "../config";
 
 if (config.get(`updateCheck`)) {
+    checkUpdate();
+}
+
+export function checkUpdate () {
     get("https://intersystems-ru.github.io/webterminal/terminal.json", (data = {}) => {
         if (data.error || typeof data[`motd`] === "undefined")
             return;
@@ -85,5 +89,3 @@ function versionGT (high, low) {
     }
     return v2.length > v1.length;
 }
-
-window.versionGT = versionGT;
