@@ -1,5 +1,5 @@
 {
-  "motd": "This is an early \u001b[31mexperimental\u001b[0m version of WebTerminal v4, please, consider this when submitting \u001b!URL=https://github.com/intersystems-ru/webterminal/issues (bug reports). Check the development progress \u001b!URL=https://github.com/intersystems-ru/webterminal/issues/61 (here) or \u001b!URL=http://intersystems-ru.github.io/webterminal (read) more about WebTerminal.",
+  "motd": "The experimental version of WebTerminal v4 is almost ready for open beta release. Please, consider submitting \u001b!URL=https://github.com/intersystems-ru/webterminal/issues (bug reports) if something goes wrong while using WebTerminal. Check the development progress \u001b!URL=https://github.com/intersystems-ru/webterminal/issues/61 (here) or \u001b!URL=http://intersystems-ru.github.io/webterminal (read) more about WebTerminal.",
   "versions": [
     {
       "v": "4.0.0-alpha.1",
@@ -138,6 +138,14 @@
       "changes": [
         "Initial welcome message add",
         "Better WebSocket error reporting"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.57",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.57.xml",
+      "changes": [
+        "Installer and updater improvements.",
+        "Now updater will rollback installation and report an error if any errors are present."
       ]
     }
   ]
