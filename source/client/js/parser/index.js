@@ -171,8 +171,9 @@ export function process (string, cursorPos = string.length, suggestionsEnabled =
             } else if (rule[0].type === TYPE_ID) {
                 if (rule[0].type !== lexeme.type)
                     continue;
-                if (parsedStringLength < cursorPos && cursorPos < parsedStringLength + lexeme.value.length) {
-                    subString = lexeme.value.substr(0, cursorPos - parsedStringLength);
+                if (parsedStringLength < cursorPos && cursorPos <= parsedStringLength + lexeme.value.length) {
+                    subString = lexeme.value.substr(0, cursorPos - parsedStringLength)
+                        [rule[0].value.CI ? "toLowerCase" : "toString"]();
                 }
                 if (typeof rule[0].value === "string") {
                     if (lexeme.value !== rule[0].value)
@@ -180,13 +181,14 @@ export function process (string, cursorPos = string.length, suggestionsEnabled =
                 } else if (
                     typeof rule[0].value === "object" && typeof rule[0].value.value !== "undefined"
                 ) {
-                    if (lexeme.value !== rule[0].value.value)
-                        continue;
+                    if (lexeme.value[rule[0].value.CI ? "toLowerCase" : "toString"]()
+                        !== rule[0].value.value)
+                            continue;
                 }
                 if (typeof lexeme.value === "string")
                     parsedStringLength += lexeme.value.length;
                 // when rule[0].value is object and no rule[0].value.value is set, we match any ID
-                startSub = lexeme.value;
+                startSub = lexeme.value[rule[0].value.CI ? "toLowerCase" : "toString"]();
                 whiteSpaceMatched = false;
             } else if (rule[0].type === TYPE_STRING) {
                 if (rule[0].type !== lexeme.type)
@@ -298,7 +300,8 @@ export function process (string, cursorPos = string.length, suggestionsEnabled =
                 if (!suggestState && parsedStringLength <= cursorPos && cursorPos < parsedStringLength + nextLength && tape[pos - 1] && tape[pos - 1].type === TYPE_ID && firstErrorAt === pos - 1) {
                     // console.log(`Setting suggestState=${lastSucceededState} as it wasn't set until the end. lastErrorAt=${lastErrorAt}, pos=${pos}`);
                     suggestState = lastSucceededState;
-                    subString = tape[pos - 1].value;
+                    // console.log(subString, "<-->", tape[pos - 1].value);
+                    // subString = tape[pos - 1].value;
                 }
             }
         } else {

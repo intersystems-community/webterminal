@@ -147,6 +147,7 @@ import {
     rule, id, char, string, split, any, all, none, branch, merge, exit, constant, call, tryCall,
     optWhitespace, whitespace
 } from "./pushdownAutomaton";
+const CI = true; // case insensitive
 
 // Rules definition start
 
@@ -192,15 +193,15 @@ rule("CWTSpecial").split(
 
 rule("cosCommand").split(
     id([
-        { value: "d", class: "keyword" },
-        { value: "do", class: "keyword" }
+        { CI, value: "d", class: "keyword" },
+        { CI, value: "do", class: "keyword" }
     ]).call("postCondition").whitespace().branch().call("doArgument").optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     ),
     id([
-        { value: "w", class: "keyword" },
-        { value: "write", class: "keyword" }
+        { CI, value: "w", class: "keyword" },
+        { CI, value: "write", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
         char({ value: "!", class: "special" }),
         tryCall("expression"),
@@ -211,8 +212,8 @@ rule("cosCommand").split(
         any().exit()
     ),
     id([
-        { value: "zw", class: "keyword" },
-        { value: "zwrite", class: "keyword" }
+        { CI, value: "zw", class: "keyword" },
+        { CI, value: "zwrite", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
         tryCall("expression"),
         any()
@@ -221,23 +222,23 @@ rule("cosCommand").split(
         any().exit()
     ).exit(),
     id([
-        { value: "s", class: "keyword" },
-        { value: "set", class: "keyword" }
+        { CI, value: "s", class: "keyword" },
+        { CI, value: "set", class: "keyword" }
     ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().char("=").optWhitespace()
         .call("expression").optWhitespace().split(
             char(",").optWhitespace().merge(),
             any().exit()
         ),
     id([
-        { value: "k", class: "keyword" },
-        { value: "kill", class: "keyword" }
+        { CI, value: "k", class: "keyword" },
+        { CI, value: "kill", class: "keyword" }
     ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     ),
     id([
-        { value: "r", class: "keyword" },
-        { value: "read", class: "keyword" }
+        { CI, value: "r", class: "keyword" },
+        { CI, value: "read", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
         string(),
         split(
@@ -256,9 +257,42 @@ rule("cosCommand").split(
         any().exit()
     ),
     id([
-        { value: "zn", class: "keyword" },
-        { value: "znspace", class: "keyword" }
-    ]).call("postCondition").whitespace().string().exit()
+        { CI, value: "zn", class: "keyword" },
+        { CI, value: "znspace", class: "keyword" }
+    ]).call("postCondition").whitespace().string().exit(),
+    id([
+        { CI, value: "if", class: "keyword" },
+        { CI, value: "i", class: "keyword" }
+    ]).whitespace().call("expression").optWhitespace().split(
+        char("{").branch().optWhitespace().call("cosCommand").optWhitespace().char("}")
+            .optWhitespace().split(
+                id({ CI, value: "else", class: "keyword" }).optWhitespace()
+                    .char("{").optWhitespace().call("cosCommand").optWhitespace().char("}"),
+                id({ CI, value: "elseif", class: "keyword" }).whitespace().call("expression")
+                    .optWhitespace().char("{").merge()
+        ),
+        call("cosCommand")
+    ).exit(),
+    id([
+        { CI, value: "for", class: "keyword" },
+        { CI, value: "f", class: "keyword" }
+    ]).whitespace().branch()
+        .id({ type: "variable", class: "variable" }).char("=").call("expression").optWhitespace()
+            .split(
+                char(":").optWhitespace().call("expression").optWhitespace().split(
+                    char(":").optWhitespace().call("expression"),
+                    any()
+            ),
+        any()
+    ).optWhitespace().split(
+        char(",").optWhitespace().merge(),
+        any()
+    ).char("{").optWhitespace().call("cosCommand").optWhitespace().char("}").exit(),
+    id({ CI, value: "while", class: "keyword" }).whitespace().branch().call("expression")
+        .optWhitespace().split(
+            char(",").optWhitespace().merge(),
+            char("{").optWhitespace().call("cosCommand").optWhitespace().char("}").exit()
+    )
 ).end();
 
 rule("termSpecial").split(
@@ -354,7 +388,7 @@ rule("member").split(
 
 rule("class").split(
     char({ value: "#", class: "special" }).char({ value: "#", class: "special" }).split(
-        id({ value: "class", class: "special" }).char({ value: "(", class: "special" }).split(
+        id({ CI, value: "class", class: "special" }).char({ value: "(", class: "special" }).split(
             char({ value: "%", type: "classname", class: "classname" }),
             any()
         ).branch().id({ type: "classname", class: "classname" }).split(
@@ -371,7 +405,7 @@ rule("class").split(
                     )
             )
         ),
-        id({ value: "super", class: "special" })
+        id({ CI, value: "super", class: "special" })
             .char({ value: "(", class: "special" })
             .call("argumentList")
             .char({ value: ")", class: "special" })
@@ -379,9 +413,12 @@ rule("class").split(
 ).exit().end();
 
 rule("function").char({ value: "$", class: "keyword" }).split(
-    char({ value: "$", class: "keyword" }),
+    char({ value: "$", class: "keyword" }).split(
+        char({ value: "$", class: "keyword" }),
+        any()
+    ),
     any()
-).id({ class: "keyword" }).split(
+).id({ CI, class: "keyword" }).split(
     char("(").call("argumentList").char(")"),
     any()
 ).exit().end();
