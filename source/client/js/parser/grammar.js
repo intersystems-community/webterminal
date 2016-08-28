@@ -170,6 +170,7 @@ rule("CWTInput").split(
 
 rule("CWTSpecial").split(
     id({ value: "help", class: "special" }),
+    id({ value: "clear", class: "special" }),
     id({ value: "config", class: "special" }).whitespace().split(
         id({ value: "default", class: "global" }),
         split(
@@ -188,6 +189,7 @@ rule("CWTSpecial").split(
         )
     ),
     id({ value: "info", class: "special" }),
+    id({ value: "sql", class: "special" }),
     id({ value: "update", class: "special" })
 ).exit().end();
 
@@ -435,3 +437,7 @@ rule("nonEmptyArgumentList").branch().split(
     char(",").optWhitespace().merge(),
     any()
 ).exit().end();
+
+rule("SQLMode").split(
+    char({ value: "/", class: "special" }).call("CWTSpecial").exit()
+).end();

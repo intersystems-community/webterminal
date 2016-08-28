@@ -48,19 +48,16 @@ function getMatched (o, str, args = []) {
         }
     }
     for (let p in o[""]) {
-        if (a = str.match(`^${ p }`)) {
-            // console.log(`Match found ${ p }`);
+        let regEx = p[0] === "!" ? p.slice(1) : p;
+        if (a = str.match(`^${ regEx }`)) {
             n = getMatched(o[""][p], str.substr(l = a.join().length), args.concat(a));
             if (n > 0)
                 return n + l;
             m = n > m ? n : m;
+        } else if (p[0] === "!") { // mandatory reg exp not matched
+            m = 0;
         }
     }
-    if (m < 0) {
-        // console.log(`Nothing found, end reached`);
-        return -1;
-    }
-    // console.log(`Nothing found`);
     return m;
 }
 

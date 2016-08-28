@@ -7,8 +7,13 @@ let cursorHome,
     savedGraphicProperties = {};
 
 /**
- * DO NOT use output.print function inside: it may bring unexpected result as print function uses
- * stack.
+ * DO NOT use output.print function inside: it may bring unexpected results as print function uses
+ * printing stack.
+ * The key is the sequence of symbols. There are some special ones. Examples:
+ * "\nabc" Matches a newline and "abc" right after a newline.
+ * "\n{[abc]+}" Regular expressions are covered by {} symbols. Those symbols must not be in regex.
+ * "\n{![abc]+}" Regex-es can be mandatory, when the first character "!" is put (not a regex part).
+ *               Mandatory regex-es will block any output until the regex matches.
  */
 export default {
     "\u000C": () => {
@@ -222,5 +227,13 @@ export default {
         });
         output.immediatePlainPrint(text);
         output.clearGraphicProperty(9);
+    },
+    "\x1b!<HTML>{![^]*(?=<\\/HTML>)}</HTML>": ([ html ]) => {
+        let line = output.getCurrentLine();
+        line.setHTML(html);
+        let nextIndex = line.INDEX + Math.ceil(line.getHeight() / output.SYMBOL_HEIGHT);
+        output.getLineByIndex(nextIndex); // ensure that line exists
+        output.setCursorYToLineIndex(nextIndex); // jump to new index
+        output.setCursorX(1);
     }
 }

@@ -120,6 +120,8 @@ export function print (text) {
 
 }
 
+window.pr = print;
+
 export function printLine (text) {
     print(`${ text }\r\n`);
 }
@@ -153,194 +155,6 @@ export function clearTab (x) {
 export function getTabs () {
     return tabs;
 }
-
-/**
- * Escape sequences implementation.
- *
- * "lastSequenceCharacter": function (sequence, params) { implementation }
- * Where:
- *  sequence - full escape sequence with escape character
- *  params - symbols between bracket (esc character) and last character
- *
- * @private
- */
-const CONTROL_SEQUENCES = {
-
-    // GRAPHIC CONTROL
-
-    "m": function (sequence, params) {
-
-        var codes = params.split(";").map((item) => {
-                return parseInt(item, 10); // CWTv4 refactoring: 10?
-            }),
-            i;
-
-        for (i = 0; i < codes.length; i++) {
-            if (codes[i] === 38 && codes[i+1] === 5) {
-                //setGraphicProperties(38, "color: " + COLOR_8BIT[codes[i+2]]);
-                i += 2;
-            } else if (codes[i] === 48 && codes[i+1] === 5) {
-                //setGraphicProperties(48, "background-color: " + COLOR_8BIT[codes[i+2]]);
-                i += 2;
-            } //else setGraphicProperties(codes[i] || 0);
-        }
-
-    },
-
-    // CURSOR CONTROL
-
-    "A": function (sequence, params) {
-        setCursorY(getCursorY() - (parseInt(params) || 1));
-    },
-
-    "B": function (sequence, params) {
-        setCursorY(getCursorY() + (parseInt(params) || 1));
-    },
-
-    "C": function (sequence, params) {
-        setCursorX(getCursorX() + (parseInt(params) || 1));
-    },
-
-    "D": function (sequence, params) {
-        if (sequence.charAt(1) === "[") {
-            setCursorX(getCursorX() - (parseInt(params) || 1));
-        } else { // scroll down
-            if (scrolling.enabled) {
-                scrollDisplay(scrolling.lineStart, scrolling.lineEnd, -1);
-            }
-        }
-    },
-
-    "M": function () { // scroll up
-        if (scrolling.enabled) {
-            scrollDisplay(scrolling.lineStart, scrolling.lineEnd, 1);
-        }
-    },
-
-    "f": function (sequence, params) {
-
-        var positions = params.split(";");
-
-        setCursorX(parseInt(positions[1] || 1));
-        setCursorY(parseInt(positions[0] || 1));
-
-    },
-
-    "H": function (sequence, params) {
-
-        if (sequence.charAt(1) === "[") {
-            CONTROL_SEQUENCES.f.call(this, sequence, params);
-        } else {
-            setTab(getCursorX());
-        }
-
-    },
-
-    // TAB CONTROL
-
-    "g": function (sequence, params) {
-
-        if (params === "3") {
-            clearTab();
-        } else {
-            clearTab(getCursorX());
-        }
-
-    },
-
-    "G": function (sequence, params) {
-
-        setCursorX(parseInt(params) || 1);
-
-    },
-
-    // device
-
-    "c": function (sequence) { // report device code
-
-        var code = 1;
-
-        if (sequence === "\x1B[c") { // query device code
-            this.TERMINAL.controller.terminalQuery("\x1B[" + code + "0c"); // todo: send to server
-        } else {
-            // @question Cache TERM does not reset settings
-        }
-
-    },
-
-    "n": function (sequence, params) {
-
-        switch (parseInt(params)) {
-            case 5: { // query device status
-                // todo: send to server
-                this.TERMINAL.controller.terminalQuery("\x1B[" + ( 1 ? 0 : 3 ) + "n");
-            } break;
-            case 6: { // query cursor position
-                this.TERMINAL.controller.terminalQuery( // todo: send to server
-                    "\x1B[" + getCursorY() + ";" + getCursorX() + "R"
-                );
-            } break;
-        }
-
-    },
-
-    // SCROLLING
-
-    "r": function (sequence, params) {
-
-        var codes;
-
-        if (params) {
-            codes = params.split(";").map(function(item) {
-                return parseInt(item, 10);
-            });
-            if (codes.length > 1) {
-                enableScrolling(codes[0], codes[1]);
-            }
-        } else {
-            disableScrolling();
-        }
-
-    },
-
-    // ERAZING
-
-    "K": function (sequence, params) {
-
-        if (params == 1) { // @tested OK
-            getCurrentLine().writePlain((new Array(getCursorX())).join(" "), 0);
-        } else if (params == 2) { // @tested OK
-            getCurrentLine().writePlain((new Array(WIDTH + 1)).join(" "), 0);
-        } else { // @tested OK
-            getCurrentLine().writePlain(
-                (new Array(WIDTH - getCursorX() + 2)).join(" "), getCursorX() - 1
-            );
-        }
-
-    },
-
-    "J": function (sequence, params) {
-
-        var i;
-
-        if (params == 1) {
-            for (i = getCursorY() /* - 1 @question Cache TERM standard wrong? */; i > 0; i--) {
-                getLineByCursorY(i).clear();
-            }
-        } else if (params == 2) {
-            for (i = 1; i < WIDTH; i++) {
-                getLineByCursorY(i).clear();
-                /* @question Return to cursor home: Cache TERM standard wrong? */
-            }
-        } else {
-            for (i = getCursorY() + 1; i < HEIGHT; i++) {
-                getLineByCursorY(i).clear();
-            }
-        }
-
-    }
-
-};
 
 onWindowLoad(() => {
 
@@ -586,7 +400,7 @@ function output (plainText = "") {
  * @param {number} index
  * @returns {Line}
  */
-function getLineByIndex (index) {
+export function getLineByIndex (index) {
 
     var toPush = Math.max(index - lines.length + 1, 0);
 
@@ -618,6 +432,15 @@ export function clear () {
     setCursorX(1);
     setCursorY(1);
     scrollDown();
+}
+
+export function reset () {
+    for (let l of lines)
+        l.remove();
+    lines = [];
+    scrolling.enabled = false;
+    setCursorX(1);
+    setCursorY(1);
 }
 
 /**

@@ -5,10 +5,11 @@ import { onInit } from "./init";
 
 const STORAGE_NAME = `terminal-config`;
 const boolean = ["true", "false"],
-      boolTransform = (a) => a === `true`;
+      boolTransform = (a) => a === `true`,
+      intTransform = (a) => parseInt(a);
 
 const metadata = { // those keys that are not listed in this object are invalid ones
-    updateCheck: {
+    initMessage: {
         default: true,
         values: boolean,
         transform: boolTransform
@@ -17,10 +18,13 @@ const metadata = { // those keys that are not listed in this object are invalid 
         default: locale.suggestLocale(),
         values: locale.getLocales()
     },
-    initMessage: {
-        default: true,
-        values: boolean,
-        transform: boolTransform
+    serverName: {
+        default: "",
+        global: true
+    },
+    sqlMaxResults: {
+        default: 777,
+        transform: intTransform
     },
     suggestions: {
         default: true,
@@ -32,9 +36,10 @@ const metadata = { // those keys that are not listed in this object are invalid 
         values: boolean,
         transform: boolTransform
     },
-    serverName: {
-        default: "",
-        global: true
+    updateCheck: {
+        default: true,
+        values: boolean,
+        transform: boolTransform
     }
 };
 

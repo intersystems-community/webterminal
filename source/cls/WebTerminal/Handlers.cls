@@ -143,4 +143,36 @@ ClassMethod serverNameConfigSet (client As WebTerminal.Engine, value As %String 
     return $$$OK
 }
 
+ClassMethod SQL (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As %Status
+{
+    new $Namespace
+    set $Namespace = client.childNamespace
+    set sql = data.sql
+    set max = $case(data.max = "", 1: 777, :data.max)
+    set rs = ##class(%ResultSet).%New()
+    set obj = ##class(%ZEN.proxyObject).%New()
+    set st = rs.Prepare(sql)
+    if (st '= $$$OK) {
+        set obj.error = "%badSQL("_$System.Status.GetErrorText(st)_")"
+        return client.Send(, obj)
+    }
+    set st = rs.Execute()
+    set obj.headers = ##class(%ListOfDataTypes).%New()
+    set obj.data = ##class(%ListOfDataTypes).%New()
+    set cols = rs.GetColumnCount()
+    for c=1:1:cols {
+        do obj.headers.Insert(rs.GetColumnHeader(c))
+    }
+    while rs.Next() {
+        if (rs.%ROWCOUNT > max) quit
+        set l = ##class(%ListOfDataTypes).%New()
+        do obj.data.Insert(l)
+        for c=1:1:cols {
+            do l.Insert(rs.GetData(c))
+        }
+    }
+    do client.Send(, obj)
+    return $$$OK
+}
+
 }

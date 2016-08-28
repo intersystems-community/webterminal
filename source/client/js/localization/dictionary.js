@@ -460,8 +460,10 @@ export default {
 \r
 \r\x1B[4mAvailable commands:\x1B[0m
 \r\x1B[(special)m/help\x1B[0m\x1B[32GDisplay the short documentation (like you just did).
-\r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
+\r\x1B[(special)m/clear\x1B[0m\x1B[32GClears the screen and all the history.
 \r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
+\r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
+\r\x1B[(special)m/sql\x1B[0m\x1B[32GSwitches terminal to SQL mode. Type SQL commands instead of COS. To exit SQL mode, enter this command again.
 \r\x1B[(special)m/update\x1B[0m\x1B[32GChecks for available updates. It is always recommended to turn update checks in config to not to miss important update.
 \r
 \r\x1b[4mKeys:\x1b[0m
@@ -534,5 +536,13 @@ export default {
     "firstLaunchMessage": {
         en: "Welcome to WebTerminal! Type \x1b[(special)m/help\x1b[0m special command to see how to use all the features.",
         ru: "Добро пожаловать в веб-терминал! Введите специальную команду \x1b[(special)m/help\x1b[0m чтобы узнать обо всех его особенностях."
+    },
+    "badSQL": {
+        en: "Mistake in SQL statement, %s",
+        ru: "Ошибка в SQL-запросе, %s"
+    },
+    "sqlMaxRows": {
+        en: "The maximum number of rows displayed is %s. Adjust the limit by typing <span class='m special'>/config</span> <span class='m variable'>sqlMaxResults</span> = <span class='m constant'>100500</span> if you need more.",
+        ru: "Выведено максимум %s результатов. Если необходимо отображать больше результатов, вы можете изменить этот лимит, набрав <span class='m special'>/config</span> <span class='m variable'>sqlMaxResults</span> = <span class='m constant'>100500</span>."
     }
 };

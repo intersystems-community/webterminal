@@ -66,6 +66,15 @@ html, body {
                 background: inherit;
             }
 
+            &.html {
+                z-index: 2;
+                white-space: normal;
+                height: auto !important;
+                word-break: normal;
+                overflow-x: auto;
+                width: 100%;
+            }
+
         }
 
         .caret {
@@ -84,16 +93,6 @@ html, body {
 
         }
 
-        //.hint { // text hint (autocomplete)
-        //    position: absolute;
-        //    left: 0;
-        //    top: 0;
-        //    color: inherit;
-        //    opacity: 0.6;
-        //    text-shadow: 1px 1px 4px black;
-        //    z-index: 10;
-        //}
-
     }
 
     > .indicator {
@@ -107,6 +106,19 @@ html, body {
         opacity: 0;
         width: 30px;
         @include animation(pulsate infinite 1s);
+    }
+
+    table { // Terminal may include custom HTML. This is a default style.
+        border-collapse: collapse;
+        th, td {
+            padding: 2px;
+        }
+        th {
+            font-weight: bold;
+        }
+        td {
+            border: 1px solid #666;
+        }
     }
 
 }

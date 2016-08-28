@@ -1,6 +1,10 @@
 import * as locale from "../localization";
 import * as output from "../output";
+import * as input from "../input";
 import * as config from "../config";
+import * as terminal from "../index";
+import { prompt } from "../server/handlers";
+import { Terminal } from "../index";
 import { checkUpdate } from "../network";
 
 /**
@@ -10,8 +14,8 @@ export default {
     "help": () => {
         output.print(locale.get(`help`) + `\r\n`);
     },
-    "info": () => {
-        output.print(locale.get(`info`) + `\r\n`);
+    "clear": () => {
+        output.reset();
     },
     "config": (strings) => {
 
@@ -57,6 +61,18 @@ export default {
         );
         if (res !== "")
             output.print(`${ res }\r\n`);
+    },
+    "info": () => {
+        output.print(locale.get(`info`) + `\r\n`);
+    },
+    "sql": () => {
+        let sql = terminal.MODE !== Terminal.prototype.MODE_SQL;
+        terminal.MODE = !sql ? Terminal.prototype.MODE_PROMPT : Terminal.prototype.MODE_SQL;
+        if (sql)
+            input.prompt(`${ terminal.NAMESPACE }:SQL > `);
+        else
+            prompt(terminal.NAMESPACE);
+        return false;
     },
     "update": () => {
         checkUpdate();

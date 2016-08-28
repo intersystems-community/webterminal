@@ -2,12 +2,12 @@ import * as elements from "../elements";
 import * as output from "../output";
 import * as caret from "./caret";
 import * as history from "./history";
-import special from "./special";
-import * as locale from "../localization";
-import { Terminal, userInput } from "../index";
+import { Terminal, onUserInput } from "../index";
+import * as terminal from "../index";
 import { process as processString } from "../parser";
 import { showSuggestions } from "../autocomplete";
 import * as config from "../config";
+import handlers from "./handlers";
 
 export let ENABLED = false,
     PROMPT_CLEARED = false;
@@ -20,7 +20,7 @@ let ORIGIN_LINE_INDEX = 0,
     PROMPT_START_CURSOR_X = 0,
     PROMPT_ARGUMENTS = [],
     SPECIAL_ENABLED = false,
-    MODE = 0;
+    INPUT_MODE = 0;
 
 let oldInputLength = 0,
     promptCallBack = null,
@@ -72,12 +72,12 @@ export function focusInput () {
  * Prompts user to enter text.
  * @param {string} text - String, which will be printed before prompt.
  * @param {{ [timeout]: number, [length]: number }} options - Timeout in seconds.
- * @param {function} callback
- * @param {boolean=false} specialEnabled - Enable special CWT's commands.
+ * @param {function} [callback]
+ * @param {boolean=true} [specialEnabled] - Enable special CWT's commands.
  */
-export function prompt (text, options = {}, callback, specialEnabled = false) {
+export function prompt (text, options = {}, callback = null, specialEnabled = true) {
 
-    MODE = text ? Terminal.prototype.MODE_PROMPT : Terminal.prototype.MODE_READ;
+    INPUT_MODE = text ? Terminal.prototype.MODE_PROMPT : Terminal.prototype.MODE_READ;
     PROMPT_START_CURSOR_X = output.getCursorX();
     PROMPT_START_LINE_INDEX = output.getCurrentLineIndex();
     PROMPT_ARGUMENTS = arguments;
@@ -90,8 +90,10 @@ export function prompt (text, options = {}, callback, specialEnabled = false) {
     ENABLED = true;
     ORIGIN_CURSOR_X = output.getCursorX();
     ORIGIN_LINE_INDEX = output.getCurrentLineIndex();
-    if (typeof callback === `function`)
+    if (typeof callback === `function`) // do not create multiple callback, closure is present
         promptCallBack = callback;
+    else
+        promptCallBack = null;
     clearTimeout(readTimeout);
     if (options.timeout)
         readTimeout = setTimeout(onSubmit, options.timeout * 1000);
@@ -137,7 +139,7 @@ export function getKey (options = {}, callback) {
     if (ENABLED)
         onSubmit();
 
-    MODE = Terminal.prototype.MODE_READ_CHAR;
+    INPUT_MODE = Terminal.prototype.MODE_READ_CHAR;
 
     // for mobile devices the keyboard needs to appear
     showInput();
@@ -225,11 +227,11 @@ function handleKeyPress (event, callback) {
 
     let char = String.fromCharCode(event.keyCode)[event.shiftKey ? "toUpperCase" : "toLowerCase"](),
         code = char.charCodeAt(0),
-        mode = MODE;
+        mode = INPUT_MODE;
     hideInput();
     if (code > 31)
         output.print(char);
-    userInput(String.fromCharCode(code), mode);
+    onUserInput(String.fromCharCode(code), mode);
     callback(code);
 
 }
@@ -342,28 +344,13 @@ export function update () {
 }
 
 function onSubmit () {
-    let value = elements.input.value, // value may change during userInput() call, keep on top
-        mode = MODE,
-        firstVal = (lastParsedString[0] || {}).value,
-        secondVal = (lastParsedString[1] || {}).value;
+    let value = elements.input.value, // value may change during onUserInput() call, keep on top
+        firstVal = (lastParsedString[0] || {}).value;
     history.push(value);
-    if (SPECIAL_ENABLED && firstVal === "/") {
-        userInput(value, Terminal.prototype.MODE_SPECIAL);
-        elements.input.value = "";
-        if (typeof special[secondVal] === "function") {
-            output.print(`\r\n`);
-            special[secondVal](lastParsedString);
-            output.print(`\r\n`);
-        } else {
-            if (typeof secondVal === "undefined")
-                output.print(`\r\n${ locale.get(`askEnSpec`) }\r\n`);
-            else
-                output.print(`\r\n${ locale.get(`noSpecComm`, secondVal) }\r\n`);
-        }
-        reprompt();
-        return;
-    }
-    userInput(value, mode);
+    if (SPECIAL_ENABLED && firstVal === "/")
+        return handlers.special(value, lastParsedString);
+    handlers[terminal.MODE === Terminal.prototype.MODE_SQL ? "sql" : "normal"]
+        (value, lastParsedString, INPUT_MODE);
     ENABLED = false;
     clearTimeout(readTimeout);
     readTimeout = 0;
@@ -373,8 +360,12 @@ function onSubmit () {
     hideInput();
 }
 
+export function clear () {
+    elements.input.value = "";
+}
+
 export function hideInput () {
-    MODE = 0;
+    INPUT_MODE = 0;
     if (elements.input.parentNode)
         elements.input.parentNode.removeChild(elements.input);
     ENABLED = false;

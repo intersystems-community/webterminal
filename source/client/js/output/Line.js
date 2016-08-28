@@ -31,6 +31,9 @@ export function Line (index) {
      * @type {number}
      */
     this.INDEX = index;
+
+    this.HTML_LINE = false;
+    this.HTMLRendered = false;
     
     /**
      * Array of graphic properties. The null value symbolizes that reset is needed.
@@ -80,9 +83,35 @@ function getElement (gp, text) {
 }
 
 /**
+ * Start treating line content as html. Removes it's actual content and replaces with "content".
+ * @param content
+ */
+Line.prototype.setHTML = function (content) {
+    this.HTML_LINE = true;
+    this.text = content;
+    this._lineElement.className = `html line`;
+    this.HTMLRendered = false;
+    this.render();
+    this._lineElement.style.maxHeight =
+        `${ Math.max(SYMBOL_HEIGHT, this._lineElement.offsetHeight) }px`;
+};
+
+Line.prototype.getHeight = function () {
+    return this._lineElement.offsetHeight;
+};
+
+/**
  * Renders text to html.
  */
 Line.prototype.render = function () {
+
+    if (this.HTML_LINE) {
+        if (this.HTMLRendered)
+            return;
+        this._lineElement.innerHTML = this.text;
+        this.HTMLRendered = true;
+        return;
+    }
 
     let tempDisplay = this._lineElement.style.display;
     this._lineElement.style.display = "none";
@@ -140,6 +169,13 @@ function equal (arr1, arr2) {
  * @returns {string}
  */
 Line.prototype.print = function (text, startPos = this.text.length) {
+
+    if (this.HTML_LINE) {
+        this.HTML_LINE = false;
+        this._lineElement.className = `line`;
+        this._lineElement.style.maxHeight = ``;
+        this.text = ``;
+    }
 
     let part = text.substr(0, WIDTH - startPos),
         endPos = startPos + part.length;

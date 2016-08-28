@@ -5,7 +5,7 @@
   "printableName": "Cache Web Terminal",
   "description": "Web-based terminal emulator for Caché administering.",
   "author": "ZitRo",
-  "version": "4.0.0-alpha.60",
+  "version": "4.0.0-alpha.64",
   "gaID": "UA-83005064-2",
   "releaseNumber": 26,
   "scripts": {

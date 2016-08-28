@@ -45,7 +45,7 @@ export function prompt (namespace) {
     terminal.NAMESPACE = namespace;
     input.prompt(`${ namespace } > `, {}, (str) => {
         server.send("Execute", str);
-    }, true);
+    });
 }
 
 export function execError (message = "") {
@@ -62,7 +62,7 @@ export function error (message = "") {
 export function readString (data = {}) {
     input.prompt("", data, (str) => {
         server.send("i", str);
-    });
+    }, false);
 }
 
 export function readChar (data = {}) {

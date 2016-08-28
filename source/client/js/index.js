@@ -13,7 +13,6 @@ let onAuthHandlers = [],
     terminal = null;
 
 export const VERSION = "/* @echo package.version */";
-export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
 
 export let NAMESPACE = "USER",
            MODE = Terminal.prototype.MODE_PROMPT; // PROMPT || SQL, other modes are emulated
@@ -33,7 +32,7 @@ export function authDone () {
     onAuthHandlers.forEach(h => h(terminal));
 }
 
-export function userInput (text, mode) {
+export function onUserInput (text, mode) {
     userInputHandlers.forEach((h) => h(text, mode));
 }
 
