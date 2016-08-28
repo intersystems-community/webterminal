@@ -147,6 +147,13 @@
         "Installer and updater improvements.",
         "Now updater will rollback installation and report an error if any errors are present."
       ]
+    },
+    {
+      "v": "4.0.0-alpha.58",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.58.xml",
+      "changes": [
+        "Wrong user assign during log in when multiple users enter fix"
+      ]
     }
   ]
 }
