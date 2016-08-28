@@ -15,11 +15,8 @@ let onAuthHandlers = [],
 export const VERSION = "/* @echo package.version */";
 export const RELEASE_NUMBER = "/* @echo package.releaseNumber */";
 
-let NAMESPACE = "USER";
-
-export function setNamespace (ns) {
-    return NAMESPACE = ns;
-}
+export let NAMESPACE = "USER",
+           MODE = Terminal.prototype.MODE_PROMPT; // PROMPT || SQL, other modes are emulated
 
 export function onAuth (callback) {
     if (AUTHORIZED) {
@@ -122,88 +119,3 @@ window[addEventListener ? `addEventListener` : `attachEvent`](
     addEventListener ? `load` : `onload`,
     initialize
 );
-
-/*
-Terminal.prototype.initialize = function () {
-
-    var i,
-        favicon = document.getElementById("favicon");
-
-    if (favicon)
-        favicon.href = lib.images.favicon;
-
-    for (i in this.controller.internalCommands) {
-        this.autocomplete.register(this.autocomplete.TYPES.keyword, "/" + i);
-    }
-
-    for (i in this.dictionary.KEYWORDS) {
-        if (i.length < 2) continue;
-        this.autocomplete.register(this.autocomplete.TYPES.keyword, i);
-        this.autocomplete.register(this.autocomplete.TYPES.keyword, i.toUpperCase());
-    }
-
-    for (i = 0; i < this._execReady.length; i++) {
-        this._execReady[i].function.apply(this._execReady[i].this, this._execReady[i].args);
-    }
-    
-    terminal = this;
-    initDone();
-
-};*/
-
-/**
- * This function is executed when server instance ready and basic server info is sent to the client.
- */
-/*
-Terminal.prototype.serverInit = function (data) {
-
-    if (typeof data.system === "string") {
-        var nodeInfo = data.system.split(":"); // [PCName, Instance]
-        data.node = nodeInfo[0];
-        data.instance = nodeInfo[1];
-    }
-
-    if (data.node && data.instance) {
-        document.title = (data.name ? data.name + " " : "") + data.instance
-            + " (" + data.node + ")" + " - Caché WEB Terminal";
-        this.output.print(this.localization.get(
-            data.name ? 55 : 54, data.node, data.instance, data.name ? data.name : undefined
-        ) + "\r\n");
-    }
-
-};*/
-
-/**
- * Function to register execution of other functions when terminal in ready state. (when all
- * modules loaded)
- *
- * @param thisArg
- * @param {function} callback
- * @param {Array} [args]
- */
-/*
-Terminal.prototype.execReady = function (thisArg, callback, args) {
-
-    this._execReady.push({
-        function: callback,
-        this: thisArg,
-        args: args
-    });
-
-};*/
-
-/**
- * Resets terminal settings.
- */
-/*
-Terminal.prototype.reset = function () {
-
-    var _this = this;
-
-    this.output.printSync(this.localization.get(9) + "\r\n");
-
-    window.addEventListener("beforeunload", function () {
-        _this.storage.clear();
-    })
-
-};*/

@@ -42,7 +42,7 @@ export function init (data = {}) {
 }
 
 export function prompt (namespace) {
-    terminal.setNamespace(namespace);
+    terminal.NAMESPACE = namespace;
     input.prompt(`${ namespace } > `, {}, (str) => {
         server.send("Execute", str);
     }, true);
