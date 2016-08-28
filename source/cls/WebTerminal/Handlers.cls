@@ -5,6 +5,7 @@
 /// blocks the WebSocket input while processing.
 /// This class is inherited by WebTerminal.Engine class.
 /// Methods must return positive status or an error if one happened.
+/// Method must take two arguments, the first is the WebTerminal.Engine instance, and data as second
 Class WebTerminal.Handlers
 {
 

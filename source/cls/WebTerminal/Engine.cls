@@ -60,7 +60,6 @@ Method OnPostServer() As %Status
     if (..corePID '= 0) {
         do ..SendChunk(..corePID, "e")
     }
-    kill ^CacheTemp.WebTerminal.Watching // @deprecated
     quit $$$OK
 }
 
@@ -83,14 +82,6 @@ Method ExecuteSQL(query As %String = "") As %Status
         do rset.%Display()
     }
     quit $$$OK
-}
-
-/// This method transforms error 
-ClassMethod ParseError(string As %String) As %String
-{
-    set string = $REPLACE($REPLACE(string, ">", "<"), ".Engine.", "<")
-    quit "ERROR: " _ $PIECE(string, "<", 2) _
-        $EXTRACT($PIECE(string, "<", 4), 2, *)
 }
 
 /// This method holds process and expects only one package from
@@ -120,7 +111,7 @@ Method RequireAuthorization() As %Status
         return "Invalid key"
     }
 
-    set username = $LISTGET(lb, 1)
+    set username = $LISTGET(list, 1)
     set ns = $Namespace
     znspace "%SYS"
     do ##class(Security.Users).Get(username, .userProps)
@@ -134,7 +125,7 @@ Method RequireAuthorization() As %Status
     set loginStatus = $System.Security.Login(username)
 
     if (loginStatus '= 1) {
-        return "Unable to log in as " _ username
+        return $System.Status.GetErrorText(loginStatus)
     }
 
     if (namespace) {
