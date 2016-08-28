@@ -124,12 +124,12 @@ function freeStack () {
 /**
  * Send message to a server.
  * @param {string} handler - Handler name.
- * @param {*} data
+ * @param {*} [data]
  * @param {function} [callback]
  */
 export function send (handler, data, callback) {
     let message = {
-        d: data,
+        d: data || null,
         h: handler
     };
     if (typeof callback === "function") {
