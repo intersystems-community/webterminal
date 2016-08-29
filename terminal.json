@@ -154,6 +154,17 @@
       "changes": [
         "Wrong user assign during log in when multiple users enter fix"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.66",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.66.xml",
+      "changes": [
+        "Case-insensitive grammar support, grammar extended with for, if and while statements",
+        "Improved SQL terminal mode add",
+        "Clear special command add",
+        "HTML output WebTerminal's escape sequence add",
+        "Basic grammar set for SQL mode add"
+      ]
     }
   ]
 }
