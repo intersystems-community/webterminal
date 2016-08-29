@@ -345,6 +345,7 @@ rule("expression").split(
         char("/"),
         char("_"),
         char("="),
+        char("'").char(["=", ">", "<"]),
         char(["<", ">"]).split(
             char("="),
             any()
@@ -439,5 +440,68 @@ rule("nonEmptyArgumentList").branch().split(
 ).exit().end();
 
 rule("SQLMode").split(
-    char({ value: "/", class: "special" }).call("CWTSpecial").exit()
-).end();
+    char({ value: "/", class: "special" }).call("CWTSpecial").exit(),
+    id({ CI, value: "select", class: "keyword" }).whitespace().split(
+        id({ CI, value: "top", class: "keyword" }).whitespace().constant().whitespace(),
+        any()
+    ).split(
+        char({ value: "*", class: "special" }),
+        branch().id({ class: "variable", type: "sqlFieldName" }).optWhitespace().branch().split(
+            char("-").char(">").optWhitespace()
+                .id({ class: "variable", type: "sqlFieldName" }).optWhitespace().merge(),
+            any()
+        ).split(
+            id({ CI, value: "as", class: "keyword" }).whitespace().id({ class: "variable" })
+                .optWhitespace(),
+            any()
+        ).split(
+            char(",").optWhitespace().merge(),
+            any()
+        )
+    ).whitespace().id({ CI, value: "from", class: "keyword" }).whitespace().split(
+        char({ value: "%", type: "sqlClassname", class: "classname" }),
+        any()
+    ).branch().id({ type: "sqlClassname", class: "classname" }).split(
+        char({ value: "_", type: "sqlClassname", class: "classname" }).merge(),
+        char({ value: ".", type: "sqlClassname", class: "classname" })
+            .id({ CI, type: "sqlClassname", class: "classname" })
+    ).whitespace().split(
+        id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
+            .whitespace(),
+        any()
+    ).split(
+        id({ CI, value: "order", class: "keyword" }).whitespace()
+            .id({ CI, value: "by", class: "keyword" }).whitespace()
+            .branch().id({ class: "variable", type: "sqlFieldName" }).optWhitespace().split(
+                id({ CI, value: "desc", class: "keyword" }).optWhitespace(),
+                id({ CI, value: "asc", class: "keyword" }).optWhitespace(),
+                any()
+            ).split(
+                char(",").optWhitespace().merge(),
+                any()
+            ),
+        any()
+    )
+).exit().end();
+
+rule("SQLExpression").split(
+    constant(),
+    char("(").call("SQLExpression").char(")"),
+    id({ CI, value: "not", class: "keyword" }).call("SQLExpression"),
+    id({ class: "variable", type: "sqlFieldName" })
+).optWhitespace().split(
+    split(
+        char("+"),
+        char("-"),
+        char("*"),
+        char("/"),
+        char("="),
+        char(["<", ">"]).split(
+            char("="),
+            any()
+        ),
+        id({ CI, value: "and", class: "keyword" }),
+        id({ CI, value: "or", class: "keyword" })
+    ).optWhitespace().call("SQLExpression"),
+    any()
+).exit().end();

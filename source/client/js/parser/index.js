@@ -15,7 +15,7 @@ const
 
 let wrap = (a) => a,
     automaton = wrap(/* @echo autocompleteAutomaton */),
-    rules = wrap(/* @echo ruleMappings */); // { "CWTSpecial": 1, "rule": state }
+    rules = wrap(/* @echo ruleMappings */); // { "CWTInput": 1, "CWTSpecial": 3, "rule": state }
 
 export function getAutomaton () {
     return automaton;
@@ -67,14 +67,16 @@ function splitString (string) {
  * State machine processes the string.
  * @param {string} string - String to process.
  * @param cursorPos - Cursor position in this string. Has influence on autocomplete suggestions.
- * @param {boolean=true} suggestionsEnabled
+ * @param {boolean=true} [suggestionsEnabled]
+ * @param {string=CWTInput} [initialRule]
  * @returns {{lexemes: {type: number, value: *, class: string}[], suggestions: *}}
  */
-export function process (string, cursorPos = string.length, suggestionsEnabled = true) {
+export function process (string, cursorPos = string.length, suggestionsEnabled = true,
+                         initialRule = "CWTInput") {
     let tape = splitString(string),
         stack = [], // holds state numbers
         tryStack = [],
-        INITIAL_STATE = 1,
+        INITIAL_STATE = rules[initialRule] || 1,
         parsedStringLength = 0,
         state = INITIAL_STATE,
         pos = 0,
@@ -130,7 +132,7 @@ export function process (string, cursorPos = string.length, suggestionsEnabled =
             startSub;
         // console.log(`${ state } (${parsedStringLength}/${string.length}) | [${ tape[pos].value
         //     }] Begin look through the rule. [ruleIndex = ${ ruleIndex }] Stack`, stack.slice());
-        for (; ruleIndex < automaton[state].length; ruleIndex++) {
+        for (; ruleIndex < (automaton[state] || []).length; ruleIndex++) {
             let rule = automaton[state][ruleIndex],
                 lexeme = tape[pos];
             // console.log(

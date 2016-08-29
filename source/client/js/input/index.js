@@ -283,7 +283,8 @@ export function update () {
             : elements.input.selectionEnd,
         selLen = selEnd - selStart,
         { lexemes, suggestions, collector } =
-            processString(elements.input.value, selStart, SUGGEST),
+            processString(elements.input.value, selStart, SUGGEST,
+                terminal.MODE === Terminal.prototype.MODE_SQL ? "SQLMode" : "CWTInput"),
         printedLength = 0, printingClass = "";
 
     for (let i = 0; i < lexemes.length; i++) {

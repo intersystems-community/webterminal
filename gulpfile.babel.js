@@ -43,14 +43,15 @@ gulp.task("prepare", function (cb) {
     let aut = [];
     console.log(`Compiling autocomplete and highlight rules...`);
     try {
-        context.context.autocompleteAutomaton = JSON.stringify(aut = getAutomaton());
-        context.context.ruleMappings = JSON.stringify(getRuleMappings());
+        aut = getAutomaton();
+        context.context.autocompleteAutomaton = JSON.stringify(aut.automaton);
+        context.context.ruleMappings = JSON.stringify(aut.ruleMappings);
     } catch (e) {
         console.error.apply(console, e);
         cb(e);
     }
-    console.log(`Automaton ready and has ${ aut.length } states with ${
-        aut.reduce((a, b) =>
+    console.log(`Automaton ready and has ${ aut.automaton.length } states with ${
+        aut.automaton.reduce((a, b) =>
              (typeof a === "number" ? a : a.length) + (typeof b === "number" ? b : b.length))
     } rules.`);
     cb();

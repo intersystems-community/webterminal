@@ -39,7 +39,8 @@ let automaton = [
 //   [                                    // match ",", go to 4 and send 15 to stack
 //      [{ type: TYPE_CHAR, value: "," }, 4, 15]
 //   ]
-];
+],
+    MAPPING_OPTIMIZED = false;
 
 /**
  * Holds positions of assigned
@@ -76,18 +77,22 @@ function optimize (a) {
                     automaton[a][b][2] -= 1;
             }
         }
+        if (!MAPPING_OPTIMIZED) { for (let m in ruleMappings) {
+            if (ruleMappings[m] > i)
+                ruleMappings[m] -= 1;
+        } }
         automaton.splice(i, 1);
         i--;
     }
+    MAPPING_OPTIMIZED = true;
     return automaton;
 }
 
-export function getAutomatonTable () {
-    return optimize(automaton);
-}
-
-export function getRuleMappings () {
-    return ruleMappings;
+export function getAutomaton () {
+    return {
+        automaton: optimize(automaton),
+        ruleMappings: ruleMappings
+    };
 }
 
 function getTablePiece (thisArg) {

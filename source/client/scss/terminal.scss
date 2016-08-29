@@ -110,14 +110,16 @@ html, body {
 
     table { // Terminal may include custom HTML. This is a default style.
         border-collapse: collapse;
+        border: 1px solid #666;
         th, td {
             padding: 2px;
+            border: 1px solid #666;
+        }
+        td:nth-child(2n-1), th:nth-child(2n-1) {
+            background: #222;
         }
         th {
             font-weight: bold;
-        }
-        td {
-            border: 1px solid #666;
         }
     }
 
