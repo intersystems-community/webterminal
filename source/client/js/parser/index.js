@@ -303,7 +303,7 @@ export function process (string, cursorPos = string.length, suggestionsEnabled =
                     // console.log(`Setting suggestState=${lastSucceededState} as it wasn't set until the end. lastErrorAt=${lastErrorAt}, pos=${pos}`);
                     suggestState = lastSucceededState;
                     // console.log(subString, "<-->", tape[pos - 1].value);
-                    subString = tape[pos - 1].value;
+                    subString = tape[pos - 1].value.toLowerCase(); // toLowerCase() - temporary fix. Should handle all Caché cases, but will fail on case sensitive upper cases.
                 }
             }
         } else {
