@@ -165,6 +165,14 @@
         "HTML output WebTerminal's escape sequence add",
         "Basic grammar set for SQL mode add"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.68",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.68.xml",
+      "changes": [
+        "Fixed a WebTerminal's error when SQL query has an empty response",
+        "Enhanced grammar with sql delete, multi-dimensional properties and $System keyword"
+      ]
     }
   ]
 }
