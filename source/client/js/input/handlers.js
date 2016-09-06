@@ -37,12 +37,16 @@ export default {
             if (data.error) {
                 output.printLine(`\x1b[(wrong)m${ locale.parse(data.error) }\x1b[0m`);
             } else {
-                let html = [`<table><thead><tr><th>`, (data.headers || []).join(`</th><th>`),
-                    `</th></tr></thead><tbody><tr>`, (data.data || []).slice(0, max).map(r =>
+                data.headers = data.headers || [];
+                data.data = data.data || [];
+                let html = [`<table><thead><tr><th>`, data.headers.join(`</th><th>`),
+                    `</th></tr></thead><tbody><tr>`, data.data.slice(0, max).map(r =>
                     `<td>` + (r || []).join(`</td><td>`) + `</td>`).join(`</tr><tr>`),
                     `</tr>`, data.data.length >= max
                         ? `<tr><td colspan="${ data.headers.length }">${
-                        locale.get(`sqlMaxRows`, max) }</td></tr>` : ``,`</tbody></table>`];
+                        locale.get(`sqlMaxRows`, max) }</td></tr>` : data.data.length === 0
+                        ? `<tr><td colspan="${ data.headers.length }">${ locale.get("sqlNoData")
+                        }</td></tr>` : ``, `</tbody></table>`];
                 output.printLine(`\r\n\x1b!<HTML>${ html.join("") }</HTML>`);
             }
             input.prompt(`${ terminal.NAMESPACE }:SQL > `);

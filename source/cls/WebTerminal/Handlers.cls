@@ -157,20 +157,22 @@ ClassMethod SQL (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As
         return client.Send(, obj)
     }
     set st = rs.Execute()
-    set obj.headers = ##class(%ListOfDataTypes).%New()
-    set obj.data = ##class(%ListOfDataTypes).%New()
+    set headers = ##class(%ListOfDataTypes).%New()
+    set dt = ##class(%ListOfDataTypes).%New()
     set cols = rs.GetColumnCount()
     for c=1:1:cols {
-        do obj.headers.Insert(rs.GetColumnHeader(c))
+        do headers.Insert(rs.GetColumnHeader(c))
     }
     while rs.Next() {
         if (rs.%ROWCOUNT > max) quit
         set l = ##class(%ListOfDataTypes).%New()
-        do obj.data.Insert(l)
+        do dt.Insert(l)
         for c=1:1:cols {
             do l.Insert(rs.GetData(c))
         }
     }
+    set:(headers.Count() > 0) obj.headers = headers
+    set:(dt.Count() > 0) obj.data = dt
     do client.Send(, obj)
     return $$$OK
 }
