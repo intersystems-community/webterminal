@@ -364,6 +364,9 @@ rule("variable").split(
         id({ class: "variable", type: "variable" }),
         char({ value: "%", class: "variable", type: "variable" })
             .id({ class: "variable", type: "variable" })
+    ).split(
+        char("(").call("nonEmptyArgumentList").char(")"),
+        any()
     ).branch().split(
         char({ value: ".", type: "*" }).call("member").merge(),
         any()
@@ -397,21 +400,27 @@ rule("class").split(
         ).branch().id({ type: "classname", class: "classname" }).split(
             char({ value: ".", type: "classname", class: "classname" }).merge(),
             char({ value: ")", class: "special", type: "*" }).char({ value: ".", type: "*" })
-                .split(
-                    char({ value: "#", type: "parameter", class: "keyword" })
-                        .id({ type: "parameter", class: "keyword" }),
-                    split(
-                        char({ value: "%", type: "publicClassMember", class: "keyword" }),
-                        any()
-                    ).id({ type: "publicClassMember", class: "keyword" }).split(
-                        char("(").call("argumentList").char(")")
-                    )
-            )
+                .call("classStatic")
         ),
         id({ CI, value: "super", class: "special" })
             .char({ value: "(", class: "special" })
             .call("argumentList")
             .char({ value: ")", class: "special" })
+    ),
+    char({ value: "$", class: "special" }).id({ CI, value: "system", class: "special" })
+        .char({ value: ".", type: "classname", class: "classname" })
+        .id({ type: "classname", class: "classname" })
+        .char({ value: ".", type: "*" }).call("classStatic")
+).exit().end();
+
+rule("classStatic").split(
+    char({ value: "#", type: "parameter", class: "keyword" })
+        .id({ type: "parameter", class: "keyword" }),
+    split(
+        char({ value: "%", type: "publicClassMember", class: "keyword" }),
+        any()
+    ).id({ type: "publicClassMember", class: "keyword" }).split(
+        char("(").call("argumentList").char(")")
     )
 ).exit().end();
 
@@ -441,6 +450,10 @@ rule("nonEmptyArgumentList").branch().split(
 
 rule("SQLMode").split(
     char({ value: "/", class: "special" }).call("CWTSpecial").exit(),
+    id({ CI, value: "delete", class: "keyword" }).whitespace()
+        .call("SQLFrom").whitespace()
+        .id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
+        .whitespace(),
     id({ CI, value: "select", class: "keyword" }).whitespace().split(
         id({ CI, value: "top", class: "keyword" }).whitespace().constant().whitespace(),
         any()
@@ -458,14 +471,7 @@ rule("SQLMode").split(
             char(",").optWhitespace().merge(),
             any()
         )
-    ).whitespace().id({ CI, value: "from", class: "keyword" }).whitespace().split(
-        char({ value: "%", type: "sqlClassname", class: "classname" }),
-        any()
-    ).branch().id({ type: "sqlClassname", class: "classname" }).split(
-        char({ value: "_", type: "sqlClassname", class: "classname" }).merge(),
-        char({ value: ".", type: "sqlClassname", class: "classname" })
-            .id({ CI, type: "sqlClassname", class: "classname" })
-    ).whitespace().split(
+    ).whitespace().call("SQLFrom").whitespace().split(
         id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
             .whitespace(),
         any()
@@ -484,10 +490,23 @@ rule("SQLMode").split(
     )
 ).exit().end();
 
+rule("SQLFrom").id({ CI, value: "from", class: "keyword" }).whitespace().split(
+    char({ value: "%", type: "sqlClassname", class: "classname" }),
+    any()
+).branch().id({ type: "sqlClassname", class: "classname" }).split(
+    char({ value: "_", type: "sqlClassname", class: "classname" }).merge(),
+    char({ value: ".", type: "sqlClassname", class: "classname" })
+        .id({ CI, type: "sqlClassname", class: "classname" }).split(
+        char({ value: "_", type: "sqlClassname", class: "classname" })
+            .id({ CI, type: "sqlClassname", class: "classname" }),
+        any()
+    )
+).exit().end();
+
 rule("SQLExpression").split(
     constant(),
     char("(").call("SQLExpression").char(")"),
-    id({ CI, value: "not", class: "keyword" }).call("SQLExpression"),
+    id({ CI, value: "not", class: "keyword" }).optWhitespace().call("SQLExpression"),
     id({ class: "variable", type: "sqlFieldName" })
 ).optWhitespace().split(
     split(
