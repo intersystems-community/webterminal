@@ -39,7 +39,8 @@ ClassMethod Auth() As %Status
     set cookie = $System.Encryption.Base64Encode(%session.Key)
     set ^WebTerminal("AuthUser", cookie) = $LB(
         $Username, // username
-        $horolog // granting ticket date
+        $Horolog, // granting ticket date
+        $Get(%request.Data("NS", 1))
     )
     write "{""key"":""" _ cookie _ """}"
     return $$$OK

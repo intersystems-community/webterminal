@@ -86,12 +86,11 @@ Method ExecuteSQL(query As %String = "") As %Status
 
 /// This method holds process and expects only one package from
 /// the client - it includes authorization key.
-Method RequireAuthorization() As %Status
+Method RequireAuthorization() As %List
 {
     set data = ..GetMessage(..#AuthorizationTimeout)
-    return:('$IsObject(data.d)) $case(data.error = "", 1: "Unresolved request format", :data.error)
+    return:('$IsObject(data.d)) $LB($case(data.error = "", 1: "Unresolved request format", :data.error))
     set authKey = data.d.key
-    set namespace = data.d.ns
 
     set key = $ORDER(^WebTerminal("AuthUser", ""))
     set list = ""
@@ -108,31 +107,28 @@ Method RequireAuthorization() As %Status
     }
 
     if (list = "") { // not found
-        return "Invalid key"
+        return $LB("Invalid key")
     }
 
     set username = $LISTGET(list, 1)
+    set namespace = $LISTGET(list, 3)
     set ns = $Namespace
     znspace "%SYS"
     do ##class(Security.Users).Get(username, .userProps)
     znspace ns
 
     if $get(userProps("Enabled")) '= 1 {
-        return "User " _ username _ " is not enabled in the system"
+        return $LB("User " _ username _ " is not enabled in the system")
     }
 
     set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
     set loginStatus = $System.Security.Login(username)
 
     if (loginStatus '= 1) {
-        return $System.Status.GetErrorText(loginStatus)
+        return $LB($System.Status.GetErrorText(loginStatus))
     }
 
-    if (namespace) {
-        znspace namespace
-    }
-
-    quit ""
+    return $LB("", namespace)
 }
 
 /// See WebTerminal.Handlers
@@ -196,9 +192,14 @@ Method SendLoginInfo()
 /// Triggered when new connection established.
 Method Server() As %Status
 {
-    set authMessage = ..RequireAuthorization()
+    set authRes = ..RequireAuthorization()
+    set authMessage = $ListGet(authRes, 1)
     if (authMessage = "") {
-        set ..CurrentNamespace = $Znspace
+        set namespace = $ListGet(authRes, 2)
+        if (namespace '= "") {
+            try { znspace namespace } catch (e) { }
+        }
+        set ..CurrentNamespace = $Namespace
         do ..SendLoginInfo()
         do ..ClientLoop()
         do ..Send("oLocalized", "%wsAbnormal")

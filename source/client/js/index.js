@@ -4,8 +4,9 @@ import * as output from "./output";
 import * as input from "./input";
 import * as locale from "./localization";
 import * as server from "./server";
+import * as config from "./config";
 import { initDone } from "./init";
-import { get } from "./lib";
+import { get, getURLParams } from "./lib";
 
 let onAuthHandlers = [],
     userInputHandlers = [],
@@ -95,10 +96,13 @@ Terminal.prototype.execute = function (command, { echo = false, prompt = false }
 };
 
 function initialize () {
+    let text = locale.get(`beforeInit`),
+        urlParams = getURLParams();
     terminal = new Terminal();
-    let text = locale.get(`beforeInit`);
+
     output.printLine(text);
-    get("auth", (obj) => {
+    let ns = urlParams["NS"] || urlParams["ns"] || config.get("defaultNamespace");
+    get("auth" + (ns ? `?NS=${ encodeURIComponent(ns) }` : ""), (obj) => {
         if (!obj.key) {
             output.printLine(locale.get(`unSerRes`), JSON.stringify(obj));
             return;

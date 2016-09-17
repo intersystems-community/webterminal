@@ -9,6 +9,9 @@ const boolean = ["true", "false"],
       intTransform = (a) => parseInt(a);
 
 const metadata = { // those keys that are not listed in this object are invalid ones
+    defaultNamespace: {
+        default: ""
+    },
     initMessage: {
         default: true,
         values: boolean,
