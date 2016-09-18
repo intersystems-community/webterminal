@@ -20,7 +20,7 @@ export function checkUpdate () {
 
 function handleNetworkData (data) {
     input.clearPrompt();
-    if (data[`motd`])
+    if (data[`motd`] && config.get(`initMessage`))
         output.printLine(data[`motd`]);
     if (data[`versions`] instanceof Array)
         printUpdate(data[`versions`]);

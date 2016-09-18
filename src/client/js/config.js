@@ -61,7 +61,7 @@ let config =
         let o = JSON.parse(storage.get(STORAGE_NAME));
         for (let p in o) { if (!metadata.hasOwnProperty(p)) delete o[p]; }
         return o;
-    }) || {}));
+    })() || {}));
 
 onInit(() => locale.setLocale(config.language));
 
