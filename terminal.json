@@ -191,6 +191,14 @@
       "changes": [
         "Tracing feature restore, tracing refactoring"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.75",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.75.xml",
+      "changes": [
+        "Some autocomplete incorrect suggestions fixed",
+        "Favorites feature restored"
+      ]
     }
   ]
 }
