@@ -184,6 +184,13 @@
         "History state enhancements, history configurable size",
         "Favicon add"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.73",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.73.xml",
+      "changes": [
+        "Tracing feature restore, tracing refactoring"
+      ]
     }
   ]
 }
