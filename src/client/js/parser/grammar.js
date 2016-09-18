@@ -222,15 +222,24 @@ rule("CWTSpecial").split(
 
 rule("cosCommand").split(
     id([
-        { CI, value: "d", class: "keyword" },
-        { CI, value: "do", class: "keyword" }
+        { CI, value: "break", class: "keyword" },
+        { CI, value: "b", class: "keyword" }
+    ]).call("postCondition").optWhitespace().split(
+        string(),
+        constant(),
+        any()
+    ).exit(),
+    id({ CI, value: "continue", class: "keyword" }).call("postCondition").exit(),
+    id([
+        { CI, value: "do", class: "keyword" },
+        { CI, value: "d", class: "keyword" }
     ]).call("postCondition").whitespace().branch().call("doArgument").optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     ),
     id([
-        { CI, value: "w", class: "keyword" },
-        { CI, value: "write", class: "keyword" }
+        { CI, value: "write", class: "keyword" },
+        { CI, value: "w", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
         char({ value: "!", class: "special" }),
         tryCall("expression"),
@@ -241,8 +250,30 @@ rule("cosCommand").split(
         any().exit()
     ),
     id([
-        { CI, value: "zw", class: "keyword" },
-        { CI, value: "zwrite", class: "keyword" }
+        { CI, value: "hang", class: "keyword" },
+        { CI, value: "h", class: "keyword" }
+    ]).call("postCondition").whitespace().call("expression").exit(),
+    id({ CI, value: "halt", class: "keyword" }).call("postCondition").exit(),
+    id([
+        { CI, value: "job", class: "keyword" },
+        { CI, value: "j", class: "keyword" }
+    ]).call("postCondition").whitespace().branch().call("doArgument").optWhitespace().split( // temp
+        char(",").optWhitespace().merge(),
+        any().exit()
+    ).exit(),
+    id([
+        { CI, value: "merge", class: "keyword" },
+        { CI, value: "m", class: "keyword" }
+    ]).call("postCondition").whitespace().split(
+        tryCall("variable"),
+        call("global")
+    ).optWhitespace().char("=").optWhitespace().split(
+        tryCall("variable"),
+        call("global")
+    ).exit(),
+    id([
+        { CI, value: "zwrite", class: "keyword" },
+        { CI, value: "zw", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
         tryCall("expression"),
         any()
@@ -251,23 +282,35 @@ rule("cosCommand").split(
         any().exit()
     ).exit(),
     id([
-        { CI, value: "s", class: "keyword" },
-        { CI, value: "set", class: "keyword" }
+        { CI, value: "set", class: "keyword" },
+        { CI, value: "s", class: "keyword" }
     ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().char("=").optWhitespace()
         .call("expression").optWhitespace().split(
             char(",").optWhitespace().merge(),
             any().exit()
         ),
+    id({ CI, value: "try", class: "keyword" }).optWhitespace().char("{").branch().optWhitespace()
+        .split(
+            char("}").optWhitespace().id({ CI, value: "catch", class: "keyword" })
+                .optWhitespace().split(
+                    char("(").id({ class: "variable" }).char(")"),
+                    id({ class: "variable" })
+                ).optWhitespace().char("{").branch().optWhitespace().split(
+                    char("}"),
+                    call("cosCommand").whitespace().merge()
+                ),
+            call("cosCommand").whitespace().merge()
+    ).exit(),
     id([
-        { CI, value: "k", class: "keyword" },
-        { CI, value: "kill", class: "keyword" }
+        { CI, value: "kill", class: "keyword" },
+        { CI, value: "k", class: "keyword" }
     ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     ),
     id([
-        { CI, value: "r", class: "keyword" },
-        { CI, value: "read", class: "keyword" }
+        { CI, value: "read", class: "keyword" },
+        { CI, value: "r", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
         string(),
         split(
@@ -286,8 +329,34 @@ rule("cosCommand").split(
         any().exit()
     ),
     id([
-        { CI, value: "zn", class: "keyword" },
-        { CI, value: "znspace", class: "keyword" }
+        { CI, value: "quit", class: "keyword" },
+        { CI, value: "q", class: "keyword" },
+        { CI, value: "return", class: "keyword" }
+    ]).call("postCondition").optWhitespace().split(
+        tryCall("expression"),
+        any()
+    ).exit(),
+    id([
+        { CI, value: "tstart", class: "keyword" },
+        { CI, value: "ts", class: "keyword" },
+        { CI, value: "tcommit", class: "keyword" },
+        { CI, value: "tc", class: "keyword" }
+    ]).call("postCondition").exit(),
+    id([
+        { CI, value: "trollback", class: "keyword" },
+        { CI, value: "tro", class: "keyword" }
+    ]).call("postCondition").exit(),
+    id([
+        { CI, value: "xecute", class: "keyword" },
+        { CI, value: "x", class: "keyword" }
+    ]).call("postCondition").whitespace().branch().string().call("postCondition").optWhitespace()
+        .split(
+            char(",").optWhitespace().merge(),
+            any().exit()
+        ),
+    id([
+        { CI, value: "znspace", class: "keyword" },
+        { CI, value: "zn", class: "keyword" }
     ]).call("postCondition").whitespace().string().exit(),
     id([
         { CI, value: "if", class: "keyword" },
@@ -457,7 +526,33 @@ rule("function").char({ value: "$", class: "keyword" }).split(
         any()
     ),
     any()
-).id({ CI, class: "keyword" }).split(
+).id([
+    { CI, class: "keyword", value: "data" },
+    { CI, class: "keyword", value: "explode" },
+    { CI, class: "keyword", value: "get" },
+    { CI, class: "keyword", value: "increment" },
+    { CI, class: "keyword", value: "isobject" },
+    { CI, class: "keyword", value: "isvaliddouble" },
+    { CI, class: "keyword", value: "isvalidnum" },
+    { CI, class: "keyword", value: "lb" },
+    { CI, class: "keyword", value: "length" },
+    { CI, class: "keyword", value: "listbuild" },
+    { CI, class: "keyword", value: "listdata" },
+    { CI, class: "keyword", value: "listfind" },
+    { CI, class: "keyword", value: "listfromstring" },
+    { CI, class: "keyword", value: "listget" },
+    { CI, class: "keyword", value: "listlength" },
+    { CI, class: "keyword", value: "listnext" },
+    { CI, class: "keyword", value: "listsame" },
+    { CI, class: "keyword", value: "listtostring" },
+    { CI, class: "keyword", value: "listvalid" },
+    { CI, class: "keyword", value: "list" },
+    { CI, class: "keyword", value: "order" },
+    { CI, class: "keyword", value: "piece" },
+    { CI, class: "keyword", value: "replace" },
+    { CI, class: "keyword", value: "random" },
+    { CI, class: "keyword" }
+]).split(
     char("(").call("argumentList").char(")"),
     any()
 ).exit().end();
