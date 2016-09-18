@@ -68,9 +68,14 @@
 
             <div class="pageLayout" id="downloads">
                 <h1 class="center">Downloads</h1>
-                <p>
-                    Use better <b>/update</b> terminal command (from CWT v2.0 only) to update terminal application.
-                </p>
+                <img src="img/logos.png" style="width: 150px" class="imgFloatRight"/>
+                <h2>How to Install</h2>
+                <ol>
+                    <li>Download and import latest XML file into any namespace, compiling all the classes. (As system user)</li>
+                    <li>Open <b>http://[host]:[port]/terminal/</b> (slash at end is required) web page. (For example, <a href="http://localhost:57772/terminal/">http://localhost:57772/terminal/</a>)</li>
+                    <li>Enter user credentials (_SYSTEM / SYS by default).</li>
+                    <li>That's all!</li>
+                </ol>
                 <ul id="downloadLinks">
                     <h2>Newest Versions<sup><span style="color: orange">alpha</span></sup>:</h2>
                     <li>
@@ -229,30 +234,38 @@
                         <a href="files/WebTerminal-0.4-stable.xml">CacheWebTerminal-0.4 stable</a>
                     </li>
                 </ul>
-		<h2>Installation guide for the latest version</h2>
-                <img src="img/logos.png" style="width: 300px" class="imgFloatRight"/>
-		        <p>
-                    Just import xml file to <b class="warn">any</b> namespace.
-                </p>
+                <h2>Notes</h2>
+                <ul>
+                    <li>Your <b class="warn">Caché version at least 2013.1</b> (WebSockets support);</li>
+                    <li>User have system privileges to install the terminal;</li>
+                    <li class="warn">Note that anyone who is able to authorize on /terminal/ web application
+                        will have almost full control under your Caché!</li>
+                </ul>
                 <p>
                     Importing WebTerminal.Installer class will also create /terminal WEB-application.
                     The WEB-application will be protected with a password authorization by default.
                 </p>
-                <h2>Usage</h2>
                 <p>
-                    Open <b>http://[host]:[port]/terminal/</b> (slash at end is required!).
+                    Use <b>/update</b> terminal command (from CWT v2.0 only) to automatically update terminal application to the newest version.
                 </p>
-                <b>For Terminal Versions Under 3.0:</b>
                 <p>
-                    Open <b>http://[host]:[port]/csp/sys/webterminal/index.csp</b>.
+                    Please, take a note that starting from v4.0.0-alpha.53, Caché WebTerminal
+                    collects anonymous statistics during the installation and usage process. The
+                    information WebTerminal collects includes:
                 </p>
-                <h2>Ensure that:</h2>
                 <ul>
-                    <li>Your <b class="warn">Caché version at least 2013.1</b> (WebSockets support);</li>
-                    <li>User have system privileges to install the terminal</li>
-                    <li class="warn">Note that anyone who is able to authorize on /terminal/ web application
-                        will have almost full control under your Caché!</li>
+                    <li>Success of the installation/update process, error messages occurring during the WebTerminal installation;</li>
+                    <li>Version of Caché ($zv), WebTerminal's version;</li>
+                    <li>Usage identifier telling whether WebTerminal is used for local or remote sessions.</li>
                 </ul>
+                <p>
+                    The only goal of statistics collection is to have analytics over WebTerminal
+                    usage by users for creating a better product. Any error reports collected in
+                    this way will help <a href="#feedback">me</a>, the developer of WebTerminal to
+                    improve the application. This data is completely anonymous and will never
+                    include any licensing or Caché usage information, so feel free to use
+                    WebTerminal anytime, anywhere, for your needs.
+                </p>
             </div>
 
             <div class="pageLayout" id="history">
