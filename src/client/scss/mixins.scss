@@ -1,0 +1,72 @@
+@mixin user-select ($value: none) {
+    -webkit-user-select: $value;
+    -moz-user-select: $value;
+    -ms-user-select: $value;
+    user-select: $value;
+}
+
+@mixin transition ($options...) {
+    -webkit-transition: $options;
+    -moz-transition: $options;
+    -ms-transition: $options;
+    -o-transition: $options;
+    transition: $options;
+}
+
+@mixin filter ($options) {
+    -khtml-filter: $options;
+    -moz-filter: $options;
+    -o-filter: $options;
+    -ms-filter: $options;
+    -webkit-filter: $options;
+    filter: $options;
+}
+
+@mixin transform ($options) {
+    -webkit-transform: $options;
+    -moz-transform: $options;
+    -ms-transform: $options;
+    -o-transform: $options;
+    transform: $options;
+}
+
+@mixin animation-delay ($options) {
+    -webkit-animation-delay: $options;
+    -moz-animation-delay: $options;
+    -o-animation-delay: $options;
+    animation-delay: $options;
+}
+
+@mixin keyframes ($animationName) {
+    @-webkit-keyframes #{$animationName} {
+        @content;
+    }
+    @-moz-keyframes #{$animationName} {
+        @content;
+    }
+    @-ms-keyframes #{$animationName} {
+        @content;
+    }
+    @-o-keyframes #{$animationName} {
+        @content;
+    }
+    @keyframes #{$animationName} {
+        @content;
+    }
+}
+
+@mixin animation ($animate...) {
+    $max: length($animate);
+    $animations: '';
+    @for $i from 1 through $max {
+        $animations: #{$animations + nth($animate, $i)};
+        @if $i < $max {
+            $animations: #{$animations + ", "};
+        }
+    }
+    -webkit-animation: $animations;
+    -moz-animation:    $animations;
+    -ms-animation:     $animations;
+    -o-animation:      $animations;
+    animation:         $animations;
+}
