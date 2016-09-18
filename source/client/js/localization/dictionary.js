@@ -464,7 +464,8 @@ export default {
 \r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
 \r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
 \r\x1B[(special)m/sql\x1B[0m\x1B[32GSwitches terminal to SQL mode. Type SQL commands instead of COS. To exit SQL mode, enter this command again.
-\r\x1B[(special)m/update\x1B[0m\x1B[32GChecks for available updates. It is always recommended to turn update checks in config to not to miss important update.
+\r\x1B[(special)m/trace\x1B[0m ...\x1B[32GEnables global/file tracing. Type this commang to get more information.
+\r\x1B[(special)m/update\x1B[0m\x1B[32GChecks for available updates.
 \r
 \r\x1b[4mKeys:\x1b[0m
 \r\x1B[(special)mTAB\x1B[0m\x1B[32GComplete the input with proposed autocomplete variant.
@@ -548,5 +549,37 @@ export default {
     "sqlNoData": {
         en: "Nothing to display",
         ru: "Тут ничего нет"
+    },
+    "tracingUsage": {
+        en: "To watch for changes in file, enter \x1b[(special)m/trace\x1b[0m \x1b[(string)m/path/to/file\x1b[0m.\r\n"
+            + "For changes in global dimentions use \x1b[(special)m/trace\x1b[0m \x1b[(global)m^globalName\x1b[0m.\r\n"
+            + "To stop watching for changes, enter \x1b[(special)m/trace\x1b[0m \x1b[(global)mstop\x1b[0m.",
+        ru: "Чтобы следить за изменениями в файле, введите \x1b[(special)m/trace\x1b[0m \x1b[(string)m/path/to/file\x1b[0m.\r\n"
+            + "Для наблюдения за измерениями глобалов используйте \x1b[(special)m/trace\x1b[0m \x1b[(global)m^globalName\x1b[0m.\r\n"
+            + "Чтобы остановить наблюдение, введите \x1b[(special)m/trace\x1b[0m \x1b[(global)mstop\x1b[0m."
+    },
+    "traceStopOK": {
+        en: "Tracing stopped.",
+        ru: "Все наблюдения остановлены."
+    },
+    "traceStopNotOK": {
+        en: "Nothing is being traced.",
+        ru: "Нет активных наблюдений."
+    },
+    "traceBad": {
+        en: "Unable to trace %s.",
+        ru: "Невозможно трассировать %s."
+    },
+    "traceStart": {
+        en: "Starting tracing %s.",
+        ru: "Начинаем наблюдать за %s."
+    },
+    "traceStop": {
+        en: "Stopping tracing %s.",
+        ru: "Завершаем наблюдать за %s."
+    },
+    "traceSight": {
+        en: "Currently tracing %s.",
+        ru: "На данный момент наблюдаем за %s."
     }
 };

@@ -177,4 +177,47 @@ ClassMethod SQL (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As
     return $$$OK
 }
 
+ClassMethod Trace (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As %Status
+{
+    set obj = ##class(%ZEN.proxyObject).%New()
+    set obj.OK = 1
+    set obj.started = client.Trace(data)
+    if (obj.started '= 1) {
+        set obj.stopped = client.StopTracing(data)
+        if (obj.stopped '= 1) {
+            set obj.OK = 0
+        }
+    }
+    do client.Send(, obj)
+    return $$$OK
+}
+
+ClassMethod StopTracing (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As %Status
+{
+    set obj = ##class(%ZEN.proxyObject).%New()
+    set obj.OK = $LISTLENGTH(client.Watches) > 0
+    while ($LISTLENGTH(client.Watches) > 0) {
+        set stopped = client.StopTracing($LIST(client.Watches, 1))
+    }
+    do client.Send(, obj)
+    return $$$OK
+}
+
+ClassMethod TracingStatus (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As %Status
+{
+    set obj = ##class(%ZEN.proxyObject).%New()
+    set oldWatch = client.Watches
+    set obj.changes = client.CheckTracing()
+    set obj.stop = ##class(%ZEN.proxyObject).%New()
+    if ($LENGTH(oldWatch) > $LENGTH(client.Watches)) {
+        for i=1:1:$LISTLENGTH(oldWatch) {
+            if ($LISTFIND(client.Watches, $LISTGET(oldWatch, i)) = 0) {
+                set $PROPERTY(obj.stop, $LISTGET(oldWatch, i)) = 1
+            }
+        }
+    }
+    do client.Send(, obj)
+    return $$$OK
+}
+
 }

@@ -169,6 +169,7 @@ rule("CWTInput").split(
 // As a result, rule "root" is an infinite loop, as merge() at the end always starts the chain over.
 
 rule("CWTSpecial").split(
+    // Please, keep following items ordered alphabetically.
     id({ value: "help", class: "special" }),
     id({ value: "clear", class: "special" }),
     id({ value: "config", class: "special" }).whitespace().split(
@@ -192,6 +193,18 @@ rule("CWTSpecial").split(
     ),
     id({ value: "info", class: "special" }),
     id({ value: "sql", class: "special" }),
+    id({ value: "trace", class: "special" }).whitespace().split(
+        id({ value: "stop", class: "global" }),
+        tryCall("global"),
+        split(
+            char({ type: "filename", class: "string" }),
+            id({ type: "filename", class: "string" })
+        ).branch().split(
+            char({ type: "filename", class: "string" }),
+            id({ type: "filename", class: "string" }),
+            whitespace()
+        ).merge()
+    ),
     id({ value: "update", class: "special" })
 ).exit().end();
 

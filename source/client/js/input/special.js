@@ -3,12 +3,15 @@ import * as output from "../output";
 import * as input from "../input";
 import * as config from "../config";
 import * as terminal from "../index";
+import * as server from "../server";
+import * as tracing from "../tracing";
 import { prompt } from "../server/handlers";
 import { Terminal } from "../index";
 import { checkUpdate } from "../network";
 
 /**
  * Special commands handler. Each key of this object is a command of type "/<key>".
+ * Please, keep items ordered alphabetically.
  */
 export default {
     "help": () => {
@@ -75,6 +78,39 @@ export default {
         else
             prompt(terminal.NAMESPACE);
         return false;
+    },
+    "trace": (strings) => {
+        if (strings.length < 4) {
+            output.print(locale.get(`tracingUsage`) + `\r\n`);
+            let list = tracing.getList();
+            if (list) {
+                output.print(locale.get(`traceSight`, list) + `\r\n`);
+            }
+            return;
+        }
+        if (strings[3].value === "stop") {
+            server.send("StopTracing", {}, (res = { OK: false }) => {
+                if (res.OK) tracing.stop();
+                output.printAsync(`${ locale.get(res.OK ? "traceStopOK" : "traceStopNotOK") }\r\n`);
+            });
+            return;
+        }
+        let watchFor = strings.slice(3).map(e => e.value).join("");
+        server.send("Trace", watchFor, (res = { OK: 0 }) => {
+            if (!res.OK) {
+                output.printAsync(`${ locale.get("traceBad", watchFor) }\r\n`);
+                return;
+            }
+            if (res["started"]) {
+                tracing.start(watchFor);
+                output.printAsync(`${ locale.get("traceStart", watchFor) }\r\n`);
+                return;
+            }
+            if (res["stopped"]) {
+                tracing.stop(watchFor);
+                output.printAsync(`${ locale.get("traceStop", watchFor) }\r\n`);
+            }
+        });
     },
     "update": () => {
         checkUpdate();

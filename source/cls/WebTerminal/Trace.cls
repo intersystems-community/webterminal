@@ -4,29 +4,28 @@ Class WebTerminal.Trace Extends Common
 /// Property is used to store watching files/globals. 
 Property Watches As %List;
 
-/// Watch position in file on global
+/// Watch position in file or global
 Property WatchesCaret As %Numeric [ MultiDimensional ];
 
-/// Chechs for correct watch source and sets watch target to ..Watches
+/// Checks for correct watch source and sets watch target to ..Watches
 /// Returns status of this operation
 Method Trace(name) As %Status
 {
     set s = $CHAR(0)
     set watches = s _ $LISTTOSTRING(..Watches, s) _ s
-    if ($FIND(watches, s_name_s) '= 0) q 0 // if watch already defined
+    if ($FIND(watches, s_name_s) '= 0) return 0 // if watch already defined
 
     if ($EXTRACT(name,1,1) = "^") { // watching global
-        s g = 0
+        set g = 0
         try {
-            if (($data(@name))'=0) s g = 1
+            if (($data(@name)) '= 0) set g = 1
         } catch {  }
         set $ZERROR = ""
         if (g = 1) {
             set ..Watches = ..Watches _ $LISTBUILD(name)
-            set ..WatchesCaret(name,0) = $QUERY(@name@(""),-1) // last
-            set ..WatchesCaret(name,1) = "?"
-            do ..SendData(name, ..#ClientTrace)
-            q 1
+            set ..WatchesCaret(name, 0) = $QUERY(@name@(""), -1) // last
+            set ..WatchesCaret(name, 1) = "?"
+            return 1
         }
     } else { // watch file
         if (##class(%File).Exists(name)) {
@@ -34,59 +33,55 @@ Method Trace(name) As %Status
             set file = ##class(%File).%New(name)
             set ..WatchesCaret(name,0) = file.Size // current watch cursor position
             set ..WatchesCaret(name,1) = file.DateModified
-            do ..SendData(name, ..#ClientTrace)
-            q 1
+            return 1
         }
     }
 
-    q 0
+    return 0
 }
 
 /// Removes watch from watches list
 /// Returns success status
 Method StopTracing(name) As %Status
 {
-    // absurdly, but working
     set s = $CHAR(0)
     set watches = s _ $LISTTOSTRING(..Watches,s) _ s
     set newWatches = $REPLACE(watches, s_name_s, s)
     set ..Watches = $LISTFROMSTRING($EXTRACT(newWatches, 2, *-1), s)
     if (watches '= newWatches) {
-        k ..WatchesCaret(name) // really removed
-        do ..SendData(name, ..#ClientStopTrace)
+        kill ..WatchesCaret(name)
     }
-    quit watches '= newWatches
+    return watches '= newWatches
 }
 
 /// Returns a list current watches
 Method ListWatches() As %String
 {
-    set no=0
+    set no = 0
     set s = "Watching: " _ $CHAR(10)
     while $LISTNEXT(..Watches, no, value) {
         set s = s_"(pos: "_..WatchesCaret(value,0)_
-        "; mod: "_..WatchesCaret(value,1)_") "_value_$CHAR(10)
+            "; mod: "_..WatchesCaret(value,1)_") "_value_$CHAR(10)
     }
-    q s
+    return s
 }
 
 /// Return null string if global hadn't been updated
 /// This method watches only for tail of global and detects if global still alive
-Method GetTraceGlobalModified(watch) As %String
+Method GetTraceGlobalModified(watch) As %List
 {
     set data = ""
     if ($data(@watch)=0) {
         do ..StopTracing(watch)
-        q "removed"
+        return $lb($C(27)_"[(wrong)m[D]"_$C(27)_"[0m", $C(13, 10))
     }
     for {
         set query = $QUERY(@..WatchesCaret(watch,0))
         quit:query=""
-        if (data="") set data = "modified"
         set ..WatchesCaret(watch,0) = query
-        set data = data _ $CHAR(13, 10) _ @query
+        set data = data _ $case(data = "", 1: "", :$CHAR(13, 10)) _ @query
     }
-    q data
+    return $lb($C(27)_"[(special)m[M]"_$C(27)_"[0m", data)
 }
 
 Method GetTraceFileModified(watch) As %String
@@ -96,53 +91,54 @@ Method GetTraceFileModified(watch) As %String
     set modDate = file.DateModified
     set output = ""
     if (size < 0) { // file had been deleted
-
         do ..StopTracing(watch)
-        q "removed"
-
+        return $lb($C(27)_"[(wrong)m[D]"_$C(27)_"[0m", $C(13, 10))
     }
 
     if (size > ..WatchesCaret(watch, 0)) {
 
-        set output = "updated" _ $CHAR(13, 10)
-        set stream=##class(%Stream.FileBinary).%New()
-        set sc=stream.LinkToFile(watch)
+        set stream = ##class(%Stream.FileCharacter).%New()
+        set sc = stream.LinkToFile(watch)
         do stream.MoveTo(..WatchesCaret(watch, 0) + 1)
-        set readed = stream.Read(size - ..WatchesCaret(watch, 0))
-        set output=output_readed
+        set read = stream.Read(size - ..WatchesCaret(watch, 0))
+        set output = output _ read
         set ..WatchesCaret(watch, 0) = size
         set ..WatchesCaret(watch, 1) = file.DateModified
+        return $lb($C(27)_"[(constant)m[A]"_$C(27)_"[0m", output)
 
     } elseif ((size < ..WatchesCaret(watch, 0)) || (file.DateModified '= ..WatchesCaret(watch, 1))) {
 
-        set output = "modified" _ $CHAR(13, 10)
-        set output = output _ "Bytes changed: " _ (size - ..WatchesCaret(watch, 0))
+        set output = output _ "Size change: " _ (size - ..WatchesCaret(watch, 0))
         set ..WatchesCaret(watch, 0) = size
         set ..WatchesCaret(watch, 1) = file.DateModified
+        return $lb($C(27)_"[(special)m[M]"_$C(27)_"[0m", output)
 
     } // else file not changed
-    q output
+
+    return $lb("", "")
 }
 
 Method CheckTracing() As %String
 {
     set no = 0
     set data = ""
-    set overal = ""
+    set overall = ""
     set watchList = ..Watches // do not remove or simplify: ..Watches can be modified
     while $LISTNEXT(watchList, no, value) {
-        if ($EXTRACT(value, 1, 1) = "^") {
+        set global = $EXTRACT(value, 1, 1) = "^"
+        if global {
             set data = ..GetTraceGlobalModified(value)
         } else {
             set data = ..GetTraceFileModified(value)
         }
-        if (data '= "") {
-            set overal = $ZDATETIME($NOW(),1,1) _ " " _
-            value _ ": " _ data _ $CHAR(10)
+        if ($LISTGET(data, 2) '= "") {
+            set overall = $LISTGET(data, 1) _ " " _ $C(27) _ "[2m" _ $ZDATETIME($NOW(),1,1)
+            _ $C(27) _ "[0m " _ $C(27) _ "[(" _ $case(global, 1: "global", :"string") _ ")m"
+            _ value _ $C(27) _ "[0m" _ $CHAR(13, 10) _ $LISTGET(data, 2) _ $CHAR(13, 10)
         }
         set data = ""
     }
-    q overal
+    return overall
 }
 
 }

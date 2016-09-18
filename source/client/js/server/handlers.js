@@ -27,9 +27,9 @@ export function prompt (namespace) {
 }
 
 export function execError (message = "") {
-    output.print(
+    output.printAsync(
         message.replace(/^(<.*>)/, `\x1b[31m$1\x1b[0m`)
-            .replace(/zLoop\+[0-9]+\^WebTerminal\.Core\.[0-9]+/, "")
+            .replace(/zLoop\+[0-9]+\^WebTerminal\.Core\.[0-9]+/, "") + "\r\n"
     );
 }
 

@@ -3,6 +3,7 @@ import * as elements from "../elements";
 import { onWindowLoad } from "../lib";
 import { ESC_CHARS_MASK, applyEscapeSequence } from "./escStateMachine";
 import esc from "./esc";
+import * as input from "../input";
 import { onInit } from "../init";
 
 const LINE_UPDATE_TIMEOUT = 10;
@@ -103,6 +104,12 @@ export function getTopLineIndex () {
  */
 export function setCursorYToLineIndex (index) {
     return setCursorY(index - getTopLineIndex() + 1, false);
+}
+
+export function printAsync (text) {
+    input.clearPrompt();
+    print(text);
+    input.reprompt();
 }
 
 /**

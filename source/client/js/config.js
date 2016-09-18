@@ -1,6 +1,7 @@
 import * as storage from "./storage";
 import * as locale from "./localization";
 import * as server from "./server";
+import * as output from "./output";
 import { onInit } from "./init";
 
 const STORAGE_NAME = `terminal-config`;
@@ -46,7 +47,8 @@ const metadata = { // those keys that are not listed in this object are invalid 
     updateCheck: {
         default: true,
         values: boolean,
-        transform: boolTransform
+        transform: boolTransform,
+        onSet: (v) => output.print(v ? ":)" : ":(")
     }
 };
 
@@ -102,6 +104,8 @@ export function set (key, value, localOnly = false) {
         });
     }
     config[key] = v;
+    if (metadata[key].onSet)
+        metadata[key].onSet(v);
     onUpdate(new Set([key]));
     return "";
 }
