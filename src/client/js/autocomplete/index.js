@@ -58,6 +58,8 @@ export function suggest (state, base = "") {
             }
             if (row[0].type === TYPE_ID) {
                 if (base !== "" && typeof row[0].value.value === "string") {
+                    if (row[0].value.value === base)
+                        break;
                     if (row[0].value.value.indexOf(base) === 0) {
                         arr.push([{
                             value: row[0].value.value.substr(base.length),
@@ -98,7 +100,7 @@ function addVariants (variants = []) {
 export function showSuggestions (show, suggestions = [], collector = []) {
 
     let suggesting = false,
-        current = CURRENT + 1,
+        current = ++CURRENT,
         staticSuggestions = [];
 
     hint.reset();
@@ -123,9 +125,7 @@ export function showSuggestions (show, suggestions = [], collector = []) {
     if (staticSuggestions.length)
         hint.add(staticSuggestions);
 
-    if (suggesting && show) {
-        CURRENT++;
-    } else {
+    if (!suggesting || !show) {
         hint.hide();
     }
 

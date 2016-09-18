@@ -5,9 +5,21 @@ import * as config from "../config";
 import * as terminal from "../index";
 import * as server from "../server";
 import * as tracing from "../tracing";
+import * as favorite from "../favorite";
 import { prompt } from "../server/handlers";
 import { Terminal } from "../index";
 import { checkUpdate } from "../network";
+
+function tableObject (keyHeader, valHeader, object) {
+    let longest = keyHeader.length + 2;
+    for (let p in object) if (p.length > longest) longest = p.length;
+    output.print(
+        `\x1b[1m${ keyHeader }\x1b[0m\x1b[${ longest }G  \x1b[1m${ valHeader }\x1b[0m\r\n`
+    );
+    for (let p in object) {
+        output.print(`\x1b[(constant)m${ p }\x1b[0m\x1b[${ longest }G= ${ object[p] }\r\n`);
+    }
+}
 
 /**
  * Special commands handler. Each key of this object is a command of type "/<key>".
@@ -66,6 +78,40 @@ export default {
         );
         if (res !== "")
             output.print(`${ res }\r\n`);
+    },
+    "favorite": (chain) => {
+        if (chain.length < 4) {
+            let list = favorite.list();
+            if (Object.keys(list).length > 0) {
+                tableObject(locale.get(`favKey`), locale.get(`favVal`), list);
+                output.newLine();
+            }
+            output.print(locale.get(`favDesc`) + `\r\n`);
+            return;
+        }
+        if (chain[3].value === "delete") {
+            if (chain[4] && chain[4].value === " " && chain[5]) {
+                let result = favorite.clear(chain[5].value);
+                output.print(locale.get(`favDel${ result ? "OK" : "NotOK" }`, chain[5].value)
+                    + `\r\n`);
+            } else {
+                favorite.clear();
+                output.print(locale.get(`favDel`) + `\r\n`);
+            }
+            return;
+        }
+        if (chain.length < 6) {
+            let val = favorite.get(chain[3].value);
+            if (val)
+                setTimeout(() => input.setValue(val), 1);
+            else
+                output.print(locale.get(`noFav`, chain[3].value) + `\r\n`);
+        }
+        let s = chain.slice(5).map(e => e.value).join("");
+        if (s && chain[3].value) {
+            favorite.set(chain[3].value, s);
+            output.print(locale.get(`favSet`, chain[3].value) + `\r\n`);
+        }
     },
     "info": () => {
         output.print(locale.get(`info`) + `\r\n`);

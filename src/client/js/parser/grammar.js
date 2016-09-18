@@ -191,6 +191,18 @@ rule("CWTSpecial").split(
             constant({ class: "constant" })
         )
     ),
+    id({ value: "favorite", class: "special" }).whitespace().split(
+        id({ value: "delete", class: "wrong" }).whitespace().split(
+            id({ class: "constant", type: "favorites" }),
+            constant({ type: "favorites" })
+        ),
+        split(
+            id({ class: "constant", type: "favorites" }),
+            constant({ type: "favorites" })
+        ).whitespace().split(
+            any().call("cosCommand")
+        )
+    ),
     id({ value: "info", class: "special" }),
     id({ value: "sql", class: "special" }),
     id({ value: "trace", class: "special" }).whitespace().split(

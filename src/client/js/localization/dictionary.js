@@ -462,9 +462,10 @@ export default {
 \r\x1B[(special)m/help\x1B[0m\x1B[32GDisplay the short documentation (like you just did).
 \r\x1B[(special)m/clear\x1B[0m\x1B[32GClears the screen and all the history.
 \r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
+\r\x1B[(special)m/favorite\x1B[0m ...\x1B[32GAllows you to save or restore any freauently used commands. Enter this command to get more information.
 \r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
 \r\x1B[(special)m/sql\x1B[0m\x1B[32GSwitches terminal to SQL mode. Type SQL commands instead of COS. To exit SQL mode, enter this command again.
-\r\x1B[(special)m/trace\x1B[0m ...\x1B[32GEnables global/file tracing. Type this commang to get more information.
+\r\x1B[(special)m/trace\x1B[0m ...\x1B[32GEnables global/file tracing. Type this command to get more information.
 \r\x1B[(special)m/update\x1B[0m\x1B[32GChecks for available updates.
 \r
 \r\x1b[4mKeys:\x1b[0m
@@ -581,5 +582,47 @@ export default {
     "traceSight": {
         en: "Currently tracing %s.",
         ru: "На данный момент наблюдаем за %s."
+    },
+    "favDesc": {
+        en: "To save the command, enter \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mname\x1b[0m \x1b[(keyword)mdo\x1b[0m \x1b[(string)many COS code\x1b[0m."
+            + "\r\nTo load the command, enter \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mname\x1b[0m."
+            + "\r\nTo delete saved commands, use \x1b[(special)m/favorite\x1b[0m \x1b[(wrong)mdelete\x1b[0m \x1b[(constant)mname\x1b[0m."
+            + "\r\nTo delete all saved commands, use just \x1b[(special)m/favorite\x1b[0m \x1b[(wrong)mdelete\x1b[0m.",
+        ru: "Для того чтобы запомнить команду, введите \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mимя\x1b[0m \x1b[(keyword)mdo\x1b[0m \x1b[(string)mлюбой COS код\x1b[0m."
+            + "\r\nДля того чтобы загрузить команду, введите \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mимя\x1b[0m."
+            + "\r\nЧтобы удалять сохранённые команды, используйте \x1b[(special)m/favorite\x1b[0m \x1b[(wrong)mdelete\x1b[0m \x1b[(constant)mимя\x1b[0m."
+            + "\r\nЧтобы удалить все команды, введите \x1b[(special)m/favorite\x1b[0m \x1b[(wrong)mdelete\x1b[0m.",
+    },
+    "favs": {
+        en: "Saved commands:",
+        ru: "Сохранённые команды:"
+    },
+    "favSet": {
+        en: "Command \x1b[(constant)m%s\x1b[0m saved.",
+        ru: "Команда \x1b[(constant)m%s\x1b[0m сохранена."
+    },
+    "favDelOK": {
+        en: "Command \x1b[(constant)m%s\x1b[0m deleted.",
+        ru: "Комманда \x1b[(constant)m%s\x1b[0m удалена."
+    },
+    "favDelNotOK": {
+        en: "No \x1b[(constant)m%s\x1b[0m command.",
+        ru: "Комманда \x1b[(constant)m%s\x1b[0m не была задана."
+    },
+    "favDel": {
+        en: "All commands are deleted.",
+        ru: "Все команды удалены."
+    },
+    "favKey": {
+        en: "Name",
+        ru: "Имя"
+    },
+    "favVal": {
+        en: "Value",
+        ru: "Значение"
+    },
+    "noFav": {
+        en: "Command \x1b[(constant)m%s\x1b[0m has never been saved.",
+        ru: "Команда \x1b[(constant)m%s\x1b[0m не была сохранена ранее."
     }
 };

@@ -14,13 +14,13 @@ import buffer from "vinyl-buffer";
 import fs from "fs";
 import preprocessify from "preprocessify";
 //import sourcemaps from "gulp-sourcemaps";
-import { getAutomaton, getRuleMappings } from "./source/client/js/parser/_build";
+import { getAutomaton, getRuleMappings } from "./src/client/js/parser/_build";
 
 let INSTALLER_CLASS_NAME = `${ pkg["packageName"] }.Installer`;
 
 let dir = __dirname,
     dest = `${dir}/build`,
-    source = `${dir}/source`,
+    source = `${dir}/src`,
     context = {
         context: {
             package: pkg,

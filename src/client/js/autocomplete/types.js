@@ -1,4 +1,5 @@
 import * as server from "../server";
+import * as favorites from "../favorite";
 
 function collectOfType (collector, type) {
     let arr = [];
@@ -64,6 +65,11 @@ export default {
                 return;
             cb(Object.keys(d).filter(s => s.indexOf(v) === 0).map(s => s.substr(v.length)));
         });
+    },
+    "favorites": (collector, cb) => {
+        let v = collectOfType(collector, "favorites");
+        cb(Object.keys(favorites.list()).filter(s => s.indexOf(v) === 0)
+            .map(s => s.substr(v.length)));
     },
     "member": (collector, cb) => {
         let mem = collectOfType(collector, "member"),
