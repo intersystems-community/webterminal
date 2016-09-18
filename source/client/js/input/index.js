@@ -37,6 +37,7 @@ window.addEventListener(`keydown`, (e) => {
 }, true);
 window.addEventListener(`click`, focusInput, true);
 elements.input.addEventListener(`input`, () => {
+    history.setLast(elements.input.value);
     update();
     inputUpdated();
 });
@@ -200,6 +201,8 @@ function keyDown (e) {
         }, 1); // update in the next frame
     }
     if (e.keyCode === 38 || e.keyCode === 40) { // up || down
+        if (history.isLast())
+            history.set(elements.input.value);
         elements.input.value = history.get(e.keyCode - 39);
         update();
         inputUpdated();

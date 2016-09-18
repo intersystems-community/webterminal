@@ -177,6 +177,7 @@ rule("CWTSpecial").split(
             id({ value: "defaultNamespace", class: "variable" }),
             id({ value: "initMessage", class: "variable" }),
             id({ value: "language", class: "variable" }),
+            id({ value: "maxHistorySize", class: "variable" }),
             id({ value: "suggestions", class: "variable" }),
             id({ value: "syntaxHighlight", class: "variable" }),
             id({ value: "serverName", class: "variable" }),

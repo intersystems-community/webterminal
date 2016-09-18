@@ -23,8 +23,10 @@ export default {
             for (let p in list) {
                 if (list[p].global !== global)
                     continue;
-                output.print(`\x1b[(variable)m${ p }\x1b[0m\x1b[${ pad }G= \x1b[(constant)m${
-                    list[p].value }\x1b[0m\r\n`);
+                let val = typeof list[p].value === "string" && list[p].value.length === 0
+                    ? `\x1b[(string)m""\x1b[0m`
+                    : `\x1b[(constant)m${ list[p].value }\x1b[0m`;
+                output.print(`\x1b[(variable)m${ p }\x1b[0m\x1b[${ pad }G= ${ val }\r\n`);
             }
         };
 

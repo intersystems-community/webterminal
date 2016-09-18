@@ -32,6 +32,7 @@ themeLink.setAttribute("rel", "stylesheet");
 terminal.appendChild(output);
 
 onWindowLoad(() => {
+    document.head.appendChild(faviconLink);
     document.head.appendChild(themeLink);
     document.body.appendChild(terminal);
 });

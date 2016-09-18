@@ -21,6 +21,10 @@ const metadata = { // those keys that are not listed in this object are invalid 
         default: locale.suggestLocale(),
         values: locale.getLocales()
     },
+    maxHistorySize: {
+        default: 200,
+        transform: intTransform
+    },
     serverName: {
         default: "",
         global: true
@@ -51,7 +55,11 @@ for (let p in metadata)
     defaults[p] = metadata[p].default;
 
 let config =
-    (Object.assign(Object.assign({}, defaults), JSON.parse(storage.get(STORAGE_NAME)) || {}));
+    (Object.assign(Object.assign({}, defaults), (() => {
+        let o = JSON.parse(storage.get(STORAGE_NAME));
+        for (let p in o) { if (!metadata.hasOwnProperty(p)) delete o[p]; }
+        return o;
+    }) || {}));
 
 onInit(() => locale.setLocale(config.language));
 
@@ -85,7 +93,7 @@ export function set (key, value, localOnly = false) {
             metadata[key].values.map(v => `\x1b[(constant)m${ v }\x1b[0m`).join(", "));
     let v = metadata[key].transform ? metadata[key].transform(value) : value,
         oldConfig = config[key];
-    if (!localOnly && metadata[key].global) {
+    if (!localOnly && metadata[key] && metadata[key].global) {
         server.send(`${ key }ConfigSet`, v, (ok) => {
             if (ok === 1)
                 return;
@@ -100,7 +108,7 @@ export function set (key, value, localOnly = false) {
 
 export function reset () {
     for (let p in config) {
-        if (!metadata[p].global)
+        if (metadata[p] && !metadata[p].global)
             config[p] = metadata[p].default;
     }
     onUpdate(new Set(Object.keys(metadata)));
