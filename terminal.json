@@ -1,5 +1,5 @@
 {
-  "motd": "The experimental version of WebTerminal v4 is almost ready for open beta release. Please, consider submitting \u001b!URL=https://github.com/intersystems-ru/webterminal/issues (bug reports) if something goes wrong while using WebTerminal. Check the development progress \u001b!URL=https://github.com/intersystems-ru/webterminal/issues/61 (here) or \u001b!URL=http://intersystems-ru.github.io/webterminal (read) more about WebTerminal.",
+  "motd": "The open beta version of WebTerminal v4 is here! Please, consider submitting \u001b!URL=https://github.com/intersystems-ru/webterminal/issues (bug reports) if something goes wrong.",
   "versions": [
     {
       "v": "4.0.0-alpha.1",
