@@ -173,6 +173,17 @@
         "Fixed a WebTerminal's error when SQL query has an empty response",
         "Enhanced grammar with sql delete, multi-dimensional properties and $System keyword"
       ]
+    },
+    {
+      "v": "4.0.0-alpha.71",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.71.xml",
+      "changes": [
+        "Default namespace option add",
+        "NS GET parameter add",
+        "User initial namespace support",
+        "History state enhancements, history configurable size",
+        "Favicon add"
+      ]
     }
   ]
 }
