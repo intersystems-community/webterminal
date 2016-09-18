@@ -6,12 +6,15 @@ Visit [project page](http://intersystems-ru.github.io/webterminal) for more deta
 ### Preview
 
 Syntax highlighting & intelligent autocomplete!
+
 ![2016-09-18_212035](https://cloud.githubusercontent.com/assets/4989256/18618027/33a4b544-7de6-11e6-9bf5-a535a2dc4bca.png)
 
 Embedded SQL mode!
+
 ![2016-09-18_212244](https://cloud.githubusercontent.com/assets/4989256/18618029/33a7183e-7de6-11e6-9a98-cceacca7b078.png)
 
 Even more features!
+
 ![2016-09-18_212325](https://cloud.githubusercontent.com/assets/4989256/18618028/33a4c246-7de6-11e6-9ee9-4970223b0b31.png)
 
 ### Key Features
