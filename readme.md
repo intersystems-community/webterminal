@@ -1,25 +1,28 @@
 # Caché Web Terminal
 Web-based Caché terminal for InterSystems products. Access your database from everywhere!
 
-Visit [project page](http://intersystems-ru.github.io/webterminal) for more details, **download** the latest version [here](http://intersystems-ru.github.io/webterminal/#downloads).
+Visit [project page](http://intersystems-ru.github.io/webterminal) for more details and **download** the latest version [here](http://intersystems-ru.github.io/webterminal/#downloads).
 
-### Installation
-Download the latest version from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a>
-and import XML file into any namespace. Later you can update application only by typing `/update` command in terminal.
+### Preview
 
-### Usage
-After installation, you will be able to access application at `http://[host]:[port]/terminal/` (slash at the end is required).
-Type `/help` there to get more information.
+Syntax highlighting & intelligent autocomplete!
+![2016-09-18_212035](https://cloud.githubusercontent.com/assets/4989256/18618027/33a4b544-7de6-11e6-9bf5-a535a2dc4bca.png)
 
-### Features
+Embedded SQL mode!
+![2016-09-18_212244](https://cloud.githubusercontent.com/assets/4989256/18618029/33a7183e-7de6-11e6-9a98-cceacca7b078.png)
+
+Even more features!
+![2016-09-18_212325](https://cloud.githubusercontent.com/assets/4989256/18618028/33a4c246-7de6-11e6-9ee9-4970223b0b31.png)
+
+### Key Features
 <table>
 	<tr>
 		<td class="info">Native browser application</td>
-		<td>This allows to access terminal both from desktop or mobile devices. No Telnet, only HTTP and WebSocket.</td>
+		<td>Allows to access Caché terminal both from desktop or mobile devices.</td>
 	</tr>
 	<tr>
 		<td class="info">Autocompletion</td>
-		<td>Enables you to complete your input faster. Except keywords, autocomplete also available for classes, properties and globals.</td>
+		<td>Type faster. Autocomplete is available in the most cases.</td>
 	</tr>
 	<tr>
 		<td class="info">Tracing</td>
@@ -27,50 +30,49 @@ Type `/help` there to get more information.
 	</tr>
 	<tr>
 		<td class="info">SQL mode</td>
-		<td>Execute SQL queries simply by switching to SQL mode.</td>
+		<td>A convenient way to execute SQL queries.</td>
 	</tr>
 	<tr>
 		<td class="info">Syntax highlighting</td>
-		<td>Visually attractive highlighted input.</td>
-	</tr>
-	<tr>
-		<td class="info">Appearance</td>
-		<td>Change the appearance of web-terminal or even code you own.</td>
+		<td>Intelligently highlighted input.</td>
 	</tr>
 	<tr>
 		<td class="info">Favorites</td>
-		<td>Remember your best commands for later execution.</td>
-	</tr>
-	<tr>
-		<td class="info">Definitions</td>
-		<td>Define any piece of code as short expression and make your administering experience faster.</td>
+		<td>Save commands you execute frequently.</td>
 	</tr>
 	<tr>
 		<td class="info">Security</td>
-		<td>Access to WebSocket is granted only if client will pass a session key given by csp page.</td>
+		<td>All you need is to protect /terminal/ entry point, and all sessions are guaranteed to be secure.</td>
 	</tr>
 	<tr>
 		<td class="info">Self-updating</td>
-		<td>Terminal version 3.1.4 and higher can be automatically updated by using `/update` command.</td>
+		<td>Terminal version 4 and higher prompts to update automatically, so you will not miss the important update.</td>
 	</tr>
 	<tr>
 		<td class="info">Explore!</td>
-		<td>Hope you will find this useful.</td>
+		<td>Enjoy using WebTerminal!</td>
 	</tr>
 </table>
+
+### Installation
+Download the latest version from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import XML file into any namespace.
+
+### Usage
+After installation, you will be able to access application at `http://[host]:[port]/terminal/` (slash at the end is required).
+Type `/help` there to get more information.
 
 Development
 -----------
 
 We are glad to see anyone who want to contribute to Caché WEB Terminal development! Check the 
-[developer's](https://github.com/intersystems-ru/webterminal/blob/master/DEVELOPMENT.md) guide.
+[developer's](https://github.com/intersystems-ru/webterminal/blob/master/CONTRIBUTING.md) guide.
 
 In short, the "hot start" is extremely easy. Having latest [Git](https://git-scm.com/) and
 [NodeJS](https://nodejs.org/en/) installed (tested on NodeJS v4-6), execute the following:
 
 ```sh
 git clone https://github.com/intersystems-ru/webterminal
-cd webterminal                   # enter just created directory
+cd webterminal                   # enter repository directory
 npm install                      # install all project's dependencies
 
 npm run build                    # build the project
@@ -78,9 +80,8 @@ npm run build                    # build the project
 import
 ```
 
-Now, in `build` folder you will find `CacheWebTerminal-v*.xml` file ready to import. Every time you
-changes is ready to be tested, just run `gulp` command and import generated XML into Caché. 
-
+Now, in `build` folder you will find `WebTerminal-v*.xml` file. Every time you
+changes is ready to be tested, just run `import`. 
 
 Integration and WebTerminal's API
 ---------------------------------
@@ -89,8 +90,11 @@ To embed WebTerminal to any other web application, you can use `<iframe>` tag.
 Example:
 
 ```html
-<iframe id="terminal" src="http://127.0.0.1:57772/terminal/"></iframe>
+<iframe id="terminal" src="http://127.0.0.1:57772/terminal/?NS=SAMPLES"></iframe>
 ```
+
+Note that terminal URL may include optional `NS` GET parameter, which specifies namespace
+where WebTerminal's session will start.
 
 To use WebTerminal's API, you need to get WebTerminal instance first. Use iframe's
 `onTerminalInit` function to get it.
