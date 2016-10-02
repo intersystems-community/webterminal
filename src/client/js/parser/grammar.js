@@ -576,6 +576,16 @@ rule("SQLMode").split(
         .call("SQLFrom").whitespace()
         .id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
         .whitespace(),
+    id({ CI, value: "update", class: "keyword" }).whitespace()
+        .call("SQLClassName").whitespace()
+        .id({ CI, value: "set", class: "keyword" }).whitespace().branch()
+            .id({ type: "sqlFieldName", class: "variable" }).optWhitespace().char("=").optWhitespace()
+            .call("SQLExpression").optWhitespace().split(
+                char(",").optWhitespace().merge(),
+                any()
+            )
+        .id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
+        .whitespace(),
     id({ CI, value: "select", class: "keyword" }).whitespace().split(
         id({ CI, value: "top", class: "keyword" }).whitespace().constant().whitespace(),
         any()
@@ -612,7 +622,10 @@ rule("SQLMode").split(
     )
 ).exit().end();
 
-rule("SQLFrom").id({ CI, value: "from", class: "keyword" }).whitespace().split(
+rule("SQLFrom").id({ CI, value: "from", class: "keyword" }).whitespace().call("SQLClassName")
+    .exit().end();
+
+rule("SQLClassName").split(
     char({ value: "%", type: "sqlClassname", class: "classname" }),
     any()
 ).branch().id({ type: "sqlClassname", class: "classname" }).split(
@@ -622,13 +635,22 @@ rule("SQLFrom").id({ CI, value: "from", class: "keyword" }).whitespace().split(
         char({ value: "_", type: "sqlClassname", class: "classname" })
             .id({ CI, type: "sqlClassname", class: "classname" }),
         any()
-    )
-).exit().end();
+)).exit().end();
 
 rule("SQLExpression").split(
     constant(),
     char("(").call("SQLExpression").char(")"),
     id({ CI, value: "not", class: "keyword" }).optWhitespace().call("SQLExpression"),
+    char({ value: "'", class: "string" }).branch().split(
+        char({ value: "'", class: "string" }),
+        split(
+            constant({ class: "string" }),
+            id({ class: "string" }),
+            string({ class: "string" }),
+            char({ class: "string" }),
+            whitespace()
+        ).merge()
+    ),
     id({ class: "variable", type: "sqlFieldName" })
 ).optWhitespace().split(
     split(
