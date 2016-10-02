@@ -207,6 +207,14 @@
         "Grammar enhancements",
         "Config fixes"
       ]
+    },
+    {
+      "v": "4.0.0-beta.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.3.xml",
+      "changes": [
+        "SQL UPDATE grammar enhance, SQL grammar strings support",
+        "Russian translation for the \u001b[(special)m/help\u001b[0m special command."
+      ]
     }
   ]
 }
