@@ -355,6 +355,10 @@ rule("cosCommand").split(
             any().exit()
         ),
     id([
+        { CI, value: "zload", class: "keyword" },
+        { CI, value: "zl", class: "keyword" }
+    ]).call("postCondition").whitespace().branch().id({ type: "routine", class: "global" }).exit(),
+    id([
         { CI, value: "znspace", class: "keyword" },
         { CI, value: "zn", class: "keyword" }
     ]).call("postCondition").whitespace().string().exit(),
@@ -414,7 +418,10 @@ rule("postCondition").split(
 ).exit().end();
 
 rule("doArgument").split(
-    char({ value: "^", class: "global" }).branch().id({ type: "routine", class: "global" }).split(
+    char({ value: "^", class: "global" }).branch().split(
+        char({ type: "routine", class: "global" }),
+        any
+    ).id({ type: "routine", class: "global" }).split(
         char({ value: ".", type: "routine", class: "global" }).merge(),
         any()
     ),
