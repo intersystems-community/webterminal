@@ -7,12 +7,13 @@ import * as config from "../config";
 import * as analytics from "../analytics";
 
 export function init (data = {}) {
-    if (config.get("initMessage")) {
+    if (config.get("initMessage") && !data["cleanStart"]) {
         output.printLine(`CWTv${ terminal.VERSION } ${ data["system"] }:\x1b[(keyword)m${
             data["username"] }\x1b[0m${ data["name"] ? ` (${ data["name"] })` : `` }`);
         if (data["firstLaunch"])
             output.printLine(locale.get(`firstLaunchMessage`));
     }
+    if (data["cleanStart"]) config.setTemp("updateCheck", "false");
     analytics.collect(data);
     config.set(`serverName`, data["name"], true);
     document.title = `${ data["name"] || data["system"] } - WebTerminal`;

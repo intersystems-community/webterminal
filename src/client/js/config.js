@@ -6,6 +6,7 @@ import { onInit } from "./init";
 
 const STORAGE_NAME = `terminal-config`;
 const boolean = ["true", "false"],
+      temps = {},
       boolTransform = (a) => a === `true`,
       intTransform = (a) => parseInt(a);
 
@@ -66,7 +67,8 @@ let config =
 onInit(() => locale.setLocale(config.language));
 
 export function get (key) {
-    return typeof config[key] === "undefined" ? null : config[key];
+    return typeof temps[key] !== "undefined" ? temps[key]
+        : typeof config[key] === "undefined" ? null : config[key];
 }
 
 /**
@@ -81,7 +83,7 @@ function onUpdate (updated) {
 }
 
 /**
- *
+ * Set the configuration option.
  * @param {string} key
  * @param {*} value
  * @param {boolean} localOnly - Updates only the local values.
@@ -108,6 +110,18 @@ export function set (key, value, localOnly = false) {
         metadata[key].onSet(v);
     onUpdate(new Set([key]));
     return "";
+}
+
+/**
+ * Sets the option only for the current session.
+ * @param {string} key
+ * @param {*} value
+ */
+export function setTemp (key, value) {
+    if (!metadata.hasOwnProperty(key)
+        || (metadata[key].values && metadata[key].values.indexOf(value) === -1))
+        return;
+    temps[key] = metadata[key].transform ? metadata[key].transform(value) : value;
 }
 
 export function reset () {

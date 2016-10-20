@@ -19,6 +19,9 @@ export function checkUpdate () {
 }
 
 function handleNetworkData (data) {
+    if (!config.get(`updateCheck`)) {
+        return;
+    }
     input.clearPrompt();
     if (data[`motd`] && config.get(`initMessage`))
         output.printLine(data[`motd`]);

@@ -141,6 +141,3 @@ export function send (handler, data, callback) {
     stack.push(message);
     freeStack();
 }
-
-// todo: remove after test
-window.send = send;

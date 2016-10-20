@@ -181,6 +181,7 @@ Method SendLoginInfo()
     set obj = ##class(%ZEN.proxyObject).%New()
     set obj.username = $USERNAME
     set obj.name = $get(^WebTerminal("Name"))
+    set obj.cleanStart = $data(^WebTerminal("CleanStart"))
     set obj.system = $SYSTEM
     set obj.firstLaunch = ($get(^WebTerminal("FirstLaunch"), 1) '= 0)
     set obj.InstanceGUID = ##class(%SYS.System).InstanceGUID()
@@ -192,7 +193,7 @@ Method SendLoginInfo()
 /// Triggered when new connection established.
 Method Server() As %Status
 {
-    set authRes = ..RequireAuthorization()
+    set authRes = ..RequireAuthorization() // $LB("", $Namespace)
     set authMessage = $ListGet(authRes, 1)
     if (authMessage = "") {
         set namespace = $ListGet(authRes, 2)

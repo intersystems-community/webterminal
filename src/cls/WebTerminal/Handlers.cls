@@ -220,4 +220,11 @@ ClassMethod TracingStatus (client As WebTerminal.Engine, data As %ZEN.proxyObjec
     return $$$OK
 }
 
+ClassMethod Auth (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As %Status
+{
+    // This method is implemented in Engine class. In case of auth is off, this method handles
+    // the auth request and never respond (like when you send something to /dev/null).
+    return $$$OK
+}
+
 }
