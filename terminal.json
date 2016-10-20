@@ -222,6 +222,13 @@
       "changes": [
         "Grammar enhancements: system routines and zload command"
       ]
+    },
+    {
+      "v": "4.0.0-beta.5",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.5.xml",
+      "changes": [
+        "Terminal API extension with CleanStart option, re-authorizing error message fix"
+      ]
     }
   ]
 }
