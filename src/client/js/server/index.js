@@ -67,7 +67,7 @@ function onOpen () {
 }
 
 function onError (e) {
-    printLine(localize(`wsErr`, e.toString()));
+    printLine(localize(`wsErr`, e.data || e));
 }
 
 function reconnect () {
@@ -79,7 +79,7 @@ function reconnect () {
 function onClose (e) {
     CONNECTED = false;
     if (e.code !== 1000) {
-        printLine(`\r\n${ localize(`wsConnLost`, e.code) }`);
+        printLine(`\r\n${ localize(`wsConnLost`, e.code, e.reason ? " " + e.reason : "") }`);
         printLine(localize(`reConn`, RECONNECT_IN / 1000));
         reconnectTimeout = setTimeout(reconnect, RECONNECT_IN);
     } else {

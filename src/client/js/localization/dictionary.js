@@ -51,8 +51,8 @@ export default {
         ru: "Невозможно запустить новый Job"
     },
     "wsConnLost": {
-        en: "WebTerminal lost connection with server (code %n).",
-        ru: "Веб-терминал потерял соединение с сервером (код %n)"
+        en: "WebTerminal lost connection with server (code %n%s).",
+        ru: "Веб-терминал потерял соединение с сервером (код %n%s)"
     },
     "plRefPageSes": {
         en: "Please, refresh the web page to start a new session.",
@@ -326,5 +326,9 @@ export default {
     "noFav": {
         en: "Command \x1b[(constant)m%s\x1b[0m has never been saved.",
         ru: "Команда \x1b[(constant)m%s\x1b[0m не была сохранена ранее."
+    },
+    "jsErr": {
+        en: "JavaScript error occurred: %s",
+        ru: "Произошла ошибка JavaScript: %s"
     }
 };

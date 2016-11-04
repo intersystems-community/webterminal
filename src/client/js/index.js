@@ -113,7 +113,7 @@ function initialize () {
                 key: obj.key
             });
         } catch (e) {
-            output.printLine(locale.get(`wsErr`, e.toString()));
+            output.printLine(locale.get(`jsErr`, e.message));
         }
     });
 }
