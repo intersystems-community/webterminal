@@ -11,8 +11,9 @@ Class WebTerminal.Handlers
 
 /// data can be either string or %ZEN.proxyObject. In case of proxyObject, the command is hold in
 /// data.command property, and it may have some other control properties.
-ClassMethod Execute (client As WebTerminal.Engine, data) As %Status
+ClassMethod Execute (client As WebTerminal.Engine, data, bareStart As %Boolean = 0) As %Status
 {
+    if (bareStart) goto loop
     if $IsObject(data) {
         set command = data.command
         if (data.echo = 0) {
@@ -23,6 +24,7 @@ ClassMethod Execute (client As WebTerminal.Engine, data) As %Status
     }
     do client.Send("o", $CHAR(13, 10))
     do client.SendChunk(client.corePID, "m", command)
+loop
     for {
         set message = client.ReceiveChunk()
         set flag = $LISTGET(message, 1)
@@ -57,7 +59,7 @@ ClassMethod Execute (client As WebTerminal.Engine, data) As %Status
             set client.echo = 1
         }
     }
-    do:('($IsObject(data) && (data.prompt = 0))) client.Send("prompt", client.childNamespace)
+    do:('($IsObject(data) && (data.prompt = 0)) && '(bareStart = 1)) client.Send("prompt", client.childNamespace)
     return $$$OK
 }
 

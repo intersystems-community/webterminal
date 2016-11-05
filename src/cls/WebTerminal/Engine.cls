@@ -18,6 +18,8 @@ Property corePID As %Numeric [ InitialExpression = 0 ];
 /// The last known namespace in child process.
 Property childNamespace As %String;
 
+Property StartupRoutine As %String;
+
 /// Output flag
 Property echo As %Boolean [ InitialExpression = 1 ];
 
@@ -117,6 +119,10 @@ Method RequireAuthorization() As %List
     do ##class(Security.Users).Get(username, .userProps)
     znspace ns
 
+    if ($get(userProps("Routine")) '= "") {
+        set ..StartupRoutine = userProps("Routine")
+    }
+
     if $get(userProps("Enabled")) '= 1 {
         return $LB("User " _ username _ " is not enabled in the system")
     }
@@ -145,14 +151,20 @@ Method ProcessRequest(handler As %String, data) As %Status [ Private ]
 /// Main method for every new client.
 Method ClientLoop() As %Status [ Private ]
 {
-    job ##class(WebTerminal.Core).Loop():($NAMESPACE)
+    job ##class(WebTerminal.Core).Loop(..StartupRoutine):($NAMESPACE)
     if ($TEST '= 1) {
         do ..Send("error", "%noJob")
         return $$$NOTOK
     }
     set ..corePID = $ZCHILD
     set ..childNamespace = $NAMESPACE
-    do ..Send("prompt", ..childNamespace)
+    if (..StartupRoutine = "") {
+        do ..Send("prompt", ..childNamespace)
+    } else {
+        set message = ##class(%ZEN.proxyObject).%New()
+        set status = $CLASSMETHOD("WebTerminal.Handlers", "Execute", $this, "", 1)
+        goto loopEnd
+    }
     //try { // temp
     for {
         set message = ..GetMessage()
@@ -171,7 +183,9 @@ Method ClientLoop() As %Status [ Private ]
             continue
         }
     }
+loopEnd
     //} catch (e) {  do ..Send("o", $System.Status.GetErrorText(e)) } // temp
+    return $$$OK
 }
 
 /// This method sends basic login info to the user. Use this method to set client variables
@@ -203,12 +217,11 @@ Method Server() As %Status
         set ..CurrentNamespace = $Namespace
         do ..SendLoginInfo()
         do ..ClientLoop()
-        do ..Send("oLocalized", "%wsAbnormal")
+        do ..Send("oLocalized", "%wsNormalClose"_$C(13,10))
     } else {
         do ..Send("oLocalized", "%wsRefuse(" _ authMessage _ ")")
-        do ..EndServer()
     }
-
+    do ..EndServer()
     quit $$$OK
 }
 

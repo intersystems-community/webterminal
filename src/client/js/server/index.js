@@ -78,7 +78,7 @@ function reconnect () {
 
 function onClose (e) {
     CONNECTED = false;
-    if (e.code !== 1000) {
+    if (e.code !== 1000 && e.code !== 1005) {
         printLine(`\r\n${ localize(`wsConnLost`, e.code, e.reason ? " " + e.reason : "") }`);
         printLine(localize(`reConn`, RECONNECT_IN / 1000));
         reconnectTimeout = setTimeout(reconnect, RECONNECT_IN);

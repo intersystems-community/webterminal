@@ -330,5 +330,9 @@ export default {
     "jsErr": {
         en: "JavaScript error occurred: %s",
         ru: "Произошла ошибка JavaScript: %s"
+    },
+    "wsNormalClose": {
+        en: "Session ended.",
+        ru: "Сессия закончена."
     }
 };

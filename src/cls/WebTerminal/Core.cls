@@ -69,23 +69,35 @@ ClassMethod WaitCommand() As %String [ ProcedureBlock = 1 ]
 }
 
 /// Starts new terminal loop. Must be called with JOB command.
-ClassMethod Loop() As %Status
+ClassMethod Loop(StartupRoutine As %String = "") As %Status
 {
 	if ($ZPARENT = 0) {
-		write "This method is for JOB use only."
-		return 0
-	}
-	open "terminal"::"^%X364"
-	use $io::"^" _ $ZName
-	kill // kill any temporary variables ProcedureBlock may have
-	for {
-	    do ##class(%Device).ReDirectIO($$$YES)
-	    set $ZERROR = ""
-    	try { xecute ..WaitCommand() } catch {}
-    	do ##class(%Device).ReDirectIO($$$NO)
-	    do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, $ZERROR))
-	}
-	quit $$$OK
+        write "This method is for JOB use only."
+        return 0
+    }
+    open "terminal"::"^%X364"
+    use $io::"^" _ $ZName
+    if (StartupRoutine '= "") {
+        do ##class(%Device).ReDirectIO($$$YES)
+        try {
+            do @StartupRoutine
+            do ##class(%Device).ReDirectIO($$$NO)
+        } catch {
+            do ##class(%Device).ReDirectIO($$$NO)
+            do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, $ZERROR))
+        }
+        do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, ""))
+        return $$$OK
+    }
+    kill // kill any temporary variables ProcedureBlock may have
+    for {
+        do ##class(%Device).ReDirectIO($$$YES)
+        set $ZERROR = ""
+        try { xecute ..WaitCommand() } catch {}
+        do ##class(%Device).ReDirectIO($$$NO)
+        do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, $ZERROR))
+    }
+    return $$$OK
 }
 
 }
