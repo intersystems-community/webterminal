@@ -229,6 +229,14 @@
       "changes": [
         "Terminal API extension with CleanStart option, re-authorizing error message fix"
       ]
+    },
+    {
+      "v": "4.0.0-beta.7",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.7.xml",
+      "changes": [
+        "Startup routine configured for user support",
+        "Detailed WebSocket error messages"
+      ]
     }
   ]
 }
