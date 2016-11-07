@@ -152,6 +152,7 @@ export default {
 \r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
 \r\x1B[(special)m/favorite\x1B[0m ...\x1B[32GAllows you to save or restore any freauently used commands. Enter this command to get more information.
 \r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
+\r\x1B[(special)m/logout\x1B[0m\x1B[32GLog out the current WebTerminal user and prompt for the authentication again.
 \r\x1B[(special)m/sql\x1B[0m\x1B[32GSwitches terminal to SQL mode. Type SQL commands instead of COS. To exit SQL mode, enter this command again.
 \r\x1B[(special)m/trace\x1B[0m ...\x1B[32GEnables global/file tracing. Type this command to get more information.
 \r\x1B[(special)m/update\x1B[0m\x1B[32GChecks for available updates.
@@ -167,6 +168,7 @@ export default {
 \r\x1B[(special)m/config\x1B[0m ...\x1B[32GПозволяет настраивать поведение веб-терминала. Введите эту команду, чтобы получить больше информации.
 \r\x1B[(special)m/favorite\x1B[0m ...\x1B[32GПозволяет сохранять и загружать любые часто используемые команды. Введите эту команду, чтобы получить больше информации.
 \r\x1B[(special)m/info\x1B[0m\x1B[32GПоказать информацию про проект веб-терминала.
+\r\x1B[(special)m/logout\x1B[0m\x1B[32GВыйти из текущего сеанса и снова пройти аутентификацию.
 \r\x1B[(special)m/sql\x1B[0m\x1B[32GПереключить терминал в режим SQL. Далее вводите SQL команды вместо COS. Чтобы выйти из режима SQL, введите эту команду ещё раз.
 \r\x1B[(special)m/trace\x1B[0m ...\x1B[32GВключает трассировку глобала/файла. Введите эту команду, чтобы получить больше информации.
 \r\x1B[(special)m/update\x1B[0m\x1B[32GПроверяет наличие обновлений.
@@ -334,5 +336,13 @@ export default {
     "wsNormalClose": {
         en: "Session ended.",
         ru: "Сессия закончена."
+    },
+    "logOut": {
+        en: "Logging out...",
+        ru: "Выходим..."
+    },
+    "unLogOut": {
+        en: "Your browser is too old or too weird to support log out functionality. Please, restart the browser manually.",
+        ru: "Ваш браузер слишком странный или старый, и он не поддерживает функциональность выхода. Пожалуйста, перезапустите браузер вручную."
     }
 };

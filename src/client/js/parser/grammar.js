@@ -204,6 +204,7 @@ rule("CWTSpecial").split(
         )
     ),
     id({ value: "info", class: "special" }),
+    id({ value: "logout", class: "special" }),
     id({ value: "sql", class: "special" }),
     id({ value: "trace", class: "special" }).whitespace().split(
         id({ value: "stop", class: "global" }),

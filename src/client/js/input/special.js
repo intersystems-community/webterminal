@@ -116,6 +116,31 @@ export default {
     "info": () => {
         output.print(locale.get(`info`) + `\r\n`);
     },
+    "logout": () => {
+        let outcome;
+        try { outcome = document.execCommand("ClearAuthenticationCache") } catch(e) {}
+        if (!outcome) {
+            outcome = ((x) => {
+                if (!x) return;
+                if (x) {
+                    x.open("HEAD", location.href, true, "logout",
+                        (new Date()).getTime().toString());
+                    x.send("");
+                    return true;
+                } else {
+                    return false;
+                }
+            })(window.XMLHttpRequest
+                ? new window.XMLHttpRequest()
+                : ( window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : null ))
+        }
+        if (!outcome) {
+            output.printLine(locale.get("unLogOut"));
+        } else {
+            output.printLine(locale.get("logOut"));
+            location.reload();
+        }
+    },
     "sql": () => {
         let sql = terminal.MODE !== Terminal.prototype.MODE_SQL;
         terminal.MODE = !sql ? Terminal.prototype.MODE_PROMPT : Terminal.prototype.MODE_SQL;
