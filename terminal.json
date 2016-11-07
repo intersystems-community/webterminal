@@ -237,6 +237,13 @@
         "Startup routine configured for user support",
         "Detailed WebSocket error messages"
       ]
+    },
+    {
+      "v": "4.0.0-beta.8",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.8.xml",
+      "changes": [
+        "Log out functionality support with new \u001b[(special)m/logout\u001b[0m command"
+      ]
     }
   ]
 }
