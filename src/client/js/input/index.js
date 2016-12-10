@@ -8,6 +8,7 @@ import { process as processString } from "../parser";
 import { showSuggestions } from "../autocomplete";
 import * as config from "../config";
 import handlers from "./handlers";
+import hint from "../autocomplete/hint";
 
 export let ENABLED = false,
     PROMPT_CLEARED = false;
@@ -168,7 +169,7 @@ export function getKey (options = {}, callback) {
 export function setCaretPosition (caretPos) {
     focusInput();
     if (elements.input.createTextRange) {
-        var range = elements.input.createTextRange();
+        let range = elements.input.createTextRange();
         range.move(`character`, caretPos);
         range.select();
     } else if (typeof elements.input.selectionStart !== "undefined") {
@@ -351,6 +352,7 @@ function onSubmit () {
     let value = elements.input.value, // value may change during onUserInput() call, keep on top
         firstVal = (lastParsedString[0] || {}).value;
     history.push(value);
+    hint.hide();
     if (SPECIAL_ENABLED && firstVal === "/")
         return handlers.special(value, lastParsedString);
     handlers[terminal.MODE === Terminal.prototype.MODE_SQL ? "sql" : "normal"]
