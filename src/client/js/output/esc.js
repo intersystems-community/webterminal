@@ -1,6 +1,7 @@
 import * as output from "./index";
 import { COLOR_8BIT } from "./const";
 import * as server from "../server";
+import * as caret from "../input/caret";
 
 let cursorHome,
     savedCursorPosition = [],
@@ -85,6 +86,12 @@ export default {
     },
     "\x1b[7l": () => {
         output.LINE_WRAP_ENABLED = false;
+    },
+    "\x1b[?25h": () => {
+        caret.hide();
+    },
+    "\x1b[?25l": () => {
+        caret.update();
     },
     // font control
     "\x1b(": () => {
