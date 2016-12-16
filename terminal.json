@@ -244,6 +244,15 @@
       "changes": [
         "Log out functionality support with new \u001b[(special)m/logout\u001b[0m command"
       ]
+    },
+    {
+      "v": "4.0.0-beta.11",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.11.xml",
+      "changes": [
+        "Hiding autocomplete after execution starts fix",
+        "Caret control escape sequences support",
+        "Freezes fixes when embedding WebTerminal"
+      ]
     }
   ]
 }
