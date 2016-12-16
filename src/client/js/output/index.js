@@ -411,9 +411,6 @@ export function getLineByIndex (index) {
 
     let toPush = Math.max(index - lines.length + 1, 0);
 
-    if (index > 100)
-        throw new Error(`Petuh inc.`);
-
     if (toPush > 0)
         pushLines(toPush);
 
