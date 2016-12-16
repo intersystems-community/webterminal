@@ -409,7 +409,10 @@ function output (plainText = "") {
  */
 export function getLineByIndex (index) {
 
-    var toPush = Math.max(index - lines.length + 1, 0);
+    let toPush = Math.max(index - lines.length + 1, 0);
+
+    if (index > 100)
+        throw new Error(`Petuh inc.`);
 
     if (toPush > 0)
         pushLines(toPush);
@@ -463,10 +466,11 @@ export function scrollDown () {
  */
 function sizeChanged () {
 
-    var tel = document.createElement("span"),
+    let tel = document.createElement("span"),
         testScrollbar = document.createElement("div"),
         scrollBarWidth,
-        lastOverflowProperty = elements.output.style.overflowY;
+        lastOverflowProperty = elements.output.style.overflowY,
+        ow, oh;
 
     elements.output.style.overflowY = "scroll";
     testScrollbar.className = LINE_CLASS_NAME;
@@ -478,15 +482,29 @@ function sizeChanged () {
     tel.innerHTML = "XXXXXXXXXX";
     testScrollbar.appendChild(tel);
 
-    SYMBOL_WIDTH = tel.offsetWidth / 10;
-    SYMBOL_HEIGHT = tel.offsetHeight;
+    SYMBOL_WIDTH = (tel.offsetWidth / 10) || 8.8;
+    SYMBOL_HEIGHT = tel.offsetHeight || 19;
 
-    WIDTH = Math.floor( (elements.terminal.offsetWidth - scrollBarWidth) / SYMBOL_WIDTH );
-    HEIGHT = Math.floor( elements.terminal.offsetHeight / SYMBOL_HEIGHT );
+    WIDTH = (ow = Math.floor( (elements.terminal.offsetWidth - scrollBarWidth) / SYMBOL_WIDTH ))
+        || SYMBOL_HEIGHT * 32;
+    HEIGHT = (oh = Math.floor( elements.terminal.offsetHeight / SYMBOL_HEIGHT ))
+        || SYMBOL_WIDTH * 80;
 
     elements.input.style.width = `${ WIDTH * SYMBOL_WIDTH }px`;
 
     elements.output.removeChild(testScrollbar);
+
+    // In case of custom styling when integrating WebTerminal to other solutions, the WebTerminal
+    // may be hidden on the page by default. This will cause WebTerminal to set up wrong
+    // width/height (= 0). This block yields the size calculation until the parent element appears
+    // on the page.
+    if (!ow || !oh) {
+        setTimeout(sizeChanged, 25);
+        let m = `[WebTerminal] Size calculations delayed for 25s due to WebTerminal is not`
+            + ` attached to the page. If this message doesn't stop appearing, check if`
+            + ` WebTerminal's iFrame is visible and is attached to the DOM.`;
+        try { console.warn(m); } catch (e) { console.log(m); }
+    }
     
     // elements.output.style.width = `${ WIDTH * SYMBOL_WIDTH + scrollBarWidth }px`;
     // elements.output.style.height = `${ HEIGHT * SYMBOL_HEIGHT }px`; = 100%
