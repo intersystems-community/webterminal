@@ -253,6 +253,13 @@
         "Caret control escape sequences support",
         "Freezes fixes when embedding WebTerminal"
       ]
+    },
+    {
+      "v": "4.0.0-beta.12",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.12.xml",
+      "changes": [
+        "Terminal $X/$Y variables accuracy fix"
+      ]
     }
   ]
 }
