@@ -1,5 +1,7 @@
 /// <!-- @echo package.title --> version <!-- @echo package.version --> core.
-/// Class which handles client requests and executes code.
+/// The core class which handles client requests and executes COS code.
+/// All writes used here are used for $X and $Y compatibility, but they actually do not
+/// write any code to the screen.
 Class WebTerminal.Core Extends Common [ Not ProcedureBlock ]
 {
 
@@ -13,18 +15,34 @@ Class WebTerminal.Core Extends Common [ Not ProcedureBlock ]
 Method redirects() [ Private, ProcedureBlock = 0 ]
 {
 wstr(str)
+	do ##class(%Device).ReDirectIO($$$NO)
+	write str
+	do ##class(%Device).ReDirectIO($$$YES)
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", str)
 
 wchr(c)
+	do ##class(%Device).ReDirectIO($$$NO)
+	write $CHAR(c)
+	do ##class(%Device).ReDirectIO($$$YES)
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(c))
 
 wnl
+	do ##class(%Device).ReDirectIO($$$NO)
+	write !
+	do ##class(%Device).ReDirectIO($$$YES)
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(13, 10))
 
 wff
+	do ##class(%Device).ReDirectIO($$$NO)
+	set $X = 0
+	set $Y = 0
+	do ##class(%Device).ReDirectIO($$$YES)
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(12))
 
 wtab(s)
+	do ##class(%Device).ReDirectIO($$$NO)
+	set $x = s
+	do ##class(%Device).ReDirectIO($$$YES)
     quit ##class(WebTerminal.Common).SendChunk($ZPARENT, "o", $CHAR(27) _ "[" _ (s + 1) _ "G")
 
 rstr(length = 32656, timeout = 86400)
@@ -95,6 +113,7 @@ ClassMethod Loop(StartupRoutine As %String = "") As %Status
         set $ZERROR = ""
         try { xecute ..WaitCommand() } catch {}
         do ##class(%Device).ReDirectIO($$$NO)
+        write !! // assume that prompt takes 2 lines
         do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, $ZERROR))
     }
     return $$$OK
