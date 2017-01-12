@@ -93,11 +93,16 @@ To embed WebTerminal to any other web application, you can use `<iframe>` tag.
 Example:
 
 ```html
-<iframe id="terminal" src="http://127.0.0.1:57772/terminal/?NS=SAMPLES"></iframe>
+<iframe id="terminal" src="http://127.0.0.1:57772/terminal/?ns=SAMPLES&clean=1"></iframe>
 ```
 
-Note that terminal URL may include optional `NS` GET parameter, which specifies namespace
-where WebTerminal's session will start.
+Note that terminal URL may include optional GET parameters, which are the next:
+
++ `ns=USER` Namespace to open terminal in. If the logged user has no access to this namespace,
+the error message will appear and no namespace changes will occur.
++ `clean` Start the WebTerminal without any additional information printed. It is not recommended to
+use this option if you are using terminal as a stand-alone tool (for everyday use), as you can miss
+important updates.
 
 To use WebTerminal's API, you need to get WebTerminal instance first. Use iframe's
 `onTerminalInit` function to get it.

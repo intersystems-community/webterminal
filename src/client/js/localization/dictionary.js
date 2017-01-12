@@ -344,5 +344,9 @@ export default {
     "unLogOut": {
         en: "Your browser is too old or too weird to support log out functionality. Please, restart the browser manually.",
         ru: "Ваш браузер слишком странный или старый, и он не поддерживает функциональность выхода. Пожалуйста, перезапустите браузер вручную."
+    },
+    "unNS": {
+        en: "Unable to change namespace to %s.",
+        ru: "Не получается поменять область на %s."
     }
 };

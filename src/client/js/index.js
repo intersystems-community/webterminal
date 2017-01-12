@@ -101,8 +101,17 @@ function initialize () {
     terminal = new Terminal();
 
     output.printLine(text);
-    let ns = urlParams["NS"] || urlParams["ns"] || config.get("defaultNamespace");
-    get("auth" + (ns ? `?NS=${ encodeURIComponent(ns) }` : ""), (obj) => {
+    let ns = urlParams["NS"] || urlParams["ns"] || config.get("defaultNamespace"),
+        urlPs = location.search.match(/ns=[^&]*/i) === null
+            ? location.search === ""
+                ? ns
+                    ? `?ns=${ encodeURIComponent(ns) }`
+                    : ""
+                : location.search + (ns ? `&ns=${ encodeURIComponent(ns) }` : "")
+            : ns
+                ? location.search.replace(/ns=[^&]*/i, `ns=${ encodeURIComponent(ns) }`)
+                : location.search;
+    get("auth" + urlPs, (obj) => {
         if (!obj.key) {
             output.printLine(locale.get(`unSerRes`), JSON.stringify(obj));
             return;

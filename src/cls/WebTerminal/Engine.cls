@@ -86,8 +86,9 @@ Method ExecuteSQL(query As %String = "") As %Status
     quit $$$OK
 }
 
-/// This method holds process and expects only one package from
-/// the client - it includes authorization key.
+/// This method performs the authorization and login to WebTerminal.
+/// It returns a list with data (see Router.Auth method), which is used then to set up the
+/// initial values for the client.
 Method RequireAuthorization() As %List
 {
     set data = ..GetMessage(..#AuthorizationTimeout)
@@ -115,9 +116,12 @@ Method RequireAuthorization() As %List
     set username = $LISTGET(list, 1)
     set namespace = $LISTGET(list, 3)
     set ns = $Namespace
+
     znspace "%SYS"
     do ##class(Security.Users).Get(username, .userProps)
     znspace ns
+
+    set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
 
     if ($get(userProps("Routine")) '= "") {
         set ..StartupRoutine = userProps("Routine")
@@ -127,14 +131,14 @@ Method RequireAuthorization() As %List
         return $LB("User " _ username _ " is not enabled in the system")
     }
 
-    set namespace = $case(namespace, "":userProps("NameSpace"), :namespace)
+    set $LIST(list, 3) = namespace
     set loginStatus = $System.Security.Login(username)
 
     if (loginStatus '= 1) {
         return $LB($System.Status.GetErrorText(loginStatus))
     }
 
-    return $LB("", namespace)
+    return $LB("", list)
 }
 
 /// See WebTerminal.Handlers
@@ -190,12 +194,13 @@ loopEnd
 
 /// This method sends basic login info to the user. Use this method to set client variables
 /// during the WebTerminal initialization.
-Method SendLoginInfo()
+/// <parameter>authList</parameter> See Router.Auth method.
+Method SendLoginInfo(authList As %List)
 {
     set obj = ##class(%ZEN.proxyObject).%New()
     set obj.username = $USERNAME
     set obj.name = $get(^WebTerminal("Name"))
-    set obj.cleanStart = $data(^WebTerminal("CleanStart"))
+    set obj.cleanStart = $ListGet(authList, 4)
     set obj.system = $SYSTEM
     set obj.firstLaunch = ($get(^WebTerminal("FirstLaunch"), 1) '= 0)
     set obj.InstanceGUID = ##class(%SYS.System).InstanceGUID()
@@ -207,15 +212,22 @@ Method SendLoginInfo()
 /// Triggered when new connection established.
 Method Server() As %Status
 {
-    set authRes = ..RequireAuthorization() // $LB("", $Namespace)
+    set authRes = ..RequireAuthorization()
     set authMessage = $ListGet(authRes, 1)
     if (authMessage = "") {
-        set namespace = $ListGet(authRes, 2)
-        if (namespace '= "") {
-            try { znspace namespace } catch (e) { }
+        set authList = $ListGet(authRes, 2) // see Router.Auth method
+        set namespace = $ListGet(authList, 3)
+        if (namespace '= "") && (namespace '= $Namespace) {
+            try {
+                znspace namespace
+            } catch (e) {
+                do ..Send("oLocalized",
+                    $Char(27) _ "[31m%unNS(" _ namespace _ ")"_ $Char(27) _ "[0m" _ $Char(13,10)
+                )
+            }
         }
         set ..CurrentNamespace = $Namespace
-        do ..SendLoginInfo()
+        do ..SendLoginInfo(authList)
         do ..ClientLoop()
         do ..Send("oLocalized", "%wsNormalClose"_$C(13,10))
     } else {

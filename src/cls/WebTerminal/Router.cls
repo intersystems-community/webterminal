@@ -37,10 +37,11 @@ ClassMethod WriteStatic(type As %String, ContentType As %String = "") [ Private 
 ClassMethod Auth() As %Status
 {
     set cookie = $System.Encryption.Base64Encode(%session.Key)
-    set ^WebTerminal("AuthUser", cookie) = $LB(
+    set ^WebTerminal("AuthUser", cookie) = $LB( // authList
         $Username, // username
         $Horolog, // granting ticket date
-        $Get(%request.Data("NS", 1))
+        $Get(%request.Data("ns", 1), $Get(%request.Data("NS", 1))),
+        $Get(%request.Data("clean", 1), 0) '= 0
     )
     write "{""key"":""" _ cookie _ """}"
     return $$$OK
