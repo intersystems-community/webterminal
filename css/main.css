@@ -18,7 +18,7 @@ img {
 }
 
 p {
-    text-indent: 30px;
+    text-indent: 2.5em;
     text-align: justify;
 }
 
@@ -49,7 +49,7 @@ a:hover {
     position: relative;
     top: 80px;
     overflow: visible;
-    min-height: 450px;
+    min-height: 520px;
     background: rgba(255,255,255,0.2);
     border-radius: 0 20px/100px;
 }
@@ -123,4 +123,21 @@ a:hover {
 	top: 0;
 	display: block;
 	z-index: 1;
+}
+
+LI { list-style-type: none; }
+OL { counter-reset: list1; }
+OL LI:before {
+    counter-increment: list1;
+    content: counter(list1) ". ";
+}
+OL OL { counter-reset: list2; }
+OL OL LI:before {
+    counter-increment: list2;
+    content: counter(list1) "." counter(list2) ". ";
+}
+OL OL OL { counter-reset: list3; }
+OL OL OL LI:before {
+    counter-increment: list3;
+    content: counter(list1) "." counter(list2) "." counter(list3) ". ";
 }

@@ -11,7 +11,7 @@
         <link rel="stylesheet" type="text/css" href="css/content.css" media="screen"/>
         <script type="text/javascript">
             function init () {
-                [].slice.call(document.querySelectorAll("#downloadLinks a")).forEach(function (l) {
+                [].slice.call(document.querySelectorAll(".downloadLinks a")).forEach(function (l) {
                     l.setAttribute("download", l.textContent.replace(/\s+/g, " ") + ".xml");
                 });
             }
@@ -28,59 +28,180 @@
                 <li><a href="#showcase"><img src="img/icons/images.png"/></a></li>
                 <li><a href="#downloads"><img src="img/icons/save.png"/></a></li>
                 <li><a href="#history"><img src="img/icons/history.png"/></a></li>
+                <li><a href="#docs"><img src="img/icons/docs.png"/></a></li>
                 <li><a href="#feedback"><img src="img/icons/feedback.png"/></a></li>
             </ul>
 
             <div class="pageLayout center" id="showcase">
                 <h1 class="center">Showcase</h1>
-                <img style="max-width: 876px" class="imgFloatRight screenShoot" src="img/screenshoots/help-and-config.png"/>
                 <p>
-                    Use full Caché syntax and all additional commands supported by Caché Web Terminal.
-                    Change namespace, set variables - feel free as in common terminal! In addition,
-                    Caché Web Terminal provides is a lot of new features and options, and you can
-                    see some of them on the right-hand side.
+                    Caché Web Terminal is a Caché TERM replacement build for browsers. This page
+                    describes almost all the features that WebTerminal introduces.
                 </p>
-                <div class="clearHL"></div>
-                <img style="max-width: 440px" class="imgFloatLeft screenShoot" src="img/screenshoots/scr6.png"/>
+                <img class="imgFloatRight screenShoot" src="img/screenshoots/features-help.png"/>
+                <h1>Special Commands</h1>
                 <p>
-                    Caché Web Terminal is compatible with all mobile devices - control your Caché
-                    easily from your pocket!
+
+                    WebTerminal introduces special commands, the ones that start with slash symbol,
+                    which allow you to perform different tasks like favoring commands, entering
+                    special modes, configuring WebTerminal and displaying help. The list of these
+                    features is listed on the right.
                 </p>
-                <div class="clearHL"></div>
-                <img style="max-width: 888px" class="imgFloatRight screenShoot" src="img/screenshoots/slq-mode.png"/>
+                <img class="imgFloatLeft screenShoot" src="img/screenshoots/features-mobile.png"/>
+                <h1>Mobile-Friendly Terminal</h1>
                 <p>
-                    Enter SQL mode and execute any SQL query right from the terminal.
+                    Is it Mobile-friendly? It is! As WebTerminal is a browser-based application, it
+                    is accessible from the mobile devices as well as from the desktop ones. Perform
+                    the tasks with Caché from your pocket!
                 </p>
-                <div class="clearHL"></div>
-                <img style="max-width: 567px" class="imgFloatLeft screenShoot" src="img/screenshoots/ac.png"/>
+                <h1>Embedded SQL mode</h1>
+                <img style="float: none;margin: 0 auto;max-width:90%" class="imgFloatRight screenShoot" src="img/screenshoots/showcase-slq-mode.png"/>
+                <p>
+                    You can enter an convenient SQL mode and execute any SQL query right from the
+                    terminal. The output would be formatted in HTML table. You can change number of
+                    rows displayed in this table by entering <span class="g special">/config</span>
+                    <span class="g variable">sqlMaxResults</span> =
+                    <span class="g constant">1000</span> command in WebTerminal.
+                </p>
+                <img class="imgFloatLeft screenShoot" src="img/screenshoots/ac.png"/>
+                <h1>Intelligent Autocomplete and Syntax Highlight</h1>
                 <p>
                     Intelligent autocomplete feature will help you to complete you input faster.
                     It differs methods from properties, classes from keywords. It suggests variable
-                    names, as well as variable properties and methods, if the variable is an object.
+                    names, as well as variable properties and methods, simple variables of data type
+                    from the variables holding an object reference.
                 </p>
-                <div class="clearHL"></div>
-                <img style="max-width: 355px" class="imgFloatRight screenShoot" src="img/screenshoots/scr4.png"/>
                 <p>
-                    Tracing feature enables you to track variables and files, watch for any changes there.
+                    In addition, you get the intelligent syntax highlighting, which differs variable
+                    names from simple keywords and highlights almost all Caché ObjectScript
+                    statements.
                 </p>
-                <div class="clearHL"></div>
+                <img class="imgFloatRight screenShoot" src="img/screenshoots/scr4.png"/>
+                <h1>Tracing</h1>
                 <p>
-                    Check other cool features by <a href="#downloads">installing</a> Caché Web Terminal!
+                    Tracing feature enables you to track for changes in globals and local files. The
+                    terminal will simply print these changes with some additional information.
                 </p>
+                <img class="imgFloatLeft screenShoot" src="img/screenshoots/features-config.png"/>
+                <h1>Configuring Behavior</h1>
+                <p>
+                    WebTerminal is customizable. As time goes by, the more and more customization
+                    options may appear. You can even request the ones you would like to see! Follow
+                    <a href="https://github.com/intersystems-ru/webterminal/issues">GitHub's issue
+                    tracker</a> and leave your request there.
+                </p>
+                <p>
+                    Check other cool features by <a href="#downloads">downloading</a> and installing
+                    Caché Web Terminal, it is free!
+                </p>
+            </div>
+
+            <div class="pageLayout" id="docs">
+                <h1>Documentation And Frequently Asked Questions</h1>
+                <ol>
+                    <li>
+                        Installation and configuration
+                        <ol>
+                            <li>
+                                Installing Caché Web Terminal
+                                <ol>
+                                    <li>Importing classes</li>
+                                    <li>Launching WebTerminal</li>
+                                </ol>
+                            </li>
+                            <li>
+                                Configuring WebTerminal web application
+                                <ol>
+                                    <li>Password protection</li>
+                                    <li>Controlling security</li>
+                                    <li>Restricting access to particular users group</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        Usage basics
+                        <ol>
+                            <li>
+                                Using WebTerminal's special commands
+                                <ol>
+                                    <li>Getting help</li>
+                                    <li>Clearing all the history</li>
+                                    <li>Configuring WebTerminal</li>
+                                    <li>Favoring particular commands</li>
+                                    <li>Showing project information</li>
+                                    <li>Logging out from WebTerminal</li>
+                                    <li>Toggling SQL mode</li>
+                                    <li>Tracing</li>
+                                    <li>Updating WebTerminal manually</li>
+                                </ol>
+                            </li>
+                            <li>
+                                Configuring WebTerminal
+                                <ol>
+                                    <li>Changing default namespace</li>
+                                    <li>Hiding initial messages</li>
+                                    <li>Changing the language</li>
+                                    <li>Increasing stored history size</li>
+                                    <li>Changing the rows limit in SQL mode</li>
+                                    <li>Toggling autocomplete</li>
+                                    <li>Toggling syntax highlight</li>
+                                    <li>Toggling updates check</li>
+                                    <li>Changing the server name</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        Output options
+                        <ol>
+                            <li>Changing output color and font</li>
+                            <li>Formatting output</li>
+                            <li>Cursor control</li>
+                            <li>Printing hyperlinks (WebTerminal only)</li>
+                            <li>Printing HTML (WebTerminal only)</li>
+                            <li>Other supported output options</li>
+                        </ol>
+                    </li>
+                    <li>
+                        Embedding WebTerminal to other applications
+                        <ol>
+                            <li>
+                                Embedding with iFrame
+                                <ol>
+                                    <li>iFrame attributes</li>
+                                    <li>URL parameters</li>
+                                </ol>
+                            </li>
+                            <li>
+                                JavaScript API
+                                <ol>
+                                    <li>Handling terminal initialization</li>
+                                    <li>Executing commands</li>
+                                    <li>Handling user input</li>
+                                    <li>Printing</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        Licensing (MIT)
+                    </li>
+                </ol>
             </div>
 
             <div class="pageLayout" id="downloads">
                 <h1 class="center">Downloads</h1>
                 <img src="img/logos.png" style="width: 150px" class="imgFloatRight"/>
-                <h2>How to Install</h2>
+                <h2>How to Install WebTerminal</h2>
                 <ol>
-                    <li>Download and import latest XML file into any namespace, compiling all the classes. (As system user)</li>
-                    <li>Open <b>http://[host]:[port]/terminal/</b> (slash at the end is required) web page. (For example, <a href="http://localhost:57772/terminal/">http://localhost:57772/terminal/</a>)</li>
-                    <li>Enter user credentials (_SYSTEM / SYS by default).</li>
+                    <li>Download and import latest XML file (see below) into any namespace (preferably USER), compiling all the classes. Make sure you have system privileges to do it.</li>
+                    <li>Open <b>http://[host]:[port]/terminal/</b> (slash at the end is required) web page. (By default the URL is <a target="_blank" href="http://localhost:57772/terminal/">http://localhost:57772/terminal/</a>)</li>
+                    <li>Enter user credentials (by default it's _SYSTEM / SYS).</li>
                     <li>That's all!</li>
                 </ol>
-                <ul id="downloadLinks">
-                    <h2>Newest Versions<sup><span style="color: orange">beta</span></sup>:</h2>
+                <h2>Newest Versions<sup><span style="color: orange">beta</span></sup>:</h2>
+                <ul class="downloadLinks">
                     <li>
                         <a href="files/WebTerminal-v4.0.0-beta.12.xml">WebTerminal-v4.0.0-beta.12</a>
                         - $X/$Y special variables accuracy fix.
@@ -121,7 +242,9 @@
                         <a href="files/WebTerminal-v4.0.0-alpha.2.xml">WebTerminal-v4.0.0-alpha.2</a>
                         - Reinvented WebTerminal, an early alpha test version. Download for testing purposes only.
                     </li>
-                    <h2>Old Versions:</h2>
+                </ul>
+                <h2>Old Versions:</h2>
+                <ul class="downloadLinks">
                     <li>
                         <a href="files/CacheWebTerminal-v3.3.1.xml">CacheWebTerminal-v3.3.1</a>
                         - Added Caché 2016.*+ system methods support for ##class constructions.
@@ -154,14 +277,16 @@
                         <a style="color: gray !important;" href="files/WebTerminal-3.0.0-alpha.5.xml">WebTerminal-3.0.0-alpha.5</a>
                             - Caché WEB Terminal now RESTful! Minor fixes also included. This is a <b>test release.</b>
                     </li>
-                    <h3>Versions 1-2.* to 3.* Migration Note</h3>
-                    <p>
-                        After version 3.* <u>successful</u> (perform manual WebTerminal package compilation)
-                        install, please, remove <b>/csp/sys/webterminal</b> directory and <b>%WebTerminal</b> class manually -
-                        these files won't work anymore. Now use <b>http://[host]:[port]/terminal/</b>
-                        to access terminal WEB application (slash at the end of the URL is required).
-                    </p>
-                    <h2>Older Versions:</h2>
+                </ul>
+                <h3>Versions 1-2.* to 3.* Migration Note</h3>
+                <p>
+                    After version 3.* <u>successful</u> (perform manual WebTerminal package compilation)
+                    install, please, remove <b>/csp/sys/webterminal</b> directory and <b>%WebTerminal</b> class manually -
+                    these files won't work anymore. Now use <b>http://[host]:[port]/terminal/</b>
+                    to access terminal WEB application (slash at the end of the URL is required).
+                </p>
+                <h2>Older Versions:</h2>
+                <ul class="downloadLinks">
                     <li>
                         <a href="files/WebTerminal-2.0.0-beta.8.xml">WebTerminal-2.0.0-beta.8</a>
                             - fixed local autocomplete for set/kill commands
@@ -194,7 +319,9 @@
                     <li>
                         <a href="files/WebTerminal-2.0.0-beta.xml">CacheWebTerminal-2.0.0-beta</a>
                     </li>
-                    <h2>The Oldest Versions:</h2>
+                </ul>
+                <h2>The Oldest Versions:</h2>
+                <ul class="downloadLinks">
                     <li>
                         <a href="files/WebTerminal-2.0.0-alpha.1.xml">CacheWebTerminal-2.0.0-alpha.1</a>
                     </li>
@@ -255,10 +382,10 @@
                 </ul>
                 <h2>Notes</h2>
                 <ul>
-                    <li>Your <b class="warn">Caché version at least 2013.1</b> (WebSockets support);</li>
-                    <li>User have system privileges to install the terminal;</li>
-                    <li class="warn">Note that anyone who is able to authorize on /terminal/ web application
-                        will have almost full control under your Caché!</li>
+                    <li>WebTerminal is supported by <b class="warn">Caché versions at least 2013.1</b>.</li>
+                    <li>User need to have system privileges to install the terminal.</li>
+                    <li class="warn">Note that anyone who is able to authorize on /terminal/ web
+                    application will have almost full control under your Caché!</li>
                 </ul>
                 <p>
                     Importing WebTerminal.Installer class will also create /terminal WEB-application.
@@ -446,64 +573,69 @@
             </div>
 
             <div class="pageLayout" id="main">
-                <img src="img/terminal.png" class="imgFloatLeft"/>
+                <img src="img/WebTerminal%20Preview.png" style="max-width: 35%;" class="imgFloatLeft"/>
                 <h1 class="center">Welcome to Caché Web Terminal homepage!</h1>
                 <p>
-                    This is first web-based Caché terminal emulator.
+                    This is the first and the most powerful web-based terminal emulator for
+                    InterSystems Caché®, Ensemble®, HealthShare®, TrakCare® and other products build
+                    on top of <a href="http://www.intersystems.com/our-products/cache/cache-overview/">InterSystems Caché</a>.
+                    It is a complete terminal utility packed with a lot of useful features in your
+                    favourite browser.
                 </p>
                 <p>
-                    We're glad to introduce something new and convenient to Caché. Today it's a completely new terminal
-                    utility in your favourite browser connected over WebSocket to your server. Make your database easy-accessible
-                    wherever you are and change your viewpoint about classic gray terminal - future incomes!
+                    This utility may replace the standard Caché terminal for you at all. The goal is
+                    to develop more than terminal - the universal utility to ease administrators
+                    work and to save a couple of time. It features a lot of new things like syntax
+                    highlight, autocomplete, embedded SQL mode and tracing, which are not included
+                    in the standard Caché TERM.
                 </p>
                 <p>
-                    This utility will help you to administrate your database and, maybe, will replace standard
-                    terminal utility for you at all. Our target is to develop more than terminal - universal control
-                    utility to ease administrators work and save a couple of time. It will feature a lot of new things,
-                    which are not included in typical terminal application. Are you a system administrator or
-                    just a Caché developer? Ready to change something in work with your favourite database? Try it
-                    right now!
+                    To see the list of features of WebTerminal, please navigate to the <a href="#showcase">showcase tab</a>.
                 </p>
-                <h2 class="center">Good news</h2>
-                <p>
-                    [7/17/2016] A first early alpha version of <b>Caché WEB Terminal v4</b> is released.
-                    This release will include auto-updates to the newest versions, so you don't have to pay attention on the  <a href="https://github.com/intersystems-ru/webterminal/issues/61">progress</a>.
-                    New version notifications will be displayed during the WebTerminal's startup as soon as new updates arrive.
-                </p>
-                <p>
-                    [6/27/2016] <b>Caché WEB Terminal v4</b> is under development.
-                    This release will bring more stability and a better performance as well as other
-                    great features like intelligent autocomplete. Follow the progress <a href="https://github.com/intersystems-ru/webterminal/issues/61">here</a>.
-                </p>
-                <p>
-                    [12/13/2015] <b>Caché WEB Terminal v3.1.4</b> include major changes and fixes.
-                    Check it right now!
-                </p>
-                <p>
-                    [09/04/2014] <b>Caché WEB Terminal v2 beta</b> is available now. The new version brings VT100 and Caché TERM escape sequences
-                    support, some new features like self-updating, lots of performance and security improvements
-                    and more stable work. Check it out in downloads!
-                </p>
-                <img src="img/control.png" class="imgFloatRight"/>
-                <p>
-                    Web terminal has lots of features, just take a look:
-                </p>
-                <ul>
-                    <li>Typical terminal workspace in your browser</li>
-                    <li>Local and remote access to Caché</li>
-                    <li>Infinite execution timeout - thanks to WebSockets</li>
-                    <li>New useful features like class autocompletion, macro recording, etc.</li>
-                    <li>Totally new design for terminal with code highlighting</li>
-                    <li>A few not fixed bugs :)</li>
-                </ul>
-                <p>
-                    Try it! We are pleasant for any your proposals, bugs and new feature ideas. Visit related pages
-                    to get more information. Thanks!
-                </p>
+                <h2 class="center">Good News</h2>
+                <div class="newsBlock">
+                    <div class="date">7/17/2016</div>
+                    <h1>Caché WebTerminal v4 Alpha Release</h1>
+                    <div class="content">
+                        A first early alpha version of <b>Caché WEB Terminal v4</b> is released.
+                        This release will introduce auto-updates to the newest versions, so you
+                        won't need to check <a href="https://github.com/intersystems-ru/webterminal/issues/61">the updates</a>
+                        by surfing the net. New version notifications will be displayed during the
+                        WebTerminal's startup as soon as new updates arrive.
+                    </div>
+                </div>
+                <div class="newsBlock">
+                    <div class="date">6/27/2016</div>
+                    <h1>Caché WEB Terminal v4 Is Under Development</h1>
+                    <div class="content">
+                        This new version will become more stable and will perform better as well as
+                        other great features like intelligent autocomplete will be introduced.
+                        Follow the progress <a href="https://github.com/intersystems-ru/webterminal/issues/61">here</a>.
+                    </div>
+                </div>
+                <div class="newsBlock">
+                    <div class="date">12/13/2015</div>
+                    <h1>Caché WEB Terminal v3.1.4 Major Fixes</h1>
+                    <div class="content">
+                        The new version comes with major changes: first, WebTerminal can now be
+                        installed to <u>any</u> namespace, not only to the %SYS. Secondly, some
+                        issues with /update command were fixed as well as other minor bugs.
+                    </div>
+                </div>
+                <div class="newsBlock">
+                    <div class="date">9/4/2014</div>
+                    <h1>Caché WEB Terminal v2 Beta Release</h1>
+                    <div class="content">
+                        Caché WEB Terminal v2 is available now. The new version brings VT100 and
+                        Caché TERM escape sequences support, some new features like self-updating,
+                        lots of performance and security improvements and more stable work. Check
+                        it out in downloads!
+                    </div>
+                </div>
             </div>
 
             <div class="pageFooter">
-                A tool for <a href="http://www.intersystems.com/">InterSystems</a> Caché administration
+                Web-based terminal for <a target="_blank" href="http://www.intersystems.com/">InterSystems</a> Caché by <a target="_blank" href="https://zitros.tk">ZitRo</a>
             </div>
         </div>
 		<a id="forkLink" target="_blank" href="https://github.com/intersystems-ru/webterminal">

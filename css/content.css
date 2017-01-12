@@ -93,7 +93,7 @@
 }
 
 #showcase .screenShoot {
-    width: 60%;
+    max-width: 60%;
     box-shadow: 4px 4px 6px black;
     margin: 15px;
 }
@@ -104,4 +104,69 @@
 
 .warn {
     color: #ff6500
+}
+
+.newsBlock {
+    overflow: hidden;
+    position: relative;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    padding: .3em;
+}
+
+.newsBlock h1 {
+    margin: 4px;
+    font-size: 20px;
+    text-decoration: underline;
+}
+
+.newsBlock .date {
+    float: right;
+    font-style: italic;
+}
+
+.newsBlock .content {
+    clear: both;
+    text-indent: 2.5em;
+}
+
+.newsBlock ~ .newsBlock {
+    margin-top: 10px;
+}
+
+#showcase > p:after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+/* Terminal Colors */
+
+.g.keyword {
+    color: #4898ff;
+}
+
+.g.string {
+    color: #00c700;
+}
+
+.g.constant {
+    color: cyan;
+}
+
+.g.special {
+    color: yellow;
+}
+
+.g.variable {
+    color: lightsalmon;
+}
+
+.g.selected {
+    color: white;
+    background-color: royalblue;
+}
+
+.g.argument {
+    color: magenta;
 }
