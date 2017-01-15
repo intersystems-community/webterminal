@@ -269,6 +269,14 @@
         "sqlMaxResults config suggestion add",
         "Preparing the \u001b!URL=https://intersystems-ru.github.io/webterminal/#docs (documentation) for WebTerminal release!"
       ]
+    },
+    {
+      "v": "4.0.0-beta.16",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.16.xml",
+      "changes": [
+        "Installer privileges error report enhancement",
+        "Default WebTerminal resource and role add"
+      ]
     }
   ]
 }

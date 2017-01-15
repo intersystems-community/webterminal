@@ -172,3 +172,15 @@ OL OL OL LI:before {
     counter-increment: list3;
     content: counter(list1) "." counter(list2) "." counter(list3) ". ";
 }
+
+h1:target, h2:target, h3:target {
+    color: #fffc9e;
+    animation: highlight 2s ease-out;
+    text-decoration: underline;
+}
+
+@keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
