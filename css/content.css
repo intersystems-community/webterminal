@@ -92,7 +92,7 @@
     text-align: center;
 }
 
-#showcase .screenShoot {
+.screenShoot {
     max-width: 60%;
     box-shadow: 4px 4px 6px black;
     margin: 15px;
@@ -169,4 +169,20 @@
 
 .g.argument {
     color: magenta;
+}
+
+.segments {
+    position: relative;
+    overflow: hidden;
+}
+
+@media (min-width: 1200px) {
+    .segments {
+        column-count: 2;
+        column-gap: 0;
+    }
+    .segments > .segment {
+        break-inside: avoid;
+        padding: 5px;
+    }
 }

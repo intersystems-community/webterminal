@@ -54,7 +54,7 @@ a:hover {
     border-radius: 0 20px/100px;
 }
 
-.pageLayout, .pageLayout:target ~ #main  {
+.pageLayout, .pageLayout:target ~ #main, #main.inactive {
     position: relative;
     padding: 0;
     height: 0;
@@ -63,7 +63,7 @@ a:hover {
     transition: all 0.3s ease;
 }
 
-#main, .pageLayout:target {
+#main, .pageLayout:target, .pageLayout.active {
     display: block;
     opacity: 1;
     padding: 20px 20px 20px 20px;
@@ -125,8 +125,39 @@ a:hover {
 	z-index: 1;
 }
 
-LI { list-style-type: none; }
-OL { counter-reset: list1; }
+code {
+    display: block;
+    background-color: rgba(255,255,255,0.1);
+    text-indent: 0;
+    padding: .5em;
+    margin: .3em 0;
+    border-radius: 5px;
+    overflow: auto;
+}
+
+code.inline {
+    display: inline-block;
+    margin: 0;
+    font-size: 95%;
+    padding: 1px;
+    vertical-align: bottom;
+}
+
+code.pre {
+    white-space: pre;
+    font-size: 12px;
+}
+
+OL {
+    counter-reset: list1;
+    padding-left: 2.5em;
+}
+UL {
+    padding-left: 2.5em;
+}
+OL LI {
+    list-style-type: none;
+}
 OL LI:before {
     counter-increment: list1;
     content: counter(list1) ". ";
