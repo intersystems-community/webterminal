@@ -4,6 +4,10 @@ Class WebTerminal.Installer Extends %Projection.AbstractProjection [ DependsOn =
 
 Parameter DispatchClass = "WebTerminal.Router";
 
+Parameter ResourceName = "%WebTerminal";
+
+Parameter RoleName = "WebTerminal";
+
 Projection Reference As Installer;
 
 Parameter VERSION = "<!-- @echo package.version -->";
@@ -93,6 +97,17 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
 	    write !, "WebTerminal package successfully mapped into all namespaces."
 	    do ##class(WebTerminal.Analytics).ReportInstallStatus(1)
     }
+
+    if (##class(Security.Resources).Exists(..#ResourceName) = 0) {
+        set st = ##class(Security.Resources).Create(..#ResourceName,
+            "Grants access to WebTerminal if set up.", "")
+    }
+
+    if (##class(Security.Roles).Exists(..#RoleName) = 0) {
+        set st = ##class(Security.Roles).Create(..#RoleName,
+            "WebTerminal user role which may grant access to WebTerminal application if set up.",
+            "%WebTerminal:RWU")
+    }
     
     return st
 }
@@ -102,7 +117,7 @@ ClassMethod RemoveProjection(cls As %String, ByRef params, recompile As %Boolean
 {
 	new $Namespace
 
-	write:(recompile) !, "Recompiling WebTerminal..."
+	write:(recompile) !, "Recompiling WebTerminal, skipping the deletion..."
     return:(recompile) $$$OK
 
 	set ns = $get(^WebTerminal("HomeNamespace"), $Namespace)
@@ -114,6 +129,16 @@ ClassMethod RemoveProjection(cls As %String, ByRef params, recompile As %Boolean
     set st = ..RemoveWebApplication("/terminalsocket")
     do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
     return:($$$ISERR(st)) st
+    if (##class(Security.Resources).Exists(..#ResourceName) = 1) {
+        set st = ##class(Security.Resources).Delete(..#ResourceName)
+        do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+        return:($$$ISERR(st)) st
+    }
+    if (##class(Security.Roles).Exists(..#RoleName) = 1) {
+        set st = ##class(Security.Roles).Delete(..#RoleName)
+        do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+        return:($$$ISERR(st)) st
+    }
 
     kill:st ^WebTerminal
     write !, "Global ^WebTerminal removed."
