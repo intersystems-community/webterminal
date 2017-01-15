@@ -52,7 +52,17 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set ^WebTerminal("FirstLaunch") = 1
     write !, "Installing WebTerminal application to " _ ns
     set dbdir = $$$defdir
-    set $Namespace = "%SYS"
+    try {
+        set $Namespace = "%SYS"
+    } catch (e) {
+        set mes = "<PROTECT> The user " _ $Username _ " has no privileges"
+            _ " to enter the %SYS namespace. Please, log in as a privileged user"
+            _ " to set up the WebTerminal application."
+        set err = $$$ERROR($$$GeneralError, mes)
+        do ##class(WebTerminal.Analytics).ReportInstallStatus(err)
+        write !, mes
+        return err
+    }
     
     set cspProperties("AutheEnabled") = $$$AutheCache
     set cspProperties("NameSpace") = ns
