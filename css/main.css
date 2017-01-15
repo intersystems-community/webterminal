@@ -176,10 +176,37 @@ OL OL OL LI:before {
 h1:target, h2:target, h3:target {
     color: #fffc9e;
     animation: highlight 2s ease-out;
+    -moz-animation: highlight 2s ease-out;
+    -o-animation: highlight 2s ease-out;
+    -webkit-animation: highlight 2s ease-out;
     text-decoration: underline;
 }
 
 @keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
+
+@-moz-keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
+
+@-ms-keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
+
+@-o-keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
+
+@-webkit-keyframes highlight {
     0% { color: inherit }
     50% { color: orange; padding-left: 10px; }
     100% { color: #fffc9e }
