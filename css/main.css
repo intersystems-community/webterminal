@@ -125,6 +125,40 @@ a:hover {
 	z-index: 1;
 }
 
+table {
+    border-collapse: collapse;
+    box-shadow: 0 0 1px white;
+    border-radius: 5px;
+}
+
+table tr:nth-child(2n) {
+    background-color: rgba(255,255,255,0.2);
+}
+
+table th {
+    background-color: rgba(255, 252, 158, 0.5);
+}
+
+table th:first-child {
+    border-radius: 5px 0 0 0;
+}
+
+table th:last-child {
+    border-radius: 0 5px 0 0;
+}
+
+table tbody tr:last-child td:first-child {
+    border-radius: 0 0 0 5px;
+}
+
+table tbody tr:last-child td:last-child {
+    border-radius: 0 0 5px 0;
+}
+
+table td {
+    padding: 2px;
+}
+
 code {
     display: block;
     background-color: rgba(255,255,255,0.1);
@@ -133,6 +167,7 @@ code {
     margin: .3em 0;
     border-radius: 5px;
     overflow: auto;
+    font-size: 14px;
 }
 
 code.inline {

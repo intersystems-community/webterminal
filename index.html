@@ -181,11 +181,11 @@
                         <a href="#docs.3">Output Options</a>
                         <ol>
                             <li><a href="#docs.3.1">Changing Output Color And Font</a></li>
-                            <li>Formatting Output</li>
-                            <li>Cursor Control</li>
-                            <li>Printing Hyperlinks (WebTerminal Only)</li>
-                            <li>Printing HTML (WebTerminal Only)</li>
-                            <li>Other Supported Output Options</li>
+                            <li><a href="#docs.3.2">Formatting Output</a></li>
+                            <li><a href="#docs.3.3">Cursor Control</a></li>
+                            <li><a href="#docs.3.4">Printing Hyperlinks (WebTerminal Only)</a></li>
+                            <li><a href="#docs.3.5">Printing HTML (WebTerminal Only)</a></li>
+                            <li><a href="#docs.3.6">Other Supported Output Options</a></li>
                         </ol>
                     </li>
                     <li>
@@ -498,7 +498,326 @@
                 </p>
                 <h2 id="docs.3.1">3.1. Changing Output Color And Font</h2>
                 <p>
-                    There is an option to change the output font weight and color.
+                    There is an option to change the output font weight and color. The table below
+                    demonstrates the basic escape sequences that can be used in output.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sequence</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[0m</code></td>
+                            <td>
+                                Reset all output options mentioned in <a href="#docs.3.1">3.1</a>
+                                to default
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[1m</code></td>
+                            <td>
+                                Switch font to <span class="g m1">bold</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[2m</code></td>
+                            <td>
+                                Make font <span class="g m2">dim</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[3m</code></td>
+                            <td>
+                                Make font <span class="g m3">italic</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[4m</code></td>
+                            <td>
+                                <span class="g m4">Underline the text</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[5m</code></td>
+                            <td>
+                                Print <span class="g m5">blinking</span> text
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[7m</code></td>
+                            <td>
+                                Print <span class="g m7">Invert</span> the printed text colors
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[8m</code></td>
+                            <td>
+                                Print invisible text (but still selectable)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>
+                    For example, to print "<code class="inline">Impossible is <span class="g m4">nothing</span>!</code>"
+                    on the screen, you can type the following write statement in terminal
+                    (Caché ObjectScript):
+                </p>
+                <code>
+                    <span class="g keyword">write</span><span class="g"> </span><span class="g string">"Impossible is "</span><span class="g">, </span><span class="g keyword">$Char</span><span class="g">(</span><span class="g constant">27</span><span class="g">), </span><span class="g string">"[4mnothing"</span><span class="g">, </span><span class="g keyword">$Char</span><span class="g">(</span><span class="g constant">27</span><span class="g">), </span><span class="g string">"[0m!"</span>
+                </code>
+                <p>
+                    Alternatively, if you are using JavaScript API, then the next will do the same:
+                </p>
+                <code>
+                    term.print(<span class="g string">"Impossible is <span class="g variable">\x1b</span><span class="g special">[4m</span>nothing<span class="g variable">\x1b</span><span class="g special">[0m</span>!"</span>);
+                </code>
+                <p>
+                    As well as font, the color of the text and its background can be changed by
+                    using these sequences:
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[3<span class="g variable">X</span>m</code></td>
+                        <td>
+                            Changes the font color. The <span class="g variable">X</span> here is a
+                            number which can be one of the following:
+                            <span class="g variable">0</span> for <span class="g m30">Black</span>,
+                            <span class="g variable">1</span> for <span class="g m31">Red</span>,
+                            <span class="g variable">2</span> for <span class="g m32">Green</span>,
+                            <span class="g variable">3</span> for <span class="g m33">Yellow</span>,
+                            <span class="g variable">4</span> for <span class="g m34">Blue</span>,
+                            <span class="g variable">5</span> for <span class="g m35">Magenta</span>,
+                            <span class="g variable">6</span> for <span class="g m36">Cyan</span> and
+                            <span class="g variable">7</span> for <span class="g m30">White</span>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[4<span class="g variable">X</span>m</code></td>
+                        <td>
+                            Changes the background color. The same digits described for
+                            <code class="inline">&lt;ESC&gt;[3<span class="g variable">X</span>m</code>
+                            sequence can be used here instead of <span class="g variable">X</span>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[38;5;<span class="g variable">Y</span>m</code></td>
+                        <td>
+                            Changes the font color according to 8-bit color table. The
+                            <span class="g variable">Y</span> here can take integers from 0 to 255,
+                            which corresponds to <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/25e47a17a95e0155ab6f8b4cc0fe4c6b594c5917/src/client/js/output/const.js">pre-defined 8-bit color table</a>.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <h2 id="docs.3.2">3.2. Formatting Output</h2>
+                <p>
+                    To format output and set up tab stops the next escape sequences are used:
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>G</code></td>
+                        <td>
+                            Moves cursor to column <span class="g variable">X</span>. In Caché
+                            ObjectScript you can just use a "?" symbol to shorten this escape
+                            sequence, for example: <code class="inline pre"><span class="g keyword">w</span><span class="g"> </span><span class="g special">?</span><span class="g constant">25</span><span class="g">, </span><span class="g string">"duck"</span></code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;H</code></td>
+                        <td>
+                            Set the tab stop at the current position. By default tab stops are
+                            set at each 8th column.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[g</code></td>
+                        <td>
+                            Clears the tab stop at the current position if present.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[3g</code></td>
+                        <td>
+                            Clears all tab stops.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <h2 id="docs.3.3">3.3. Cursor control</h2>
+                <p>
+                    The next escape sequences are used to control the cursor:
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">Y</span>;<span class="g variable">X</span>H</code></td>
+                        <td>
+                            Moves cursor to (<span class="g variable">X</span>, <span class="g variable">Y</span>)
+                            position (the upper left corner is (<span class="g variable">1</span>, <span class="g variable">1</span>)).
+                            Both <span class="g variable">X</span> and <span class="g variable">Y</span>
+                            can be omitted, e.g. <code class="inline pre">&lt;ESC&gt;[H</code> will
+                            set the cursor to position (<span class="g variable">1</span>, <span class="g variable">1</span>).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>A</code></td>
+                        <td>
+                            Moves the cursor up by <span class="g variable">X</span> rows; the default count is 1.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>B</code></td>
+                        <td>
+                            Moves the cursor down by <span class="g variable">X</span> rows; the default count is 1.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>C</code></td>
+                        <td>
+                            Moves the cursor forward by <span class="g variable">X</span> rows; the default count is 1.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>D</code></td>
+                        <td>
+                            Moves the cursor backward by <span class="g variable">X</span> rows; the default count is 1.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[s</code></td>
+                        <td>
+                            Saves the current cursor position.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[u</code></td>
+                        <td>
+                            Loads the last saved cursor position.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;7</code></td>
+                        <td>
+                            Save the current cursor positions and its attributes (font and color).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;8</code></td>
+                        <td>
+                            Restore the last saved cursor positions and its attributes (font and color).
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <h2 id="docs.3.4">3.4. Printing Hyperlinks (WebTerminal Only)</h2>
+                <p>
+                    WebTerminal provides a special escape sequence to print hyperlinks. Note that
+                    this will work only for WebTerminal.
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;!URL=<span class="g variable">&lt;link&gt;</span> (<span class="g variable">&lt;text&gt;</span>)</code></td>
+                        <td>
+                            Prints the <span class="g variable">&lt;text&gt;</span> highlighted as
+                            a link. Pressing on the printed <span class="g variable">&lt;text&gt;</span>
+                            will open a new tab with the URL address <span class="g variable">&lt;link&gt;</span>.
+                            Make sure that the <span class="g variable">&lt;link&gt;</span> does
+                            not contain spaces (they must be encoded with %20 character combination)
+                            and other non-URL symbols. Note that there is a space between
+                            <span class="g variable">&lt;link&gt;</span> and <code class="inline pre">(</code> symbol.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p>
+                    Example:
+                </p>
+                <code class="pre"><span class="g">USER &gt; </span><span class="g keyword">write</span><span class="g"> </span><span class="g string">"Visit "</span><span class="g">, </span><span class="g keyword">$Char</span><span class="g">(</span><span class="g constant">27</span><span class="g">), </span><span class="g string">"!URL=https://github.com (GitHub)!"</span>
+<span class="g">Visit </span><a class="g" href="https://github.com" target="_blank">GitHub</a><span class="g">!</span></code>
+                <h2 id="docs.3.5">3.5. Printing HTML (WebTerminal Only)</h2>
+                <p>
+                    WebTerminal can print HTML! This opens almost infinite possibilities of
+                    extending WebTerminal applications with modern web technologies. See the table
+                    below for the HTML printing options.
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;(<span class="g variable">&lt;classname&gt;</span>)m</code></td>
+                        <td>
+                            Prints the text wrapped into HTML &lt;span class="<span class="g variable">&lt;classname&gt;</span>"&gt;
+                            element. To clear the assigned class use <code class="inline pre">&lt;ESC&gt;[0m</code>
+                            escape sequence as well. Check the available WebTerminal classes <a target="_blank" href="https://github.com/intersystems-ru/webterminal/tree/master/src/client/scss">here</a>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;!&lt;HTML&gt;<span class="g variable">{html}</span>&lt;/HTML&gt;</code></td>
+                        <td>
+                            Converts the current line in output to the HTML line. This line will
+                            include any <span class="g variable">{html}</span> given to the
+                            sequence. Once the given <span class="g variable">{html}</span> will be
+                            rendered on the screen, the height of the rendered part will be
+                            calculated instantly and assigned to the containing line (the height of
+                            the line may be slightly higher than the content height). This height
+                            will not be changed when content height changes.<br/>
+                            <span class="g variable">NOTE</span> that this sequence will block
+                            output until the closing &lt;/HTML&gt; comes.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p>
+                    Example:
+                </p>
+                <code class="pre"><span class="g">USER &gt; </span><span class="g keyword">write</span><span class="g"> </span><span class="g keyword">$Char</span><span class="g">(</span><span class="g constant">27</span><span class="g">), </span><span class="g string">"!&lt;HTML&gt;&lt;h1&gt;I am a very big title!&lt;/h1&gt;&lt;/HTML&gt;end."</span>
+<h1>I am a very big title!</h1>
+<span class="g">end.</span></code>
+                <h2 id="docs.3.6">3.6. Other Supported Output Options</h2>
+                <p>
+                    There are more escape sequences not mentioned above but is supported by VT100
+                    terminal standard. You can check the other escape sequences
+                    <a target="_blank" href="http://www.termsys.demon.co.uk/vtansi.htm">here</a>.
+                    If you find the escape sequence missing in WebTerminal, you can request for this
+                    sequence to be impemented. Go to <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">describe</a>
+                    an issue, or, you can even implement it by yourself starting from
+                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/output/esc.js">this</a>
+                    file.
                 </p>
             </div>
             <div class="segment">
@@ -1117,7 +1436,7 @@ iFrame.addEventListener("load", function () {
                 <h1 class="center">Welcome to Caché Web Terminal homepage!</h1>
                 <p>
                     This is the first and the most powerful web-based terminal for
-                    InterSystems Caché®, Ensemble®, HealthShare®, TrakCare® and other products build
+                    InterSystems Caché®, Ensemble®, HealthShare®, TrakCare® and other products built
                     on top of <a href="http://www.intersystems.com/our-products/cache/cache-overview/">InterSystems Caché</a>.
                     It is a complete terminal utility packed with a lot of useful features in your
                     favourite browser.

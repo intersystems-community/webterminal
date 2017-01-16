@@ -142,6 +142,103 @@
 
 /* Terminal Colors */
 
+
+.g.m1 { /* bright */
+    font-weight: 900;
+}
+
+.g.m2 { /* dim */
+    opacity: 0.7;
+}
+
+.g.m3 {
+    font-style: italic;
+}
+
+.g.m4 {
+    text-decoration: underline;
+}
+
+.g.m5 {
+@include animation(blink infinite 1s);
+}
+
+.g.m7 {
+@include filter(invert(100%));
+}
+
+.g.m8 {
+    opacity: 0;
+}
+
+.g.hint {
+    opacity: .5;
+}
+
+.g.m30 {
+    color: #000000;
+}
+
+.g.m31 {
+    color: #ff0000;
+}
+
+.g.m32 {
+    color: #008000;
+}
+
+.g.m33 {
+    color: yellow;
+}
+
+.g.m34 {
+    color: #0000ff;
+}
+
+.g.m35 {
+    color: magenta;
+}
+
+.g.m36 {
+    color: cyan;
+}
+
+.g.m37 {
+    color: white;
+}
+
+.g.m40 {
+    background-color: #000000;
+}
+
+.g.m41 {
+    background-color: #ff0000;
+}
+
+.g.m42 {
+    background-color: #008000;
+}
+
+.g.m43 {
+    background-color: yellow;
+}
+
+.g.m44 {
+    background-color: #0000ff;
+}
+
+.g.m45 {
+    background-color: magenta;
+}
+
+.g.m46 {
+    background-color: cyan;
+}
+
+.g.m47 {
+    background-color: white;
+}
+
 .g.keyword {
     color: #4898ff;
 }
@@ -160,6 +257,10 @@
 
 .g.variable {
     color: lightsalmon;
+}
+
+.g.wrong {
+    color: red;
 }
 
 .g.selected {
