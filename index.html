@@ -10,16 +10,26 @@
         <link rel="stylesheet" type="text/css" href="css/main.css" media="screen"/>
         <link rel="stylesheet" type="text/css" href="css/content.css" media="screen"/>
         <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+            ga('create', 'UA-83005064-5', 'auto');
             function init () {
                 hashChanged();
                 [].slice.call(document.querySelectorAll(".downloadLinks a")).forEach(function (l) {
                     l.setAttribute("download", l.textContent.replace(/\s+/g, " ") + ".xml");
                 });
+                var h = location.hash.replace(/^#/, ""),
+                    e = document.getElementById(h);
+                if (e && typeof e.scrollIntoView === "function")
+                    setTimeout(function () { e.scrollIntoView() }, 300);
             }
             function hashChanged () {
                 var h = location.hash.replace(/^#/, "").replace(/\..*$/, ""),
                     p = document.getElementById(h),
                     main = document.getElementById("main");
+                ga('send', 'pageview');
                 if (!p || p.className.indexOf("pageLayout") === -1)
                     return;
                 [].slice.call(document.querySelectorAll(".pageBody .pageLayout")).forEach(function (l) {
@@ -151,28 +161,28 @@
                                 <a href="#docs.2.2">Using WebTerminal's Special Commands</a>
                                 <ol>
                                     <li><a href="#docs.2.2.1">Getting Help</a></li>
-                                    <li>Clearing All The History</li>
-                                    <li>Configuring WebTerminal</li>
-                                    <li>Favoring Particular Commands</li>
-                                    <li>Showing Project Information</li>
-                                    <li>Logging Out From WebTerminal</li>
-                                    <li>Toggling SQL Mode</li>
-                                    <li>Tracing</li>
-                                    <li>Updating WebTerminal Manually</li>
+                                    <li><a href="#docs.2.2.2">Clearing All The History</a></li>
+                                    <li><a href="#docs.2.2.3">Configuring WebTerminal</a></li>
+                                    <li><a href="#docs.2.2.4">Remembering Particular Commands</a></li>
+                                    <li><a href="#docs.2.2.5">Showing Project Information</a></li>
+                                    <li><a href="#docs.2.2.6">Logging Out From WebTerminal</a></li>
+                                    <li><a href="#docs.2.2.7">Toggling SQL Mode</a></li>
+                                    <li><a href="#docs.2.2.8">Tracing Globals And Files</a></li>
+                                    <li><a href="#docs.2.2.9">Updating WebTerminal Manually</a></li>
                                 </ol>
                             </li>
                             <li>
                                 <a href="#docs.2.3">Configuring WebTerminal</a>
                                 <ol>
-                                    <li>Changing Default Namespace</li>
-                                    <li>Hiding Initial Messages</li>
-                                    <li>Changing The Language</li>
-                                    <li>Increasing Stored History Size</li>
-                                    <li>Changing The Rows Limit In SQL Mode</li>
-                                    <li>Toggling Autocomplete</li>
-                                    <li>Toggling Syntax Highlight</li>
-                                    <li>Toggling Updates Check</li>
-                                    <li>Changing The Server Name</li>
+                                    <li><a href="#docs.2.3.1">Changing Default Namespace</a></li>
+                                    <li><a href="#docs.2.3.2">Hiding Initial Messages</a></li>
+                                    <li><a href="#docs.2.3.3">Changing The Language</a></li>
+                                    <li><a href="#docs.2.3.4">Increasing Stored History Size</a></li>
+                                    <li><a href="#docs.2.3.5">Changing The Rows Limit In SQL Mode</a></li>
+                                    <li><a href="#docs.2.3.6">Toggling Autocomplete</a></li>
+                                    <li><a href="#docs.2.3.7">Toggling Syntax Highlight</a></li>
+                                    <li><a href="#docs.2.3.8">Toggling Updates Check</a></li>
+                                    <li><a href="#docs.2.3.9">Changing The Server Name</a></li>
                                 </ol>
                             </li>
                         </ol>
@@ -211,6 +221,11 @@
                     </li>
                     <li>
                         <a href="#docs.5">Contributing To WebTerminal Project</a>
+                        <ol>
+                            <li><a href="#docs.5.1">Development Workflow Set Up</a></li>
+                            <li><a href="#docs.5.2">Guidelines</a></li>
+                            <li><a href="#docs.5.3">Entry Points</a></li>
+                        </ol>
                     </li>
                     <li>
                         <a href="#docs.6">Licensing (MIT)</a>
@@ -466,6 +481,96 @@
                     special command. This command, as well as any other special command can be
                     entered in both default and SQL terminal modes.
                 </p>
+                <h3 id="docs.2.2.2">2.2.2. Clearing All The History</h3>
+                <p>
+                    WebTerminal does not have the history limit like standard terminal. This is
+                    useful to see all the output and search through it, but sometimes, when you
+                    execute a lot of commands in one session terminal may slow down because of this.
+                    In this case, you can trigger <code class="inline">/clear</code> special
+                    command to clear all the history.
+                </p>
+                <h3 id="docs.2.2.3">2.2.3. Configuring WebTerminal</h3>
+                <p>
+                    To customize the WebTerminal's behavior, use <code class="inline">/config</code>
+                    command. Refer to <a href="#docs.2.3">2.3</a> section to find out more about
+                    local and global configuration.
+                </p>
+                <h3 id="docs.2.2.4">2.2.4. Remembering Particular Commands</h3>
+                <p>
+                    If you execute some command frequently, you can define a shortcut for it. To do
+                    this, enter
+                </p>
+                <code>
+                    <span class="g special">/favorite</span><span class="g"> </span><span class="g constant">{name}</span><span class="g"> </span><span class="g keyword">write</span><span class="g"> </span><span class="g string">"I am always right!"</span>
+                </code>
+                <p>
+                    where <span class="g constant">{name}</span> can be any symbolic name of the
+                    command you want to save. Then you can restore this command by entering
+                </p>
+                <code>
+                    <span class="g special">/favorite</span><span class="g"> </span><span class="g constant">{name}</span>
+                </code>
+                <p>
+                    To delete previously saved commands, use
+                </p>
+                <code>
+                    <span class="g special">/favorite</span><span class="g"> </span><span class="g wrong">delete</span><span class="g"> </span><span class="g constant">{name}</span>
+                </code>
+                <p>
+                    To delete all saved commands, use
+                </p>
+                <code>
+                    <span class="g special">/favorite</span><span class="g"> </span><span class="g wrong">delete</span>
+                </code>
+                <h3 id="docs.2.2.5">2.2.5. Showing Project Information</h3>
+                <p>
+                    To display information about the project, use <code class="inline">/info</code>
+                    command.
+                </p>
+                <h3 id="docs.2.2.6">2.2.6. Logging Out From WebTerminal</h3>
+                <p>
+                    WebTerminal, as any other web application remembers the username and password
+                    you enter. You will still be logged in after the page refresh or even browser
+                    restart. To log out from the current user use
+                    <code class="inline">/logout</code> command.
+                </p>
+                <h3 id="docs.2.2.7">2.2.7. Toggling SQL Mode</h3>
+                <p>
+                    WebTerminal features the convenient SQL mode build in. To enter the SQL mode,
+                    use <code class="inline">/sql</code> command. To exit this mode, enter
+                    <code class="inline">/sql</code> command again.
+                </p>
+                <p>
+                    In SQL mode you can execute any SQL queries and get the syntax highlight and
+                    suggestions for SQL. Also, when getting SQL results you will see simple
+                    SQL table, which is easy to read comparing to the simple terminal output.
+                </p>
+                <h3 id="docs.2.2.8">2.2.8. Tracing Globals And Files</h3>
+                <p>
+                    You can start tracking changes in globals or files. For globals, tracking is
+                    available only for multi-dimensional ones. WebTerminal will notify you about
+                    the changes in global dimension. To start tracking, use the following commands:
+                </p>
+                <code>
+                    <span class="g special">/trace</span><span class="g"> </span><span class="g string">/path/to/file</span> <span class="g m2">(to track files)</span><br/>
+                    <span class="g special">/trace</span><span class="g"> </span><span class="g global">^globalName</span> <span class="g m2">(to track globals)</span>
+                </code>
+                <p>
+                    You will start receiving notifications as a printed output to the current
+                    session. Use
+                </p>
+                <code>
+                    <span class="g special">/trace</span><span class="g"> </span><span class="g global">stop</span>
+                </code>
+                <p>
+                    To stop tracking all files and globals.
+                </p>
+                <h3 id="docs.2.2.9">2.2.9. Updating WebTerminal Manually</h3>
+                <p>
+                    When you disable the auto-update, or if the initial output is omitted, you can
+                    still check for the updates manually by entering
+                    <code class="inline">/update</code> command.
+                </p>
                 <h2 id="docs.2.3">2.3. Configuring WebTerminal</h2>
                 <p>
                     WebTerminal configuration is divided into to client and server configuration.
@@ -474,6 +579,93 @@
                     Caché instance. All the settings can be changed with
                     <code class="inline">/config</code> special command.
                 </p>
+                <h3 id="docs.2.3.1">2.3.1. Changing Default Namespace</h3>
+                <p>
+                    Affects client only. To change the default namespace use the next command:
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">defaultNamespace</span><span class="g"> = </span><span class="g string">"USER"</span>
+                </code>
+                <p>
+                    The user logged will enter this namespace at start if they have access to it.
+                </p>
+                <h3 id="docs.2.3.2">2.3.2. Hiding Initial Messages</h3>
+                <p>
+                    Affects client only. If you want to stop showing the initial messages upon the
+                    start, enter
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">initMessage</span><span class="g"> = </span><span class="g constant">false</span>
+                </code>
+                <p>
+                    command.
+                </p>
+                <h3 id="docs.2.3.3">2.3.3. Changing The Language</h3>
+                <p>
+                    Affects client only. The closest interface language you need is detected
+                    automatically during the WebTerminal start. But you can change it by entering
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">language</span><span class="g"> = </span><span class="g constant">ru</span>
+                </code>
+                <p>
+                    Affects client only. You can try entering any language and WebTerminal will show
+                    the list of available languages if the one you entered cannot be set up.
+                </p>
+                <h3 id="docs.2.3.4">2.3.4. Increasing Stored History Size</h3>
+                <p>
+                    Affects client only. WebTerminal stores 200 last commands in history. To change
+                    this limit, enter
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">maxHistorySize</span><span class="g"> = </span><span class="g constant">777</span>
+                </code>
+                <h3 id="docs.2.3.5">2.3.5. Changing The Rows Limit In SQL Mode</h3>
+                <p>
+                    Affects client only. If you need to change the maximum number of rows displayed
+                    in SQL mode, enter
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">sqlMaxResults</span><span class="g"> = </span><span class="g constant">999</span>
+                </code>
+                <h3 id="docs.2.3.6">2.3.6. Toggling Autocomplete</h3>
+                <p>
+                    Affects client only. If for some reason you don't want autocomplete to help you,
+                    turn it off by using
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">suggestions</span><span class="g"> = </span><span class="g constant">false</span>
+                </code>
+                <h3 id="docs.2.3.7">2.3.7. Toggling Syntax Highlight</h3>
+                <p>
+                    Affects client only. If for some reason you don't want the input to be
+                    highlighted, turn it off by using
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">syntaxHighlight</span><span class="g"> = </span><span class="g constant">false</span>
+                </code>
+                <h3 id="docs.2.3.8">2.3.8. Toggling Updates Check</h3>
+                <p>
+                    Affects client only. There may be some cases when you won't need to notify
+                    client about available WebTerminal updates. The most common case is embedding
+                    WebTerminal to other applications for non-privileged users. If you are using
+                    <code class="inline">clean</code> URL parameter, than you don't need to turn
+                    this option off. In case of you don't want to update terminal regularly, it's
+                    sad, but you can turn the updates off by using
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">updateCheck</span><span class="g"> = </span><span class="g constant">false</span>
+                </code>
+                <h3 id="docs.2.3.9">2.3.9. Changing The Server Name</h3>
+                <p>
+                    Affects server. Changes the name of the server displayed in initial message and
+                    in the browser's tab. This becomes extremely useful if you have WebTerminal
+                    installed on multiple servers and you open many browser tabs at once. Use this
+                    to change the server name:
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">serverName</span><span class="g"> = </span><span class="g string">"Pentagon"</span>
+                </code>
             </div>
             <div class="segment">
                 <h1 id="docs.3">3. Output Options</h1>
@@ -996,13 +1188,136 @@ iFrame.addEventListener("load", function () {
 }</code>
             </div>
             <div class="segment">
-                <h1 id="docs.5">Contributing To WebTerminal Project</h1>
+                <h1 id="docs.5">5. Contributing To WebTerminal Project</h1>
                 <p>
                     The Caché WebTerminal is an open-source project anyone can contribute to. Anyone
                     are welcome to join and contribute to this project on InterSystems official
                     <a target="_blank" href="https://github.com/intersystems-ru/webterminal">GitHub</a>.
                     This section describes the basic guidelines and principles of contributing.
                 </p>
+                <h2 id="docs.5.1">5.1. Development Workflow Set Up</h2>
+                <p>
+                    The development workflow of Caché WebTerminal lies completely outside Caché
+                    (without using Caché Studio / Atelier) and is possible for any platform. It
+                    uses a Gulp building tool to gather and build the Caché-ready project from bare
+                    sources, JavaScript ECMAScript 6 standard and SCSS (SASS) for styling.
+                </p>
+                <p>
+                    To set up the project, you have to have latest
+                    <a target="_blank" href="https://git-scm.com/">Git</a> and
+                    <a target="_blank" href="https://nodejs.org/en/">NodeJS</a> installed
+                    (tested on NodeJS v4-6). Then, use command line to download and setup the
+                    project:
+                </p>
+                <code class="pre">git clone https://github.com/intersystems-ru/webterminal
+cd webterminal                   # enter repository directory
+npm install                      # install all project's dependencies
+
+npm run build                    # build the project</code>
+                <p>
+                    After this, you will get the <code class="inline">build</code> directory
+                    containing Caché classes in UDL format. To import these classes to Caché,
+                    and to perform the build with one single command, go to edit the
+                    <code class="inline">import.cmd</code> or <code class="inline">import.sh</code>
+                    file (depending on your OS). There you need to change only constants like
+                    <code class="inline">CACHE_DIR</code>, which may be different for your system.
+                    Just do not commit this file after changing, and use the next command
+                </p>
+                <code>
+                    import
+                </code>
+                <p>
+                    to build and import new classes to Caché. Once you have imported classes, you
+                    should receive <code class="inline">IMPORT STATUS: OK</code> and
+                    <code class="inline">EXPORT STATUS: OK</code> messages.
+                </p>
+                <h2 id="docs.5.2">5.2. Guidelines</h2>
+                <p>
+                    There are several guidelines you should consider if you want to contribute to
+                    WebTerminal project by yourself:
+                </p>
+                <ol>
+                    <li>
+                        Create a new <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">issue</a>
+                        or open a pull request for every new contribution.
+                    </li>
+                    <li>
+                        Use spaces instead of tabs (4 spaces), comment and format well any
+                        contribution if needed.
+                    </li>
+                    <li>
+                        When introducing new features or extending WebTerminal API, open a new
+                        <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">issue</a>
+                        to discuss the way how to implement it as best as possible.
+                    </li>
+                </ol>
+                <h2 id="docs.5.3">5.3. Entry Points</h2>
+                <p>
+                    This section describes the main files of the project.
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>File name / Directory</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">/import.*</code></td>
+                        <td>
+                            Script used to build and import the project to local Caché with one
+                            command. This script assumes editing before usage (changing constants).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">/src/client/</code></td>
+                        <td>
+                            Directory containing the client files (HTML, SCSS, JavaScript).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">/src/cls/</code></td>
+                        <td>
+                            Directory containing the server files (HTML, SCSS, JavaScript). Both
+                            client and server files are pre-processed. For example, you may notice
+                            that server files include comments with special syntax (f.e.
+                            <code class="inline">&lt;!-- @echo package.title --&gt;</code>). These
+                            lines are pre-processed during the build and are replaced with
+                            corresponding values.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/output/esc.js">/src/client/js/output/esc.js</a></code></td>
+                        <td>
+                            File that describes all supported escape sequences. The exported
+                            object's keys contain the character pattern of escape sequence,
+                            and the regular expression patterns enclosed by
+                            <code class="inline">{}</code> characters. The function as a key is
+                            triggered once the sequence is printed. However, no characters will
+                            appear in the output if the sequence is recognized.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/parser/grammar.js">/src/client/js/parser/grammar.js</a></code></td>
+                        <td>
+                            <b>You can easily make pull requests on this file if you need to enhance
+                            Caché ObjectScript grammar recognition.</b><br/>
+                            This file describes the grammar for Caché ObjectScript and SQL
+                            languages. See the comments in this file to understand its structure
+                            and feel free to enhance the grammar file to improve highlighting and
+                            autocomplete.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>others</td>
+                        <td>
+                            There are many other project files, please consider exploring their
+                            comments if you need more information.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="segment">
                 <h1 id="docs.6">6. Licensing (MIT)</h1>
@@ -1014,8 +1329,8 @@ iFrame.addEventListener("load", function () {
                     <a target="_blank" href="https://github.com/intersystems-ru/webterminal">GitHub</a>.
                 </p>
                 <p>
-                    The project is distributed under the MIT license, which provides full
-                    non-commercial or commercial use of the software. The license text is shown
+                    The project is distributed under the MIT license, which provides absolutely free
+                    non-commercial and commercial use of the software. The license text is shown
                     below.
                 </p>
                 <p>
@@ -1061,6 +1376,10 @@ iFrame.addEventListener("load", function () {
                 </ol>
                 <h2>Newest Versions<sup><span style="color: orange">beta</span></sup>:</h2>
                 <ul class="downloadLinks">
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-beta.17.xml">WebTerminal-v4.0.0-beta.17</a>
+                        - Installer and Escape Sequences fixes, some new options add and other minor fixes.
+                    </li>
                     <li>
                         <a href="files/WebTerminal-v4.0.0-beta.12.xml">WebTerminal-v4.0.0-beta.12</a>
                         - $X/$Y special variables accuracy fix.
