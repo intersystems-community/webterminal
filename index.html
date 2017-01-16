@@ -29,6 +29,7 @@
                 var h = location.hash.replace(/^#/, "").replace(/\..*$/, ""),
                     p = document.getElementById(h),
                     main = document.getElementById("main");
+                ga("set", "page", "/" + (location.hash === "" || location.hash === "#" ? "#main" : location.hash));
                 ga('send', 'pageview');
                 if (!p || p.className.indexOf("pageLayout") === -1)
                     return;
