@@ -64,8 +64,8 @@ function getElement (gp, text) {
     for (let i = 0; i < gp.length; i += 2) {
         if (gp[i + 1].class)
             classes.push(gp[i + 1].class);
-        if (gp[i + 1].styles)
-            styles.push(gp[i + 1].styles);
+        if (gp[i + 1].style)
+            styles.push(gp[i + 1].style);
         if (gp[i + 1].attrs)
             for (let a in gp[i + 1].attrs)
                 attrs.push([a, gp[i + 1].attrs[a]]);
