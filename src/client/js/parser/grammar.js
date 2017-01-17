@@ -231,6 +231,16 @@ rule("cosCommand").split(
         constant(),
         any()
     ).exit(),
+    id([
+        { CI, value: "close", class: "keyword" },
+        { CI, value: "c", class: "keyword" }
+    ]).call("postCondition").whitespace().branch().split(
+        string(),
+        constant()
+    ).split(
+        char(",").optWhitespace().merge(),
+        any()
+    ).exit(),
     id({ CI, value: "continue", class: "keyword" }).call("postCondition").exit(),
     id([
         { CI, value: "do", class: "keyword" },
@@ -274,6 +284,35 @@ rule("cosCommand").split(
         call("global")
     ).exit(),
     id([
+        { CI, value: "open", class: "keyword" },
+        { CI, value: "o", class: "keyword" }
+    ]).call("postCondition").whitespace().branch().split(
+        string(),
+        constant()
+    ).split(
+        char(":").split(
+            char("(").call("deviceParameters").char(")").split(
+                char(":").split(
+                    constant().split(
+                        char(":").string(),
+                        any()
+                    ),
+                    string()
+                ),
+                any()
+            ),
+            constant().split(
+                char(":").string(),
+                any()
+            ),
+            string()
+        ),
+        any()
+    ).split(
+        char(",").optWhitespace().merge(),
+        any()
+    ).exit(),
+    id([
         { CI, value: "zwrite", class: "keyword" },
         { CI, value: "zw", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
@@ -311,6 +350,14 @@ rule("cosCommand").split(
         any().exit()
     ),
     id([
+        { CI, value: "quit", class: "keyword" },
+        { CI, value: "q", class: "keyword" },
+        { CI, value: "return", class: "keyword" }
+    ]).call("postCondition").optWhitespace().split(
+        tryCall("expression"),
+        any()
+    ).exit(),
+    id([
         { CI, value: "read", class: "keyword" },
         { CI, value: "r", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
@@ -331,14 +378,6 @@ rule("cosCommand").split(
         any().exit()
     ),
     id([
-        { CI, value: "quit", class: "keyword" },
-        { CI, value: "q", class: "keyword" },
-        { CI, value: "return", class: "keyword" }
-    ]).call("postCondition").optWhitespace().split(
-        tryCall("expression"),
-        any()
-    ).exit(),
-    id([
         { CI, value: "tstart", class: "keyword" },
         { CI, value: "ts", class: "keyword" },
         { CI, value: "tcommit", class: "keyword" },
@@ -348,6 +387,20 @@ rule("cosCommand").split(
         { CI, value: "trollback", class: "keyword" },
         { CI, value: "tro", class: "keyword" }
     ]).call("postCondition").exit(),
+    id([
+        { CI, value: "use", class: "keyword" },
+        { CI, value: "u", class: "keyword" }
+    ]).call("postCondition").whitespace().branch().split(
+        string(),
+        constant(),
+        char({ value: "$", class: "keyword" }).id([
+            { CI, value: "io", class: "keyword" },
+            { CI, value: "principal", class: "keyword" }
+        ])
+    ).split(
+        char(",").optWhitespace().merge(),
+        any()
+    ).exit(),
     id([
         { CI, value: "xecute", class: "keyword" },
         { CI, value: "x", class: "keyword" }
@@ -398,6 +451,15 @@ rule("cosCommand").split(
             char("{").optWhitespace().call("cosCommand").optWhitespace().char("}").exit()
     )
 ).end();
+
+rule("deviceParameters").branch().split(
+    char({ value: "/", class: "special" }).id({ class: "special" }).char("=").call("expression")
+        .split(
+            char(":").merge(),
+            any()
+        ),
+    any()
+).exit().end();
 
 rule("termSpecial").split(
     split(
