@@ -10,16 +10,16 @@ if (config.get(`updateCheck`)) {
     checkUpdate();
 }
 
-export function checkUpdate () {
+export function checkUpdate (force = false) {
     get("https://intersystems-ru.github.io/webterminal/terminal.json", (data = {}) => {
         if (data.error || typeof data[`motd`] === "undefined")
             return;
-        terminal.onAuth(() => handleNetworkData(data));
+        terminal.onAuth(() => handleNetworkData(data, force));
     });
 }
 
-function handleNetworkData (data) {
-    if (!config.get(`updateCheck`)) {
+function handleNetworkData (data, force = false) {
+    if (!config.get(`updateCheck`) && !force) {
         return;
     }
     input.clearPrompt();

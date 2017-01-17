@@ -184,6 +184,6 @@ export default {
         });
     },
     "update": () => {
-        checkUpdate();
+        checkUpdate(true);
     }
 }
