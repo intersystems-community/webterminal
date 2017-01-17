@@ -285,6 +285,15 @@
         "8-bit coloring escape sequence fix",
         "The documentation is \u001b!URL=https://intersystems-ru.github.io/webterminal/#docs (ready)!"
       ]
+    },
+    {
+      "v": "4.0.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0.xml",
+      "changes": [
+        "Open/use/close commands grammar add",
+        "/update special command behavior fix when updates are turned off",
+        "WebTerminal \u001b!URL=https://intersystems-ru.github.io/webterminal/#docs (released)!"
+      ]
     }
   ]
 }
