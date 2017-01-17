@@ -462,11 +462,13 @@ rule("cosCommand").split(
 ).end();
 
 rule("deviceParameters").branch().split(
-    char({ value: "/", class: "special" }).id({ class: "special" }).char("=").call("expression")
-        .split(
-            char(":").merge(),
-            any()
-        ),
+    char({ value: "/", class: "special" }).id({ class: "special" }).split(
+        char("=").call("expression"),
+        any()
+    ).split(
+        char(":").merge(),
+        any()
+    ),
     string().split(
         char(":").merge(),
         any()
