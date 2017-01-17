@@ -1584,8 +1584,8 @@ npm run build                    # build the project</code>
                 </p>
                 <p>
                     Please, take a note that starting from v4.0.0-alpha.53, Caché WebTerminal
-                    collects anonymous statistics during the installation and usage process. The
-                    information WebTerminal collects includes:
+                    collects anonymous statistics (via Google Analytics) during the installation and
+                    usage process. The information WebTerminal collects includes:
                 </p>
                 <ul>
                     <li>Success of the installation/update process, error messages occurring during the WebTerminal installation;</li>
@@ -1598,7 +1598,11 @@ npm run build                    # build the project</code>
                     this way will help <a href="#feedback">me</a>, the developer of WebTerminal to
                     improve the application. This data is completely anonymous and will never
                     include any licensing or Caché usage information, so feel free to use
-                    WebTerminal anytime, anywhere, for your needs.
+                    WebTerminal anytime, anywhere, for your needs. Check WebTerminal's related
+                    source code (<a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/cls/WebTerminal/Analytics.cls">server</a>,
+                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/analytics/index.js">client</a>)
+                    if you still don't want to use WebTerminal because of statistics collection -
+                    it's completely safe and trusted by hundreds of users worldwide.
                 </p>
             </div>
 
