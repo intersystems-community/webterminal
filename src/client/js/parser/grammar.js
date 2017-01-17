@@ -398,6 +398,15 @@ rule("cosCommand").split(
             { CI, value: "principal", class: "keyword" }
         ])
     ).split(
+        char(":").split(
+            char("(").call("deviceParameters").char(")").split(
+                char(":").string(),
+                any()
+            ),
+            string()
+        ),
+        any()
+    ).split(
         char(",").optWhitespace().merge(),
         any()
     ).exit(),
@@ -458,6 +467,10 @@ rule("deviceParameters").branch().split(
             char(":").merge(),
             any()
         ),
+    string().split(
+        char(":").merge(),
+        any()
+    ),
     any()
 ).exit().end();
 
