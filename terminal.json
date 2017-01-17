@@ -1,5 +1,5 @@
 {
-  "motd": "WebTerminal v4 release is close: \u001b!URL=https://intersystems-ru.github.io/webterminal/#docs (the docs) and the last minor changes will be ready soon. Please, consider submitting \u001b!URL=https://github.com/intersystems-ru/webterminal/issues (bug reports) if something goes wrong.",
+  "motd": "",
   "versions": [
     {
       "v": "4.0.0-alpha.1",
