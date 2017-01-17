@@ -191,7 +191,7 @@ export default {
     },
     //
     "\x1b[{\\d*};\"{[^\"]}\"p": (args) => { // define key
-        console.log("\\key!", args); // todo
+        console.log("todo: implement key assignment", args);
     },
     "\x1b[{\\d+(?:;\\d+)*}m": (args) => {
         let indices = args[0].split(`;`);

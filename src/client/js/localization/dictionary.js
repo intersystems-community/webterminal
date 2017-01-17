@@ -184,14 +184,14 @@ export default {
 \rProject:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Homepage)
 \rRepository:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
 \rBug/Feature Tracker:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
-\r2013-${ new Date().getFullYear() } ©`,
+\r2013-${ new Date().getFullYear() } © Nikita Savchenko`,
         ru:
 `Caché WEB Terminal v/* @echo package.version */
 \rАвтор:\x1B[32G\x1b!URL=https://github.com/zitros (Никита Савченко) (ZitRo)
 \rПроект:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Главная страница)
 \rРепозиторий:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
 \rБаг/Фич трекер:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
-\r2013-${ new Date().getFullYear() } ©`
+\r2013-${ new Date().getFullYear() } © Никита Савченко`
     },
     "beforeInit": {
         en: "Terminal load complete. Getting auth key...",
