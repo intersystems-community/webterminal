@@ -1,7 +1,7 @@
 # Caché Web Terminal
 Web-based Caché terminal for InterSystems products. Access your database from everywhere!
 
-Visit [project page](http://intersystems-ru.github.io/webterminal) for more details and **download** the latest version [here](http://intersystems-ru.github.io/webterminal/#downloads).
+Visit [project page](http://intersystems-ru.github.io/webterminal) for more details and **download** the latest version [here](http://intersystems-ru.github.io/webterminal/#downloads). Read more and discuss WebTerminal on [InterSystems Developer Community](https://community.intersystems.com/post/cach%C3%A9-webterminal-v4-release).
 
 ### Preview
 
