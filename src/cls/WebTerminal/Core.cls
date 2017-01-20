@@ -96,6 +96,7 @@ ClassMethod Loop(StartupRoutine As %String = "") As %Status
     open "terminal"::"^%X364"
     use $io::"^" _ $ZName
     if (StartupRoutine '= "") {
+        do $System.Util.SetInterruptEnable($$$YES)
         do ##class(%Device).ReDirectIO($$$YES)
         try {
             do @StartupRoutine
@@ -110,8 +111,11 @@ ClassMethod Loop(StartupRoutine As %String = "") As %Status
     kill // kill any temporary variables ProcedureBlock may have
     for {
         do ##class(%Device).ReDirectIO($$$YES)
+        do $System.Util.SetInterruptEnable($$$YES)
         set $ZERROR = ""
-        try { xecute ..WaitCommand() } catch {}
+        try {
+            xecute ..WaitCommand()
+        } catch {}
         do ##class(%Device).ReDirectIO($$$NO)
         write !! // assume that prompt takes 2 lines
         do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, $ZERROR))

@@ -147,35 +147,37 @@ export default {
 `\x1b[1mCaché WEB Terminal \x1b[(keyword)mv/* @echo package.version */\x1b[0m
 \r
 \r\x1B[4mAvailable commands:\x1B[0m
-\r\x1B[(special)m/help\x1B[0m\x1B[32GDisplay the short documentation (like you just did).
-\r\x1B[(special)m/clear\x1B[0m\x1B[32GClears the screen and all the history.
-\r\x1B[(special)m/config\x1B[0m ...\x1B[32GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
-\r\x1B[(special)m/favorite\x1B[0m ...\x1B[32GAllows you to save or restore any freauently used commands. Enter this command to get more information.
-\r\x1B[(special)m/info\x1B[0m\x1B[32GShow the information about the WebTerminal project.
-\r\x1B[(special)m/logout\x1B[0m\x1B[32GLog out the current WebTerminal user and prompt for the authentication again.
-\r\x1B[(special)m/sql\x1B[0m\x1B[32GSwitches terminal to SQL mode. Type SQL commands instead of COS. To exit SQL mode, enter this command again.
-\r\x1B[(special)m/trace\x1B[0m ...\x1B[32GEnables global/file tracing. Type this command to get more information.
-\r\x1B[(special)m/update\x1B[0m\x1B[32GChecks for available updates.
+\r\x1B[(special)m/help\x1B[0m\x1B[20GDisplay the short documentation (like you just did).
+\r\x1B[(special)m/clear\x1B[0m\x1B[20GClears the screen and all the history.
+\r\x1B[(special)m/config\x1B[0m ...\x1B[20GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
+\r\x1B[(special)m/favorite\x1B[0m ...\x1B[20GAllows you to save or restore any freauently used commands. Enter this command to get more information.
+\r\x1B[(special)m/info\x1B[0m\x1B[20GShow the information about the WebTerminal project.
+\r\x1B[(special)m/logout\x1B[0m\x1B[20GLog out the current WebTerminal user and prompt for the authentication again.
+\r\x1B[(special)m/sql\x1B[0m\x1B[20GSwitches terminal to SQL mode. Type SQL commands instead of COS. To exit SQL mode, enter this command again.
+\r\x1B[(special)m/trace\x1B[0m ...\x1B[20GEnables global/file tracing. Type this command to get more information.
+\r\x1B[(special)m/update\x1B[0m\x1B[20GChecks for available updates.
 \r
 \r\x1b[4mKeys:\x1b[0m
-\r\x1B[(special)mTAB\x1B[0m\x1B[32GComplete the input with proposed autocomplete variant.
-\r\x1B[(special)mRight/left CTRL\x1B[0m\x1B[32GSwitch autocomplete variant when multiple are available.`,
+\r\x1B[(special)mCtrl + C\x1B[0m\x1B[20GInterrupt the command execution.
+\r\x1B[(special)mTAB\x1B[0m\x1B[20GComplete the input with proposed autocomplete variant.
+\r\x1B[(special)mRight/left CTRL\x1B[0m\x1B[20GSwitch autocomplete variant when multiple are available.`,
         ru: `\x1b[1mCaché WEB Terminal \x1b[(keyword)mv/* @echo package.version */\x1b[0m
 \r
 \r\x1B[4mДоступные команды:\x1B[0m
-\r\x1B[(special)m/help\x1B[0m\x1B[32GОтобразить короткую документацию (как вы только что сделали).
-\r\x1B[(special)m/clear\x1B[0m\x1B[32GПолностью очищает экран и его историю.
-\r\x1B[(special)m/config\x1B[0m ...\x1B[32GПозволяет настраивать поведение веб-терминала. Введите эту команду, чтобы получить больше информации.
-\r\x1B[(special)m/favorite\x1B[0m ...\x1B[32GПозволяет сохранять и загружать любые часто используемые команды. Введите эту команду, чтобы получить больше информации.
-\r\x1B[(special)m/info\x1B[0m\x1B[32GПоказать информацию про проект веб-терминала.
-\r\x1B[(special)m/logout\x1B[0m\x1B[32GВыйти из текущего сеанса и снова пройти аутентификацию.
-\r\x1B[(special)m/sql\x1B[0m\x1B[32GПереключить терминал в режим SQL. Далее вводите SQL команды вместо COS. Чтобы выйти из режима SQL, введите эту команду ещё раз.
-\r\x1B[(special)m/trace\x1B[0m ...\x1B[32GВключает трассировку глобала/файла. Введите эту команду, чтобы получить больше информации.
-\r\x1B[(special)m/update\x1B[0m\x1B[32GПроверяет наличие обновлений.
+\r\x1B[(special)m/help\x1B[0m\x1B[20GОтобразить короткую документацию (как вы только что сделали).
+\r\x1B[(special)m/clear\x1B[0m\x1B[20GПолностью очищает экран и его историю.
+\r\x1B[(special)m/config\x1B[0m ...\x1B[20GПозволяет настраивать поведение веб-терминала. Введите эту команду, чтобы получить больше информации.
+\r\x1B[(special)m/favorite\x1B[0m ...\x1B[20GПозволяет сохранять и загружать любые часто используемые команды. Введите эту команду, чтобы получить больше информации.
+\r\x1B[(special)m/info\x1B[0m\x1B[20GПоказать информацию про проект веб-терминала.
+\r\x1B[(special)m/logout\x1B[0m\x1B[20GВыйти из текущего сеанса и снова пройти аутентификацию.
+\r\x1B[(special)m/sql\x1B[0m\x1B[20GПереключить терминал в режим SQL. Далее вводите SQL команды вместо COS. Чтобы выйти из режима SQL, введите эту команду ещё раз.
+\r\x1B[(special)m/trace\x1B[0m ...\x1B[20GВключает трассировку глобала/файла. Введите эту команду, чтобы получить больше информации.
+\r\x1B[(special)m/update\x1B[0m\x1B[20GПроверяет наличие обновлений.
 \r
 \r\x1b[4mКлавиши:\x1b[0m
-\r\x1B[(special)mTAB\x1B[0m\x1B[32GЗавершить ввод предложенным вариантом.
-\r\x1B[(special)mПравый/левый CTRL\x1B[0m\x1B[32GПереключить вариант автодополнения, когда их доступно несколько.`
+\r\x1B[(special)mCtrl + C\x1B[0m\x1B[20GПрервать выполнение команды.
+\r\x1B[(special)mTAB\x1B[0m\x1B[20GЗавершить ввод предложенным вариантом.
+\r\x1B[(special)mПравый/левый CTRL\x1B[0m\x1B[20GПереключить вариант автодополнения, когда их доступно несколько.`
     },
     "info": {
         en:

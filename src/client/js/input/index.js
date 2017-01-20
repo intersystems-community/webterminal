@@ -2,10 +2,11 @@ import * as elements from "../elements";
 import * as output from "../output";
 import * as caret from "./caret";
 import * as history from "./history";
-import { Terminal, onUserInput } from "../index";
+import { Terminal, onUserInput, MODE } from "../index";
 import * as terminal from "../index";
 import { process as processString } from "../parser";
 import { showSuggestions } from "../autocomplete";
+import { send } from "../server";
 import * as config from "../config";
 import handlers from "./handlers";
 import hint from "../autocomplete/hint";
@@ -187,6 +188,14 @@ export function getCaretPosition () {
 }
 
 function keyDown (e) {
+    if (e.handled)
+        return;
+    e.handled = true;
+    if (e.keyCode === 67 && e.ctrlKey && MODE !== Terminal.prototype.MODE_SQL // Ctrl+C Interrupt
+        && getSelectionText() === "") {
+        send("Interrupt", {});
+        e.cancelBubble = true;
+    }
     if (!ENABLED || e.cancelBubble)
         return;
     e.cancelBubble = true;
@@ -376,4 +385,14 @@ export function hideInput () {
         elements.input.parentNode.removeChild(elements.input);
     ENABLED = false;
     caret.hide();
+}
+
+function getSelectionText() {
+    let text = "";
+    if (window.getSelection) {
+        text = window.getSelection().toString();
+    } else if (document.selection && document.selection.type != "Control") {
+        text = document.selection.createRange().text;
+    }
+    return text;
 }

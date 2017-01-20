@@ -3,8 +3,11 @@
 Class WebTerminal.Engine Extends (%CSP.WebSocket, Common, Trace, Autocomplete)
 {
 
-/// Connection key expires in 1 hour.
+/// Timeout in minutes when connection key expires.
 Parameter WSKEYEXPIRES = 3600;
+
+/// How long to wait for authorization key when connection established
+Parameter AuthorizationTimeout = 5;
 
 Property CurrentNamespace As %String;
 
@@ -30,6 +33,7 @@ Method GetMessage(timeout As %Integer = 86400) As %ZEN.proxyObject
 {
     #define err(%e, %s) if (%e '= $$$OK) { set obj = ##class(%ZEN.proxyObject).%New() set obj.error = %s return obj }
     set data = ..Read(, .st, timeout)
+    return:((st = $$$CSPWebSocketTimeout) || (st = $$$CSPWebSocketClosed)) ""
     $$$err(st, "%wsReadErr: "_$System.Status.GetErrorText(st))
     set st = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(data, , .obj, 1)
     $$$err(st, "%wsParseErr: "_$System.Status.GetErrorText(st))
@@ -92,9 +96,11 @@ Method ExecuteSQL(query As %String = "") As %Status
 Method RequireAuthorization() As %List
 {
     set data = ..GetMessage(..#AuthorizationTimeout)
-    return:('$IsObject(data.d)) $LB($case(data.error = "", 1: "Unresolved request format", :data.error))
-    set authKey = data.d.key
+    return:(data = "") $LB("%wsReadErr")
+    return:('$IsObject(data.d)) $LB($case(data.error = "", 1: "Unresolved WS message format", :data.error))
+    return:(data.d.key = "") $LB("Missing key")
 
+    set authKey = data.d.key
     set key = $ORDER(^WebTerminal("AuthUser", ""))
     set list = ""
     while (key '= "") {

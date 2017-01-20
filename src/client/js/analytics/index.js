@@ -13,7 +13,8 @@ function guid () {
 
 export function collect (initData = {}) {
 
-    let local = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    let local = location.hostname === "localhost" || location.hostname === "127.0.0.1",
+        page = local ? "Local" : "Remote";
 
     window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
 
@@ -22,8 +23,8 @@ export function collect (initData = {}) {
     });
     ga("set", "appName", "WebTerminal");
     ga("set", "appVersion", terminal.VERSION);
-    ga("set", "screenName", local ? "Local" : "Remote");
+    ga("set", "screenName", page);
     if (initData["zv"]) ga("set", "appInstallerId", initData["zv"]);
-    ga("send", "pageview");
+    ga("send", "pageview", page);
 
 }

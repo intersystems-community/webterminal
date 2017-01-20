@@ -26,8 +26,17 @@ ClassMethod Execute (client As WebTerminal.Engine, data, bareStart As %Boolean =
     do client.SendChunk(client.corePID, "m", command)
 loop
     for {
-        set message = client.ReceiveChunk()
+        set message = client.ReceiveChunk(0) // we need to read from WebSocket as well: timeout = 0
         set flag = $LISTGET(message, 1)
+        if (flag = "") { // if there is no messages from the child process executing the task,
+            set mes = client.GetMessage(0) // look at the incoming WebSocket messages
+            if (mes '= "") && (mes.h = "Interrupt") { // and if the interrupt has been sent
+                do $System.Util.SendInterrupt(client.corePID) // interrupt the child process
+            } else { // else hang for a while to prevent "waiting" process from loading CPU
+                hang 0.05
+            }
+            continue
+        }
         set chunk = $LISTGET(message, 2)
         if (flag = "o") {
             do client.Send("o", chunk)
@@ -36,12 +45,22 @@ loop
             set obj.length = $LISTGET(chunk, 1)
             set obj.timeout = $LISTGET(chunk, 2)
             do client.Send("readString", obj)
-            do client.SendChunk(client.corePID, "m", client.GetMessage().d)
+            set mes = client.GetMessage()
+            if (mes.h = "Interrupt") {
+                do $System.Util.SendInterrupt(client.corePID)
+            } else {
+                do client.SendChunk(client.corePID, "m", mes.d)
+            }
         } elseif (flag = "c") {
             set obj = ##class(%ZEN.proxyObject).%New()
             set obj.timeout = chunk
             do client.Send("readChar", obj)
-            do client.SendChunk(client.corePID, "m", client.GetMessage().d)
+            set mes = client.GetMessage()
+            if (mes.h = "Interrupt") {
+                do $System.Util.SendInterrupt(client.corePID)
+            } else {
+                do client.SendChunk(client.corePID, "m", mes.d)
+            }
         } elseif (flag = "e") {
             set client.childNamespace = $LISTGET(chunk, 1)
             set err = $LISTGET(chunk, 2)
@@ -226,6 +245,13 @@ ClassMethod Auth (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") A
 {
     // This method is implemented in Engine class. In case of auth is off, this method handles
     // the auth request and never respond (like when you send something to /dev/null).
+    return $$$OK
+}
+
+ClassMethod Interrupt (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As %Status
+{
+    // The interrupt behavior is implemented in Execute class method. When the user presses Ctrl+C
+    // in normal mode, we will do *nothing*.
     return $$$OK
 }
 

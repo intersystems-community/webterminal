@@ -4,7 +4,6 @@ Class WebTerminal.Common
 {
 
 /// Interprocess communication cannot handle big messages at once, so they need to be split.
-
 Parameter ChunkSize = 45;
 
 /// Send the chunk of data to another process. The process need to receive the chunk with the
@@ -30,21 +29,24 @@ ClassMethod SendChunk(pid As %Numeric, flag As %String, data As %String = "") As
 /// Receives the chunk of data from another process. Returns the $LISTBUILD string which contains
 /// flag at the first position and string at the second. This method also terminates the process
 /// if the parent process is gone.
-ClassMethod ReceiveChunk() As %String
+ClassMethod ReceiveChunk(timeout As %Numeric = -1) As %String
 {
     set flag = ""
     set str = ""
     for {
-        set message = $system.Event.WaitMsg("", 1)
+        set message = $system.Event.WaitMsg("", $Case(timeout = -1, 1: 1, :timeout))
+        set data = $LISTGET(message, 2)
+        if (data = "") && (timeout = 0) quit
         set status = $LISTGET(message, 1)
         if (status <= 0) {
             do:'$data(^$Job($ZPARENT)) $system.Process.Terminate($JOB, 0)
+            if (timeout = 0) set timeout = 1
             continue
         }
-        set data = $LISTGET(message, 2)
         set flag = $LISTGET(data, 1)
         set m = $LISTGET(data, 2)
         set str = str _ m
+        if (timeout = 0) set timeout = 1
         quit:($LENGTH(m) '= ..#ChunkSize)
     }
     return $LISTBUILD(flag, str)
@@ -114,67 +116,6 @@ wtab(s)
 output(s)
     set str = str _ s
     quit
-}
-
-/// How long to wait for authorization key when connection established
-Parameter AuthorizationTimeout = 5;
-
-Parameter ServerActionExecute As %Char = "EXEC";
-
-Parameter ServerActionExecuteSQL As %Char = "SQL";
-
-Parameter ServerActionGenerateAutocomplete As %Char = "AC";
-
-Parameter ServerActionTrace As %Char = "TRACE";
-
-Parameter ServerActionStopTraceAll As %Char = "STOP_TRACE_ALL";
-
-Parameter ServerActionCheckTrace As %Char = "CT";
-
-Parameter ServerActionReset As %Char = "R";
-
-Parameter ServerActionEcho As %Char = "E";
-
-Parameter ServerActionCheckUpdate As %Char = "CU";
-
-Parameter ServerActionUpdate As %Char = "U";
-
-Parameter ServerActionRename As %Char = "RENAME";
-
-Parameter ClientPrompt As %String = "PROMPT#";
-
-Parameter ClientStartExec As %String = "EST#";
-
-Parameter ClientEndExec As %String = "END#";
-
-Parameter ClientOutputMessage As %String = "O#";
-
-Parameter ClientOutputLocalized As %String = "OL#";
-
-Parameter ClientChangeNamespace As %String = "NS#";
-
-Parameter ClientLoadAutocomplete As %String = "AC#";
-
-Parameter ClientReadString As %String = "R#";
-
-Parameter ClientReadChar As %String = "RC#";
-
-Parameter ClientAuthorizationStatus As %String = "AUTH#";
-
-Parameter ClientTrace As %String = "TRACE#";
-
-Parameter ClientStopTrace As %String = "STOP_TRACE#";
-
-Parameter ClientLoginInfo As %String = "I#";
-
-Parameter ClientClearScreen As %String = "CLRSCR#";
-
-Parameter ClientPromptUpdate As %String = "PROMPT_UPDATE#";
-
-Method SendData(query As %String = "", action As %String = "") As %Status
-{
-    write query,$c(9),action
-    quit $$$OK
 }
 
 }
