@@ -147,10 +147,9 @@ ClassMethod RemoveProjection(cls As %String, ByRef params, recompile As %Boolean
 	set st = ..UnMap(ns)
     if ($$$ISERR(st)) {
         do $System.Status.DisplayError(st)
-        do ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+        try { do ##class(WebTerminal.Analytics).ReportInstallStatus(st) } catch (e) {}
     } else {
 	    write !, "Unmapping complete."
-	    do ##class(WebTerminal.Analytics).ReportInstallStatus(1)
     }
 
     return st
