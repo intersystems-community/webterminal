@@ -294,6 +294,15 @@
         "/update special command behavior fix when updates are turned off",
         "WebTerminal \u001b!URL=https://intersystems-ru.github.io/webterminal/#docs (released)!"
       ]
+    },
+    {
+      "v": "4.1.2",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.1.2.xml",
+      "changes": [
+        "Ctrl+C interrupt implementation!",
+        "Better auth errors reporting",
+        "Other minor fixes"
+      ]
     }
   ]
 }
