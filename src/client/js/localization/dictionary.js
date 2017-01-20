@@ -160,7 +160,9 @@ export default {
 \r\x1b[4mKeys:\x1b[0m
 \r\x1B[(special)mCtrl + C\x1B[0m\x1B[20GInterrupt the command execution.
 \r\x1B[(special)mTAB\x1B[0m\x1B[20GComplete the input with proposed autocomplete variant.
-\r\x1B[(special)mRight/left CTRL\x1B[0m\x1B[20GSwitch autocomplete variant when multiple are available.`,
+\r\x1B[(special)mRight/left CTRL\x1B[0m\x1B[20GSwitch autocomplete variant when multiple are available.
+\r
+\rPress \x1B!URL=http://intersystems-ru.github.io/webterminal/#docs (here) to see the full documentation.`,
         ru: `\x1b[1mCaché WEB Terminal \x1b[(keyword)mv/* @echo package.version */\x1b[0m
 \r
 \r\x1B[4mДоступные команды:\x1B[0m
@@ -177,20 +179,24 @@ export default {
 \r\x1b[4mКлавиши:\x1b[0m
 \r\x1B[(special)mCtrl + C\x1B[0m\x1B[20GПрервать выполнение команды.
 \r\x1B[(special)mTAB\x1B[0m\x1B[20GЗавершить ввод предложенным вариантом.
-\r\x1B[(special)mПравый/левый CTRL\x1B[0m\x1B[20GПереключить вариант автодополнения, когда их доступно несколько.`
+\r\x1B[(special)mПравый/левый CTRL\x1B[0m\x1B[20GПереключить вариант автодополнения, когда их доступно несколько.
+\r
+\rНажмите \x1B!URL=http://intersystems-ru.github.io/webterminal/#docs (здесь) чтобы ознакомиться с полной документацией.`
     },
     "info": {
         en:
 `Caché WEB Terminal v/* @echo package.version */
 \rAuthor:\x1B[32G\x1b!URL=https://github.com/zitros (Nikita Savchenko) (ZitRo)
 \rProject:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Homepage)
+\rDocumentation:\x1B[32G\x1B!URL=http://intersystems-ru.github.io/webterminal/#docs (On the project's homepage)
 \rRepository:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
 \rBug/Feature Tracker:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
 \r2013-${ new Date().getFullYear() } © Nikita Savchenko`,
         ru:
 `Caché WEB Terminal v/* @echo package.version */
 \rАвтор:\x1B[32G\x1b!URL=https://github.com/zitros (Никита Савченко) (ZitRo)
-\rПроект:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Главная страница)
+\rПроект:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Страница проекта)
+\rДокументация:\x1B[32G\x1B!URL=http://intersystems-ru.github.io/webterminal/#docs (На странице проекта)
 \rРепозиторий:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
 \rБаг/Фич трекер:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
 \r2013-${ new Date().getFullYear() } © Никита Савченко`
