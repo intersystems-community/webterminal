@@ -10,6 +10,7 @@ import { send } from "../server";
 import * as config from "../config";
 import handlers from "./handlers";
 import hint from "../autocomplete/hint";
+import keyMappings from "./keyMappings";
 
 export let ENABLED = false,
     PROMPT_CLEARED = false;
@@ -150,7 +151,7 @@ export function getKey (options = {}, callback) {
     caret.hide();
 
     let inp = (e) => {
-        if (handleKeyPress(e, callback) === false)
+        if (!e.cancelled && handleKeyPress(e, callback) === false)
             return;
         window.removeEventListener(`keydown`, inp);
     };
@@ -195,6 +196,12 @@ function keyDown (e) {
         && getSelectionText() === "") {
         send("Interrupt", {});
         e.cancelBubble = true;
+    }
+    if (keyMappings.hasOwnProperty(e.keyCode)) {
+        e.cancelled = true;
+        send("i", keyMappings[e.keyCode]);
+        e.preventDefault();
+        return;
     }
     if (!ENABLED || e.cancelBubble)
         return;

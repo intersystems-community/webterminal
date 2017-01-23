@@ -255,4 +255,11 @@ ClassMethod Interrupt (client As WebTerminal.Engine, data As %ZEN.proxyObject = 
     return $$$OK
 }
 
+/// Handles input, which does not correspond to any read (like occasional character press).
+ClassMethod i (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As %Status
+{
+    // do *nothing*
+    return $$$OK
+}
+
 }
