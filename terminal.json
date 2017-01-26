@@ -303,6 +303,14 @@
         "Better auth errors reporting",
         "Other minor fixes"
       ]
+    },
+    {
+      "v": "4.2.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.0.xml",
+      "changes": [
+        "^X364 Mnemonics support add",
+        "Extended line erasing escape sequences support"
+      ]
     }
   ]
 }
