@@ -5,7 +5,8 @@ import * as caret from "../input/caret";
 
 let cursorHome,
     savedCursorPosition = [],
-    savedGraphicProperties = {};
+    savedGraphicProperties = {},
+    temp;
 
 /**
  * DO NOT use output.print function inside: it may bring unexpected results as print function uses
@@ -153,13 +154,14 @@ export default {
         output.GRAPHIC_PROPERTIES = JSON.parse(JSON.stringify(savedGraphicProperties));
     },
     // erasing text
-    "\x1b[K": () => {
+    "\x1b[K": temp = () => {
         let pos = output.getCursorX(),
             gp = output.GRAPHIC_PROPERTIES;
         output.resetGraphicProperties();
         output.getCurrentLine().print(new Array(output.WIDTH - pos + 2).join(" "), pos - 1);
         output.GRAPHIC_PROPERTIES = gp;
     },
+    "\x1b[0K": temp,
     "\x1b[1K": () => {
         let pos = output.getCursorX(),
             gp = output.GRAPHIC_PROPERTIES;
@@ -170,12 +172,13 @@ export default {
     "\x1b[2K": () => {
         output.getCurrentLine().clear();
     },
-    "\x1b[J": () => {
+    "\x1b[J": temp = () => {
         let y = output.getCursorY();
         for (; y < output.HEIGHT + 1; y++) {
             output.getLineByCursorY(y).clear();
         }
     },
+    "\x1b[0J": temp,
     "\x1b[1J": () => {
         let y = output.getCursorY();
         for (; y > 0; y--) {
