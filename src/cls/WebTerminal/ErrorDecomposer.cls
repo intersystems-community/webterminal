@@ -5,8 +5,16 @@ Parameter LINES As %Numeric = 5;
 
 /// Takes $ZERROR function result.
 /// Returns either simple string or %ZEN.proxyObject representing the error details.
-ClassMethod DecomposeError (err As %String = "")
+ClassMethod DecomposeError (err As %String = "", ns As %String = "")
 {
+    new $namespace
+    if (ns '= "") {
+        try {
+            set $namespace = ns
+        } catch (e) {
+            return err
+        }
+    }
     return:($FIND(err, "<") '= 2) err
     set startPos = $FIND(err, ">")
     return:(startPos = 0) err
