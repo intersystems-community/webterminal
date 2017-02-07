@@ -319,6 +319,13 @@
         "Fixed Esc[J, Esc[0J and Esc[1J erasing escape sequences",
         "Syntax highlight improvements (\u001b!URL=https://github.com/intersystems-ru/webterminal/issues/85 (link))"
       ]
+    },
+    {
+      "v": "4.2.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.3.xml",
+      "changes": [
+        "Esc[m escape sequence support"
+      ]
     }
   ]
 }
