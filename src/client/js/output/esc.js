@@ -198,10 +198,10 @@ let esc = {
     "\x1b[{\\d*};\"{[^\"]}\"p": (args) => { // define key
         console.log("todo: implement key assignment", args);
     },
-    "\x1b[{\\d+(?:;\\d+)*}m": (args) => {
+    "\x1b[{\\d*(?:;\\d*)*}m": (args) => {
         let indices = args[0].split(`;`);
         for (let i = 0; i < indices.length; i++) {
-            if (indices[i] === "0") {
+            if (indices[i] === "0" || indices[i] === "") {
                 output.resetGraphicProperties();
                 continue;
             }
