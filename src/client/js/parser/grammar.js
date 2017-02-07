@@ -509,8 +509,8 @@ rule("postCondition").split(
 
 rule("doArgument").split(
     char({ value: "^", class: "global" }).branch().split(
-        char({ type: "routine", class: "global" }),
-        any
+        char({ value: "%", type: "routine", class: "global" }),
+        any()
     ).id({ type: "routine", class: "global" }).split(
         char({ value: ".", type: "routine", class: "global" }).merge(),
         any()
@@ -624,38 +624,37 @@ rule("classStatic").split(
 ).exit().end();
 
 rule("function").char({ value: "$", class: "keyword" }).split(
-    char({ value: "$", class: "keyword" }).split(
-        char({ value: "$", class: "keyword" }),
-        any()
-    ),
+    id([
+        { CI, class: "keyword", value: "data" },
+        { CI, class: "keyword", value: "explode" },
+        { CI, class: "keyword", value: "extract" },
+        { CI, class: "keyword", value: "get" },
+        { CI, class: "keyword", value: "increment" },
+        { CI, class: "keyword", value: "isobject" },
+        { CI, class: "keyword", value: "isvaliddouble" },
+        { CI, class: "keyword", value: "isvalidnum" },
+        { CI, class: "keyword", value: "lb" },
+        { CI, class: "keyword", value: "length" },
+        { CI, class: "keyword", value: "listbuild" },
+        { CI, class: "keyword", value: "listdata" },
+        { CI, class: "keyword", value: "listfind" },
+        { CI, class: "keyword", value: "listfromstring" },
+        { CI, class: "keyword", value: "listget" },
+        { CI, class: "keyword", value: "listlength" },
+        { CI, class: "keyword", value: "listnext" },
+        { CI, class: "keyword", value: "listsame" },
+        { CI, class: "keyword", value: "listtostring" },
+        { CI, class: "keyword", value: "listvalid" },
+        { CI, class: "keyword", value: "list" },
+        { CI, class: "keyword", value: "order" },
+        { CI, class: "keyword", value: "piece" },
+        { CI, class: "keyword", value: "replace" },
+        { CI, class: "keyword", value: "random" },
+        { CI, class: "keyword" }
+    ]),
+    char({ value: "$", class: "keyword" }).id({ class: "keyword" }),
     any()
-).id([
-    { CI, class: "keyword", value: "data" },
-    { CI, class: "keyword", value: "explode" },
-    { CI, class: "keyword", value: "get" },
-    { CI, class: "keyword", value: "increment" },
-    { CI, class: "keyword", value: "isobject" },
-    { CI, class: "keyword", value: "isvaliddouble" },
-    { CI, class: "keyword", value: "isvalidnum" },
-    { CI, class: "keyword", value: "lb" },
-    { CI, class: "keyword", value: "length" },
-    { CI, class: "keyword", value: "listbuild" },
-    { CI, class: "keyword", value: "listdata" },
-    { CI, class: "keyword", value: "listfind" },
-    { CI, class: "keyword", value: "listfromstring" },
-    { CI, class: "keyword", value: "listget" },
-    { CI, class: "keyword", value: "listlength" },
-    { CI, class: "keyword", value: "listnext" },
-    { CI, class: "keyword", value: "listsame" },
-    { CI, class: "keyword", value: "listtostring" },
-    { CI, class: "keyword", value: "listvalid" },
-    { CI, class: "keyword", value: "list" },
-    { CI, class: "keyword", value: "order" },
-    { CI, class: "keyword", value: "piece" },
-    { CI, class: "keyword", value: "replace" },
-    { CI, class: "keyword", value: "random" },
-    { CI, class: "keyword" }
-]).split(
+).split(
     char("(").call("argumentList").char(")"),
     any()
 ).exit().end();

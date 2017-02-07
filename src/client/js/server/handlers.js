@@ -27,11 +27,37 @@ export function prompt (namespace) {
     });
 }
 
+function cleanCWTLabel (string) {
+    let s = string.replace(/(\w+(?:\+[0-9]+)?\^(?:\w\.?)+)/, "\x1b[(special)m$1\x1b[0m")
+        .replace(/^(<.*>)/, `\x1b[31m$1\x1b[0m`),
+        ss = s.replace(/z\w+\+[0-9]+\^WebTerminal\.\w+\.[0-9]+/, "");
+    return {
+        string: ss,
+        internal: ss.length !== s.length
+    };
+}
+
 export function execError (message = "") {
-    output.printAsync(
-        message.replace(/^(<.*>)/, `\x1b[31m$1\x1b[0m`)
-            .replace(/zLoop\+[0-9]+\^WebTerminal\.Core\.[0-9]+/, "") + "\r\n"
-    );
+    let textToPrint = [""];
+    if (typeof message === "object") {
+        let label = cleanCWTLabel(message["zerror"] || "?");
+        textToPrint.push(label.string);
+        if (!label.internal) {
+            let source = message.source.split(/\n/g);
+            for (let line = 0; line < source.length; line++) {
+                let e = line === message.line;
+                textToPrint.push(
+                    `\x1b[${ e ? "(wrong)" : "(special)" }m${ e ? "╠" : "║" }\x1b[0m`
+                    + (e ? "\x1b[(wrong)m" : "")
+                    + source[line]
+                    + (e ? "\x1b[0m" : "")
+                );
+            }
+        }
+    } else {
+        textToPrint.push(cleanCWTLabel(message).string);
+    }
+    output.printAsync(textToPrint.join("\r\n") + "\r\n");
 }
 
 export function error (message = "") {

@@ -65,7 +65,7 @@ loop
             set client.childNamespace = $LISTGET(chunk, 1)
             set err = $LISTGET(chunk, 2)
             if (err '= "") {
-                do client.Send("execError", err)
+                do client.Send("execError", ##class(ErrorDecomposer).DecomposeError(err))
             }
             quit // break for cycle
         } else { // unknown response - just send it to the client
