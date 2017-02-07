@@ -326,6 +326,14 @@
       "changes": [
         "Esc[m escape sequence support"
       ]
+    },
+    {
+      "v": "4.2.6",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.6.xml",
+      "changes": [
+        "Error decomposing feature add",
+        "Grammar enhancements (ObjectScript functions, etc)"
+      ]
     }
   ]
 }
