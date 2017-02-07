@@ -17,7 +17,7 @@ let cursorHome,
  * "\n{![abc]+}" Regex-es can be mandatory, when the first character "!" is put (not a regex part).
  *               Mandatory regex-es will block any output until the regex matches.
  */
-export default {
+let esc = {
     "\u000C": () => {
         output.clear();
     },
@@ -173,14 +173,16 @@ export default {
         output.getCurrentLine().clear();
     },
     "\x1b[J": temp = () => {
-        let y = output.getCursorY();
+        let y = output.getCursorY() + 1;
+        esc["\x1b[K"]();
         for (; y < output.HEIGHT + 1; y++) {
             output.getLineByCursorY(y).clear();
         }
     },
     "\x1b[0J": temp,
     "\x1b[1J": () => {
-        let y = output.getCursorY();
+        let y = output.getCursorY() - 1;
+        esc["\x1b[1K"]();
         for (; y > 0; y--) {
             output.getLineByCursorY(y).clear();
         }
@@ -246,4 +248,6 @@ export default {
         output.setCursorYToLineIndex(nextIndex); // jump to new index
         output.setCursorX(1);
     }
-}
+};
+
+export default esc;
