@@ -430,12 +430,17 @@ rule("cosCommand").split(
         { CI, value: "if", class: "keyword" },
         { CI, value: "i", class: "keyword" }
     ]).whitespace().call("expression").optWhitespace().split(
-        char("{").branch().optWhitespace().call("cosCommand").optWhitespace().char("}")
-            .optWhitespace().split(
+        char("{").optWhitespace().branch().call("cosCommand").optWhitespace().split(
+            char("}").optWhitespace().split(
                 id({ CI, value: "else", class: "keyword" }).optWhitespace()
-                    .char("{").optWhitespace().call("cosCommand").optWhitespace().char("}"),
+                    .char("{").optWhitespace().branch().call("cosCommand").optWhitespace().split(
+                        char("}").exit(),
+                        any().merge()
+                    ),
                 id({ CI, value: "elseif", class: "keyword" }).whitespace().call("expression")
-                    .optWhitespace().char("{").merge()
+                    .optWhitespace().char("{").optWhitespace().merge()
+            ),
+            any().merge()
         ),
         call("cosCommand")
     ).exit(),
@@ -453,12 +458,18 @@ rule("cosCommand").split(
     ).optWhitespace().split(
         char(",").optWhitespace().merge(),
         any()
-    ).char("{").optWhitespace().call("cosCommand").optWhitespace().char("}").exit(),
+    ).char("{").optWhitespace().branch().call("cosCommand").optWhitespace().split(
+        char("}").exit(),
+        any().merge()
+    ),
     id({ CI, value: "while", class: "keyword" }).whitespace().branch().call("expression")
         .optWhitespace().split(
             char(",").optWhitespace().merge(),
-            char("{").optWhitespace().call("cosCommand").optWhitespace().char("}").exit()
-    )
+            char("{").optWhitespace().branch().call("cosCommand").optWhitespace().split(
+                char("}").exit(),
+                any().merge()
+            )
+        )
 ).end();
 
 rule("deviceParameters").branch().split(
@@ -504,10 +515,16 @@ rule("doArgument").split(
         char({ value: ".", type: "routine", class: "global" }).merge(),
         any()
     ),
-    id({ class: "variable", type: "variable" }).char({ value: ".", type: "*" }).split(
+    id({ class: "variable", type: "variable" }).char({ value: ".", type: "*" }).branch().split(
         char({ value: "%", type: "memberMethod" }),
         any()
-    ).id({ type: "memberMethod" }).char("(").call("argumentList").char(")"),
+    ).id({ type: "memberMethod" }).split(
+        char("(").call("argumentList").char(")").split(
+            char({ value: ".", type: "*" }).merge(),
+            any()
+        ),
+        char({ value: ".", type: "*" }).merge()
+    ),
     call("class")
 ).call("postCondition").exit().end();
 
@@ -737,7 +754,11 @@ rule("SQLExpression").split(
             whitespace()
         ).merge()
     ),
-    id({ class: "variable", type: "sqlFieldName" })
+    id({ class: "variable", type: "sqlFieldName" }).split(
+        char({ value: "_", class: "variable", type: "sqlFieldName" })
+            .id({ class: "variable", type: "sqlFieldName" }),
+        any()
+    )
 ).optWhitespace().split(
     split(
         char("+"),
@@ -750,6 +771,7 @@ rule("SQLExpression").split(
             any()
         ),
         id({ CI, value: "and", class: "keyword" }),
+        id({ CI, value: "like", class: "keyword" }),
         id({ CI, value: "or", class: "keyword" })
     ).optWhitespace().call("SQLExpression"),
     any()

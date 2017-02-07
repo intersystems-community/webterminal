@@ -310,7 +310,7 @@ function processChain (chain, branchingStack, startingIndex) {
             completeBackStack();
             // console.log(index, "SPLITTING", elem.value);
             for (let c of elem.value) {
-                let temp = processChain(c, branchingStack, index);
+                let temp = processChain(c, branchingStack.slice(), index);
                 // console.log("GOT BACK", temp);
                 stack = stack.concat(temp[0]);
                 backStack = backStack.concat(temp[1]);

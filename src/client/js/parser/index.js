@@ -30,8 +30,9 @@ export function getAutomaton () {
 //         if (!oa[i])
 //             continue;
 //         for (let r of oa[i]) {
-//             table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value.value || r[0].value})` : ""))
-//                 : r[0]).concat(r.slice(1)));
+//             table.push([+i].concat(r[0] ? (r[0].type + (r[0].value ? ` (${r[0].value.value
+//                 || r[0].value.type || r[0].value.class || r[0].value || r[0].type || r[0].class})`
+//                 : "")) : r[0]).concat(r.slice(1)));
 //         }
 //     }
 //     if (console.table)
