@@ -357,6 +357,7 @@ ClassMethod Loop(StartupRoutine As %String = "") As %Status
         set $ZERROR = ""
         try {
             xecute ..WaitCommand()
+            use $io::"^" _ $ZName
         } catch {}
         do ##class(%Device).ReDirectIO($$$NO)
         write !! // assume that prompt takes 2 lines
