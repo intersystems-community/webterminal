@@ -334,6 +334,14 @@
         "Error decomposing feature add",
         "Grammar enhancements (ObjectScript functions, etc)"
       ]
+    },
+    {
+      "v": "4.2.8",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.8.xml",
+      "changes": [
+        "Child process termination alert",
+        "Principal device occasional change causes process termination fix"
+      ]
     }
   ]
 }
