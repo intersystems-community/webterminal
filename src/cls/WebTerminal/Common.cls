@@ -33,14 +33,23 @@ ClassMethod ReceiveChunk(timeout As %Numeric = -1) As %String
 {
     set flag = ""
     set str = ""
+    set status = -1
     for {
         set message = $system.Event.WaitMsg("", $Case(timeout = -1, 1: 1, :timeout))
-        set data = $LISTGET(message, 2)
-        if (data = "") && (timeout = 0) quit
         set status = $LISTGET(message, 1)
+        set data = $LISTGET(message, 2)
         if (status <= 0) {
-            do:'$data(^$Job($ZPARENT)) $system.Process.Terminate($JOB, 0)
-            if (timeout = 0) set timeout = 1
+            if ($ZPARENT '= 0) && ('$data(^$Job($ZPARENT))) {
+                do $system.Process.Terminate($JOB, 0)
+                return $LISTBUILD(flag, str, -1)
+            }
+            if ($ZCHILD '= 0) && ('$data(^$Job($ZCHILD))) {
+                return $LISTBUILD(flag, str, -1)
+            }
+        }
+        if (data = "") && (timeout = 0) quit
+        if (status <= 0) {
+            set:(timeout = 0) timeout = 1
             continue
         }
         set flag = $LISTGET(data, 1)
@@ -49,7 +58,7 @@ ClassMethod ReceiveChunk(timeout As %Numeric = -1) As %String
         if (timeout = 0) set timeout = 1
         quit:($LENGTH(m) '= ..#ChunkSize)
     }
-    return $LISTBUILD(flag, str)
+    return $LISTBUILD(flag, str, status)
 }
 
 /// Returns the contents of the proxy object to the current device in JSON format.<br/>

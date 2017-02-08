@@ -27,6 +27,9 @@ ClassMethod Execute (client As WebTerminal.Engine, data, bareStart As %Boolean =
 loop
     for {
         set message = client.ReceiveChunk(0) // we need to read from WebSocket as well: timeout = 0
+        if ($LISTGET(message, 3) < 0) {
+            return $$$ERROR($$$GeneralError, "%cpTerm")
+        }
         set flag = $LISTGET(message, 1)
         if (flag = "") { // if there is no messages from the child process executing the task,
             set mes = client.GetMessage(0) // look at the incoming WebSocket messages

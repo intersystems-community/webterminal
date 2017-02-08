@@ -356,5 +356,9 @@ export default {
     "unNS": {
         en: "Unable to change namespace to %s.",
         ru: "Не получается поменять область на %s."
+    },
+    "cpTerm": {
+        en: "Terminal process was terminated.",
+        ru: "Процесс терминала был завершён."
     }
 };

@@ -189,7 +189,7 @@ Method ClientLoop() As %Status [ Private ]
         set ..echo = 1
         if (status '= "") && (status '= $$$OK) {
             set eType = $EXTRACT(status, 1, 1)
-            do ..Send("execError", $case(eType = 0, 1: $System.Status.GetErrorText(status), :status))
+            do ..Send("oLocalized", $C(13,10) _ $case(eType = 0, 1: $System.Status.GetErrorText(status), :status))
             continue
         }
     }
