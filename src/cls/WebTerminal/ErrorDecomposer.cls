@@ -20,7 +20,7 @@ ClassMethod DecomposeError (err As %String = "", ns As %String = "")
     return:(startPos = 0) err
     set spacePos = $FIND(err, " ") - 1
     return:(spacePos = startPos) err
-    set label = $EXTRACT(err, startPos, $case(spacePos = 0, 1:999, :spacePos-1))
+    set label = $EXTRACT(err, startPos, $case(spacePos = -1, 1:999, :spacePos-1))
     return:(label = "") err
     try {
         set obj = ##class(%ZEN.proxyObject).%New()
