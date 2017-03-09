@@ -409,7 +409,7 @@ function output (plainText = "") {
  */
 export function getLineByIndex (index) {
 
-    let toPush = Math.max(index - lines.length + 1, 0);
+    const toPush = Math.max(index - lines.length + 1, 0);
 
     if (toPush > 0)
         pushLines(toPush);
@@ -431,10 +431,10 @@ export function getLineByCursorY (y) {
  */
 export function clear () {
     scrollDisplay(1);
-    let i = getTopLineIndex() + getCursorY() - 1,
-        m = lines.length,
-        r = m - i - 1,
-        t = lines.length - getTopLineIndex();
+    const i = getTopLineIndex() + getCursorY() - 1,
+          m = lines.length,
+          r = m - i - 1,
+          t = lines.length - getTopLineIndex();
     pushLines(Math.max(HEIGHT - r, t));
     setCursorX(1);
     setCursorY(1);
@@ -463,11 +463,12 @@ export function scrollDown () {
  */
 function sizeChanged () {
 
-    let tel = document.createElement("span"),
-        testScrollbar = document.createElement("div"),
-        scrollBarWidth,
-        lastOverflowProperty = elements.output.style.overflowY,
-        ow, oh;
+    const originLineIndex = getCurrentLineIndex(),
+          tel = document.createElement("span"),
+          testScrollbar = document.createElement("div"),
+          lastOverflowProperty = elements.output.style.overflowY;
+
+    let scrollBarWidth, ow, oh;
 
     elements.output.style.overflowY = "scroll";
     testScrollbar.className = LINE_CLASS_NAME;
@@ -490,6 +491,7 @@ function sizeChanged () {
     elements.input.style.width = `${ WIDTH * SYMBOL_WIDTH }px`;
 
     elements.output.removeChild(testScrollbar);
+    setCursorYToLineIndex(originLineIndex);
 
     // In case of custom styling when integrating WebTerminal to other solutions, the WebTerminal
     // may be hidden on the page by default. This will cause WebTerminal to set up wrong
@@ -502,7 +504,7 @@ function sizeChanged () {
             + ` WebTerminal's iFrame is visible and is attached to the DOM.`;
         try { console.warn(m); } catch (e) { console.log(m); }
     }
-    
+
     // elements.output.style.width = `${ WIDTH * SYMBOL_WIDTH + scrollBarWidth }px`;
     // elements.output.style.height = `${ HEIGHT * SYMBOL_HEIGHT }px`; = 100%
     // console.log(`S W/H ${ SYMBOL_WIDTH }/${ SYMBOL_HEIGHT } ${ WIDTH }/${ HEIGHT }`);

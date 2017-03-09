@@ -64,28 +64,6 @@ Download the latest version from <a href="http://intersystems-ru.github.io/webte
 After installation, you will be able to access application at `http://[host]:[port]/terminal/` (slash at the end is required).
 Type `/help` there to get more information.
 
-Development
------------
-
-We are glad to see anyone who want to contribute to Caché WEB Terminal development! Check the 
-[developer's](https://github.com/intersystems-ru/webterminal/blob/master/CONTRIBUTING.md) guide.
-
-In short, the "hot start" is extremely easy. Having latest [Git](https://git-scm.com/) and
-[NodeJS](https://nodejs.org/en/) installed (tested on NodeJS v4-6), execute the following:
-
-```sh
-git clone https://github.com/intersystems-ru/webterminal
-cd webterminal                   # enter repository directory
-npm install                      # install all project's dependencies
-
-npm run build                    # build the project
-# OR edit import.bat script (on Windows) and then use only the following command:
-import
-```
-
-Now, in `build` folder you will find `WebTerminal-v*.xml` file. Every time you
-changes is ready to be tested, just run `import`. 
-
 Integration and WebTerminal's API
 ---------------------------------
 
@@ -188,3 +166,25 @@ iFrame.addEventListener("load", function () {
     iFrame.contentWindow.onTerminalInit(myInitHandler); // handle terminal initialization
 });
 ```
+
+WebTerminal Project Development
+-------------------------------
+
+We are glad to see anyone who want to contribute to Caché WEB Terminal development! Check our 
+[developer's guide](https://github.com/intersystems-ru/webterminal/blob/master/CONTRIBUTING.md).
+
+In short, the "hot start" is extremely easy. Having latest [Git](https://git-scm.com/) and
+[NodeJS](https://nodejs.org/en/) installed (tested on NodeJS v4-6), execute the following:
+
+```sh
+git clone https://github.com/intersystems-ru/webterminal
+cd webterminal                   # enter repository directory
+npm install                      # install all project's dependencies
+
+npm run build                    # build the project
+# OR edit import.bat script (on Windows) and then use only the following command:
+import
+```
+
+Now, in `build` folder you will find `WebTerminal-v*.xml` file. Every time you
+changes is ready to be tested, just run `import`. 
