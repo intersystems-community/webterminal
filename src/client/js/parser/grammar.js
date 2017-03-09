@@ -325,11 +325,10 @@ rule("cosCommand").split(
     id([
         { CI, value: "set", class: "keyword" },
         { CI, value: "s", class: "keyword" }
-    ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().char("=").optWhitespace()
-        .call("expression").optWhitespace().split(
-            char(",").optWhitespace().merge(),
-            any().exit()
-        ),
+    ]).call("postCondition").whitespace().branch().call("setExpression").optWhitespace().split(
+        char(",").optWhitespace().merge(),
+        any().exit()
+    ),
     id({ CI, value: "try", class: "keyword" }).optWhitespace().char("{").branch().optWhitespace()
         .split(
             char("}").optWhitespace().id({ CI, value: "catch", class: "keyword" })
@@ -472,6 +471,14 @@ rule("cosCommand").split(
         )
 ).end();
 
+rule("setExpression").split(
+    char("(").branch().optWhitespace().call("variable").optWhitespace().split(
+        char(",").merge(),
+        any()
+    ).char(")"),
+    call("variable")
+).optWhitespace().char("=").optWhitespace().call("expression").exit().end();
+
 rule("deviceParameters").branch().split(
     char({ value: "/", class: "special" }).id({ class: "special" }).split(
         char("=").call("expression"),
@@ -560,6 +567,9 @@ rule("expression").split(
 
 rule("variable").split(
     split(
+        char("@"),
+        any()
+    ).split(
         id({ class: "variable", type: "variable" }),
         char({ value: "%", class: "variable", type: "variable" })
             .id({ class: "variable", type: "variable" })
