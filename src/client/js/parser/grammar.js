@@ -344,7 +344,10 @@ rule("cosCommand").split(
     id([
         { CI, value: "kill", class: "keyword" },
         { CI, value: "k", class: "keyword" }
-    ]).call("postCondition").whitespace().branch().call("variable").optWhitespace().split(
+    ]).call("postCondition").whitespace().branch().split(
+        char("(").call("variableListExpression").char(")"),
+        call("variable")
+    ).optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
         any().exit()
     ),
@@ -472,12 +475,15 @@ rule("cosCommand").split(
 ).end();
 
 rule("setExpression").split(
-    char("(").branch().optWhitespace().call("variable").optWhitespace().split(
-        char(",").merge(),
-        any()
-    ).char(")"),
+    char("(").call("variableListExpression").char(")"),
     call("variable")
-).optWhitespace().char("=").optWhitespace().call("expression").exit().end();
+).optWhitespace().char("=").optWhitespace()
+    .call("expression").exit().end();
+
+rule("variableListExpression").branch().optWhitespace().call("variable").optWhitespace().split(
+    char(",").merge(),
+    any()
+).exit().end();
 
 rule("deviceParameters").branch().split(
     char({ value: "/", class: "special" }).id({ class: "special" }).split(
