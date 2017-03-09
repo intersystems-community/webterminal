@@ -342,6 +342,15 @@
         "Child process termination alert",
         "Principal device occasional change causes process termination fix"
       ]
+    },
+    {
+      "v": "4.2.12",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.12.xml",
+      "changes": [
+        "Error decomposing without reason fix",
+        "Cursor Y position stick after window resize fix",
+        "Set and kill expressions grammar enhancements"
+      ]
     }
   ]
 }
