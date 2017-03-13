@@ -150,7 +150,7 @@ export default {
 \r\x1B[(special)m/help\x1B[0m\x1B[20GDisplay the short documentation (like you just did).
 \r\x1B[(special)m/clear\x1B[0m\x1B[20GClears the screen and all the history.
 \r\x1B[(special)m/config\x1B[0m ...\x1B[20GAllows you to configure WebTerminal's behavior. Enter this command to get more information.
-\r\x1B[(special)m/favorite\x1B[0m ...\x1B[20GAllows you to save or restore any freauently used commands. Enter this command to get more information.
+\r\x1B[(special)m/favorite\x1B[0m ...\x1B[20GAllows you to save or restore any frequently used commands. Enter this command to get more information.
 \r\x1B[(special)m/info\x1B[0m\x1B[20GShow the information about the WebTerminal project.
 \r\x1B[(special)m/logout\x1B[0m\x1B[20GLog out the current WebTerminal user and prompt for the authentication again.
 \r\x1B[(special)m/sql\x1B[0m\x1B[20GSwitches terminal to SQL mode. Type SQL commands instead of COS. To exit SQL mode, enter this command again.
