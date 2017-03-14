@@ -358,6 +358,13 @@
       "changes": [
         "Globals highlight and auto-complete fixes, some description typos fixes, empty AC variants fix"
       ]
+    },
+    {
+      "v": "4.2.14",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.14.xml",
+      "changes": [
+        "System globals highlighting and auto-complete add"
+      ]
     }
   ]
 }
