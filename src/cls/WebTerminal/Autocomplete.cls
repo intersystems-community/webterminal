@@ -9,7 +9,7 @@ ClassMethod GetGlobals(namespace As %String = "%SYS", beginning As %String = "")
     new $Namespace
     set $Namespace = namespace
     set rset = ##class(%ResultSet).%New("%SYS.GlobalQuery:NameSpaceList")
-    do rset.Execute($Namespace, pattern, 0)
+    do rset.Execute($Namespace, pattern, 1)
     while (rset.Next()) {
         set result = result _ $case(result = "", 1:"", :",") _ rset.GetData(1)
     }

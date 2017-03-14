@@ -589,7 +589,10 @@ rule("variable").split(
     )
 ).exit().end();
 
-rule("globalBody").branch().id({ class: "global", type: "global" }).split(
+rule("globalBody").split(
+    char({ value: "%", class: "global", type: "global" }),
+    any()
+).branch().id({ class: "global", type: "global" }).split(
     char({ value: ".", class: "global", type: "global" }).merge(),
     any()
 ).split(
