@@ -351,6 +351,13 @@
         "Cursor Y position stick after window resize fix",
         "Set and kill expressions grammar enhancements"
       ]
+    },
+    {
+      "v": "4.2.13",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.13.xml",
+      "changes": [
+        "Globals highlight and auto-complete fixes, some description typos fixes, empty AC variants fix"
+      ]
     }
   ]
 }
