@@ -209,7 +209,7 @@ rule("CWTSpecial").split(
     id({ value: "sql", class: "special" }),
     id({ value: "trace", class: "special" }).whitespace().split(
         id({ value: "stop", class: "global" }),
-        tryCall("global"),
+        char({ value: "^", class: "global", type: "global" }).call("globalBody"),
         split(
             char({ type: "filename", class: "string" }),
             id({ type: "filename", class: "string" })
@@ -277,11 +277,11 @@ rule("cosCommand").split(
         { CI, value: "merge", class: "keyword" },
         { CI, value: "m", class: "keyword" }
     ]).call("postCondition").whitespace().split(
-        tryCall("variable"),
-        call("global")
+        char({ value: "^", class: "global", type: "global" }).call("globalBody"),
+        call("variable")
     ).optWhitespace().char("=").optWhitespace().split(
-        tryCall("variable"),
-        call("global")
+        char({ value: "^", class: "global", type: "global" }).call("globalBody"),
+        call("variable")
     ).exit(),
     id([
         { CI, value: "open", class: "keyword" },
@@ -572,6 +572,7 @@ rule("expression").split(
 ).exit().end();
 
 rule("variable").split(
+    char({ value: "^", class: "global", type: "global" }).call("globalBody"),
     split(
         char("@"),
         any()
@@ -585,14 +586,12 @@ rule("variable").split(
     ).branch().split(
         char({ value: ".", type: "*" }).call("member").merge(),
         any()
-    ),
-    call("global")
+    )
 ).exit().end();
 
-rule("global").char({ value: "^", class: "global", type: "global" }).branch()
-    .id({ class: "global", type: "global" }).split(
-        char({ value: ".", class: "global", type: "global" }).merge(),
-        any()
+rule("globalBody").branch().id({ class: "global", type: "global" }).split(
+    char({ value: ".", class: "global", type: "global" }).merge(),
+    any()
 ).split(
     char("(").call("argumentList").char(")"),
     any()

@@ -63,12 +63,13 @@ export default {
         server.send("LocalAutocomplete", null, (d) => {
             if (!d)
                 return;
-            cb(Object.keys(d).filter(s => s.indexOf(v) === 0).map(s => s.substr(v.length)));
+            cb(Object.keys(d).filter(s => s.indexOf(v) === 0 && s.length !== v.length)
+                .map(s => s.substr(v.length)));
         });
     },
     "favorites": (collector, cb) => {
         let v = collectOfType(collector, "favorites");
-        cb(Object.keys(favorites.list()).filter(s => s.indexOf(v) === 0)
+        cb(Object.keys(favorites.list()).filter(s => s.indexOf(v) === 0 && s.length !== v.length)
             .map(s => s.substr(v.length)));
     },
     "member": (collector, cb) => {
