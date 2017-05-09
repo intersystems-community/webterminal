@@ -333,7 +333,7 @@ rule("cosCommand").split(
         .split(
             char("}").optWhitespace().id({ CI, value: "catch", class: "keyword" })
                 .optWhitespace().split(
-                    char("(").id({ class: "variable" }).char(")"),
+                    char("(").optWhitespace().id({ class: "variable" }).optWhitespace().char(")"),
                     id({ class: "variable" })
                 ).optWhitespace().char("{").branch().optWhitespace().split(
                     char("}"),
@@ -345,7 +345,7 @@ rule("cosCommand").split(
         { CI, value: "kill", class: "keyword" },
         { CI, value: "k", class: "keyword" }
     ]).call("postCondition").whitespace().branch().split(
-        char("(").call("variableListExpression").char(")"),
+        char("(").optWhitespace().call("variableListExpression").optWhitespace().char(")"),
         call("variable")
     ).optWhitespace().split(
         char(",").optWhitespace().merge(), // -> loop to the last branch
@@ -475,13 +475,13 @@ rule("cosCommand").split(
 ).end();
 
 rule("setExpression").split(
-    char("(").call("variableListExpression").char(")"),
+    char("(").optWhitespace().call("variableListExpression").optWhitespace().char(")"),
     call("variable")
 ).optWhitespace().char("=").optWhitespace()
     .call("expression").exit().end();
 
-rule("variableListExpression").branch().optWhitespace().call("variable").optWhitespace().split(
-    char(",").merge(),
+rule("variableListExpression").branch().call("variable").optWhitespace().split(
+    char(",").optWhitespace().merge(),
     any()
 ).exit().end();
 
@@ -532,7 +532,7 @@ rule("doArgument").split(
         char({ value: "%", type: "memberMethod" }),
         any()
     ).id({ type: "memberMethod" }).split(
-        char("(").call("argumentList").char(")").split(
+        char("(").optWhitespace().call("argumentList").optWhitespace().char(")").split(
             char({ value: ".", type: "*" }).merge(),
             any()
         ),
@@ -541,9 +541,79 @@ rule("doArgument").split(
     call("class")
 ).call("postCondition").exit().end();
 
+rule("jsonValue").split(
+    char("(").optWhitespace().call("expression").optWhitespace().char(")"),
+    char({
+        value: "{",
+        class: "argument"
+    }).optWhitespace().split(
+        char({
+            value: "}",
+            class: "argument"
+        }).exit(),
+        call("jsonObjectBody").optWhitespace().char({
+            value: "}",
+            class: "argument"
+        })
+    ),
+    char({
+        value: "[",
+        class: "argument"
+    }).optWhitespace().split(
+        char({
+            value: "]",
+            class: "argument"
+        }),
+        call("jsonArrayBody").optWhitespace().char({
+            value: "]",
+            class: "argument"
+        })
+    ),
+    string(),
+    constant()
+).exit().end();
+
+rule("jsonObjectBody").branch().string().optWhitespace().char(":").optWhitespace().call("jsonValue")
+.optWhitespace().split(
+    char(",").optWhitespace().merge(),
+    any()
+).exit().end();
+
+rule("jsonArrayBody").branch().optWhitespace().call("jsonValue").optWhitespace().split(
+    char(",").merge(),
+    any()
+).exit().end();
+
 rule("expression").split(
     constant(),
-    char("(").call("expression").char(")"),
+    char("(").optWhitespace().call("expression").optWhitespace().char(")"),
+    char({
+        value: "[",
+        class: "argument"
+    }).optWhitespace().split(
+        char({
+            value: "]",
+            class: "argument"
+        }),
+        call("jsonArrayBody").optWhitespace().char({
+            value: "]",
+            class: "argument"
+        })
+    ),
+    char({
+        value: "{",
+        class: "argument"
+    }).optWhitespace().split(
+        char({
+            value: "}",
+            class: "argument"
+        }),
+        call("jsonObjectBody").optWhitespace().char({
+            value: "}",
+            class: "argument"
+        })
+    ),
+    char("-").call("expression"),
     char("'").call("expression"),
     string(),
     tryCall("variable"),
@@ -551,22 +621,28 @@ rule("expression").split(
     tryCall("function")
 ).optWhitespace().split(
     split(
-        char("+"),
-        char("-"),
-        char("*"),
-        char("/"),
-        char("_"),
-        char("="),
-        char("'").char(["=", ">", "<"]),
-        char(["<", ">"]).split(
-            char("="),
+        char({ value: "+", class: "special" }),
+        char({ value: "-", class: "special" }),
+        char({ value: "*", class: "special" }),
+        char({ value: "/", class: "special" }),
+        char({ value: "_", class: "special" }),
+        char({ value: "=", class: "special" }),
+        char({ value: "'", class: "special" }).char([
+            { value: "=", class: "special" },
+            { value: ">", class: "special" },
+            { value: "<", class: "special" }
+        ]),
+        char([{ value: "<", class: "special" }, { value: ">", class: "special" }]).split(
+            char({ value: "=", class: "special" }),
             any()
         ),
-        char("&").split(
-            char("&"),
+        char({ value: "&", class: "special" }).split(
+            char({ value: "&", class: "special" }),
             any()
         ),
-        char("|").char("|")
+        char({ value: "|", class: "special" }).char({ value: "|", class: "special" }),
+        char({ value: "[", class: "special" }),
+        char({ value: "]", class: "special" })
     ).optWhitespace().call("expression"),
     any()
 ).exit().end();
@@ -581,7 +657,7 @@ rule("variable").split(
         char({ value: "%", class: "variable", type: "variable" })
             .id({ class: "variable", type: "variable" })
     ).split(
-        char("(").call("nonEmptyArgumentList").char(")"),
+        char("(").optWhitespace().call("nonEmptyArgumentList").optWhitespace().char(")"),
         any()
     ).branch().split(
         char({ value: ".", type: "*" }).call("member").merge(),
@@ -596,7 +672,7 @@ rule("globalBody").split(
     char({ value: ".", class: "global", type: "global" }).merge(),
     any()
 ).split(
-    char("(").call("argumentList").char(")"),
+    char("(").optWhitespace().call("argumentList").optWhitespace().char(")"),
     any()
 ).exit().end();
 
@@ -605,7 +681,7 @@ rule("member").split(
     char({ value: "#", type: "member" }),
     any()
 ).id({ type: "member" }).split(
-    char("(").call("argumentList").char(")"),
+    char("(").optWhitespace().call("argumentList").optWhitespace().char(")"),
     any()
 ).exit().end();
 
@@ -637,7 +713,7 @@ rule("classStatic").split(
         char({ value: "%", type: "publicClassMember", class: "keyword" }),
         any()
     ).id({ type: "publicClassMember", class: "keyword" }).split(
-        char("(").call("argumentList").char(")")
+        char("(").optWhitespace().call("argumentList").optWhitespace().char(")")
     )
 ).exit().end();
 
@@ -745,7 +821,7 @@ rule("function").char({ value: "$", class: "keyword" }).split(
     char({ value: "$", class: "keyword" }).id({ class: "keyword" }),
     any()
 ).split(
-    char("(").call("argumentList").char(")"),
+    char("(").optWhitespace().call("argumentList").optWhitespace().char(")"),
     any()
 ).exit().end();
 
@@ -831,7 +907,7 @@ rule("SQLClassName").split(
 
 rule("SQLExpression").split(
     constant(),
-    char("(").call("SQLExpression").char(")"),
+    char("(").optWhitespace().call("SQLExpression").optWhitespace().char(")"),
     id({ CI, value: "not", class: "keyword" }).optWhitespace().call("SQLExpression"),
     char({ value: "'", class: "string" }).branch().split(
         char({ value: "'", class: "string" }),
