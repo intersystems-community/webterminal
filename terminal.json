@@ -365,6 +365,13 @@
       "changes": [
         "System globals highlighting and auto-complete add"
       ]
+    },
+    {
+      "v": "4.2.15",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.15.xml",
+      "changes": [
+        "JSON syntax highlighting and some other highlighting improvements"
+      ]
     }
   ]
 }
