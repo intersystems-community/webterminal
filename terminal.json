@@ -372,6 +372,13 @@
       "changes": [
         "JSON syntax highlighting and some other highlighting improvements"
       ]
+    },
+    {
+      "v": "4.3.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.3.0.xml",
+      "changes": [
+        "Caught error reporting fix, some other terminal core improvements"
+      ]
     }
   ]
 }
