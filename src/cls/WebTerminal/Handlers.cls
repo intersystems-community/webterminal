@@ -73,7 +73,7 @@ loop
                     ##class(ErrorDecomposer).DecomposeError(err, client.childNamespace)
                 )
             }
-            quit // break for cycle
+            quit // break for loop
         } else { // unknown response - just send it to the client
             do client.Send("o", chunk)
         }

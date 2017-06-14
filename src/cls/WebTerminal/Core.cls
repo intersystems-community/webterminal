@@ -329,7 +329,7 @@ ClassMethod WaitCommand() As %String [ ProcedureBlock = 1 ]
 }
 
 /// Starts new terminal loop. Must be called with JOB command.
-ClassMethod Loop(StartupRoutine As %String = "") As %Status
+ClassMethod Loop(startupRoutine As %String = "") As %Status
 {
 	if ($ZPARENT = 0) {
         write "This method is for JOB use only."
@@ -337,33 +337,50 @@ ClassMethod Loop(StartupRoutine As %String = "") As %Status
     }
     open "terminal"::"^%X364"
     use $io::"^" _ $ZName
-    if (StartupRoutine '= "") {
-        do $System.Util.SetInterruptEnable($$$YES)
-        do ##class(%Device).ReDirectIO($$$YES)
-        try {
-            do @StartupRoutine
-            do ##class(%Device).ReDirectIO($$$NO)
-        } catch {
-            do ##class(%Device).ReDirectIO($$$NO)
-            do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, $ZERROR))
-        }
-        do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, ""))
-        return $$$OK
+    if (startupRoutine '= "") {
+        return ..StartupRoutine(startupRoutine)
     }
-    kill // kill any temporary variables ProcedureBlock may have
+    kill // Kill any temporary variables ProcedureBlock may have. Keep procedure block free of vars
     for {
-        do ##class(%Device).ReDirectIO($$$YES)
-        do $System.Util.SetInterruptEnable($$$YES)
-        set $ZERROR = ""
+        do ..StartExecMode()
         try {
             xecute ..WaitCommand()
-            use $io::"^" _ $ZName
-        } catch {}
-        do ##class(%Device).ReDirectIO($$$NO)
-        write !! // assume that prompt takes 2 lines
-        do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, $ZERROR))
+        } catch err {
+            do ..EndExecMode($ZERROR)
+            continue
+        }
+        do ..EndExecMode()
     }
     return $$$OK
+}
+
+ClassMethod StartupRoutine(routineName = "") As %Status
+{
+    do ..StartExecMode()
+    try {
+        do @routineName
+    } catch {
+        do ..EndExecMode($ZERROR)
+        return $$$OK
+    }
+    do ..EndExecMode()
+    return $$$OK
+}
+
+ClassMethod StartExecMode()
+{
+    write ! // Y pos shift
+    do ##class(%Device).ReDirectIO($$$YES)
+    do $System.Util.SetInterruptEnable($$$YES)
+}
+
+ClassMethod EndExecMode(error = "")
+{
+    use $io::"^" _ $ZName
+    do $System.Util.SetInterruptEnable($$$NO)
+    do ##class(%Device).ReDirectIO($$$NO)
+    write ! // Y pos shift
+    do ..SendChunk($ZPARENT, "e", $LISTBUILD($NAMESPACE, error))
 }
 
 }
