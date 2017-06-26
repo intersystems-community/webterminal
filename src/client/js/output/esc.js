@@ -229,12 +229,12 @@ let esc = {
             return;
         output.setGraphicProperty(9, { class: cls });
     },
-    "\x1b!URL={[^\\x20]*} ({[^\\)]+})": ([url, text]) => {
+    "\x1b!URL={[^\\x20]*} ({[^\\)]+})": ([url = "", text = ""]) => {
         output.setGraphicProperty(9, {
             tag: "a",
             attrs: {
                 href: url,
-                target: "_blank"
+                target: url.indexOf("javascript:") === 0 ? "" : "_blank"
             }
         });
         output.immediatePlainPrint(text);
