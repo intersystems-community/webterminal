@@ -143,6 +143,7 @@
                                     <li><a href="#docs.1.1.1">Importing Classes</a></li>
                                     <li><a href="#docs.1.1.2">Resolving Import Errors</a></li>
                                     <li><a href="#docs.1.1.3">Launching WebTerminal</a></li>
+                                    <li><a href="#docs.1.1.4">Installing Old WebTerminal Versions (1-2)</a></li>
                                 </ol>
                             </li>
                             <li>
@@ -387,6 +388,28 @@
                         if the installation process resulted with no errors.
                     </li>
                 </ol>
+                <h3 id="docs.1.1.4">1.1.4. Installing Old WebTerminal Versions (1-2)</h3>
+                <p>
+                    It is always recommended to install the newest versions. However, if you exited
+                    so much about WebTerminal project and want to try it, for example, on Caché
+                    2013.1, the only option you have is to install version 2. Do this by performing
+                    the following steps:
+                </p>
+                <ol>
+                    <li>Go to WebTerminal Downloads and download the version 2.0.0-beta.8, which is
+                        the XML file. This page also has some additional instructions.</li>
+                    <li>Using Studio or whatever you like (see above), import this XML file into the
+                        <b>%SYS namespace</b> and compile all imported classes and CSP pages. If you
+                        have the "access error" while importing classes, then you need to
+                        temporarily enable write access to CACHELIB database, see <a target="_blank" href="https://stackoverflow.com/questions/34183646/how-to-enable-write-access-to-cachelib-database">here</a> how.
+                    </li>
+                    <li>Open {host}:{port}/csp/sys/webterminal/index.CSP page in the browser.</li>
+                </ol>
+                <p>
+                    Note that the newer versions have several fixes and enhancements introduced, so
+                    please do not submit any issues affecting versions 1-2. These versions are not
+                    supported "officially".
+                </p>
                 <h2 id="docs.1.2">1.2. Configuring WebTerminal Web Application</h2>
                 <p>
                     Once you install WebTerminal, there are two Caché web applications appear.
@@ -1409,7 +1432,9 @@ localization/dictionary.js</a></code></td>
                     <li>That's all!</li>
                 </ol>
                 <p>
-                    Refer to the <a href="#docs">documentation</a> page to find out more.
+                    Refer to the <a href="#docs.1.1">installation section</a> of documentation page
+                    to find out more. The guide above works for Caché WebTerminal version 3+. For
+                    versions 1-2 use <a href="#docs.1.1.4">this guide</a>.
                 </p>
                 <h2>Newest Versions:</h2>
                 <ul class="downloadLinks">
