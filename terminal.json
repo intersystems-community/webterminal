@@ -379,6 +379,13 @@
       "changes": [
         "Caught error reporting fix, some other terminal core improvements"
       ]
+    },
+    {
+      "v": "4.3.1",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.3.1.xml",
+      "changes": [
+        "Updating WebTerminal from WebTerminal with Firefox fix"
+      ]
     }
   ]
 }
