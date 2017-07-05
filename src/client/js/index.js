@@ -12,6 +12,7 @@ let onAuthHandlers = [],
     userInputHandlers = [],
     outputHandlers = [],
     bufferedOutput = [],
+    inputIsActivated = false,
     AUTHORIZED = false,
     terminal = null;
 
@@ -36,6 +37,7 @@ export function authDone () {
 }
 
 export const inputActivated = () => {
+    inputIsActivated = true;
     if (bufferedOutput.length) {
         for (const handler of outputHandlers) {
             if (handler.stream)
@@ -49,12 +51,13 @@ export const inputActivated = () => {
 export const onUserInput = (text, mode) => {
     userInputHandlers.forEach((h) => h(text, mode));
     bufferedOutput = [];
+    inputIsActivated = false;
 };
 
 export const onOutput = (string) => {
     bufferedOutput.push(string);
     for (const handler of outputHandlers) {
-        if (!handler.stream)
+        if (!handler.stream || inputIsActivated)
             continue;
         handler.callback([ string ]);
     }

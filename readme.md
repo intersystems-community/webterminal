@@ -111,11 +111,27 @@ The next table demonstrates available API. Left column are `terminal` object pro
             the user after execution (prints "NAMESPACE > " as well).
         </td>
     </tr>
+    <tr>
+            <td>onOutput([ <b>options</b> ], <b>callback</b>)</td>
+            <td>
+                By default, <code>callback</code>(<u>strings</u>) will be called before the user is
+                prompted for input, and <code>strings</code> array will always contain an array of 
+                chunks of all the text printed between the prompts. For example, if user writes 
+                <code>write 123</code> and presses "Enter", the <code>strings</code> will contain
+                this array: <code>["\r\n", "1", "\r\n"]</code>. However, when user enters
+                <code>write 1, 2, 3</code>, <code>strings</code> will result with 
+                <code>["\r\n", "1", "2", "3", "\r\n"]</code>. You can join this array with 
+                <code>join</code> array method to get the full output.<br/>
+                Optional <code>options</code> object may include <code>stream</code> property, which
+                is <code>false</code> by default. When set to <code>true</code>, callback will be
+                fired any time any chunk is print to the terminal simultaneously.
+            </td>
+        </tr>
 	<tr>
-        <td>onUserInput(<b>cb</b>)</td>
+        <td>onUserInput(<b>callback</b>)</td>
         <td>
-            <b>cb</b>(<u>text</u>, <u>mode</u>) is fired right after user presses enter. Argument
-            <code>text</code> is a <code>String</code> of user input, and
+            <b>callback</b>(<u>text</u>, <u>mode</u>) is fired right after user presses enter. 
+            Argument <code>text</code> is a <code>String</code> of user input, and
             <code>mode</code> is a <code>Number</code>, which can be compared
             with one of the terminal mode constants, such as <code>MODE_PROMPT</code>.
         </td>
@@ -153,10 +169,17 @@ function myInitHandler (terminal) {
     terminal.execute("set hiddenVariable = 7", {
         echo: false // the default is false, this is just a demo
     });
-    terminal.onUserInput(function (text, mode) {
+    terminal.onUserInput((text, mode) => {
         if (mode !== terminal.MODE_PROMPT)
             return;
         terminal.print("\r\nYou've just entered the next command: " + text);
+    });
+    terminal.onOutput((chunks) => {
+        // If you "write 12", chunks are ["\r\n", "12", "\r\n"].
+        // If you "write 1, 2", chunks are ["\r\n", "1", "2", "\r\n"].
+        if (chunks[1] === "duck") {
+            alert(`You've found a secret phrase!`);
+        }
     });
 }
 
