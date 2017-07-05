@@ -114,17 +114,17 @@ The next table demonstrates available API. Left column are `terminal` object pro
     <tr>
             <td>onOutput([ <b>options</b> ], <b>callback</b>)</td>
             <td>
-                By default, <code>callback</code>(<u>strings</u>) will be called before the user is
+                By default, <b>callback</b>(<u>strings</u>) will be called before the user is
                 prompted for input, and <code>strings</code> array will always contain an array of 
                 chunks of all the text printed between the prompts. For example, if user writes 
                 <code>write 123</code> and presses "Enter", the <code>strings</code> will contain
-                this array: <code>["\r\n", "1", "\r\n"]</code>. However, when user enters
+                this array: <code>["\r\n", "123", "\r\n"]</code>. However, when user enters
                 <code>write 1, 2, 3</code>, <code>strings</code> will result with 
                 <code>["\r\n", "1", "2", "3", "\r\n"]</code>. You can join this array with 
-                <code>join</code> array method to get the full output.<br/>
+                <code>join("")</code> array method to get the full output.<br/>
                 Optional <code>options</code> object may include <code>stream</code> property, which
-                is <code>false</code> by default. When set to <code>true</code>, callback will be
-                fired any time any chunk is print to the terminal simultaneously.
+                is <code>false</code> by default. When set to <code>true</code>, <b>callback</b> 
+                will be fired every time something is printed to the terminal simultaneously.
             </td>
         </tr>
 	<tr>
@@ -177,7 +177,7 @@ function myInitHandler (terminal) {
     terminal.onOutput((chunks) => {
         // If you "write 12", chunks are ["\r\n", "12", "\r\n"].
         // If you "write 1, 2", chunks are ["\r\n", "1", "2", "\r\n"].
-        if (chunks[1] === "duck") {
+        if (chunks.slice(1, -1).join("") === "duck") { // if user do enters: write "duck"
             alert(`You've found a secret phrase!`);
         }
     });
