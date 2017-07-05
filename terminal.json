@@ -386,6 +386,14 @@
       "changes": [
         "Updating WebTerminal from WebTerminal with Firefox fix"
       ]
+    },
+    {
+      "v": "4.4.1",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.4.1.xml",
+      "changes": [
+        "New WebTerminal's API function: onOutput",
+        "WebTerminal.execute MODE_SPECIAL fix"
+      ]
     }
   ]
 }
