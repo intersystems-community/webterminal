@@ -223,6 +223,7 @@
                                     <li><a href="#docs.4.2.2">Executing Commands</a></li>
                                     <li><a href="#docs.4.2.3">Handling User Input</a></li>
                                     <li><a href="#docs.4.2.4">Printing</a></li>
+                                    <li><a href="#docs.4.2.5">Handling Output</a></li>
                                 </ol>
                             </li>
                         </ol>
@@ -1229,6 +1230,35 @@ iFrame.addEventListener("load", function () {
                 </p>
                 <code class="pre">function myInitHandler (term) {
     term.print("\r\nWe're ready!\r\n\n");
+}</code>
+                <h3 id="docs.4.2.5">4.2.5. Handling Output</h3>
+                <p>
+                    You can handle terminal output by using
+                    <code class="inline">term.onOutput([ options ], callback)</code>. By default,
+                    <b>callback</b>(<u>strings</u>) will be called before the user is prompted for
+                    input, and <code class="inline">strings</code> array will always contain an array of chunks
+                    of all the text printed between the prompts. For example, if user writes
+                    <code class="inline">write 123</code> and presses "Enter", the <code class="inline">strings</code> will
+                    contain this array: <code class="inline">["\r\n", "123", "\r\n"]</code>. However, when user
+                    enters <code class="inline">write 1, 2, 3</code>, <code class="inline">strings</code> will result with
+                    <code class="inline">["\r\n", "1", "2", "3", "\r\n"]</code>. You can join this array with
+                    <code class="inline">join("")</code> array method to get the full output.<br/>
+                    Optional <code class="inline">options</code> object may include <code class="inline">stream</code> property,
+                    which is <code class="inline">false</code> by default. When set to <code class="inline">true</code>,
+                    <b>callback</b> will be fired every time something is printed to the terminal
+                    simultaneously.
+                </p>
+                <p>
+                    Example:
+                </p>
+                <code class="pre">function myInitHandler (term) {
+    term.onOutput((chunks) => {
+        // If you "write 12", chunks are ["\r\n", "12", "\r\n"].
+        // If you "write 1, 2", chunks are ["\r\n", "1", "2", "\r\n"].
+        if (chunks.slice(1, -1).join("") === "duck") { // if user do enters: write "duck"
+            alert(`You've found a secret phrase!`);
+        }
+    });
 }</code>
             </div>
             <div class="segment">
