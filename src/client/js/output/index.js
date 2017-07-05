@@ -5,6 +5,7 @@ import { ESC_CHARS_MASK, applyEscapeSequence } from "./escStateMachine";
 import esc from "./esc";
 import * as input from "../input";
 import { onInit } from "../init";
+import { onOutput } from "../index";
 
 const LINE_UPDATE_TIMEOUT = 10;
 
@@ -120,14 +121,13 @@ let tabs = [];
 
 export function print (text) {
 
+    onOutput(text);
     stack += text;
     if (!INITIALIZED)
         return;
     freeStack();
 
 }
-
-window.pr = print;
 
 export function printLine (text) {
     print(`${ text }\r\n`);
@@ -502,7 +502,7 @@ function sizeChanged () {
         let m = `[WebTerminal] Size calculations delayed for 25s due to WebTerminal is not`
             + ` attached to the page. If this message doesn't stop appearing, check if`
             + ` WebTerminal's iFrame is visible and is attached to the DOM.`;
-        try { console.warn(m); } catch (e) { console.log(m); }
+        try { console.warn(m); } catch (e) { }
     }
 
     // elements.output.style.width = `${ WIDTH * SYMBOL_WIDTH + scrollBarWidth }px`;

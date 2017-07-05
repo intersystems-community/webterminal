@@ -10,6 +10,8 @@ import { get, getURLParams } from "./lib";
 
 let onAuthHandlers = [],
     userInputHandlers = [],
+    outputHandlers = [],
+    bufferedOutput = [],
     AUTHORIZED = false,
     terminal = null;
 
@@ -33,9 +35,30 @@ export function authDone () {
     onAuthHandlers.forEach(h => h(terminal));
 }
 
-export function onUserInput (text, mode) {
+export const inputActivated = () => {
+    if (bufferedOutput.length) {
+        for (const handler of outputHandlers) {
+            if (handler.stream)
+                continue;
+            handler.callback(bufferedOutput);
+        }
+        bufferedOutput = [];
+    }
+};
+
+export const onUserInput = (text, mode) => {
     userInputHandlers.forEach((h) => h(text, mode));
-}
+    bufferedOutput = [];
+};
+
+export const onOutput = (string) => {
+    bufferedOutput.push(string);
+    for (const handler of outputHandlers) {
+        if (!handler.stream)
+            continue;
+        handler.callback([ string ]);
+    }
+};
 
 /**
  * Register the callback which will be executed right after terminal is initialized. This callback
@@ -58,14 +81,43 @@ Terminal.prototype.MODE_PROMPT = 1;
 Terminal.prototype.MODE_SQL = 2;
 Terminal.prototype.MODE_READ = 3;
 Terminal.prototype.MODE_READ_CHAR = 4;
-Terminal.prototype.MODE_SPECIAL = 1;
+Terminal.prototype.MODE_SPECIAL = 5;
+
+/**
+ * Function accepts the callback, which is fired when user enter a command, character or a string.
+ * @param {{ [stream]: boolean=false, [callback]: function }} [options]
+ * @param {terminalOutputCallback} callback
+ * @returns {function} - Your callback.
+ */
+Terminal.prototype.onOutput = function (options, callback) {
+    if (!options || typeof options === "function") {
+        callback = options || (() => { throw new Error("onOutput: no callback provided!"); });
+        options = {};
+    }
+    if (typeof options.stream === "undefined")
+        options.stream = false;
+    options.callback = callback;
+    outputHandlers.push(options);
+    return callback;
+};
+
+/**
+ * Handles output both in stream or prompt mode.
+ * @callback terminalOutputCallback
+ * @param {string[]} - Output data presented as an array of string chunks. You can get the full
+ *                     output as a single string by doing chunks.join("").
+ */
 
 /**
  * Function accepts the callback, which is fired when user enter a command, character or a string.
  * @param {terminalUserEntryCallback} callback
+ * @returns {function} - Your callback.
  */
 Terminal.prototype.onUserInput = function (callback) {
+    if (typeof callback !== "function")
+        throw new Error("onUserInput: no callback provided!");
     userInputHandlers.push(callback);
+    return callback;
 };
 
 /**

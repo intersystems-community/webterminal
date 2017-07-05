@@ -87,6 +87,8 @@ export function prompt (text, options = {}, callback = null, specialEnabled = tr
     PROMPT_CLEARED = false;
     SPECIAL_ENABLED = specialEnabled;
 
+    terminal.inputActivated();
+
     if (text)
         output.print(text);
     
@@ -145,6 +147,7 @@ export function getKey (options = {}, callback) {
     INPUT_MODE = Terminal.prototype.MODE_READ_CHAR;
 
     // for mobile devices the keyboard needs to appear
+    terminal.inputActivated();
     showInput();
     focusInput();
     caret.hide();
@@ -391,7 +394,7 @@ function getSelectionText() {
     let text = "";
     if (window.getSelection) {
         text = window.getSelection().toString();
-    } else if (document.selection && document.selection.type != "Control") {
+    } else if (document.selection && document.selection.type !== "Control") {
         text = document.selection.createRange().text;
     }
     return text;
