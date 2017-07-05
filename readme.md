@@ -177,7 +177,7 @@ function myInitHandler (terminal) {
     terminal.onOutput((chunks) => {
         // If you "write 12", chunks are ["\r\n", "12", "\r\n"].
         // If you "write 1, 2", chunks are ["\r\n", "1", "2", "\r\n"].
-        if (chunks.slice(1, -1).join("") === "duck") { // if user do enters: write "duck"
+        if (chunks.slice(1, -1).join("") === "duck") { // if the user enters: write "duck"
             alert(`You've found a secret phrase!`);
         }
     });
