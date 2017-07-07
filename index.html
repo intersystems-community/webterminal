@@ -224,6 +224,7 @@
                                     <li><a href="#docs.4.2.3">Handling User Input</a></li>
                                     <li><a href="#docs.4.2.4">Printing</a></li>
                                     <li><a href="#docs.4.2.5">Handling Output</a></li>
+                                    <li><a href="#docs.4.2.6">Removing Callbacks</a></li>
                                 </ol>
                             </li>
                         </ol>
@@ -1265,6 +1266,12 @@ iFrame.addEventListener("load", function () {
         }
     });
 }</code>
+                <h3 id="docs.4.2.6">4.2.6. Removing Callbacks</h3>
+                <p>
+                    Every function that accepts callback also returns the same callback, which can
+                    be passed to <code class="inline">term.removeCallback(callback)</code>. After
+                    callback is passed to this function, it will not longer execute.
+                </p>
             </div>
             <div class="segment">
                 <h1 id="docs.5">5. Contributing To WebTerminal Project</h1>
@@ -1474,7 +1481,7 @@ localization/dictionary.js</a></code></td>
                 <h2>Newest Versions:</h2>
                 <ul class="downloadLinks">
                     <li>
-                        <a href="files/WebTerminal-v4.5.0.xml">WebTerminal-v4.5.0</a>
+                        <a href="files/WebTerminal-v4.6.0.xml">WebTerminal-v4.6.0</a>
                         - WebTerminal API enhancements
                     </li>
                     <li>

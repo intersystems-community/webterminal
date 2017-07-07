@@ -401,6 +401,13 @@
       "changes": [
         "WebTerminal API enhancements (terminal.execute callback add)"
       ]
+    },
+    {
+      "v": "4.6.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.6.0.xml",
+      "changes": [
+        "WebTerminal API enhancements (terminal.removeCallback function add)"
+      ]
     }
   ]
 }
