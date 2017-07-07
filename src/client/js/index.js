@@ -162,8 +162,34 @@ Terminal.prototype.execute = function (command, options, callback) {
         bufferOutput: +(typeof callback === "function")
     });
     if (typeof callback === "function") {
-        executeCallback = callback;
+        return executeCallback = callback;
     }
+};
+
+/**
+ * Remove previously assigned callback.
+ * @param {function} callback
+ * @returns {boolean} - If callback was removed.
+ */
+Terminal.prototype.removeCallback = function (callback) {
+    let i,
+        deleted = false;
+    if ((i = userInputHandlers.indexOf(callback)) !== -1) {
+        userInputHandlers.splice(i, 1);
+        return true;
+    }
+    if (typeof executeCallback === "function") {
+        executeCallback = null;
+        return true;
+    }
+    for (i = 0; i < outputHandlers.length; ++i) {
+        if (outputHandlers[i].callback !== callback)
+            continue;
+        outputHandlers.splice(i, 1);
+        --i;
+        deleted = true;
+    }
+    return deleted;
 };
 
 export function promptCallback (data) {

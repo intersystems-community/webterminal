@@ -144,6 +144,14 @@ The next table demonstrates available API. Left column are `terminal` object pro
         </td>
     </tr>
     <tr>
+        <td>removeCallback(<b>callback</b>)</td>
+        <td>
+            Remove any previously assigned <b>callback</b>. Any function which accepts callback
+            returns it, and you can pass the callback here once you no longer need it to stop it
+            from firing.
+        </td>
+    </tr>
+    <tr>
         <td>print(<b>text</b>)</td>
         <td>
             Prints <b>text</b> which can include special characters and
