@@ -27,6 +27,10 @@ export function prompt (namespace) {
     });
 }
 
+export function promptCallback (data) {
+    terminal.promptCallback(data);
+}
+
 function cleanCWTLabel (string) {
     let s = string.replace(/(\w+(?:\+[0-9]+)?\^(?:\w\.?)+)/, "\x1b[(special)m$1\x1b[0m")
         .replace(/^(<.*>)/, `\x1b[31m$1\x1b[0m`),

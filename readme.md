@@ -100,7 +100,7 @@ The next table demonstrates available API. Left column are `terminal` object pro
 		<td>Description</td>
 	</tr>
 	<tr>
-        <td>execute(<b>command</b>, <b>options</b>)</td>
+        <td>execute(<b>command</b>, [<b>options</b>], [<b>callback</b>])</td>
         <td>
             Executes the COS <b>command</b> right as if it is entered
             to the terminal. However, <b>options</b> provide an
@@ -108,11 +108,12 @@ The next table demonstrates available API. Left column are `terminal` object pro
             <b>options.echo</b> (<b>false</b> by default) - prints the
             <b>command</b> on the screen.<br/>
             <b>options.prompt</b> (<b>false</b> by default) - prompts
-            the user after execution (prints "NAMESPACE > " as well).
+            the user after execution (prints "NAMESPACE > " as well). If <b>callback</b> is passed, 
+            the output buffer will come as a first argument of the <b>callback</b> function.
         </td>
     </tr>
     <tr>
-            <td>onOutput([ <b>options</b> ], <b>callback</b>)</td>
+            <td>onOutput([<b>options</b>], <b>callback</b>)</td>
             <td>
                 By default, <b>callback</b>(<u>strings</u>) will be called before the user is
                 prompted for input, and <code>strings</code> array will always contain an array of 

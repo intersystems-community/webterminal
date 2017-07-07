@@ -140,15 +140,38 @@ Terminal.prototype.print = function (text) {
     input.reprompt();
 };
 
+let executeCallback = null;
+
 /**
  * Print the text on terminal.
  * @param {string} command
- * @param {boolean=false} echo
- * @param {boolean=false} prompt
+ * @param {{ [echo]: boolean=false, [prompt]: boolean=false }} [options]
+ * @param {function} [callback]
  */
-Terminal.prototype.execute = function (command, { echo = false, prompt = false } = {}) {
-    server.send("Execute", { command, echo: +echo, prompt: +prompt });
+Terminal.prototype.execute = function (command, options, callback) {
+    if (typeof options === "function") {
+        callback = options;
+    }
+    if (typeof options !== "object") {
+        options = {};
+    }
+    server.send("Execute", {
+        command,
+        echo: +(options.echo || 0),
+        prompt: +(options.prompt || 0),
+        bufferOutput: +(typeof callback === "function")
+    });
+    if (typeof callback === "function") {
+        executeCallback = callback;
+    }
 };
+
+export function promptCallback (data) {
+    if (typeof executeCallback === "function") {
+        executeCallback([ data ]);
+        executeCallback = null;
+    }
+}
 
 function initialize () {
     let text = locale.get(`beforeInit`),

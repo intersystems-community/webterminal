@@ -26,6 +26,12 @@ Property StartupRoutine As %String;
 /// Output flag
 Property echo As %Boolean [ InitialExpression = 1 ];
 
+/// flag which enables output buffering
+Property bufferOutput As %Boolean [ InitialExpression = 0 ];
+
+/// Used to buffer the output ("o" flag) when bufferOutput flag is set
+Property outputBuffer As %Stream.TmpCharacter [ InitialExpression = {##class(%Stream.TmpCharacter).%New()} ];
+
 /// Output flag
 Property handler As %Boolean [ InitialExpression = 0, Private ];
 
@@ -43,6 +49,10 @@ Method GetMessage(timeout As %Integer = 86400) As %ZEN.proxyObject
 /// Do not remove this method in future versions of WebTerminal, it is used by update.
 Method Send(handler As %String = "", data = "") As %Status
 {
+    if (handler = "o") && (..bufferOutput = 1) {
+        do ..outputBuffer.Write(data)
+        return $$$OK
+    }
     return:((handler = "o") && (..echo = 0)) $$$OK
     return:(handler = "o") ..Write("o"_data) // Enables 2013.2 support (no JSON)
     set obj = ##class(%ZEN.proxyObject).%New()

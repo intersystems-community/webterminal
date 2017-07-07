@@ -19,6 +19,9 @@ ClassMethod Execute (client As WebTerminal.Engine, data, bareStart As %Boolean =
         if (data.echo = 0) {
             set client.echo = 0
         }
+        if (data.bufferOutput = 1) {
+            set client.bufferOutput = 1
+        }
     } else {
         set command = data
     }
@@ -82,6 +85,15 @@ loop
     if $IsObject(data) {
         if (data.echo = 0) {
             set client.echo = 1
+        }
+        if (data.bufferOutput = 1) {
+            set client.bufferOutput = 0
+            set str = ""
+            while ('client.outputBuffer.AtEnd) {
+                set str = str _ client.outputBuffer.Read()
+            }
+            do client.Send("promptCallback", str)
+            do client.outputBuffer.Clear()
         }
     }
     do:('($IsObject(data) && (data.prompt = 0)) && '(bareStart = 1)) client.Send("prompt", client.childNamespace)
