@@ -1,7 +1,10 @@
 # Caché Web Terminal
 Web-based Caché terminal for InterSystems products. Access your database from everywhere!
 
-Visit [project page](http://intersystems-ru.github.io/webterminal) for more details and **download** the latest version [here](http://intersystems-ru.github.io/webterminal/#downloads). Read more and discuss WebTerminal on [InterSystems Developer Community](https://community.intersystems.com/post/cach%C3%A9-webterminal-v4-release).
++ Visit the [project's page](http://intersystems-ru.github.io/webterminal) for more details. 
++ **Download** the latest version from [here](http://intersystems-ru.github.io/webterminal/#downloads).
++ Read more and discuss WebTerminal on [InterSystems Developer Community](https://community.intersystems.com/post/cach%C3%A9-webterminal-v4-release).
++ Read [complete documentation](http://intersystems-ru.github.io/webterminal/#docs) about WebTerminal.
 
 ### Preview
 
@@ -21,11 +24,11 @@ Even more features!
 <table>
 	<tr>
 		<td class="info">Native browser application</td>
-		<td>Allows to access Caché terminal both from desktop or mobile devices.</td>
+		<td>Allows to access Caché terminal both from desktop and mobile devices.</td>
 	</tr>
 	<tr>
 		<td class="info">Autocompletion</td>
-		<td>Type faster. Autocomplete is available in the most cases.</td>
+		<td>Type faster. Autocomplete is available for class names, variable and global names, methods, properties, etc.</td>
 	</tr>
 	<tr>
 		<td class="info">Tracing</td>
@@ -37,7 +40,7 @@ Even more features!
 	</tr>
 	<tr>
 		<td class="info">Syntax highlighting</td>
-		<td>Intelligently highlighted input.</td>
+		<td>Intelligently highlighted input both for COS and SQL.</td>
 	</tr>
 	<tr>
 		<td class="info">Favorites</td>
@@ -45,11 +48,11 @@ Even more features!
 	</tr>
 	<tr>
 		<td class="info">Security</td>
-		<td>All you need is to protect /terminal/ entry point, and all sessions are guaranteed to be secure.</td>
+		<td>All you need is to protect /terminal/ web application, and all sessions are guaranteed to be secure.</td>
 	</tr>
 	<tr>
 		<td class="info">Self-updating</td>
-		<td>Terminal version 4 and higher prompts to update automatically, so you will not miss the important update.</td>
+		<td>WebTerminal of version 4 and higher prompts to update automatically when new version is available, so you will never miss the important update.</td>
 	</tr>
 	<tr>
 		<td class="info">Explore!</td>
@@ -57,18 +60,21 @@ Even more features!
 	</tr>
 </table>
 
-### Installation
-Download the latest version from <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import XML file into any namespace.
+Installation
+------------
 
-### Usage
+Download the latest version from the <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import downloaded XML file into any namespace. Compile imported items and the WebTerminal is ready!
+
+Usage
+-----
+
 After installation, you will be able to access application at `http://[host]:[port]/terminal/` (slash at the end is required).
 Type `/help` there to get more information.
 
 Integration and WebTerminal's API
 ---------------------------------
 
-To embed WebTerminal to any other web application, you can use `<iframe>` tag.
-Example:
+To embed WebTerminal to any other web application, you can use `<iframe>` tag. Example:
 
 ```html
 <iframe id="terminal" src="http://127.0.0.1:57772/terminal/?ns=SAMPLES&clean=1"></iframe>
@@ -178,7 +184,7 @@ function myInitHandler (terminal) {
     terminal.onOutput((chunks) => {
         // If you "write 12", chunks are ["\r\n", "12", "\r\n"].
         // If you "write 1, 2", chunks are ["\r\n", "1", "2", "\r\n"].
-        if (chunks.slice(1, -1).join("") === "duck") { // if user do enters: write "duck"
+        if (chunks.slice(1, -1).join("") === "duck") { // if the user enters: write "duck"
             alert(`You've found a secret phrase!`);
         }
     });
@@ -194,21 +200,17 @@ iFrame.addEventListener("load", function () {
 WebTerminal Project Development
 -------------------------------
 
-We are glad to see anyone who want to contribute to Caché WEB Terminal development! Check our 
-[developer's guide](https://github.com/intersystems-ru/webterminal/blob/master/CONTRIBUTING.md).
+We are glad to see anyone who want to contribute to Caché Web Terminal development! Check our 
+[developer's guide](http://intersystems-ru.github.io/webterminal/#docs.5).
 
-In short, the "hot start" is extremely easy. Having latest [Git](https://git-scm.com/) and
-[NodeJS](https://nodejs.org/en/) installed (tested on NodeJS v4-6), execute the following:
+To be short, the "hot start" is extremely easy. Having latest [Git](https://git-scm.com/) and
+[NodeJS](https://nodejs.org/en/) installed (tested on NodeJS v4-8), execute the following:
 
 ```sh
 git clone https://github.com/intersystems-ru/webterminal
-cd webterminal                   # enter repository directory
-npm install                      # install all project's dependencies
-
-npm run build                    # build the project
-# OR edit import.bat script (on Windows) and then use only the following command:
-import
+cd webterminal # enter repository directory
+import         # build & import the project. YOU NEED TO EDIT CONSTANTS IN THIS FILE FIRST
 ```
 
 Now, in `build` folder you will find `WebTerminal-v*.xml` file. Every time you
-changes is ready to be tested, just run `import`. 
+changes is ready to be tested, just run `import` again. 
