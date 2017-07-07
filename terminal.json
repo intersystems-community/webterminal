@@ -394,6 +394,13 @@
         "New WebTerminal's API function: onOutput",
         "WebTerminal.execute MODE_SPECIAL fix"
       ]
+    },
+    {
+      "v": "4.5.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.5.0.xml",
+      "changes": [
+        "WebTerminal API enhancements (terminal.execute callback add)"
+      ]
     }
   ]
 }
