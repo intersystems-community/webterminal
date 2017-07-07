@@ -1141,8 +1141,8 @@ iFrame.addEventListener("load", function () {
                 <h3 id="docs.4.2.2">4.2.2. Executing Commands</h3>
                 <p>
                     To execute a line of Caché ObjectScript code in runtime, use
-                    <code class="inline">term.execute(command, options)</code> function. It accepts
-                    two arguments:
+                    <code class="inline">term.execute(command, [options], [callback])</code>
+                    function. It accepts three arguments:
                 </p>
                 <ul>
                     <li>
@@ -1160,6 +1160,11 @@ iFrame.addEventListener("load", function () {
                         <code class="inline">prompt</code> is <code class="inline">true</code>, the
                         user will be prompted to enter a command after execution
                         (<code class="inline">NAMESPACE > </code> will be printed as well).
+                    </li>
+                    <li>
+                        If <code class="inline">callback</code> is passed, the output buffer will
+                        come as a first argument of the <code class="inline">callback</code>
+                        function in a form of an array of strings.
                     </li>
                 </ul>
                 <p>
