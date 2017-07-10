@@ -70,6 +70,10 @@ loop
         } elseif (flag = "e") {
             set client.childNamespace = $LISTGET(chunk, 1)
             set err = $LISTGET(chunk, 2)
+            if $IsObject(data) && (data.bufferOutput = 1) {
+                do client.outputBuffer.Write(err)
+                quit // break for loop
+            }
             if (err '= "") {
                 do client.Send(
                     "execError",
