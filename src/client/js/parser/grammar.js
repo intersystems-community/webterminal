@@ -840,55 +840,65 @@ rule("nonEmptyArgumentList").branch().split(
 
 rule("SQLMode").split(
     char({ value: "/", class: "special" }).call("CWTSpecial").exit(),
-    id({ CI, value: "delete", class: "keyword" }).whitespace()
-        .call("SQLFrom").whitespace()
-        .id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
-        .whitespace(),
-    id({ CI, value: "update", class: "keyword" }).whitespace()
-        .call("SQLClassName").whitespace()
-        .id({ CI, value: "set", class: "keyword" }).whitespace().branch()
-            .id({ type: "sqlFieldName", class: "variable" }).optWhitespace().char("=").optWhitespace()
-            .call("SQLExpression").optWhitespace().split(
-                char(",").optWhitespace().merge(),
-                any()
-            )
-        .id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
-        .whitespace(),
-    id({ CI, value: "select", class: "keyword" }).whitespace().split(
-        id({ CI, value: "top", class: "keyword" }).whitespace().constant().whitespace(),
+    id({ CI, value: "delete", class: "keyword" }).whitespace().call("SQLDelete"),
+    id({ CI, value: "update", class: "keyword" }).whitespace().call("SQLUpdate"),
+    id({ CI, value: "select", class: "keyword" }).whitespace().call("SQLSelect")
+).exit().end();
+
+rule("SQLVar").branch()
+.id({ class: "variable", type: "sqlFieldName" }).split(
+    char(".").id({ class: "variable", type: "sqlFieldName" }),
+    any()
+).optWhitespace().branch().split(
+    char("-").char(">").optWhitespace()
+        .id({ class: "variable", type: "sqlFieldName" }).optWhitespace().merge(),
+    any()
+).exit().end();
+
+rule("SQLSelect").split(
+    id({ CI, value: "top", class: "keyword" }).whitespace().constant().whitespace(),
+    any()
+).branch().split(
+    char({ value: "*", class: "special" }),
+    call("SQLVar").split(
+        id({ CI, value: "as", class: "keyword" }).whitespace().id({ class: "variable" })
+            .optWhitespace(),
         any()
     ).split(
-        char({ value: "*", class: "special" }),
-        branch().id({ class: "variable", type: "sqlFieldName" }).optWhitespace().branch().split(
-            char("-").char(">").optWhitespace()
-                .id({ class: "variable", type: "sqlFieldName" }).optWhitespace().merge(),
-            any()
-        ).split(
-            id({ CI, value: "as", class: "keyword" }).whitespace().id({ class: "variable" })
-                .optWhitespace(),
-            any()
-        ).split(
-            char(",").optWhitespace().merge(),
-            any()
-        )
-    ).whitespace().call("SQLFrom").whitespace().split(
-        id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
-            .whitespace(),
-        any()
-    ).split(
-        id({ CI, value: "order", class: "keyword" }).whitespace()
-            .id({ CI, value: "by", class: "keyword" }).whitespace()
-            .branch().id({ class: "variable", type: "sqlFieldName" }).optWhitespace().split(
-                id({ CI, value: "desc", class: "keyword" }).optWhitespace(),
-                id({ CI, value: "asc", class: "keyword" }).optWhitespace(),
-                any()
-            ).split(
-                char(",").optWhitespace().merge(),
-                any()
-            ),
+        char(",").optWhitespace().merge(),
         any()
     )
+).whitespace().call("SQLFrom").optWhitespace().split(
+    id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression"),
+    any()
+).optWhitespace().split(
+    id({ CI, value: "order", class: "keyword" }).whitespace()
+        .id({ CI, value: "by", class: "keyword" }).whitespace()
+        .branch().id({ class: "variable", type: "sqlFieldName" }).optWhitespace().split(
+        id({ CI, value: "desc", class: "keyword" }).optWhitespace(),
+        id({ CI, value: "asc", class: "keyword" }).optWhitespace(),
+        any()
+    ).split(
+        char(",").optWhitespace().merge(),
+        any()
+    ),
+    any()
 ).exit().end();
+
+rule("SQLUpdate").call("SQLClassName").whitespace()
+.id({ CI, value: "set", class: "keyword" }).whitespace()
+.branch()
+.id({ type: "sqlFieldName", class: "variable" }).optWhitespace().char("=").optWhitespace()
+.call("SQLExpression").optWhitespace().split(
+    char(",").optWhitespace().merge(),
+    any()
+)
+.id({ CI, value: "where", class: "keyword" })
+.whitespace()
+.call("SQLExpression").exit().end();
+
+rule("SQLDelete").call("SQLFrom").whitespace()
+.id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression").exit().end();
 
 rule("SQLFrom").id({ CI, value: "from", class: "keyword" }).whitespace().call("SQLClassName")
     .exit().end();
@@ -906,9 +916,18 @@ rule("SQLClassName").split(
 )).exit().end();
 
 rule("SQLExpression").split(
+
     constant(),
-    char("(").optWhitespace().call("SQLExpression").optWhitespace().char(")"),
+
+    char("(").optWhitespace().split(
+        id({ CI, value: "delete", class: "keyword" }).whitespace().call("SQLDelete").optWhitespace(),
+        id({ CI, value: "update", class: "keyword" }).whitespace().call("SQLUpdate").optWhitespace(),
+        id({ CI, value: "select", class: "keyword" }).whitespace().call("SQLSelect").optWhitespace(),
+        call("SQLExpression").optWhitespace()
+    ).char(")"),
+
     id({ CI, value: "not", class: "keyword" }).optWhitespace().call("SQLExpression"),
+
     char({ value: "'", class: "string" }).branch().split(
         char({ value: "'", class: "string" }),
         split(
@@ -919,11 +938,13 @@ rule("SQLExpression").split(
             whitespace()
         ).merge()
     ),
+
     id({ class: "variable", type: "sqlFieldName" }).split(
         char({ value: "_", class: "variable", type: "sqlFieldName" })
             .id({ class: "variable", type: "sqlFieldName" }),
         any()
     )
+
 ).optWhitespace().split(
     split(
         char("+"),
