@@ -415,6 +415,13 @@
       "changes": [
         "WebTerminal API enhancements (error processing in terminal.execute)"
       ]
+    },
+    {
+      "v": "4.6.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.6.3.xml",
+      "changes": [
+        "SQL syntax highlighting enhancements (\u001b!URL=https://github.com/intersystems-ru/webterminal/issues/110 (issue #110))"
+      ]
     }
   ]
 }
