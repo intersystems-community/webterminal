@@ -860,6 +860,12 @@ rule("SQLSelect").split(
     any()
 ).branch().split(
     char({ value: "*", class: "special" }),
+    split(
+        id({ CI, value: "avg", class: "keyword" }),
+        id({ CI, value: "count", class: "keyword" }),
+        id({ CI, value: "max", class: "keyword" }),
+        id({ CI, value: "min", class: "keyword" })
+    ).char("(").optWhitespace().call("SQLVar").optWhitespace().char(")"),
     call("SQLVar").split(
         id({ CI, value: "as", class: "keyword" }).whitespace().id({ class: "variable" })
             .optWhitespace(),
@@ -869,24 +875,39 @@ rule("SQLSelect").split(
         any()
     )
 ).whitespace().call("SQLFrom").optWhitespace().split(
-    id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression"),
-    any()
-).optWhitespace().split(
-    id({ CI, value: "order", class: "keyword" }).whitespace()
-        .id({ CI, value: "by", class: "keyword" }).whitespace()
-        .branch().id({ class: "variable", type: "sqlFieldName" }).optWhitespace().split(
-        id({ CI, value: "desc", class: "keyword" }).optWhitespace(),
-        id({ CI, value: "asc", class: "keyword" }).optWhitespace(),
-        any()
-    ).split(
-        char(",").optWhitespace().merge(),
+    id({ CI, value: "order", class: "keyword" }).call("SQLOrder"),
+    id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
+        .optWhitespace().split(
+            id({ CI, value: "order", class: "keyword" }).call("SQLOrder"),
+            any()
+        ),
+    id({ class: "variable" }).whitespace().split(
+        id({ CI, value: "order", class: "keyword" }).call("SQLOrder"),
+        id({ CI, value: "where", class: "keyword" }).whitespace().call("SQLExpression")
+            .optWhitespace().split(
+            id({ CI, value: "order", class: "keyword" }).call("SQLOrder"),
+            any()
+        ),
         any()
     ),
     any()
 ).exit().end();
 
-rule("SQLUpdate").call("SQLClassName").whitespace()
-.id({ CI, value: "set", class: "keyword" }).whitespace()
+rule("SQLOrder").whitespace()
+    .id({ CI, value: "by", class: "keyword" }).whitespace()
+    .branch().id({ class: "variable", type: "sqlFieldName" }).optWhitespace().split(
+    id({ CI, value: "desc", class: "keyword" }).optWhitespace(),
+    id({ CI, value: "asc", class: "keyword" }).optWhitespace(),
+    any()
+).split(
+    char(",").optWhitespace().merge(),
+    any()
+).exit().end();
+
+rule("SQLUpdate").call("SQLClassName").whitespace().split(
+    id({ CI, value: "set", class: "keyword" }),
+    id({ class: "variable" }).whitespace().id({ CI, value: "set", class: "keyword" })
+).whitespace()
 .branch()
 .id({ type: "sqlFieldName", class: "variable" }).optWhitespace().char("=").optWhitespace()
 .call("SQLExpression").optWhitespace().split(
@@ -919,6 +940,8 @@ rule("SQLExpression").split(
 
     constant(),
 
+    id({ CI, value: "null", class: "constant" }),
+
     char("(").optWhitespace().split(
         id({ CI, value: "delete", class: "keyword" }).whitespace().call("SQLDelete").optWhitespace(),
         id({ CI, value: "update", class: "keyword" }).whitespace().call("SQLUpdate").optWhitespace(),
@@ -939,9 +962,16 @@ rule("SQLExpression").split(
         ).merge()
     ),
 
-    id({ class: "variable", type: "sqlFieldName" }).split(
+    split(
+        id({ CI, value: "char", class: "keyword", type: "sqlFunc" }),
+        id({ CI, value: "ascii", class: "keyword", type: "sqlFunc" })
+    ).char("(").optWhitespace().call("SQLExpression").optWhitespace().char(")"),
+
+    id({ class: "variable", type: "sqlFieldName" }).branch().split(
         char({ value: "_", class: "variable", type: "sqlFieldName" })
             .id({ class: "variable", type: "sqlFieldName" }),
+        char({ value: ".", class: "variable", type: "sqlFieldName" })
+            .id({ class: "variable", type: "sqlFieldName" }).merge(),
         any()
     )
 
@@ -958,7 +988,8 @@ rule("SQLExpression").split(
         ),
         id({ CI, value: "and", class: "keyword" }),
         id({ CI, value: "like", class: "keyword" }),
-        id({ CI, value: "or", class: "keyword" })
+        id({ CI, value: "or", class: "keyword" }),
+        id({ CI, value: "is", class: "keyword" })
     ).optWhitespace().call("SQLExpression"),
     any()
 ).exit().end();
