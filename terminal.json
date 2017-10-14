@@ -422,6 +422,13 @@
       "changes": [
         "SQL syntax highlighting enhancements (\u001b!URL=https://github.com/intersystems-ru/webterminal/issues/110 (issue #110))"
       ]
+    },
+    {
+      "v": "4.7.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.7.0.xml",
+      "changes": [
+        "Executing JOBs within WebTerminal fix (\u001b!URL=https://github.com/intersystems-ru/webterminal/issues/105 (issue #105)). Routines/Programs affecting $ZCHILD variable now should work properly."
+      ]
     }
   ]
 }
