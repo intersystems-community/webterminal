@@ -29,7 +29,7 @@ ClassMethod SendChunk(pid As %Numeric, flag As %String, data As %String = "") As
 /// Receives the chunk of data from another process. Returns the $LISTBUILD string which contains
 /// flag at the first position and string at the second. This method also terminates the process
 /// if the parent process is gone.
-ClassMethod ReceiveChunk(timeout As %Numeric = -1) As %String
+ClassMethod ReceiveChunk(timeout As %Numeric = -1, masterProcess = 0) As %String
 {
     set flag = ""
     set str = ""
@@ -41,10 +41,10 @@ ClassMethod ReceiveChunk(timeout As %Numeric = -1) As %String
         if (status <= 0) {
             if ($ZPARENT '= 0) && ('$data(^$Job($ZPARENT))) {
                 do $system.Process.Terminate($JOB, 0)
-                return $LISTBUILD(flag, str, -1)
+                return $LISTBUILD("e", $LISTBUILD("", "Parent process "_$JOB_" is gone"), -1)
             }
-            if ($ZCHILD '= 0) && ('$data(^$Job($ZCHILD))) {
-                return $LISTBUILD(flag, str, -1)
+            if masterProcess && ($ZCHILD '= 0) && ('$data(^$Job($ZCHILD))) {
+                return $LISTBUILD("e", $LISTBUILD("", "Child process "_$ZCHILD_" is gone"), -1)
             }
         }
         if (data = "") && (timeout = 0) quit

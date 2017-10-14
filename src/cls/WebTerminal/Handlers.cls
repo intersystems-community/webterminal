@@ -29,7 +29,7 @@ ClassMethod Execute (client As WebTerminal.Engine, data, bareStart As %Boolean =
     do client.SendChunk(client.corePID, "m", command)
 loop
     for {
-        set message = client.ReceiveChunk(0) // we need to read from WebSocket as well: timeout = 0
+        set message = client.ReceiveChunk(0, 1) // read from WebSocket as well: timeout = 0
         if ($LISTGET(message, 3) < 0) {
             return $$$ERROR($$$GeneralError, "%cpTerm")
         }
@@ -68,8 +68,15 @@ loop
                 do client.SendChunk(client.corePID, "m", mes.d)
             }
         } elseif (flag = "e") {
-            set client.childNamespace = $LISTGET(chunk, 1)
-            set err = $LISTGET(chunk, 2)
+            set err = ""
+            if $ListValid(chunk) {
+                if ($LISTGET(chunk, 1) '= "") {
+                    set client.childNamespace = $LISTGET(chunk, 1)
+                }
+                if ($LISTGET(chunk, 2) '= "") {
+                    set err = $LISTGET(chunk, 2)
+                }
+            }
             if $IsObject(data) && (data.bufferOutput = 1) {
                 do client.outputBuffer.Write(err)
                 quit // break for loop
@@ -114,7 +121,7 @@ ClassMethod Update (client As WebTerminal.Engine, URL As %String)
 ClassMethod LocalAutocomplete(client As WebTerminal.Engine, data)
 {
 	do client.SendChunk(client.corePID, "a")
-	set list = $LISTGET(client.ReceiveChunk(), 2)
+	set list = $LISTGET(client.ReceiveChunk(, 1), 2)
 	set obj = ##class(%ZEN.proxyObject).%New()
 	for i=3:3:$LISTLENGTH(list) {
 		set obj2 = ##class(%ZEN.proxyObject).%New()
@@ -153,7 +160,7 @@ ClassMethod ClassMemberAutocomplete (client As WebTerminal.Engine, data As %ZEN.
 ClassMethod MemberAutocomplete (client As WebTerminal.Engine, data As %ZEN.proxyObject) As %Status
 {
     do client.SendChunk(client.corePID, "a")
-    set list = $LISTGET(client.ReceiveChunk(), 2)
+    set list = $LISTGET(client.ReceiveChunk(, 1), 2)
     set isOref = 0
     set value = ""
     for i=3:3:$LISTLENGTH(list) {
