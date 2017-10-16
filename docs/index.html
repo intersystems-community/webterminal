@@ -232,7 +232,7 @@
                     <li>
                         <a href="#docs.5">Contributing To WebTerminal Project</a>
                         <ol>
-                            <li><a href="#docs.5.1">Development Workflow Set Up</a></li>
+                            <li><a href="#docs.5.1">Development Workflow</a></li>
                             <li><a href="#docs.5.2">Guidelines</a></li>
                             <li><a href="#docs.5.3">Entry Points</a></li>
                         </ol>
@@ -1281,7 +1281,7 @@ iFrame.addEventListener("load", function () {
                     <a target="_blank" href="https://github.com/intersystems-ru/webterminal">GitHub</a>.
                     This section describes the basic guidelines and principles of contributing.
                 </p>
-                <h2 id="docs.5.1">5.1. Development Workflow Set Up</h2>
+                <h2 id="docs.5.1">5.1. Development Workflow</h2>
                 <p>
                     The development workflow of Caché WebTerminal lies completely outside Caché
                     (without using Caché Studio / Atelier) and is possible for any platform. It
@@ -1332,14 +1332,14 @@ npm run build                    # build the project</code>
                     </li>
                     <li>
                         Append a record describing changes to <code class="inline">docs/terminal.json</code> file.
-                        You can accurately copy-paste-edit records from the previous records. Make sure you changed
-                        the <code class="inline">/versions/X/v</code> and <code class="inline">/versions/X/url</code>
+                        You can accurately copy-paste-edit record from the previous records. Make sure you changed
+                        the <code class="inline">/versions/X/v</code> and <code class="inline">/versions/X/url</code> properties
                         to the latest version and the location of the file respectively. Note that the latest version
                         bust be <b>greater</b> than the previous version. Make sure that the JSON structure is still
                         valid.
                     </li>
                     <li>
-                        If the change is pretty important, add it to visible releases by editing
+                        If the change is pretty important, add it to visible releases (this website) by editing
                         <code class="inline">docs/index.html</code> file.
                     </li>
                     <li>
@@ -1350,15 +1350,21 @@ npm run build                    # build the project</code>
                 <p>
                     A special care must be taken while altering WebTerminal <b>updating mechanism</b>
                     (<code class="inline">WebTerminal.Updater</code> class). If you push a broken change, WebTerminal
-                    will update itself normally, but possibly only for the first time. For the next updates WebTerminal
-                    will use the new update code which can make it never update again (user will need to reinstall it manually).
+                    will update itself normally for the first time. During the next updates WebTerminal
+                    will use the new update code which can possibly make it never update again, and user
+                    will need to reinstall WebTerminal manually).
                 </p>
                 <p>
                     You can put the <code class="inline">/motd</code> (message of the day) message to
                     <code class="inline">docs/terminal.json</code>: all WebTerminal users will start to see this
                     message in console. Do it <b>only when absolute necessary</b>: do not distract users. This functionality
-                    is kept for the critical WebTerminal update faults: when users will need to reinstall WebTerminal
+                    is kept for the critical WebTerminal faults, when users will need to reinstall WebTerminal
                     manually (hopefully never).
+                </p>
+                <p>
+                    One more thing for repository maintainers: **never** rename the repository or move the
+                    <code class="inline">docs</code> (website) to the custom domain until you will be completely sure
+                    that this won't break the WebTerminal auto-updating mechanism (update URLs).
                 </p>
                 <h2 id="docs.5.2">5.2. Guidelines</h2>
                 <p>
