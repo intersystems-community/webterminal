@@ -1,6 +1,7 @@
-# Caché Web Terminal Project Homepage
+# Caché Web Terminal Project Website's Sources
 
-If you've found some mistakes or just want to enhance something - just make the pull request.
-Regards!
+This (`/docs`) directory is served by GitHub at https://intersystems-ru.github.io/webterminal.
 
-Direct link to the site: [WebTerminal page](http://intersystems-ru.github.io/webterminal/).
+You are welcome to fix all found mistakes or typos on the project's website.
+Do do this, fork this repository, edit corresponding files and make a pull request.
+Find more about contributing to WebTerminal project [here](https://intersystems-ru.github.io/webterminal/#docs.5).
