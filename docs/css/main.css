@@ -1,0 +1,248 @@
+html {
+    background: url("../img/back.png") black;
+    color: white;
+    font-family: 'PT Sans Narrow', sans-serif;
+    font-size: 18px !important;
+    text-shadow: 1px 1px 1px #000000;
+    min-width: 539px;
+}
+
+body {
+    position: relative;
+    margin: 0;
+    padding: 0 80px 180px 80px;
+}
+
+img {
+    border: none;
+}
+
+p {
+    text-indent: 2.5em;
+    text-align: justify;
+}
+
+a {
+    text-decoration: none;
+    color: #fffc9e;
+    transition: all 0.3s ease;
+}
+
+sup {
+    position: relative;
+}
+
+a:hover {
+    text-shadow: 0 0 5px #fff000;
+}
+
+.pageHeader {
+    font-size: 50px;
+    position: absolute;
+    left: -60px;
+    top: -70px;
+    white-space: nowrap;
+    text-shadow: 1px 1px 5px #fff063;
+}
+
+.pageBody {
+    position: relative;
+    top: 80px;
+    overflow: visible;
+    min-height: 520px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 0 20px/100px;
+}
+
+.pageLayout, .pageLayout:target ~ #main, #main.inactive {
+    position: relative;
+    padding: 0;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+#main, .pageLayout:target, .pageLayout.active {
+    display: block;
+    opacity: 1;
+    padding: 20px 20px 20px 20px;
+    height: auto;
+}
+
+.pageFooter {
+    position: absolute;
+    background: rgba(255,255,255,0.2);
+    border-radius: 0 0 15px 15px;
+    right: 0;
+    height: 30px;
+    bottom: -30px;
+    padding: 0 6px 0 6px;
+    color: #acacac;
+}
+
+.siteNavigator {
+    position: absolute;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: block;
+    left: -64px;
+    width: 64px;
+}
+
+.siteNavigator > li {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 15px 0 0 15px;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+
+.siteNavigator > li > a > img {
+    position: relative;
+    left: 10%;
+    top: 10%;
+    width: 80%;
+    height: 80%;
+    transition: all 0.1s ease;
+}
+
+.siteNavigator > li > a > img:hover {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#forkLink {
+	position: absolute;
+	right: 0;
+	top: 0;
+	display: block;
+	z-index: 1;
+}
+
+table {
+    border-collapse: collapse;
+    box-shadow: 0 0 1px white;
+    border-radius: 5px;
+}
+
+table tr:nth-child(2n) {
+    background-color: rgba(255,255,255,0.2);
+}
+
+table th {
+    background-color: rgba(255, 252, 158, 0.5);
+}
+
+table th:first-child {
+    border-radius: 5px 0 0 0;
+}
+
+table th:last-child {
+    border-radius: 0 5px 0 0;
+}
+
+table tbody tr:last-child td:first-child {
+    border-radius: 0 0 0 5px;
+}
+
+table tbody tr:last-child td:last-child {
+    border-radius: 0 0 5px 0;
+}
+
+table td {
+    padding: 2px;
+}
+
+code {
+    display: block;
+    background-color: rgba(255,255,255,0.1);
+    text-indent: 0;
+    padding: .5em;
+    margin: .3em 0;
+    border-radius: 5px;
+    overflow: auto;
+    font-size: 12px;
+}
+
+code.inline {
+    display: inline-block;
+    margin: 0;
+    font-size: 95%;
+    padding: 1px;
+    vertical-align: bottom;
+}
+
+code.pre {
+    white-space: pre;
+    font-size: 12px;
+}
+
+OL {
+    counter-reset: list1;
+    padding-left: 2.5em;
+}
+UL {
+    padding-left: 2.5em;
+}
+OL LI {
+    list-style-type: none;
+}
+OL LI:before {
+    counter-increment: list1;
+    content: counter(list1) ". ";
+}
+OL OL { counter-reset: list2; }
+OL OL LI:before {
+    counter-increment: list2;
+    content: counter(list1) "." counter(list2) ". ";
+}
+OL OL OL { counter-reset: list3; }
+OL OL OL LI:before {
+    counter-increment: list3;
+    content: counter(list1) "." counter(list2) "." counter(list3) ". ";
+}
+
+h1:target, h2:target, h3:target {
+    color: #fffc9e;
+    animation: highlight 2s ease-out;
+    -moz-animation: highlight 2s ease-out;
+    -o-animation: highlight 2s ease-out;
+    -webkit-animation: highlight 2s ease-out;
+    text-decoration: underline;
+}
+
+@keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
+
+@-moz-keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
+
+@-ms-keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
+
+@-o-keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}
+
+@-webkit-keyframes highlight {
+    0% { color: inherit }
+    50% { color: orange; padding-left: 10px; }
+    100% { color: #fffc9e }
+}

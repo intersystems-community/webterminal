@@ -1,0 +1,2423 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="WebTerminal/css/base.css" application="/csp/sys/" default="1"><![CDATA[
+html, body {
+    padding: 0;
+    margin: 0;
+    color: white;
+    font-family: FreeMono, monospace;
+    font-size: 16px;
+    background: url("../img/back.png") black;
+}
+
+.hidden { visibility: hidden; }
+.center { text-align: center; }
+.bold { font-weight: 900; }
+.noMargin { margin: 0 }
+.noPadding { padding: 0 }
+
+table {
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+tr, td {
+    padding: 0 6px 6px 6px;
+    margin: 0;
+    border: 0;
+    border-spacing: 0;
+}]]></CSP>
+
+
+<CSP name="WebTerminal/css/extra.css" application="/csp/sys/" default="1"><![CDATA[
+.warning {
+    color: #ffa500;
+}
+
+.hint {
+    color: #c7ff34;
+}
+
+.error {
+    color: #ff0000;
+}
+
+.info {
+    color: #fffd7c;
+}
+
+.executed {
+    color: #34ff00;
+}
+
+@-webkit-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@-o-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@-moz-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes waiting {
+    0% { color: orange; }
+    50% { color: white; }
+    100% { color: orange; }
+}
+
+@-moz-keyframes waiting {
+    0% { color: orange; }
+    50% { color: white; }
+    100% { color: orange; }
+}
+
+@-o-keyframes waiting {
+    0% { color: orange; }
+    50% { color: white; }
+    100% { color: orange; }
+}
+
+@-webkit-keyframes waiting {
+    0% { color: orange; }
+    50% { color: white; }
+    100% { color: orange; }
+}
+
+#caret {
+    position: relative;
+    display: inline-block;
+    width: 0;
+    vertical-align: bottom;
+    overflow: visible;
+
+    animation: blinker infinite 1s;
+    -webkit-animation: blinker infinite 1s;
+    -o-animation: blinker infinite 1s;
+    -moz-animation: blinker infinite 1s;
+}
+
+#caret:after {
+    content: "_";
+}
+
+.waiting {
+    animation: waiting infinite 1s;
+    -webkit-animation: waiting infinite 1s;
+    -o-animation: waiting infinite 1s;
+    -moz-animation: waiting infinite 1s;
+}
+
+.complete {
+    color: greenyellow;
+}
+
+.animated01 {
+    transition: all 0.1s ease-out;
+    -moz-transition: all 0.1s ease-out;
+    -o-transition: all 0.1s ease-out;
+    -webkit-transition: all 0.1s ease-out;
+}]]></CSP>
+
+
+<CSP name="WebTerminal/css/syntax.css" application="/csp/sys/" default="1"><![CDATA[
+
+.syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit, .syntax-kill,
+.syntax-close, .syntax-zw, .syntax-zwrite, .syntax-break, .syntax-catch, .syntax-read
+.syntax-continue, .syntax-goto, .syntax-halt, .syntax-hang, .syntax-job, .syntax-kill,
+.syntax-lock, .syntax-merge, .syntax-new, .syntax-open, .syntax-return, .syntax-tcommit,
+.syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
+.syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite, .syntax-d,
+.syntax-zn, .syntax-h, .syntax-read, .syntax-r
+{ color: #29cfe9; font-weight: 900; }
+
+.syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,
+.syntax-catch
+{ color: #ff00fe; }
+
+.syntax-help, .syntax-clear, .syntax-connect, .syntax-disconnect, .syntax-define, .syntax-siege
+{ color: #e2dc00; }
+
+.syntax-select, .syntax-from, .syntax-where, .syntax-join, .syntax-into
+{ color: #f34800; }
+
+/* Syntax highlighter styles. Required: parser.js */
+.syntax-_digit { color: #00ff89; } /* 6006 */
+.syntax-_symbol { color: #82fffa; } /* +*-/=,!_'#?\ */
+.syntax-_bracket { color: #82fffa; } /* {}[]() */
+.syntax-_string { color: #26e500; } /* "test" */
+.syntax-_function { color: #9291ff; } /* $LENGTH */
+.syntax-_userFunction { color: #cea3ff; } /* $$MY */
+.syntax-_macro { color: #cb64ff; } /* $$$test */
+.syntax-_sysMacro { color: #ff00fe; } /* ##test */
+.syntax-_classProp { color: #0091ff; } /* ..test */
+.syntax-_global { color: #ff5156; } /* ^test */
+.syntax-_other { color: #82fffa; } /* html-escaped symbols, unrecognised */
+
+]]></CSP>
+
+
+<CSP name="WebTerminal/css/terminal.css" application="/csp/sys/" default="1"><![CDATA[
+.terminal-base {
+    position: relative;
+    margin: 20px;
+}
+
+.terminal-output-block {
+    position: relative;
+    overflow: hidden;
+    display: block;
+}
+
+.terminal-inputContainer {
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal-outputContainer {
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal-message-body {
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal-output-body {
+    white-space: pre;
+    word-wrap: break-word;
+}
+
+.terminal-message-head {
+    display: inline-block;
+    float: left;
+}
+
+.terminal-message-head:after {
+    content: " >";
+    margin-right: 10px;
+}
+
+.terminal-input-visible {
+    min-height: 1em;
+    white-space: pre;
+    word-wrap: break-word;
+}
+
+/* fix white-space when \n is last */
+.terminal-input-visible:after {
+    content: " ";
+}
+
+/* textarea block */
+.terminal-input-hidden {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: none;
+    outline: none;
+    text-decoration: none;
+    overflow: hidden;
+    background: none;
+    font: inherit;
+    color: rgba(0,0,0,0);
+    resize: none;
+    word-wrap: break-word;
+    white-space: pre;
+}
+
+.terminal-suggestion {
+    color: gray;
+}]]></CSP>
+
+
+<CSPBase64 name="WebTerminal/favicon.ico" application="/csp/sys/" default="1">
+AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAA
+AAAAAAD///8BAAAABQAAABEAAAAJAAAAAwAAAAMAAAAD////Af///wH///8B////Af///wH///8B
+////Af///wH///8B////AQAAAAcAAAAVLyoiXzcxJa09NijfPjcp4YiHhcWbm5ypioqLhWtrbF8v
+Ly85AAAAIQAAAAP///8B////AXt7fBGFhYZHiomLRXFua0FEPzNPOjMkY1dSSceqqqr/vLy9/7a2
+t/+vr7D/kZGS4wAAABkAAAAbAAAAFf///wGXlZKPq6qg57GtlK2vqIqjsaySt6+qlcOvr5/1t7es
+/76+t//GxsT/zMzM98fIyIW8vLxDwcHBKY6Njg////8BioZ8j5aTjpkUERGjHRIS4SIVFM8oGRa9
+Mh8ZrUc0KatfTT2tdWROsYZ1XauciHGVt6aQl7uwnp/GxLPRuLi2gYyIfo+XlJCZCQgIzQAAAP8A
+AAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8IBgX/Eg8O5bOwpXuOi4CPmZaSmQgI
+B80AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wICAfGqqKB3kY2C
+j5yZlJkIBwfNAAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8FBATt
+paKcd5SQhY+em5eZCAcHzQAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wUFBf8a
+Ghr/Li0s65+dl3WXk4iPop+amQgHB80AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AQEB/xIS
+Ev8mJib/MjIy/zk3NumamJJ1m5eMj6WinZkHBwfPXV1d/wcHB/9PT0//V1dX/0tLS/8AAAD/BQUF
+/xkZGf8nJyf/MjIy/zw8PP9CPz3nlJKNdZ+bj5GopZ+ZBwcHz25ubv+qqqr/ODg4/zg4OP8pKSn/
+CAgI/xwcHP8oKCj/MzMz/zw8PP9DQ0P/SENB55COiXOin5KRq6iimQcHBs9gYGD/m5ub/wAAAP8A
+AAD/DQ0N/x0dHf8oKCj/MzMz/z09Pf9DQ0P/R0dH/0pFQ+WMioVzpaGUkaunoZ8ICAjPc3Nz/wcH
+B/0GBgb1FBMT7x4eHecqKSfhNTMx3T89OttIRUHZT0xH2VVSTNtwbWTflZOQibKwrYe4tanplpGC
+s4uDcamblIOto52Ot6Gcj7+fmo69nZmNs5qWi6mVkombjoyFjYaFgH9/f3xxfXx9Y3t8fi+npqYb
+sbKyU7m4uE2/v787srKxKY+OjxdtbW0H////Af///wH///8B////Af///wH///8B////Af///wH/
+//8B//8AAPA/AAD8DwAAAA8AAAAAAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAA
+AAAADwAA//8AAA==
+</CSPBase64>
+
+
+<CSPBase64 name="WebTerminal/img/back.png" application="/csp/sys/" default="1">
+iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAIAAADZSiLoAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB
+NmlDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjarY6xSsNQFEDPi6LiUCsEcXB4kygotupgxqQt
+RRCs1SHJ1qShSmkSXl7VfoSjWwcXd7/AyVFwUPwC/0Bx6uAQIYODCJ7p3MPlcsGo2HWnYZRhEGvV
+bjrS9Xw5+8QMUwDQCbPUbrUOAOIkjvjB5ysC4HnTrjsN/sZ8mCoNTIDtbpSFICpA/0KnGsQYMIN+
+qkHcAaY6addAPAClXu4vQCnI/Q0oKdfzQXwAZs/1fDDmADPIfQUwdXSpAWpJOlJnvVMtq5ZlSbub
+BJE8HmU6GmRyPw4TlSaqo6MukP8HwGK+2G46cq1qWXvr/DOu58vc3o8QgFh6LFpBOFTn3yqMnd/n
+4sZ4GQ5vYXpStN0ruNmAheuirVahvAX34y/Axk/96FpPYgAAACBjSFJNAAB6JQAAgIMAAPn/AACA
+6AAAUggAARVYAAA6lwAAF2/XWh+QAAAAGElEQVR42mJQVlJkQAZQPoQCAAAA//8DABISATPXp3mc
+AAAAAElFTkSuQmCC
+</CSPBase64>
+
+
+<CSP name="WebTerminal/index.csp" application="/csp/sys/" default="1"><![CDATA[
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+        <title>Remote Caché terminal</title>
+        <meta charset="utf-8">
+        <meta name="author" content="ZitRo - InterSystems">
+        <meta name="Description" content="Web-based terminal for Cache administration.">
+        <meta name="keywords" content="Cache,Caché,terminal,web,web-based,remote,control,Caché WebTerminal">
+        <link href="favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+        <link rel="stylesheet" href="css/base.css">
+        <link rel="stylesheet" href="css/terminal.css">
+        <link rel="stylesheet" href="css/extra.css">
+        <link rel="stylesheet" href="css/syntax.css">
+        <script type="text/javascript" src="js/base.js"></script>
+        <script type="text/javascript" src="js/hid.js"></script>
+        <script type="text/javascript" src="js/application.js"></script>
+        <script type="text/javascript" src="js/server.js"></script>
+        <script type="text/javascript" src="js/terminal.js"></script>
+        <script type="text/javascript" src="js/parser.js"></script>
+        <script type="text/javascript" src="js/unit.js"></script>
+    </head>
+
+    <body>
+        <div class="terminal-base" id="terminal">
+            <div class="terminal-output-block" id="terminal-output">
+                <!-- output -->
+            </div>
+            <div class="terminal-inputContainer">
+                <div class="terminal-message-head" id="terminal-namespace">
+                    <!-- namespace -->
+                </div>
+                <div class="terminal-message-body">
+                    <div class="terminal-input-visible" id="terminal-inputView">
+                        <!-- highlighted input -->
+                    </div>
+                    <textarea class="terminal-input-hidden" id="terminal-hiddenInput">
+                    	<!-- normal input -->
+                    </textarea>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" id="startup">
+            try {
+                application.authorizationKey = "#(##Class(%WebTerminal.Engine).GetAuthKey())#";
+                application.initialize();
+            } catch (exception) {
+                alert("Unable to initialize terminal: ", exception);
+            }
+        </script>
+    </body>
+
+</html>]]></CSP>
+
+
+<CSP name="WebTerminal/js/application.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Basic application object.
+ */
+var application = new function() {
+
+    var version = "0.6 alpha";
+
+    this.browser = "gc";
+    this.authorizationKey = "";
+
+    this.helpbox =
+        "<div style=\"white-space: normal\">" +
+            "<div class=\"center\">" +
+                "<h3>Caché Web Terminal<span class=\"warning\"> v" + version + "</span></h3>" +
+            "</div>" +
+            "<table>" +
+                "<tr>" +
+                    "<td class=\"hint\">Available client-side commands (type with slash)</td>" +
+                    "<td class=\"hint\">Description</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">help</td>" +
+                    "<td>Shows help</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">connect</td>" +
+                    "<td>Establish new connection to Caché server via <b>WebSocket</b></td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">disconnect</td>" +
+                    "<td>Disconnecting from current server</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">reconnect</td>" +
+                    "<td>Try to refresh server connection.</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">clear</td>" +
+                    "<td>Clears terminal command log. Just a visual feature</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">define {definition} {redefinition}</td>" +
+                    "<td>Every input occurrence of {definition} will be replaced with {redefinition}</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">sql</td>" +
+                    "<td>Enable/disable integrated SQL shell</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">autocomplete</td>" +
+                    "<td>" +
+                        "Loads all classes language for current namespace. This may take a while depending on your " +
+                        "system settings. Normally it takes 20-30 seconds while executed first. Next executions will" +
+                        " only load already generated file." +
+                    "</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">siege {iterations = 120} {serverDelay = 0.02}</td>" +
+                    "<td>" +
+                        "Test server/client connection. Executes cycle with delay on server and measures time/packages transferred." +
+                        "Be careful with serverDelay variable!" +
+                    "</td>" +
+                "</tr>" +
+            "</table>" +
+            "<div class=\"center\">" +
+                "<h3>Controls</h3>" +
+            "</div>" +
+            "<table>" +
+                "<tr>" +
+                    "<td class=\"hint\">Key</td>" +
+                    "<td class=\"hint\">Description</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">TAB</td>" +
+                    "<td>Ends current input with suggested autocomplete option</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">CTRL</td>" +
+                    "<td>While few autocomplete variants is present, changes variant to next available</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">ALT</td>" +
+                    "<td>While few autocomplete variants is present, changes variant to previous available</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">keys UP/DOWN</td>" +
+                    "<td>Affords access to command history. <i>Current query will be saved.</i></td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td class=\"info\">SHIFT/CTRL + ENTER</td>" +
+                    "<td>Next line in current command stack.</td>" +
+                "</tr>"+
+            "</table>" +
+        "</div>";
+
+    var detectBrowser = function() {
+        var app = navigator.appName.toLowerCase(), b = "gc";
+        switch (app) {
+            case "microsoft internet explorer": b = "ie"; break;
+            case "google chrome": b = "gc"; break;
+            case "mozilla firefox": b = "mf"; break;
+            case "netscape": b = "ns"; break;
+            default: log.write("unrecognised browser: " + app);
+        }
+        application.browser = b;
+    };
+
+    this.initialize = function() {
+        detectBrowser();
+        terminal.initialize();
+    };
+
+};]]></CSP>
+
+
+<CSP name="WebTerminal/js/base.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Script includes dom representation object, log object and basic prototypes.
+ */
+
+String.prototype.splice = function(position, length, string) {
+    return (this.slice(0,position) + string + this.slice(position + Math.abs(length)));
+};
+
+function Clone(source) {
+    for (var i in source) {
+        if (!source.hasOwnProperty(i)) continue;
+        if (typeof source[i] == 'source') {
+            this[i] = new Clone(source[i]);
+        }
+        else{
+            this[i] = source[i];
+        }
+    }
+}
+
+Object.prototype.merge = function(object) {
+
+    var combine = function(target,object) {
+
+        for (var property in object) {
+
+            if (!object.hasOwnProperty(property)) continue;
+            if (typeof object[property] != "object") {
+                target[property] = object[property];
+            } else {
+                target[property] = new Clone(object[property]);
+            }
+
+        }
+
+    };
+
+    combine(this,object);
+
+};
+
+var log = new function() {
+    this.write = function() {
+        (window.console && console.log)?console.log(arguments):alert(arguments);
+    }
+};
+
+/**
+ * This object represents every dom element needed for terminal application and includes methods to work with graphical
+ * part of web terminal. See [objects] property for more information.
+ */
+var dom = new function() {
+
+    var isDomElement = function(object) {
+        return (
+            typeof HTMLElement === "object" ? object instanceof HTMLElement : //DOM2
+                object && typeof object === "object" && object !== null && object.nodeType === 1 &&
+                    typeof object.nodeName === "string"
+            );
+    };
+
+    /**
+     * DOM objects to work with.
+     *
+     * @type {object}
+     */
+    this.objects = {
+        namespace: null, // current namespace holder
+        input: null, // input object (hidden input, main user-accessible input)
+        output: null, // terminal output
+        inputView: null, // input view (highlighted syntax)
+
+        getCaretPosition: function(object) {
+            object.focus();
+            if(object.selectionStart) return object.selectionStart;
+            else if(!document.selection) return 0;
+            var c = "\001";
+            var sel	= document.selection.createRange();
+            var dul	= sel.duplicate();
+            dul.moveToElementText(object);
+            sel.text = c;
+            var len = dul.text.indexOf(c);
+            sel.moveStart('character',-1);
+            sel.text = "";
+            return len;
+        }
+    };
+
+    /**
+     * Clear all logs before.
+     */
+    this.clearLogs = function() {
+        this.objects.output.innerHTML = "";
+    };
+
+    /**
+     * Scrolls to the bottom of the page.
+     */
+    this.scrollBottom = function() {
+        document.body.scrollTop = document.body.scrollHeight;
+    };
+
+    /**
+     * Returns true while input element in dom under focus.
+     *
+     * @returns {boolean}
+     */
+    this.focused = function(object) {
+        return (document.activeElement == object);
+    };
+
+    this.performForClassObjects = function(className,handler) {
+        var classes = document.getElementsByClassName(className);
+        for (var i = 0; i < classes.length; i++) {
+            handler.call(classes[i])
+        }
+    };
+
+    /**
+     * Gets focused object in dom.
+     *
+     * @returns {DocumentView}
+     */
+    this.getFocusedObject = function() {
+        return document.activeElement;
+    };
+
+    // definition of all required objects for terminal application in DOM
+    var defineObjects = function(objects) {
+        var element = function(name) { return document.getElementById(name) };
+        objects.namespace = element("terminal-namespace");
+        objects.input = element("terminal-hiddenInput");
+        objects.output = element("terminal-output");
+        objects.inputView = element("terminal-inputView");
+    };
+
+
+    /**
+     * Checks if every object defined in objects.
+     *
+     * @returns {boolean}
+     *  Ready to work with terminal DOM.
+     */
+    this.objectsReady = function() {
+        for (var object in this.objects) {
+            if (!this.objects.hasOwnProperty(object) || typeof this.objects[object] != "object") continue;
+            if (this.objects[object] == null) return false;
+        }
+        return true;
+    };
+
+    /**
+     * Initialize objects data.
+     *
+     * @returns {boolean}
+     */
+    this.initialize = function() {
+        defineObjects.call(this,this.objects);
+        return this.objectsReady();
+    };
+
+    /**
+     * Removes element from DOM.
+     *
+     * @param object
+     *  DOM element to remove.
+     * @returns {Node}
+     *  Removed node or null, if object is not in DOM or not DOM object.
+     */
+    this.remove = function(object) {
+        return (isDomElement(object))?object.parentNode.removeChild(object):null;
+    };
+
+};]]></CSP>
+
+
+<CSP name="WebTerminal/js/hid.js" application="/csp/sys/" default="1"><![CDATA[
+// represents actions for human input device
+var hid = new function() {
+
+    var keyState = [],
+        mouseState = 0;
+
+    /**
+     * Definitions of functional keys. Warning: do not add non-functional keys here.
+     *
+     * @type {number}
+     */
+    this.keys = {
+        CTRL: 17,
+        SHIFT: 16,
+        ALT: 18,
+        TAB: 9,
+        ENTER: 13,
+        BACKSPACE: 8,
+        UP: 38,
+        DOWN: 40
+    };
+
+    var bindEvent = function(object, event, handler) {
+
+        if(object.addEventListener) {
+            object.addEventListener(event,handler,false);
+        } else if(object.attachEvent) {
+            object.attachEvent(event,handler);
+        }
+
+    };
+
+    /**
+     * Function prevents browser default action for event.
+     *
+     * @param event {event}
+     */
+    this.preventDefault = function(event) {
+        if (event && event.preventDefault) {
+            event.stopPropagation();
+            event.preventDefault();
+        } else {
+            window.event.cancelBubble = true; // IE
+        }
+    };
+
+    /**
+     * Returns if key is functional key defined in hid.keys
+     *
+     * @param key
+     * @returns {boolean}
+     */
+    this.functional = function(key) {
+        for (var k in this.keys) {
+            if (!this.keys.hasOwnProperty(k)) continue;
+            if (this.keys[k] == key) return true;
+        }
+        return false;
+    };
+
+    /**
+     * Returns true if key currently pressed.
+     *
+     * @param keyCode
+     *  Char code of key.
+     * @returns {boolean}
+     */
+    this.keyPressed = function(keyCode) {
+        return (keyState[keyCode])?true:false;
+    };
+
+    /**
+     * Returns true if mouse currently pressed.
+     *
+     * @returns {boolean}
+     */
+    this.mousePressed = function() {
+        return (mouseState)?true:false;
+    };
+
+    /**
+     * Bind key down. Note that this will happen only once.
+     *
+     * @param object
+     *  Object to bind to.
+     * @param handler
+     *  Function to call with event argument.
+     */
+    this.bindKeyDown = function(object,handler) {
+        bindEvent(object,"keydown",handler);
+    };
+
+    /**
+     * Bind key press. This will happen every time key triggered.
+     *
+     * @param object
+     *  Object to bind to.
+     * @param handler
+     *  Function to call with event argument.
+     */
+    this.bindKeyPress = function(object,handler) {
+        bindEvent(object,"keypress",handler);
+    };
+
+    /**
+     * Bind key up. This will happen once key released.
+     *
+     * @param object
+     *  Object to bind to.
+     * @param handler
+     *  Function to call with event argument.
+     */
+    this.bindKeyUp = function(object,handler) {
+        bindEvent(object,"keyup",handler);
+    };
+
+    /**
+     * Bind click event on object.
+     *
+     * @param object
+     *  Object to bind to.
+     * @param handler
+     *  Function to call with event argument.
+     */
+    this.bindClick = function(object,handler) {
+        bindEvent(object,"click",handler);
+    };
+
+    /**
+     * Bind mouse down event on object.
+     *
+     * @param object
+     *  Object to bind to.
+     * @param handler
+     *  Function to call with event argument.
+     */
+    this.bindMouseDown = function(object,handler) {
+        bindEvent(object,"mousedown",handler);
+    };
+
+    /**
+     * Bind mouse up event on object.
+     *
+     * @param object
+     *  Object to bind to.
+     * @param handler
+     *  Function to call with event argument.
+     */
+    this.bindMouseUp = function(object,handler) {
+        bindEvent(object,"mouseup",handler);
+    };
+
+    // initialize global key states
+    for (var i = 0; i < 256; i++) keyState[i] = 0;
+    this.bindKeyDown(document, function(event) { keyState[event.keyCode] = 1 });
+    this.bindKeyUp(document, function(event) { keyState[event.keyCode] = 0 });
+    this.bindMouseDown(document, function() { mouseState = 1 });
+    this.bindMouseUp(document, function() { mouseState = 0 });
+
+};
+]]></CSP>
+
+
+<CSP name="WebTerminal/js/parser.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Every parser tasks are performed only with strings.
+ */
+var parser = new function() {
+
+    /**
+     * Converts text with html-tags and entities to normal plaintext string.
+     *
+     * @param string
+     * @returns {string}
+     */
+    this.HTMLtoText = function(string) {
+        var div = document.createElement("div"); // @GC
+        div.innerHTML = string;
+        var text = div.textContent || div.innerText || string.replace(/<br\s?\/?>/g,"\n").replace(/<\/?[^>]+(>|$)/g,"");
+        return text || "";
+    };
+
+    /**
+     * Function clears html tab characters and entities.
+     *
+     * @param string
+     * @returns {string}
+     */
+    this.clearHTML = function(string) {
+        return string.replace("&","&amp;").replace("<","&lt;").replace("<","&gt;")
+    };
+
+    /**
+     * Reverses the string.
+     *
+     * @param string
+     * @returns {string}
+     */
+    this.reverse = function(string) {
+        return string.split("").reverse().join("");
+    };
+
+    /**
+     * Analyzing stringPart, function returns correct name of element to use.
+     * Usage: for example, to form highlighting "class" attribute. "set" -> "-set"
+     * "$function" -> "-f_function", "$$$macro" -> "-m_macro" etc.
+     *
+     * @param stringPart
+     *  Part of string, which name needed to return.
+     */
+    var parserSyntaxGetAttrName = function(stringPart) {
+
+        var result = null;
+        if (stringPart.match(/^[a-zA-Z][a-zA-Z0-9]*$/)) { // simple words
+            result = stringPart.toLowerCase();
+        } else if (stringPart.match(/^[0-9]+$/)) {
+            result = "_digit"
+        } else if (stringPart.match(/^".*"$/)) {
+            result = "_string"
+        } else if (stringPart.match(/^\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_function"
+        } else if (stringPart.match(/^\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_userFunction"
+        } else if (stringPart.match(/^[{}\]\[\(\)]+$/)) {
+            result = "_bracket"
+        } else if (stringPart.match(/^\^[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_global"
+        } else if (stringPart.match(/^##[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_sysMacro"
+        } else if (stringPart.match(/^\.\.[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_classProp"
+        } else if (stringPart.match(/^\$\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+            result = "_macro"
+        } else if (stringPart.match(/^[\+\-=\*\/<>\\!_'#\?]+$/)) {
+            result = "_symbol"
+        } else { result = "_other" }
+        return (result)?"-"+result:result;
+
+    };
+
+    /**
+     * Function breaks code for parts with span tags and according styles, but skips &*; html-symbol combinations and tag <br>
+     *
+     * @param string
+     *  String to parse.
+     * @returns {string}
+     *  Parsed string.
+     */
+    this.highlightHTML = function(string) {
+        return string.replace(/(((<|&|&#)|\^|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
+            function(part) {
+                return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
+            });
+    };
+
+    /**
+     * Converts position in plaintext string to it's html position. Works only with correct-html strings: tags has
+     * theirs closures and HTML-entities represented as &<anySymbols>;
+     *
+     * @param string
+     * @param position
+     */
+    this.convertPositionForHTML = function(string,position) {
+
+        var i = 0, l = string.length, pos = 0;
+        while (i<l && pos<position) {
+            if (string[i]=="&") {
+                var m = string.substr(i+1,5).match(/(nbsp|lt|gt|amp|#09);/g);
+                if (m) i += m[0].length;
+            } else if (string[i]=="<") {
+                var p = string.indexOf(">",i+1);
+                var inside = string.substring(i+1,p);
+                if (inside == "br" || inside.substr(0,3) == "br/" || inside.substr(0,3) == "br ") {
+                    pos++;
+                }
+                if (p==-1) { i = pos = l-1 } else { i += p-i; pos--; }
+            }
+            pos++; i++;
+        }
+        return i;
+
+    };
+
+    /**
+     * Dummy converting JSON string to object.
+     *
+     * @param json {string}
+     */
+    this.convertToObject = function(json) {
+        if (JSON && JSON.parse) return JSON.parse(json);
+        var a = null;
+        eval("a = " + json);
+        return a;
+    };
+
+    /**
+     * Inserts caret <span> object to given HTML string.
+     *
+     * @param string
+     * @param position
+     * @returns {string}
+     */
+    this.insertCaret = function(string,position) {
+        position = this.convertPositionForHTML(string,position);
+        return string.splice(position,0,"<span id=\"caret\"></span>");
+    };
+
+    this.prepareForOutputHTML = function(string,insertCaretPos,highlight,insertSuggestion) {
+
+        if (typeof insertCaretPos == "undefined") insertCaretPos = -1;
+        if (typeof highlight == "undefined") highlight = true;
+        if (typeof insertSuggestion == "undefined") insertSuggestion = "";
+        if (insertSuggestion == 1) { insertSuggestion = terminal.autocompletion.getSuggestion() }
+        if (insertSuggestion) insertSuggestion = "<span class=\"terminal-suggestion\">" + insertSuggestion + "</span>";
+
+        string = string.replace(/[&<>]/g,function(part,index){
+            var r = "";
+            switch (part) {
+                case "&": r = "&amp;"; break;
+                case "<": r = "&lt;"; break;
+                case ">": r = "&gt;"; break;
+            }
+            if (!insertCaretPos || r == "") return r || part;
+            if (index < insertCaretPos) {
+                //insertCaretPos += r.length - part.length; // seek caret
+            }
+            return r;
+        });
+
+        if (highlight) string = this.highlightHTML(string);
+        if (insertCaretPos > -1) {
+            if (insertSuggestion) {
+                var pos = this.convertPositionForHTML(string,insertCaretPos);
+                string = string.splice(pos,0,insertSuggestion);
+            }
+            if (application.browser != "ie") {
+                string = this.insertCaret(string,insertCaretPos);
+            }
+        }
+
+        return string;
+
+    };
+
+    /**
+     * Receive all available autocomplete variants as an array.
+     */
+    this.getAutocomplete = function(string,position) {
+
+        // limitations: \s, \n, next-letter
+        var nextChar = string.charAt(position),
+            currentChar = string.charAt(position-1);
+        if (nextChar.match(/[a-zA-Z]/) || currentChar.match(/\s/)) return {};
+
+        // part to parse: reversed+" "
+        var part = string.substring(0,position).trim(),
+            variants = {
+                length: 0,
+                data: {
+
+                }
+            };
+
+        var getEndings = function(object, startPart, separator) {
+            for (var fullPart in object) {
+                if (!object.hasOwnProperty(fullPart) || typeof object != "object") continue;
+                if (fullPart.indexOf(startPart) === 0 && fullPart.length != startPart.length) {
+                    var part = fullPart.substr(startPart.length);
+                    if (separator) part = part.split(separator)[0];
+                    if (!variants["data"].hasOwnProperty(part)) {
+                        variants["data"][part] = object[fullPart];
+                        variants["length"]++;
+                    }
+                }
+            }
+        };
+        
+        var parseObject = function(languageObject, string) {
+
+            for (var unit in languageObject) {
+
+                if (!languageObject.hasOwnProperty(unit) ||
+                    !(languageObject[unit].hasOwnProperty("!autocomplete") || pattern)) continue;
+
+                var parameters = languageObject[unit]["!autocomplete"];
+                if (!parameters) continue;
+
+                if (parameters["child"] && parameters["child"]["reversedRegExp"]) { // scanning for child elements
+                    var combinedRegExp = new RegExp(parameters["child"]["reversedRegExp"].source +
+                        parameters["reversedRegExp"].source);
+                    var childResult = combinedRegExp.exec(string);
+                    if (childResult && childResult.index === 0 && childResult[2]) {
+                        var parentName = parser.reverse(childResult[2]);
+                        if (languageObject[unit].hasOwnProperty(parentName)) {
+                            getEndings(languageObject[unit][parentName], parser.reverse(childResult[1]),
+                                parameters["child"]["separator"])
+                        }
+                    }
+                }
+
+                var result = parameters["reversedRegExp"].exec(string);
+                if (result && result.index === 0 && result[1]) {
+                    getEndings(languageObject[unit],parser.reverse(result[1]),parameters["separator"])
+                }
+
+            }
+
+        };
+
+        parseObject(terminal.language.tokens,this.reverse(part)+" ");
+
+        return variants;
+
+    };
+
+};]]></CSP>
+
+
+<CSP name="WebTerminal/js/server.js" application="/csp/sys/" default="1"><![CDATA[
+var server = new function() {
+
+    var socket = null, // webSocket object
+        serverRoot = "%WebTerminal.Engine.cls", // name of Cache class
+        LOG_DATA = false;
+
+    var logData = function(direction,string) {
+        log.write(
+            "DATA " + ((direction)?"to":"from") + " server: (" + ((string)?string.charCodeAt(0):"empty") + ") ",string
+        );
+    };
+
+    /**
+     * Shows if client currently connected to server.
+     *
+     * @returns {boolean|string}
+     *  If connected, returns server ws URL.
+     */
+    this.connected = function() {
+        return (socket == null)?false:socket.url;
+    };
+
+    /**
+     * Disconnect from server.
+     */
+    this.disconnect = function() {
+        if (server.connected()) {
+            terminal.output.write("Disconnecting from current server...");
+            socket.close();
+            socket = null;
+            terminal.namespace.set("system");
+        } else terminal.output.write("Pointless server disconnection: there's no connection established.")
+    };
+
+    /**
+     * Requests autocomplete for namespace.
+     *
+     * @param namespace
+     */
+    this.requestAutocompleteFile = function(namespace) {
+        terminal.output.write("Loading Caché language for " + namespace);
+        ajax.get("js/autocomplete/" + namespace + ".js",function(data,allRight){
+            if (allRight) {
+                terminal.language.addClasses(parser.convertToObject(data));
+                terminal.output.write("Language for " + namespace + " loaded.");
+            } else {
+                terminal.output.write("Language load fail.");
+            }
+        });
+    };
+
+    /**
+     * Return default webSocket URL to connect on current domain.
+     *
+     * @returns {string}
+     */
+    this.getDefaultServerURL = function() {
+        var part = document.URL.split("/")[2]; // domain[:port]
+        
+        part = "localhost:57772";
+
+        return "ws://" + part + "/" + serverRoot.replace(/%/,"%25");
+    };
+
+    /**
+     * Connect to server. If url isn't passed, it will be generated from current expecting the same domain.
+     * E.g. "http://localhost:81/..." will become "ws://localhost:81/<serverRoot>"
+     *
+     * [ @param url ]
+     *  WebSocket server core URL starting with "ws://"
+     * @returns {boolean}
+     */
+    this.connect = function(url) {
+
+        if (this.connected()) {
+            terminal.output.write("Connection already established. Disconnect first.");
+            return false;
+        }
+        if (typeof url == "undefined" || typeof url != "string" || !url) { url = this.getDefaultServerURL() }
+        terminal.output.write("Connecting to " + url + "...");
+        socket = new WebSocket(url);
+        socket.onopen = onOpen;
+        socket.onclose = onClose;
+        socket.onmessage = onMessage;
+        socket.onerror = onError;
+        return true;
+
+    };
+
+    /**
+     * Submits clear data to server. Default terminator: true.
+     *
+     * @param action
+     * @param data
+     *  Data will be trimmed and \n'd if terminator true
+     * [ @param terminator ]
+     */
+    this.submit = function(action,data,terminator) {
+        if (typeof terminator == "undefined") terminator = true;
+        data = data.trim().replace(/\r\n|\r|\n/g,"\n") + ((terminator)?"\n":"");
+        if (socket) {
+            socket.send((action || "") + data);
+        } else {
+            terminal.output.write("No connection established. Try /connect first.")
+        }
+    };
+
+    this.send = function(data) {
+        if (LOG_DATA) logData(1,data);
+        if (!this.connected()) { log.write("Unable to send data to server: no connection established.") }
+        socket.send(data);
+    };
+
+    var onOpen = function() {
+        terminal.output.write("Connection established. Authorization...");
+        if (application.authorizationKey) server.send(application.authorizationKey);
+    };
+
+    var onClose = function(a) {
+        terminal.output.write("Connection terminated.");
+    };
+
+    var onMessage = function(event) {
+        if (LOG_DATA) logData(0,event.data);
+        terminal.handlers.serverMessage(event.data);
+    };
+
+    var onError = function(error) {
+        log.write("WebSocket error: ",error)
+    };
+
+};
+
+var ajax = new function() {
+
+    function getXmlHttp() {
+        var xmlhttp;
+        try {
+            xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (e) {
+            try {
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (E) {
+                xmlhttp = false;
+            }
+        }
+        if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+            xmlhttp = new XMLHttpRequest();
+        }
+        return xmlhttp;
+    }
+
+    /**
+     * Gets data from server and handles it with handler.
+     *
+     * @param url
+     * @param handler
+     */
+    this.get = function(url, handler) {
+
+        var req = getXmlHttp();
+
+        req.onreadystatechange = function() {
+
+            if (req.readyState == 4) { //req.statusText
+
+                if(req.status == 200) {
+                    handler.call(null,req.responseText,1);
+                } else {
+                    handler.call(null,null,0);
+                    log.write("Ajax GET error: ",req.statusText,req.responseText);
+                }
+
+            }
+
+        };
+
+        req.open("GET", url, true);
+        req.send(null);
+
+    }
+
+};]]></CSP>
+
+
+<CSP name="WebTerminal/js/terminal.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Main controller object for application.
+ *
+ * @author ZitRo
+ *
+ * Required objects:
+ *  server, parser, log, dom, hid, application
+ *
+ * Under unit test: unit.js
+ *
+ * Cache terminal protocol over-WebSocket description (CTWPv3):
+ *
+ *  AUTHORIZATION:
+ *      First package from client includes ONLY authorization key in clear text form. If this key is invalid, server
+ *      closes connection immediately. If server accepts key, main terminal session starts.
+ *
+ *  MESSAGING:
+ *      Every client-server package (except clear I/O mode) includes one action-identifier byte. This byte tells what to
+ *      perform on received side. The next table of action bytes are in use:
+ *
+ *      BYTE    SERVER received                             CLIENT received
+ *      0       Ignore body                                 Ignore body
+ *      1       Execute body                                Enter clear I/O mode (execution begins)
+ *      2       Execute sql body                            Exit clear I/O mode (with exit body)
+ *      3       Generate autocomplete (body - namespace)    Output message
+ *      4                                                   Change namespace
+ *      5                                                   Load autocomplete
+ *      6                                                   Read string
+ *      7                                                   Read char
+ *
+ *  Clear I/O mode
+ *      In this mode terminal client will listen for data from server and output any data as it is, without any action
+ *      identifiers. The same with terminal: any data sent to server won't include any identifiers.
+ *
+ */
+var terminal = new function() {
+
+    var webSocket = null, // socket to exchange data with server
+        lastCommandId = -1,// every command has it's own id. It can be used to change logs, etc.
+
+        receiveDataHandler = null; // function that handles data from server. If function returns false, terminal won't
+                                   // process received data
+
+    this.modes = {
+        NORMAL: 0, // executing commands on server
+        CLEAR_IO: 3,// real-time execution (while messaging) mode until /END/ from server
+        SQL: 1, // executing sql queries
+        MACRO: 2, // macro recording (set of commands)
+        DEFAULT: 0, // default terminal mode
+        LAST: 0 // determines last switched mode (for example, sql mode and execute mode both uses clear mode)
+    };
+
+    this.clientActions = {
+        NONE: String.fromCharCode(0), // useless action
+        ENTER_CLEAR_IO: String.fromCharCode(1),// enters clear IO. In this mode terminal won't send action id
+        EXIT_CLEAR_IO: String.fromCharCode(2),// exits clear IO
+        OUTPUT: String.fromCharCode(3), // just outputs message body
+        CHANGE_NAMESPACE: String.fromCharCode(4), // changes namespace
+        LOAD_AUTOCOMPLETE: String.fromCharCode(5), // loads autocomplete file. Body holds only namespace
+        READ_STRING: String.fromCharCode(6), // reads string - removes namespace like in common terminal
+        READ_CHARACTER: String.fromCharCode(7) // reads character - removes namespace like in common terminal
+    };
+
+    this.serverActions = {
+        NONE: String.fromCharCode(0),
+        EXECUTE: String.fromCharCode(1),
+        EXECUTE_SQL: String.fromCharCode(2),
+        GENERATE_AUTOCOMPLETE: String.fromCharCode(3)
+    };
+
+    this.mode = this.modes.DEFAULT; // mode changes current terminal submit action and behavior
+
+    var handlers = { // private handling
+
+        globalKeyTrigger: function(event) {
+            var keyCode = event.keyCode;
+        },
+
+        globalKeyDown: function(event) {
+
+            if (!terminal.input.focused() && !hid.keyPressed(hid.keys.CTRL)) {
+                dom.objects.input.focus();
+            }
+
+            if (terminal.input.keyAction(event)) {
+                setTimeout(function(){
+                    terminal.input.keyPress.call(terminal.input,event.keyCode);
+                },1);
+            }
+
+        },
+
+        inputKeyDown: function(event) {
+
+            //if (!hid.keyPressed(hid.keys.CTRL) || event.keyCode != hid.keys.CTRL) terminal.input.update();
+            terminal.input.update();
+
+        },
+
+        inputClick: function(event) {
+            terminal.input.update();
+        }
+
+    };
+
+    this.handlers = { // public handling
+
+        serverMessage: function(data) {
+
+            var result = (typeof receiveDataHandler == "function")?receiveDataHandler.call(this,data):1;
+            if (result !== false) terminal.processor.processServerData(data);
+
+        }
+
+    };
+
+    this.processor = new function() {
+
+        var CREATE_OUTPUT = false; // output for empty server clear I/O message handler
+
+        /**
+         * Processes data received from server.
+         *
+         * @param data
+         */
+        this.processServerData = function(data) {
+
+            var possibleAction = data.charAt(0);
+
+            if (possibleAction == terminal.clientActions.EXIT_CLEAR_IO && data.substr(1) == "exit") {
+                terminal.output.freeStack(0);
+                terminal.output.setTarget(dom.objects.output);
+                terminal.output.markDownAll();
+                terminal.mode = terminal.modes.LAST;
+                CREATE_OUTPUT = false;
+            } // exit clear IO
+
+            if (CREATE_OUTPUT) {
+                var obj = terminal.output.forceWrite("",true);
+                terminal.output.setTarget(obj);
+                CREATE_OUTPUT = false;
+            }
+
+            data = parser.clearHTML(data);
+
+            switch (terminal.mode) {
+                case terminal.modes.NORMAL: terminal.processor.performAction(data.charAt(0),data.substr(1)); break;
+                case terminal.modes.CLEAR_IO: {
+                    if (possibleAction == terminal.clientActions.READ_STRING ||
+                        possibleAction == terminal.clientActions.READ_CHARACTER) {
+                        if (possibleAction == terminal.clientActions.READ_CHARACTER) terminal.input.switchCharRead();
+                        terminal.namespace.set("");
+                    }
+                    terminal.processor.write(parser.highlightHTML(data),1);
+                } break;
+                case terminal.modes.SQL: {
+                    if (possibleAction == terminal.clientActions.ENTER_CLEAR_IO) {
+                        terminal.processor.performAction(possibleAction,data.substr(1))
+                    } else if ((possibleAction == terminal.clientActions.EXIT_CLEAR_IO)) {
+                        // upper
+                    } else terminal.processor.write(parser.highlightHTML(data));
+                } break;
+                default: terminal.processor.write("Unknown terminal mode " + terminal.mode + ": data received " + data);
+            }
+
+        };
+
+        /**
+         * Performs action under data.
+         *
+         * @param action {string}
+         * @param data {string}
+         */
+        this.performAction = function(action,data) {
+
+            switch (action) {
+                case terminal.clientActions.OUTPUT: terminal.output.write(parser.prepareForOutputHTML(data,-1,1)); break;
+                case terminal.clientActions.CHANGE_NAMESPACE: terminal.namespace.set(data); break;
+                case terminal.clientActions.ENTER_CLEAR_IO: {
+                    terminal.modes.LAST = terminal.mode;
+                    CREATE_OUTPUT = true;
+                    terminal.mode = terminal.modes.CLEAR_IO;
+                } break;
+                case terminal.clientActions.EXIT_CLEAR_IO: terminal.mode = terminal.modes.LAST; break;
+                case terminal.clientActions.LOAD_AUTOCOMPLETE: {
+                    server.requestAutocompleteFile(data || terminal.namespace.getCorrectFileName());
+                } break;
+                default: {
+                    log.write("Unrecognised action from server.");
+                    terminal.output.write(data);
+                }
+            }
+
+        };
+
+        this.internal = {
+
+            sql: function() {
+                if (terminal.mode == terminal.modes.SQL){
+                    terminal.namespace.update();
+                    terminal.mode = terminal.modes.NORMAL;
+                } else {
+                    terminal.namespace.mask("SQL");
+                    terminal.mode = terminal.modes.SQL;
+                }
+                terminal.output.write("<span class=\"info\">SQL mode " +
+                    ((terminal.mode == terminal.modes.SQL)?"enabled":"disabled") + "</span>");
+            },
+
+            help: function() {
+                terminal.output.write(application.helpbox);
+            },
+
+            autocomplete: function() {
+                server.submit(
+                    terminal.serverActions.GENERATE_AUTOCOMPLETE,
+                    terminal.namespace.getCorrectFileName(),
+                    false
+                );
+            },
+
+            clear: function() {
+                dom.clearLogs();
+            },
+
+            connect: function(url) {
+                server.connect(url);
+            },
+
+            disconnect: function() {
+                server.disconnect();
+            },
+
+            reconnect: function() {
+                server.disconnect();
+                server.connect();
+            },
+
+            define: function(definition,redefinition) {
+                if (!definition || !redefinition) {
+                    terminal.output.write("Use /define [definition] [redefinition]");
+                    return;
+                }
+                terminal.definitions.add(definition,redefinition);
+                terminal.output.write("<span class=\"info\">" + definition + "</span> defined as " +
+                    "<span class=\"info\">" + redefinition + "</span>")
+            },
+
+            siege: function(iterations,serverDelay) {
+                if (typeof iterations == "undefined") { iterations = 120 }
+                if (typeof serverDelay == "undefined") { serverDelay = 0.02 }
+                var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(33+$RANDOM(93))\n" +
+                    "  if ($RANDOM(5) = 0) { write \" \" }\n  h "+serverDelay+"\n}";
+
+                terminal.input.set(serverCommand);
+                terminal.input.submit();
+                var startTime = new Date().getTime();
+                var packages = 0;
+
+                receiveDataHandler = function(data) {
+                    packages++;
+                    if (data.charAt(0) == terminal.clientActions.EXIT_CLEAR_IO) {
+                        receiveDataHandler = null;
+                        var timeDifference = new Date().getTime() - startTime;
+                        terminal.output.freeStack(0);
+                        terminal.output.write("<span class=\"info\"><br>Query client execution time: " +
+                            timeDifference + "/" + (serverDelay*iterations*1000) + "ms (current/ideal)" +
+                            "<br>Packages from server: "+packages+"</span>\n");
+                    }
+                    return true;
+                }
+            }
+
+        };
+
+        /**
+         * Executes internal command with given arguments.
+         *
+         * @param command
+         * @param args
+         */
+        this.executeInternal = function(command,args) {
+
+            if (this.internal.hasOwnProperty(command)) {
+                if (!args || !args[0]) args = [];
+                this.internal[command].apply(this,args)
+            } else terminal.output.write("Unknown internal command: " + command);
+
+        };
+
+        /**
+         * Write data to output stack and. This stage will process any escape-sequences received from server.
+         * TODO: process escape-sequences
+         *
+         * @param data {string}
+         */
+        this.write = function(data) {
+            terminal.output.write(data)
+        };
+
+    };
+
+    this.initialize = function() {
+
+        if (!dom.initialize()) {
+            log.write("Unable to init terminal: dom fault.",dom.objects);
+            return;
+        }
+
+        this.output.setTarget(dom.objects.output); // set standard output
+
+        hid.bindKeyDown(document, handlers.globalKeyDown);
+        hid.bindKeyDown(document, function(event){ // 1ms wrapper: to get input value in handler without masturbation
+            setTimeout(function(){handlers.inputKeyDown(event)},1);
+        });
+        hid.bindClick(dom.objects.input, handlers.inputClick);
+
+        this.output.write("Terminal base ready. Type <span class=\"warning\">/help</span> to get more information.");
+
+        // bindEvent( terminalGetInputObject(), "blur", clearKeyStates ); - why?
+        window.onbeforeunload = server.disconnect;
+        server.connect();
+        // TODO: pass auth key
+        dom.remove(document.getElementById("startup")); // TODO: move to dom
+
+        this.input.clear(); // Clear histories caused by "back" page
+        this.input.focus();
+        this.input.update();
+
+    };
+
+    /**
+     * Represents methotd to work with history
+     */
+    this.history = new function() { // TODO: do not save same commands to history
+
+        var history = [""], // history of all submitted commands. Starting with empty string
+            current = 0; // current position in commandHistory
+
+        /**
+         * Gets history record by id.
+         *
+         * @param id
+         * @returns {string}
+         */
+        this.getByID = function(id) {
+            return history[id]
+        };
+
+        /**
+         * Saves text to current history.
+         *
+         * @param text
+         */
+        this.save = function(text) {
+            history[current] = text;
+        };
+
+        /**
+         * Creates new history record for current input.
+         */
+        this.add = function() {
+            current = history.length;
+            history.push("");
+        };
+
+        this.moveToLast = function() {
+            current = history.length - 1;
+        };
+
+        /**
+         * Returns current history record.
+         *
+         * @returns {string}
+         */
+        this.get = function() {
+            return history[current];
+        };
+
+        /**
+         * Returns history record with increment. This method changes current work history field.
+         *
+         * @param increment
+         * @returns {string}
+         */
+        this.load = function(increment) {
+
+            current += increment || 0;
+            if (current < 0) current = history.length-1;
+            if (current >= history.length) current = 0;
+            return history[current];
+
+        }
+
+    };
+
+    this.autocompletion = new function() {
+
+        var variants = {},
+            current = 0,
+            number = 0;
+
+        /**
+         * Gets updates autocompletion for given arguments. By default method will work with terminal input and will
+         * update current autocomplete.
+         *
+         * [ @param position ]
+         *  Position where to check.
+         * [ @param string ]
+         *  String to check.
+         */
+        this.reset = function(position,string) {
+            if (typeof position == "undefined") position = terminal.input.caretPosition();
+            if (typeof string == "undefined") string = terminal.input.get();
+            var vars = parser.getAutocomplete(string,position);
+            variants = vars.data;
+            number = vars.length;
+            return this.get(current = 0);
+        };
+
+        /**
+         * Returns if some variants aviable.
+         *
+         * @returns {boolean}
+         */
+        this.hasVariants = function() {
+            return number != 0;
+        };
+
+        /**
+         * Returns next autocomplete variant.
+         *
+         * @returns {string}
+         */
+        this.next = function() {
+            if (this.hasVariants()) {
+                return this.get(current+1);
+            } else return "";
+        };
+
+        /**
+         * Returns previous autocomplete variant.
+         *
+         * @returns {string}
+         */
+        this.previous = function() {
+            if (this.hasVariants()) {
+                return this.get(current-1);
+            } else return "";
+        };
+
+        /**
+         * Get variant by it's index in current variants. Note that index can handle any integer
+         *
+         * @param index
+         * @returns {string}
+         */
+        this.get = function(index) {
+
+            index = index % number;
+
+            var i = 0, name = "";
+            for (var currentName in variants) {
+                if (i === index) {
+                    name = currentName;
+                    break;
+                }
+                i++;
+            }
+
+            current = index;
+            return name;
+
+        };
+
+        /**
+         * Clears all variants.
+         */
+        this.clear = function() {
+            variants = {};
+            current = 0;
+            number = 0;
+        };
+
+        /**
+         * Show variant to the user.
+         */
+        this.getSuggestion = function() {
+            if (this.hasVariants()) {
+                return this.get(current);
+            } else return "";
+        };
+
+    };
+
+    this.definitions = new function() {
+
+        var definitions = {
+            //"#1" = "##class(My.Class)"
+        };
+
+        this.add = function(definition,redefinition) {
+            definitions[definition] = redefinition;
+        };
+
+        this.remove = function(definition) {
+            if (definitions.hasOwnProperty(definition)) {
+                delete definitions[definition];
+            } else log.write(definition + " not defined and cannot be removed.")
+        };
+
+        /**
+         * Replaces all definitions in string.
+         *
+         * @param string
+         */
+        this.replace = function(string) {
+            for (var def in definitions) {
+                if (!definitions.hasOwnProperty(def)) continue;
+                string = string.replace(def,definitions[def]);
+            }
+            return string;
+        }
+
+    };
+
+    // represents output and anything related to it
+    this.output = new function() {
+
+        var stack = "",
+            target = null,
+            lastID = 0,
+            mark = false;
+
+        var STACK_REFRESH_INTERVAL = 25;
+
+        /**
+         * Writes text to output as standalone message. If oldOutput defined, write will be forced to old output object.
+         *
+         * @param text {string}
+         */
+        this.write = function(text) {
+            if (target == dom.objects.output) {
+                this.forceWrite(text);
+            } else {
+                stack += text;
+            }
+        };
+
+        /**
+         * Sets output target to object.
+         *
+         * @param object
+         * @returns {boolean}
+         */
+        this.setTarget = function(object) {
+            target = object;
+            return true;
+        };
+
+        /**
+         * Marks down all marked log headers.
+         */
+        this.markDownAll = function() {
+            if (mark == false) dom.performForClassObjects("waiting",function(){
+                this.className = this.className.replace(/waiting/g,"complete")
+            });
+        };
+
+        /**
+         * Writing output to object immediately.
+         *
+         * @param text
+         * [ @param marking ]
+         *  Shows if it needed to mark log as "executing". Mark will still continue until another force write call.
+         * @return {object}
+         *  Object to output to.
+         */
+        this.forceWrite = function(text,marking) {
+
+            if (typeof marking == "undefined") marking = false;
+
+            var div = document.createElement("div");
+            div.id = "terminal-log-"+lastID++;
+            div.className = "terminal-outputContainer animated01";
+            if (marking) {
+                div.style.opacity = "0";
+            }
+
+            var head = document.createElement("div");
+            head.className = "terminal-message-head"+((marking)?" waiting":"");
+            head.innerHTML = terminal.namespace.get();
+
+            var body = document.createElement("div");
+            body.className = "terminal-message-body terminal-output-body";
+            body.innerHTML = text;
+
+            div.appendChild(head);
+            div.appendChild(body);
+            target.appendChild(div);
+            setTimeout(function(){div.style.opacity = "1";},1);
+
+            dom.scrollBottom();
+
+            return body;
+
+        };
+
+        this.freeStack = function(highlight) {
+            if (!stack) return;
+
+            var el = document.createElement("span");
+            el.className = "animated01";
+            el.innerHTML = (highlight)?parser.highlightHTML(stack):stack;
+            el.style.opacity = "0";
+            setTimeout(function(){el.style.opacity = "1";},1);
+            target.appendChild(el);
+
+            dom.scrollBottom();
+            stack = "";
+        };
+
+        setInterval(this.freeStack,STACK_REFRESH_INTERVAL); // refreshing output
+
+    };
+
+    // represents input and anything related to it
+    this.input = new function() {
+
+        var readChar = false;
+
+        /**
+         * Updates main input field view, highlights and redraws area.
+         */
+        this.update = function() {
+            var data = terminal.input.get();
+            var cp = (this.focused())?terminal.input.caretPosition():-1;
+            dom.objects.inputView.innerHTML =
+                parser.prepareForOutputHTML(data,cp,1,1);
+            dom.scrollBottom();
+        };
+
+        /**
+         * Returns true while input element in dom under focus.
+         *
+         * @returns {boolean}
+         */
+        this.focused = function() {
+            return (document.activeElement == dom.objects.input);
+        };
+
+        /**
+         * Sets the caret position to position.
+         *
+         * @param position {number}
+         */
+        this.setCaretPosition = function(position) {
+            var element = dom.objects.input;
+            if(element.createTextRange) {
+                var range = element.createTextRange();
+                range.move('character', position);
+                range.select();
+            } else {
+                if(element.selectionStart) {
+                    element.focus();
+                    element.setSelectionRange(position, position);
+                } else {
+                    element.focus();
+                }
+            }
+        };
+
+        /**
+         * Inserts string to position without problems with caret position.
+         *
+         * @param position {number}
+         * @param string {string}
+         */
+        this.insert = function(position, string) {
+
+            var insert = function(position, to, string) {
+                    return to.splice(position,0,string);
+                },
+                seek = 0;
+
+            if (this.focused()) {
+                var p = this.caretPosition();
+                seek = (position <= p)?string.length:0;
+                this.set(insert(position,this.get(),string));
+                this.setCaretPosition(p+seek);
+            } else this.set(insert(position,this.get(),string));
+
+            this.update();
+
+        };
+
+        /**
+         * Returns input value.
+         *
+         * @returns {string}
+         */
+        this.get = function() {
+            return dom.objects.input.value;
+        };
+
+        /**
+         * Clears input.
+         */
+        this.clear = function() {
+            dom.objects.input.value = "";
+            this.update();
+        };
+
+        /**
+         * Returns current caret position
+         *
+         * @returns {number}
+         */
+        this.caretPosition = function() {
+            return dom.objects.getCaretPosition(dom.objects.input);
+        };
+
+        /**
+         * Clears input and causes it to read one character instead of anything else.
+         */
+        this.switchCharRead = function() {
+            this.clear();
+            readChar = true;
+        };
+
+        /**
+         * Focuses on input field.
+         */
+        this.focus = function() {
+            dom.objects.input.focus();
+        };
+
+        /**
+         * Returns line where caret placed.
+         *
+         * @returns {number}
+         */
+        this.caretLine = function() {
+            var caretPos = this.caretPosition();
+            var data = this.get();
+            var np = data.indexOf("\n");
+            var line = 1;
+            while (np != -1) {
+                if (caretPos <= np) break;
+                line++;
+                np = data.indexOf("\n",np+1);
+            }
+            return line;
+        };
+
+        /**
+         * Returns number of lines in input.
+         *
+         * @returns {number}
+         */
+        this.lines = function() {
+            var arr = this.get().match(/\n/g);
+            if (!arr) return 1;
+            return arr.length + 1;
+        };
+
+        /**
+         * Submits current input data with, maybe, another action.
+         *
+         * [ @param action ]
+         */
+        this.submit = function(action) {
+
+            if (typeof action == "undefined" || !action) {
+                action = terminal.serverActions.EXECUTE;
+                switch (terminal.mode) {
+                    case terminal.modes.NORMAL: action = terminal.serverActions.EXECUTE; break;
+                    case terminal.modes.SQL: action = terminal.serverActions.EXECUTE_SQL; break;
+                    case terminal.modes.CLEAR_IO: action = ""; break;
+                }
+            }
+
+            var data = terminal.input.get();
+
+            if (data.charAt(0) == "/") {
+                var pos = data.indexOf(" ",1); pos = (pos==-1)?data.length:pos;
+                var command = data.substring(1,pos);
+                var arguments = data.substr(pos+1).split(" ");
+                terminal.processor.executeInternal(command,arguments);
+            } else {
+                data = terminal.definitions.replace(data);
+                terminal.output.write(parser.highlightHTML(data));
+                server.submit(action,data);
+            }
+            terminal.history.moveToLast();
+            terminal.history.save(data);
+            terminal.history.add();
+            terminal.input.clear();
+            if (terminal.mode != terminal.modes.SQL) terminal.namespace.update();
+
+        };
+
+        /**
+         * Sets the input value.
+         *
+         * @param value
+         */
+        this.set = function(value) {
+            dom.objects.input.value = value;
+        };
+
+        /**
+         * This function handles keypress moment. Returns false if keyAction was blocked or handled. False will not
+         * call keyPress event.
+         *
+         * @param event
+         */
+        this.keyAction = function(event) {
+
+            var key = event.keyCode || 0;
+
+            if (readChar) {
+                readChar = false;
+                server.submit("",String.fromCharCode(key),true);
+                hid.preventDefault(event);
+                this.clear();
+                return false;
+            }
+
+            if (key == hid.keys.ENTER && !(hid.keyPressed(hid.keys.SHIFT) || hid.keyPressed(hid.keys.CTRL))) {
+                hid.preventDefault(event);
+                setTimeout(this.submit,1);
+                return false;
+            }
+
+            if (key == hid.keys.UP || key == hid.keys.DOWN) {
+                var line = this.caretLine();
+                if ((key == hid.keys.UP && line == 1) ||
+                    (key == hid.keys.DOWN && (line + ((key == hid.keys.DOWN)?1:0))) == this.lines() + 1) {
+                    this.set(terminal.history.load( (key == hid.keys.UP)?-1:1 ));
+                    return false;
+                }
+            }
+
+            if (key == hid.keys.TAB) {
+                var variant = terminal.autocompletion.getSuggestion();
+                if (variant) {
+                    terminal.autocompletion.clear();
+                    this.insert(this.caretPosition(),variant);
+
+                } else {
+                    this.insert(this.caretPosition(),"\t");
+                }
+                hid.preventDefault(event);
+                return false;
+            }
+
+            if (key == hid.keys.ALT) {
+                hid.preventDefault(event);
+                return true;
+            }
+
+            return true;
+
+        };
+
+        /**
+         * This function handles post-keypress moment, when input text had been updated.
+         *
+         * @param key {number}
+         */
+        this.keyPress = function(key) {
+
+            if (!hid.functional(key) || key == hid.keys.BACKSPACE) terminal.autocompletion.reset();
+
+            if (terminal.autocompletion.hasVariants()) {
+                if (key == hid.keys.CTRL) {
+                    terminal.autocompletion.next();
+                } else if (key == hid.keys.ALT) {
+                    terminal.autocompletion.previous();
+                }
+            }
+
+        }
+
+    };
+
+    this.namespace = new function() {
+
+        var namespace = "system",
+            oldNamespace = "system";
+
+        /**
+         * Set current namespace. Namespace won't change if something unless string will be passed.
+         */
+        this.set = function(string) {
+            if (!string){
+                dom.objects.namespace.style.visibility = "hidden";
+            } else {
+                namespace = (typeof string == "string")?string:namespace;
+                dom.objects.namespace.style.visibility = "visible";
+            }
+            dom.objects.namespace.innerHTML = namespace;
+            oldNamespace = namespace;
+        };
+
+        /**
+         * Creates a mask for terminal namespace. It's just for a view - namespace.get() will return normal namespace.
+         *
+         * @param string
+         */
+        this.mask = function(string) {
+            namespace = string;
+            dom.objects.namespace.innerHTML = namespace;
+        };
+
+        /**
+         * Get current namespace
+         *
+         * @returns {string}
+         */
+        this.get = function() {
+            return oldNamespace; // not masked namespace
+        };
+
+        /**
+         * Returns server correct namespace for filenames.
+         *
+         * @returns {string}
+         */
+        this.getCorrectFileName = function() {
+            return this.get().replace("%","_");
+        };
+
+        /**
+         * Sets namespace to current.
+         */
+        this.update = function() {
+            namespace = oldNamespace;
+            this.set(namespace);
+        }
+
+    };
+
+    /**
+     * Terminal language object. This one used in autocomplete.
+     *
+     * Object consists of other objects which determines program language. That's no meter how to call first-level
+     * objects of [tokens] - that's just for perception. Language units must have properties of type number, which
+     * determines importance of language unit usage. Properties beginning with the symbol "!" are the control
+     * properties. They determining extra rules for language unit. Functionality of this properties is the next:
+     *  "!autocomplete": reversed regular expression for autocomplete. Note the follow:
+     *      -   To search unit in any position join ".*" to the end of expression. There's no meter to add this if you
+     *          expecting unit to be placed at the beginning of string, such as system commands.
+     *      -   Insert brackets to regular expression in position which have to match with properties (language units)
+     *      -   Do not forget to write REVERSED regular expression for your expectations.
+     *
+     */
+    this.language = new function() {
+
+        /**
+         * Inserts new class definition.
+         *
+         * @param name
+         * @param classToken
+         */
+        this.addClass = function(name,classToken) { // adds class to tokens
+
+            if (typeof classToken == "object") {
+
+                var merging = !this.tokens.class.hasOwnProperty(name);
+
+                if (merging) {
+                    this.tokens.class[name] = classToken;
+                } else {
+                    this.tokens.class[name].merge(classToken);
+                }
+
+            } else {
+
+                log.write("Trying to add incorrect class to terminal language classes: ",classToken);
+
+            }
+
+        };
+
+        /**
+         * Add a set of classes placed in classTokens objects
+         */
+        this.addClasses = function(classTokens) {
+
+            if (typeof classTokens != "object") {
+                log.write("language.addClasses error: argument is not an object.")
+            }
+            for (var property in classTokens) {
+                if (!classTokens.hasOwnProperty(property)) continue;
+                this.addClass(property,classTokens[property]);
+            }
+
+        };
+
+        this.tokens = {
+
+            "client": {
+                "!structure": "/[a-z]",
+                    "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-z]*/)+"),
+                        target: "this"
+                },
+                "/help": 1,
+                "/clear": 1,
+                "/connect": 0,
+                "/disconnect": 0,
+                "/reconnect": 0,
+                "/autocomplete": 0,
+                "/siege": 0,
+                "/define": 0
+            },
+            "commands": {
+                "!structure": "[a-zA-Z]",
+                    "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-zA-Z]+)\\s.*")
+                },
+                "SET": 0,
+                    "set": 0,
+                    "KILL": 0,
+                    "kill": 0,
+                    "WRITE": 0,
+                    "write": 0,
+                    "ZWRITE": 0,
+                    "zwrite": 0,
+                    "FOR": 0,
+                    "for": 0,
+                    "ELSE": 0,
+                    "else": 0,
+                    "QUIT": 0,
+                    "quit": 0,
+                    "READ": 0,
+                    "read": 0,
+                    "WHILE": 0,
+                    "while": 0,
+                    "CLOSE": 0,
+                    "close": 0
+            },
+            "functions": {
+                "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-zA-Z]+)\\$\\s.*")
+                },
+                "CHAR": 0,
+                    "DATA": 0
+            },
+            "variables": {
+                "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-zA-Z]+)\\$\\s.*")
+                },
+                "$DEVICE": 0,
+                    "$ECODE": 0
+            },
+            "staticMethod": {
+                "!autocomplete": {
+                    reversedRegExp: new RegExp("([a-zA-Z]*##)\\s.*")
+                },
+                "!structure": "##[A-Z]",
+                    "##class": 0
+            },
+            "class": {
+                "!autocomplete": {
+                    reversedRegExp: new RegExp("(([a-zA-Z\\.]*[a-zA-Z])?%?)\\(ssalc##\\s.*"),
+                    separator: ".",
+                    child: {
+                        reversedRegExp: new RegExp("([a-zA-Z]*)\\.\\)")
+                    }
+                },
+                "EXAMPLE": {
+                    "Method": 0,
+                    "Property": 0,
+                    "Parameter": 0
+                }
+            }
+
+        }; // tokens
+
+    };
+
+};]]></CSP>
+
+
+<CSP name="WebTerminal/js/unit.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Provides unit tests for terminal application. Use unit.fullTest() to run unit tests.
+ */
+
+var unit = new function() {
+
+    var wrongs = 0,
+        passed = 0;
+
+    var write = function(text) {
+        log.write(text);
+    };
+
+    var pass = function(value,expected,string,where) {
+        if (value == expected) {
+            passed += 1;
+            string = "passed: [" + string + "] in " + where;
+        } else {
+            wrongs += 1;
+            string = "wrong: [" + string + "] != " + value + " in " + where;
+        }
+        write(string);
+    };
+
+    var fullTest = {
+
+        "parser.convertPositionForHTML": function(f,n) {
+
+            var test = {
+                0: { s: "test", p: 0, r: 0 },
+                1: { s: "test", p: 3, r: 3 },
+                2: { s: "test", p: -1, r: 0 },
+                3: { s: "test", p: 100, r: 4 },
+                4: { s: "a<tag>b", p: 0, r: 0 },
+                5: { s: "a<tag>test", p: 7, r: 10 },
+                6: { s: "a<tag>test", p: 6, r: 10 },
+                7: { s: "a<tag>test", p: 2, r: 7 },
+                8: { s: "a<tag>test", p: 6, r: 10 },
+                9: { s: "a<tag>test", p: 4, r: 9 },
+                10: { s: "a&nbsp;test", p: 1, r: 1 },
+                11: { s: "a&nbsp;test", p: 2, r: 7 },
+                12: { s: "a&nbsp;test", p: 5, r: 10 },
+                13: { s: "a&nbsp;test", p: 6, r: 11 },
+                14: { s: "a&nbsp;test", p: 7, r: 11 },
+                15: { s: "a&nbsp;test", p: 9, r: 11 },
+                16: { s: "I <a>a&nbsp;te</a>st", p: 5, r: 13 },
+                17: { s: "I <a>a&nbsp;te</a>st", p: 6, r: 14 },
+                18: { s: "I <a>a&nbsp;te</a>st", p: 8, r: 20 },
+                19: { s: "I <a>a&nbsp;te</a>st", p: 12, r: 20 },
+                20: { s: "I <a>a&nbsp;te</a>st", p: 15, r: 20 },
+                21: { s: "I <a>a&nbsp;te</a>st", p: 17, r: 20 },
+                22: { s: "I <a>a&nbsp;te</a>st", p: 18, r: 20 },
+                23: { s: "I <a>a&nbsp;te</a>st", p: 19, r: 20 }
+            };
+
+            for (var t in test) {
+                if (!test.hasOwnProperty(t)) continue;
+                var o = test[t];
+                pass(f(o.s, o.p), o.r, o.p + " in \""+ o.s +"\" gives " + o.r,n);
+            }
+
+        }
+
+    };
+
+
+    this.run = function() {
+        wrongs = 0;
+        passed = 0;
+        for (var test in fullTest) {
+            if (!fullTest.hasOwnProperty(test)) continue;
+            if (typeof fullTest[test] == "function") {
+                var f = eval(test);
+                if (typeof f == "function") {
+                    fullTest[test].call(this,f,test);
+                } else {
+                    pass(false,"wrong unit","unitTest.run");
+                }
+            }
+        }
+        log.write("Passed: " + passed + "/" + (passed + wrongs));
+        log.write("Failed: " + wrongs);
+        if (wrongs > 0) log.write("Application is wrong to deploy.");
+    };
+
+};]]></CSP>
+</Export>

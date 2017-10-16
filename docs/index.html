@@ -1,0 +1,1831 @@
+﻿<html>
+    <head>
+        <title>Caché Web Terminal homepage</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="author" content="ZitRo">
+        <meta name="Description" content="Web-based terminal for Caché DBMS administration.">
+        <meta name="keywords" content="cache,caché,terminal,web,web-based,remote,control,webTerminal,cacheWebTerminal,administration">
+        <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+        <link href='https://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" href="css/main.css" media="screen"/>
+        <link rel="stylesheet" type="text/css" href="css/content.css" media="screen"/>
+        <script type="text/javascript">
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+            ga('create', 'UA-83005064-5', 'auto');
+            function init () {
+                hashChanged();
+                [].slice.call(document.querySelectorAll(".downloadLinks a")).forEach(function (l) {
+                    l.setAttribute("download", l.textContent.replace(/\s+/g, " ") + ".xml");
+                });
+                var h = location.hash.replace(/^#/, ""),
+                    e = document.getElementById(h);
+                if (e && typeof e.scrollIntoView === "function")
+                    setTimeout(function () { e.scrollIntoView() }, 300);
+            }
+            function hashChanged () {
+                var h = location.hash.replace(/^#/, "").replace(/\..*$/, ""),
+                    p = document.getElementById(h),
+                    main = document.getElementById("main");
+                ga("set", "page", "/" + (location.hash === "" || location.hash === "#" ? "#main" : location.hash));
+                ga('send', 'pageview');
+                if (!p || p.className.indexOf("pageLayout") === -1)
+                    return;
+                [].slice.call(document.querySelectorAll(".pageBody .pageLayout")).forEach(function (l) {
+                    l.className = l.className.replace(/\s?(?:in)?active\s?/, "");
+                });
+                p.className += " active";
+                if (p.id !== "main" && main.className.indexOf("inactive") === -1)
+                    document.getElementById("main").className += " inactive";
+            }
+            window.addEventListener("hashchange", hashChanged, false);
+        </script>
+    </head>
+
+    <body onload="init();">
+        <div class="pageBody">
+            <div class="pageHeader">
+                Caché Web Terminal <sup class="rainbowText">v4</sup>
+                <a href="https://github.com/intersystems-ru/webterminal" target="_blank">
+                    <img src="https://img.shields.io/github/stars/intersystems-ru/webterminal.svg?style=social&label=Star"/>
+                </a>
+            </div>
+            <ul class="siteNavigator">
+                <li><a href="#main"><img src="img/icons/terminal.png"/></a></li>
+                <li><a href="#showcase"><img src="img/icons/images.png"/></a></li>
+                <li><a href="#downloads"><img src="img/icons/save.png"/></a></li>
+                <li><a href="#docs"><img src="img/icons/docs.png"/></a></li>
+                <li><a href="#feedback"><img src="img/icons/feedback.png"/></a></li>
+            </ul>
+
+            <div class="pageLayout center" id="showcase">
+                <h1 class="center">Showcase</h1>
+                <p>
+                    Caché Web Terminal is a Caché TERM replacement build for browsers. This page
+                    describes almost all the features that WebTerminal introduces.
+                </p>
+                <img class="imgFloatRight screenShoot" src="img/screenshoots/features-help.png"/>
+                <h1>Special Commands</h1>
+                <p>
+
+                    WebTerminal introduces special commands, the ones that start with slash symbol,
+                    which allow you to perform different tasks like favoring commands, entering
+                    special modes, configuring WebTerminal and displaying help. The list of these
+                    features is listed on the right.
+                </p>
+                <img class="imgFloatLeft screenShoot" src="img/screenshoots/features-mobile.png"/>
+                <h1>Mobile-Friendly Terminal</h1>
+                <p>
+                    Is it Mobile-friendly? It is! As WebTerminal is a browser-based application, it
+                    is accessible from the mobile devices as well as from the desktop ones. Perform
+                    the tasks with Caché from your pocket!
+                </p>
+                <h1>Embedded SQL mode</h1>
+                <img style="float: none;margin: 0 auto;max-width:90%" class="imgFloatRight screenShoot" src="img/screenshoots/showcase-slq-mode.png"/>
+                <p>
+                    You can enter an convenient SQL mode and execute any SQL query right from the
+                    terminal. The output would be formatted in HTML table. You can change number of
+                    rows displayed in this table by entering <span class="g special">/config</span>
+                    <span class="g variable">sqlMaxResults</span> =
+                    <span class="g constant">1000</span> command in WebTerminal.
+                </p>
+                <img class="imgFloatLeft screenShoot" src="img/screenshoots/ac.png"/>
+                <h1>Intelligent Autocomplete and Syntax Highlight</h1>
+                <p>
+                    Intelligent autocomplete feature will help you to complete you input faster.
+                    It differs methods from properties, classes from keywords. It suggests variable
+                    names, as well as variable properties and methods, simple variables of data type
+                    from the variables holding an object reference.
+                </p>
+                <p>
+                    In addition, you get the intelligent syntax highlighting, which differs variable
+                    names from simple keywords and highlights almost all Caché ObjectScript
+                    statements.
+                </p>
+                <img class="imgFloatRight screenShoot" src="img/screenshoots/scr4.png"/>
+                <h1>Tracing</h1>
+                <p>
+                    Tracing feature enables you to track for changes in globals and local files. The
+                    terminal will simply print these changes with some additional information.
+                </p>
+                <img class="imgFloatLeft screenShoot" src="img/screenshoots/features-config.png"/>
+                <h1>Configuring Behavior</h1>
+                <p>
+                    WebTerminal is customizable. As time goes by, the more and more customization
+                    options may appear. You can even request the ones you would like to see! Follow
+                    <a href="https://github.com/intersystems-ru/webterminal/issues">GitHub's issue
+                    tracker</a> and leave your request there.
+                </p>
+                <p>
+                    Check other cool features by <a href="#downloads">downloading</a> and installing
+                    Caché Web Terminal, it is free!
+                </p>
+            </div>
+
+            <div class="pageLayout" id="docs">
+                <div class="segments">
+            <div class="segment">
+                <h1>Documentation And Frequently Asked Questions</h1>
+                <h3>Table Of Contents</h3>
+                <ol>
+                    <li>
+                        <a href="#docs.1">
+                            Installation and configuration
+                        </a>
+                        <ol>
+                            <li>
+                                <a href="#docs.1.1">
+                                    Installing Caché Web Terminal
+                                </a>
+                                <ol>
+                                    <li><a href="#docs.1.1.1">Importing Classes</a></li>
+                                    <li><a href="#docs.1.1.2">Resolving Import Errors</a></li>
+                                    <li><a href="#docs.1.1.3">Launching WebTerminal</a></li>
+                                    <li><a href="#docs.1.1.4">Installing Old WebTerminal Versions (1-2)</a></li>
+                                </ol>
+                            </li>
+                            <li>
+                                <a href="#docs.1.2">Configuring WebTerminal Web Application</a>
+                                <ol>
+                                    <li><a href="#docs.1.2.1">Password Protection</a></li>
+                                    <li><a href="#docs.1.2.2">Setting Web Application Up</a></li>
+                                    <li><a href="#docs.1.2.3">Restricting Access To A Particular Users Group</a></li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <a href="#docs.2">Usage Basics</a>
+                        <ol>
+                            <li>
+                                <a href="#docs.2.1">Using Autocomplete</a>
+                            </li>
+                            <li>
+                                <a href="#docs.2.2">Using WebTerminal's Special Commands</a>
+                                <ol>
+                                    <li><a href="#docs.2.2.1">Getting Help</a></li>
+                                    <li><a href="#docs.2.2.2">Clearing All The History</a></li>
+                                    <li><a href="#docs.2.2.3">Configuring WebTerminal</a></li>
+                                    <li><a href="#docs.2.2.4">Remembering Particular Commands</a></li>
+                                    <li><a href="#docs.2.2.5">Showing Project Information</a></li>
+                                    <li><a href="#docs.2.2.6">Logging Out From WebTerminal</a></li>
+                                    <li><a href="#docs.2.2.7">Toggling SQL Mode</a></li>
+                                    <li><a href="#docs.2.2.8">Tracing Globals And Files</a></li>
+                                    <li><a href="#docs.2.2.9">Updating WebTerminal Manually</a></li>
+                                </ol>
+                            </li>
+                            <li>
+                                <a href="#docs.2.3">Configuring WebTerminal</a>
+                                <ol>
+                                    <li><a href="#docs.2.3.1">Changing Default Namespace</a></li>
+                                    <li><a href="#docs.2.3.2">Hiding Initial Messages</a></li>
+                                    <li><a href="#docs.2.3.3">Changing The Language</a></li>
+                                    <li><a href="#docs.2.3.4">Increasing Stored History Size</a></li>
+                                    <li><a href="#docs.2.3.5">Changing The Rows Limit In SQL Mode</a></li>
+                                    <li><a href="#docs.2.3.6">Toggling Autocomplete</a></li>
+                                    <li><a href="#docs.2.3.7">Toggling Syntax Highlight</a></li>
+                                    <li><a href="#docs.2.3.8">Toggling Updates Check</a></li>
+                                    <li><a href="#docs.2.3.9">Changing The Server Name</a></li>
+                                </ol>
+                            </li>
+                            <li>
+                                <a href="#docs.2.4">Interrupting Commands Execution</a>
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <a href="#docs.3">Output Options</a>
+                        <ol>
+                            <li><a href="#docs.3.1">Changing Output Color And Font</a></li>
+                            <li><a href="#docs.3.2">Formatting Output</a></li>
+                            <li><a href="#docs.3.3">Cursor Control</a></li>
+                            <li><a href="#docs.3.4">Printing Hyperlinks (WebTerminal Only)</a></li>
+                            <li><a href="#docs.3.5">Printing HTML (WebTerminal Only)</a></li>
+                            <li><a href="#docs.3.6">Other Supported Output Options</a></li>
+                        </ol>
+                    </li>
+                    <li>
+                        <a href="#docs.4">Embedding WebTerminal To Other Applications</a>
+                        <ol>
+                            <li>
+                                <a href="#docs.4.1">Embedding With IFrame</a>
+                                <ol>
+                                    <li><a href="#docs.4.1.1">IFrame Attributes</a></li>
+                                    <li><a href="#docs.4.1.2">URL Parameters</a></li>
+                                </ol>
+                            </li>
+                            <li>
+                                <a href="#docs.4.2">JavaScript API</a>
+                                <ol>
+                                    <li><a href="#docs.4.2.1">Handling Terminal Initialization</a></li>
+                                    <li><a href="#docs.4.2.2">Executing Commands</a></li>
+                                    <li><a href="#docs.4.2.3">Handling User Input</a></li>
+                                    <li><a href="#docs.4.2.4">Printing</a></li>
+                                    <li><a href="#docs.4.2.5">Handling Output</a></li>
+                                    <li><a href="#docs.4.2.6">Removing Callbacks</a></li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <a href="#docs.5">Contributing To WebTerminal Project</a>
+                        <ol>
+                            <li><a href="#docs.5.1">Development Workflow Set Up</a></li>
+                            <li><a href="#docs.5.2">Guidelines</a></li>
+                            <li><a href="#docs.5.3">Entry Points</a></li>
+                        </ol>
+                    </li>
+                    <li>
+                        <a href="#docs.6">Licensing (MIT)</a>
+                    </li>
+                </ol>
+                <p>
+                    Please note that this documentation is actual only for the <b>latest
+                    WebTerminal version</b>. All outdated WebTerminal versions should be updated to
+                    match this documentation.
+                </p>
+            </div>
+            <div class="segment">
+                <h1 id="docs.1">1. Installation and Configuration</h1>
+                <p>
+                    This section describes how to install WebTerminal to your Caché system and
+                    perform a basic (optional) configuration to make it ready for any use case.
+                </p>
+                <h2 id="docs.1.1">1.1. Installing Caché Web Terminal</h2>
+                <p>
+                    The latest WebTerminal versions are supported for any Caché (Ensemble,
+                    HealthShare, etc) platform version <b>higher than 2014.1</b>. The older versions
+                    of WebTerminal (versions 1-2) will work on 2013.1.
+                </p>
+                <p>
+                    The installation begins from the simple import of classes to Caché. Before doing
+                    that, you need to <a href="#downloads">download</a> the latest available version
+                    on this website. To do this, go to the <a href="#downloads">downloads</a> page
+                    and select the most up-to-date (the most top one) version from the list.
+                </p>
+                <p>
+                    The download will save the XML file to your computer, which you will need to
+                    import then. See the section below to import the classes to your Caché
+                    installation.
+                </p>
+                <h3 id="docs.1.1.1">1.1.1. Importing Classes</h3>
+                <p>
+                    Once you have the XML file of the latest WebTerminal version downloaded from the
+                    <a href="#downloads">downloads</a> page, you need to import it to your Caché
+                    system. To do this, you need to have <b>system privileges</b>. On a clean Caché
+                    installation the user <b>_SYSTEM</b> can perform this operation. The default
+                    password of this user is <b>SYS</b>. Once you notice the window prompting you
+                    to enter a username and a password, try the default ones (<b>_SYSTEM</b> /
+                    <b>SYS</b>).
+                </p>
+                <p>
+                    There are three common ways of how to install WebTerminal:
+                </p>
+                <img class="screenShoot imgFloatLeft" src="img/screenshoots/install-steps.png">
+                <ol>
+                    <li>
+                        <b>Import using Caché Studio (Windows OS only)</b>
+                        <p>
+                            If you have access to Caché Studio, then this is the simplest method.
+                            Open up the Studio window, choose the namespace you want to import
+                            WebTerminal to (for example, select <b>USER</b> namespace), and just
+                            drag & drop the XML file onto the Studio window. Caché Studio will
+                            prompt you to compile the classes, check "yes" and then press OK.
+                        </p>
+                        <p>
+                            At the bottom of the studio (by default) you will see the message
+                            saying that compilation is successful. However, there may appear some
+                            errors. Check the <a href="#docs.1.1.2">Resolving Import Errors
+                            (1.1.2)</a> section for more information on this.
+                        </p>
+                    </li>
+                    <li>
+                        <b>Import Using Management Portal (any OS)</b>
+                        <p>
+                            If you have access to the Management Portal, then you can go to
+                            "System Explorer" -> "Classes" page and click on the "Import" button
+                            there. Select the "File" option in the dialog, and then choose the
+                            full path to the XML file you want to import (WebTerminal-?.?.?.xml).
+                            Check "Compile imported items" checkbox and then press OK. Check the
+                            output of the compilation process and refer to
+                            <a href="#docs.1.1.2">Resolving Import Errors (1.1.2)</a> section
+                            for more information on errors if there are any.
+                        </p>
+                    </li>
+                    <li>
+                        <b>Import Using Terminal (any OS)</b>
+                        <p>
+                            If you have access to Caché Terminal, you can import WebTerminal
+                            by using this command:
+                        </p>
+                        <code>
+                            do $system.OBJ.Load("/path/to/xml/file/WebTerminal-?.?.?.xml","ck")
+                        </code>
+                        <p>
+                            Replace the
+                            <code class="inline">/path/to/xml/file/WebTerminal-?.?.?.xml</code> to
+                            the path to WebTerminal's XML file in your filesystem. Then, check the
+                            output of the compilation process and refer to
+                            <a href="#docs.1.1.2">Resolving Import Errors (1.1.2)</a> section
+                            for more information on errors if there are any.
+                        </p>
+                    </li>
+                </ol>
+                <h3 id="docs.1.1.2">1.1.2. Resolving Import Errors</h3>
+                <p>
+                    During the installation, there may happen some errors. You will receive the
+                    alert message with the error description, as well as the Studio (terminal)
+                    output describing the error. There are the most common errors and their
+                    descriptions listed:
+                </p>
+                <ul>
+                    <li>
+                        <div><code class="inline">&lt;PROTECT&gt;</code> error.</div>
+                        <p>
+                            If you have this error, double check if the user within you are
+                            currently logged in has sufficient privileges to <b>access the %SYS</b>
+                            namespace. During the installation, WebTerminal tries to change the
+                            namespace to <b>%SYS</b> and then tries to set up the
+                            <code class="inline">/terminal</code> web application.
+                        </p>
+                    </li>
+                    <li>
+                        <div>
+                            <code class="inline">
+                                ERROR #921: Operation requires %Admin_Secure:USE privilege
+                            </code>
+                        </div>
+                        <p>
+                            This means that the current user (the one you are trying to import
+                            WebTerminal under) is missing <code class="inline">%Admin_Secure</code>
+                            resource access. The access to this resource is provided with the
+                            <code class="inline">%All</code> (superuser) by default, so make sure
+                            you are logged in as a superuser (_SYSTEM user by default).
+                        </p>
+                    </li>
+                </ul>
+                <h3 id="docs.1.1.3">1.1.3. Launching WebTerminal</h3>
+                <p>
+                    WebTerminal is a web application. To open WebTerminal, use the next URL
+                    address: <code class="inline">http://[host]:[port]/terminal/</code>
+                </p>
+                <p>
+                    There are a few things you need to take into account:
+                </p>
+                <ol>
+                    <li>The slash symbol (<b>/</b>) at the end of the URL is required.</li>
+                    <li>
+                        <code class="inline">[host]</code> and <code class="inline">[port]</code>
+                        URL parts must be replaced with the hostname and port number of the server
+                        you installed WebTerminal to. You can easily check this data by opening
+                        the Management Portal — the URL beginning will be the same for WebTerminal
+                        as well as for Management Portal. Here is the default URL of Caché
+                        WebTerminal installed on the clean system:
+                        <a target="_blank" href="http://localhost:57772/terminal/">http://localhost:57772/terminal/</a>
+                    </li>
+                    <li>
+                        If the web application still showing "404 not found" error, double check
+                        if the installation process resulted with no errors.
+                    </li>
+                </ol>
+                <h3 id="docs.1.1.4">1.1.4. Installing Old WebTerminal Versions (1-2)</h3>
+                <p>
+                    It is always recommended to install the newest versions. However, if you exited
+                    so much about WebTerminal project and want to try it, for example, on Caché
+                    2013.1, the only option you have is to install version 2. Do this by performing
+                    the following steps:
+                </p>
+                <ol>
+                    <li>Go to WebTerminal Downloads and download the version 2.0.0-beta.8, which is
+                        the XML file. This page also has some additional instructions.</li>
+                    <li>Using Studio or whatever you like (see above), import this XML file into the
+                        <b>%SYS namespace</b> and compile all imported classes and CSP pages. If you
+                        have the "access error" while importing classes, then you need to
+                        temporarily enable write access to CACHELIB database, see <a target="_blank" href="https://stackoverflow.com/questions/34183646/how-to-enable-write-access-to-cachelib-database">here</a> how.
+                    </li>
+                    <li>Open {host}:{port}/csp/sys/webterminal/index.CSP page in the browser.</li>
+                </ol>
+                <p>
+                    Note that the newer versions have several fixes and enhancements introduced, so
+                    please do not submit any issues affecting versions 1-2. These versions are not
+                    supported "officially".
+                </p>
+                <h2 id="docs.1.2">1.2. Configuring WebTerminal Web Application</h2>
+                <p>
+                    Once you install WebTerminal, there are two Caché web applications appear.
+                    The first one, <code class="inline">/terminal</code>, is a user interface
+                    of the terminal application. The second one,
+                    <code class="inline">/terminalsocket</code>, is the "empty" web application
+                    for incoming WebSocket connections. The
+                    <code class="inline">/terminalsocket</code> web application has to be opened
+                    to any user and the password protection must be disabled on it, as Caché CSP
+                    gateway will block any WebSocket connections. The token accepted by opened
+                    WebSocket connection is generated by the <code class="inline">/terminal</code>
+                    application, and this is exactly the web application you need to apply
+                    restrictions to.
+                </p>
+                <h3 id="docs.1.2.1">1.2.1. Password Protection</h3>
+                <p>
+                    Password protection is enabled by default for the
+                    <code class="inline">/terminal</code> web application. This means that
+                    <b>any</b> Caché user would be able to log in with their username and a password
+                    to WebTerminal, if they have the access to the database WebTerminal were
+                    installed to.
+                </p>
+                <h3 id="docs.1.2.2">1.2.2. Setting Web Application Up</h3>
+                <p>
+                    The <code class="inline">/terminal</code> web application is set up
+                    automatically the first time you install WebTerminal. You can find it by going
+                    to the <code class="inline">Management Portal</code> ->
+                    <code class="inline">System Administration</code> ->
+                    <code class="inline">Security</code> ->
+                    <code class="inline">Applications</code> ->
+                    <code class="inline">Web Applications</code> and then selecting
+                    <code class="inline">/terminal</code> web application from the list.
+                </p>
+                <p>
+                    You <b>should not</b> change the name of this application, as this will prevent
+                    WebTerminal from updating normally. Also, do not change the dispatch class this
+                    application refers to.
+                </p>
+                <p>
+                    However, the things you can change are listed on the web application definition
+                    edit page: description, namespace, security and session settings and roles
+                    added to the web application user. You can find more information about setting
+                    up web applications in the <a target="_blank" href="https://docs.intersystems.com/latest/csp/docbook/DocBook.UI.Page.cls?KEY=GCSP_config#GCSP_editwebapp">InterSystems documentation</a>.
+                </p>
+                <h3 id="docs.1.2.3">1.2.3. Restricting Access To A Particular Users Group</h3>
+                <p>
+                    You may want to restrict the access to WebTerminal web application only to
+                    specific users. To do this, open up the WebTerminal web application
+                    configuration by going to the <code class="inline">Management Portal</code> ->
+                    <code class="inline">System Administration</code> ->
+                    <code class="inline">Security</code> ->
+                    <code class="inline">Applications</code> ->
+                    <code class="inline">Web Applications</code> page and then selecting
+                    <code class="inline">/terminal</code> web application from the list.
+                    Now, select the <code class="inline">%WebTerminal</code> as a required resource
+                    (Resource Required drop-down menu in Security Settings).
+                    If you don't have this resource in the list, check if you have the latest
+                    WebTerminal version installed. Or, alternatively, you can create your own
+                    resource and role to access this resource, and then assign created resource to
+                    the web application (<a target="_blank" href="http://docs.intersystems.com/latest/csp/docbook/DocBook.UI.Page.cls?KEY=GCAS_roles">see the documentation</a>).
+                </p>
+                <p>
+                    Once you choose <code class="inline">%WebTerminal</code> resource, click
+                    <code class="inline">Save</code> on the top of the page. Then go to the
+                    <code class="inline">System Administration</code> ->
+                    <code class="inline">Security</code> ->
+                    <code class="inline">Users</code> page and select the user you need to
+                    <b>allow</b> the access to WebTerminal. Then, go to the
+                    <code class="inline">Roles</code> tab and assign the
+                    <code class="inline">WebTerminal</code> role by selecting the role from the
+                    left list, pressing the right arrow button and then pressing
+                    <code class="inline">Assign</code> button.
+                </p>
+                <p>
+                    Note that superuser (<b>_SYSTEM</b> by default) does not require
+                    <code class="inline">WebTerminal</code> role to be assigned, as superuser has
+                    <code class="inline">%All</code> role, which grants the full access to all
+                    resources in the system.
+                </p>
+            </div>
+            <div class="segment">
+                <h1 id="docs.2">2. Usage Basics</h1>
+                <p>
+                    This section describes the basic usage of WebTerminal and all of its features.
+                </p>
+                <h2 id="docs.2.1">2.1. Using Autocomplete</h2>
+                <p>
+                    When you type commands you may notice the autocompletion variants appearing.
+                    To complete the input with proposed suggestion, use
+                    <code class="inline">TAB</code> key.
+                </p>
+                <p>
+                    If there is a list of autocomplete variants available, use left and right
+                    <code class="inline">CTRL</code> key to switch to the next or the previous
+                    variant in the list respectively.
+                </p>
+                <h2 id="docs.2.2">2.2. Using WebTerminal's Special Commands</h2>
+                <p>
+                    All special commands in WebTerminal start from <code class="inline">/</code>
+                    symbol. Enter this symbol to get the list of available commands as a suggestion.
+                </p>
+                <h3 id="docs.2.2.1">2.2.1. Getting Help</h3>
+                <p>
+                    To get the help information printed, enter <code class="inline">/help</code>
+                    special command. This command, as well as any other special command can be
+                    entered in both default and SQL terminal modes.
+                </p>
+                <h3 id="docs.2.2.2">2.2.2. Clearing All The History</h3>
+                <p>
+                    WebTerminal does not have the history limit like standard terminal. This is
+                    useful to see all the output and search through it, but sometimes, when you
+                    execute a lot of commands in one session terminal may slow down because of this.
+                    In this case, you can trigger <code class="inline">/clear</code> special
+                    command to clear all the history.
+                </p>
+                <h3 id="docs.2.2.3">2.2.3. Configuring WebTerminal</h3>
+                <p>
+                    To customize the WebTerminal's behavior, use <code class="inline">/config</code>
+                    command. Refer to <a href="#docs.2.3">2.3</a> section to find out more about
+                    local and global configuration.
+                </p>
+                <h3 id="docs.2.2.4">2.2.4. Remembering Particular Commands</h3>
+                <p>
+                    If you execute some command frequently, you can define a shortcut for it. To do
+                    this, enter
+                </p>
+                <code>
+                    <span class="g special">/favorite</span><span class="g"> </span><span class="g constant">{name}</span><span class="g"> </span><span class="g keyword">write</span><span class="g"> </span><span class="g string">"I am always right!"</span>
+                </code>
+                <p>
+                    where <span class="g constant">{name}</span> can be any symbolic name of the
+                    command you want to save. Then you can restore this command by entering
+                </p>
+                <code>
+                    <span class="g special">/favorite</span><span class="g"> </span><span class="g constant">{name}</span>
+                </code>
+                <p>
+                    To delete previously saved commands, use
+                </p>
+                <code>
+                    <span class="g special">/favorite</span><span class="g"> </span><span class="g wrong">delete</span><span class="g"> </span><span class="g constant">{name}</span>
+                </code>
+                <p>
+                    To delete all saved commands, use
+                </p>
+                <code>
+                    <span class="g special">/favorite</span><span class="g"> </span><span class="g wrong">delete</span>
+                </code>
+                <h3 id="docs.2.2.5">2.2.5. Showing Project Information</h3>
+                <p>
+                    To display information about the project, use <code class="inline">/info</code>
+                    command.
+                </p>
+                <h3 id="docs.2.2.6">2.2.6. Logging Out From WebTerminal</h3>
+                <p>
+                    WebTerminal, as any other web application remembers the username and password
+                    you enter. You will still be logged in after the page refresh or even browser
+                    restart. To log out from the current user use
+                    <code class="inline">/logout</code> command.
+                </p>
+                <h3 id="docs.2.2.7">2.2.7. Toggling SQL Mode</h3>
+                <p>
+                    WebTerminal features the convenient SQL mode build in. To enter the SQL mode,
+                    use <code class="inline">/sql</code> command. To exit this mode, enter
+                    <code class="inline">/sql</code> command again.
+                </p>
+                <p>
+                    In SQL mode you can execute any SQL queries and get the syntax highlight and
+                    suggestions for SQL. Also, when getting SQL results you will see simple
+                    SQL table, which is easy to read comparing to the simple terminal output.
+                </p>
+                <h3 id="docs.2.2.8">2.2.8. Tracing Globals And Files</h3>
+                <p>
+                    You can start tracking changes in globals or files. For globals, tracking is
+                    available only for multi-dimensional ones. WebTerminal will notify you about
+                    the changes in global dimension. To start tracking, use the following commands:
+                </p>
+                <code>
+                    <span class="g special">/trace</span><span class="g"> </span><span class="g string">/path/to/file</span> <span class="g m2">(to track files)</span><br/>
+                    <span class="g special">/trace</span><span class="g"> </span><span class="g global">^globalName</span> <span class="g m2">(to track globals)</span>
+                </code>
+                <p>
+                    You will start receiving notifications as a printed output to the current
+                    session. Use
+                </p>
+                <code>
+                    <span class="g special">/trace</span><span class="g"> </span><span class="g global">stop</span>
+                </code>
+                <p>
+                    To stop tracking all files and globals.
+                </p>
+                <h3 id="docs.2.2.9">2.2.9. Updating WebTerminal Manually</h3>
+                <p>
+                    When you disable the auto-update, or if the initial output is omitted, you can
+                    still check for the updates manually by entering
+                    <code class="inline">/update</code> command.
+                </p>
+                <h2 id="docs.2.3">2.3. Configuring WebTerminal</h2>
+                <p>
+                    WebTerminal configuration is divided into to client and server configuration.
+                    The client configuration persists in the browser's local storage (so it resets
+                    when browser changes), and the server configuration is global for the whole
+                    Caché instance. All the settings can be changed with
+                    <code class="inline">/config</code> special command.
+                </p>
+                <h3 id="docs.2.3.1">2.3.1. Changing Default Namespace</h3>
+                <p>
+                    Affects client only. To change the default namespace use the next command:
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">defaultNamespace</span><span class="g"> = </span><span class="g string">"USER"</span>
+                </code>
+                <p>
+                    The user logged will enter this namespace at start if they have access to it.
+                </p>
+                <h3 id="docs.2.3.2">2.3.2. Hiding Initial Messages</h3>
+                <p>
+                    Affects client only. If you want to stop showing the initial messages upon the
+                    start, enter
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">initMessage</span><span class="g"> = </span><span class="g constant">false</span>
+                </code>
+                <p>
+                    command.
+                </p>
+                <h3 id="docs.2.3.3">2.3.3. Changing The Language</h3>
+                <p>
+                    Affects client only. The closest interface language you need is detected
+                    automatically during the WebTerminal start. But you can change it by entering
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">language</span><span class="g"> = </span><span class="g constant">ru</span>
+                </code>
+                <p>
+                    Affects client only. You can try entering any language and WebTerminal will show
+                    the list of available languages if the one you entered cannot be set up.
+                </p>
+                <h3 id="docs.2.3.4">2.3.4. Increasing Stored History Size</h3>
+                <p>
+                    Affects client only. WebTerminal stores 200 last commands in history. To change
+                    this limit, enter
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">maxHistorySize</span><span class="g"> = </span><span class="g constant">777</span>
+                </code>
+                <h3 id="docs.2.3.5">2.3.5. Changing The Rows Limit In SQL Mode</h3>
+                <p>
+                    Affects client only. If you need to change the maximum number of rows displayed
+                    in SQL mode, enter
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">sqlMaxResults</span><span class="g"> = </span><span class="g constant">999</span>
+                </code>
+                <h3 id="docs.2.3.6">2.3.6. Toggling Autocomplete</h3>
+                <p>
+                    Affects client only. If for some reason you don't want autocomplete to help you,
+                    turn it off by using
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">suggestions</span><span class="g"> = </span><span class="g constant">false</span>
+                </code>
+                <h3 id="docs.2.3.7">2.3.7. Toggling Syntax Highlight</h3>
+                <p>
+                    Affects client only. If for some reason you don't want the input to be
+                    highlighted, turn it off by using
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">syntaxHighlight</span><span class="g"> = </span><span class="g constant">false</span>
+                </code>
+                <h3 id="docs.2.3.8">2.3.8. Toggling Updates Check</h3>
+                <p>
+                    Affects client only. There may be some cases when you won't need to notify
+                    client about available WebTerminal updates. The most common case is embedding
+                    WebTerminal to other applications for non-privileged users. If you are using
+                    <code class="inline">clean</code> URL parameter, than you don't need to turn
+                    this option off. In case of you don't want to update terminal regularly, it's
+                    sad, but you can turn the updates off by using
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">updateCheck</span><span class="g"> = </span><span class="g constant">false</span>
+                </code>
+                <h3 id="docs.2.3.9">2.3.9. Changing The Server Name</h3>
+                <p>
+                    Affects server. Changes the name of the server displayed in initial message and
+                    in the browser's tab. This becomes extremely useful if you have WebTerminal
+                    installed on multiple servers and you open many browser tabs at once. Use this
+                    to change the server name:
+                </p>
+                <code>
+                    <span class="g special">/config</span><span class="g"> </span><span class="g variable">serverName</span><span class="g"> = </span><span class="g string">"Pentagon"</span>
+                </code>
+                <h2 id="docs.2.4">2.4. Interrupting Commands Execution</h2>
+                <p>
+                    Sometimes the line of code you execute in WebTerminal may freeze for a while or
+                    even never get completed. In this case you may want to interrupt the command
+                    execution. To do this, press <code class="inline">Ctrl + C</code> keys
+                    combination. If no text were selected, the interrupt signal will be sent to the
+                    server and you will get <code class="inline">&lt;EXTERNAL INTERRUPT&gt;</code> error.
+                </p>
+            </div>
+            <div class="segment">
+                <h1 id="docs.3">3. Output Options</h1>
+                <p>
+                    WebTerminal supports
+                    <a target="_blank" href="http://www.termsys.demon.co.uk/vtansi.htm">VT100</a>
+                    escape sequences and some others to format and control the output. This section
+                    describes the supported escape sequences and their usage.
+                </p>
+                <p>
+                    The <code class="inline">&lt;ESC&gt;</code> designation in this section stands for
+                    the non-printable character with ASCII code 27 (equivalent of COS
+                    <code class="inline">$Char(27)</code> result), which is commonly used escape
+                    character. This character begins the control sequence, and it is usually
+                    followed by other characters which apply the different conditions and control
+                    the terminal output.
+                </p>
+                <p>
+                    For example, <code class="inline">&lt;ESC&gt;[31m</code> stands for printing
+                    these characters using the next COS code:
+                    <code class="inline">write $Char(27), "[31m"</code>.
+                </p>
+                <h2 id="docs.3.1">3.1. Changing Output Color And Font</h2>
+                <p>
+                    There is an option to change the output font weight and color. The table below
+                    demonstrates the basic escape sequences that can be used in output.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sequence</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[0m</code></td>
+                            <td>
+                                Reset all output options mentioned in <a href="#docs.3.1">3.1</a>
+                                to default
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[1m</code></td>
+                            <td>
+                                Switch font to <span class="g m1">bold</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[2m</code></td>
+                            <td>
+                                Make font <span class="g m2">dim</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[3m</code></td>
+                            <td>
+                                Make font <span class="g m3">italic</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[4m</code></td>
+                            <td>
+                                <span class="g m4">Underline the text</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[5m</code></td>
+                            <td>
+                                Print <span class="g m5">blinking</span> text
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[7m</code></td>
+                            <td>
+                                Print <span class="g m7">Invert</span> the printed text colors
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline">&lt;ESC&gt;[8m</code></td>
+                            <td>
+                                Print invisible text (but still selectable)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>
+                    For example, to print "<code class="inline">Impossible is <span class="g m4">nothing</span>!</code>"
+                    on the screen, you can type the following write statement in terminal
+                    (Caché ObjectScript):
+                </p>
+                <code>
+                    <span class="g keyword">write</span><span class="g"> </span><span class="g string">"Impossible is "</span><span class="g">, </span><span class="g keyword">$Char</span><span class="g">(</span><span class="g constant">27</span><span class="g">), </span><span class="g string">"[4mnothing"</span><span class="g">, </span><span class="g keyword">$Char</span><span class="g">(</span><span class="g constant">27</span><span class="g">), </span><span class="g string">"[0m!"</span>
+                </code>
+                <p>
+                    Alternatively, if you are using JavaScript API, then the next will do the same:
+                </p>
+                <code>
+                    term.print(<span class="g string">"Impossible is <span class="g variable">\x1b</span><span class="g special">[4m</span>nothing<span class="g variable">\x1b</span><span class="g special">[0m</span>!"</span>);
+                </code>
+                <p>
+                    As well as font, the color of the text and its background can be changed by
+                    using these sequences:
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[3<span class="g variable">X</span>m</code></td>
+                        <td>
+                            Changes the font color. The <span class="g variable">X</span> here is a
+                            number which can be one of the following:
+                            <span class="g variable">0</span> for <span class="g m30">Black</span>,
+                            <span class="g variable">1</span> for <span class="g m31">Red</span>,
+                            <span class="g variable">2</span> for <span class="g m32">Green</span>,
+                            <span class="g variable">3</span> for <span class="g m33">Yellow</span>,
+                            <span class="g variable">4</span> for <span class="g m34">Blue</span>,
+                            <span class="g variable">5</span> for <span class="g m35">Magenta</span>,
+                            <span class="g variable">6</span> for <span class="g m36">Cyan</span> and
+                            <span class="g variable">7</span> for <span class="g m30">White</span>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[4<span class="g variable">X</span>m</code></td>
+                        <td>
+                            Changes the background color. The same digits described for
+                            <code class="inline">&lt;ESC&gt;[3<span class="g variable">X</span>m</code>
+                            sequence can be used here instead of <span class="g variable">X</span>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[38;5;<span class="g variable">Y</span>m</code></td>
+                        <td>
+                            Changes the font color according to 8-bit color table. The
+                            <span class="g variable">Y</span> here can take integers from 0 to 255,
+                            which corresponds to <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/25e47a17a95e0155ab6f8b4cc0fe4c6b594c5917/src/client/js/output/const.js">pre-defined 8-bit color table</a>.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <h2 id="docs.3.2">3.2. Formatting Output</h2>
+                <p>
+                    To format output and set up tab stops the next escape sequences are used:
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>G</code></td>
+                        <td>
+                            Moves cursor to column <span class="g variable">X</span>. In Caché
+                            ObjectScript you can just use a "?" symbol to shorten this escape
+                            sequence, for example: <code class="inline pre"><span class="g keyword">w</span><span class="g"> </span><span class="g special">?</span><span class="g constant">25</span><span class="g">, </span><span class="g string">"duck"</span></code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;H</code></td>
+                        <td>
+                            Set the tab stop at the current position. By default tab stops are
+                            set at each 8th column.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[g</code></td>
+                        <td>
+                            Clears the tab stop at the current position if present.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[3g</code></td>
+                        <td>
+                            Clears all tab stops.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <h2 id="docs.3.3">3.3. Cursor control</h2>
+                <p>
+                    The next escape sequences are used to control the cursor:
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">Y</span>;<span class="g variable">X</span>H</code></td>
+                        <td>
+                            Moves cursor to (<span class="g variable">X</span>, <span class="g variable">Y</span>)
+                            position (the upper left corner is (<span class="g variable">1</span>, <span class="g variable">1</span>)).
+                            Both <span class="g variable">X</span> and <span class="g variable">Y</span>
+                            can be omitted, e.g. <code class="inline pre">&lt;ESC&gt;[H</code> will
+                            set the cursor to position (<span class="g variable">1</span>, <span class="g variable">1</span>).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>A</code></td>
+                        <td>
+                            Moves the cursor up by <span class="g variable">X</span> rows; the default count is 1.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>B</code></td>
+                        <td>
+                            Moves the cursor down by <span class="g variable">X</span> rows; the default count is 1.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>C</code></td>
+                        <td>
+                            Moves the cursor forward by <span class="g variable">X</span> rows; the default count is 1.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[<span class="g variable">X</span>D</code></td>
+                        <td>
+                            Moves the cursor backward by <span class="g variable">X</span> rows; the default count is 1.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[s</code></td>
+                        <td>
+                            Saves the current cursor position.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;[u</code></td>
+                        <td>
+                            Loads the last saved cursor position.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;7</code></td>
+                        <td>
+                            Save the current cursor positions and its attributes (font and color).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;8</code></td>
+                        <td>
+                            Restore the last saved cursor positions and its attributes (font and color).
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <h2 id="docs.3.4">3.4. Printing Hyperlinks (WebTerminal Only)</h2>
+                <p>
+                    WebTerminal provides a special escape sequence to print hyperlinks. Note that
+                    this will work only for WebTerminal.
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;!URL=<span class="g variable">&lt;link&gt;</span> (<span class="g variable">&lt;text&gt;</span>)</code></td>
+                        <td>
+                            Prints the <span class="g variable">&lt;text&gt;</span> highlighted as
+                            a link. Pressing on the printed <span class="g variable">&lt;text&gt;</span>
+                            will open a new tab with the URL address <span class="g variable">&lt;link&gt;</span>.
+                            Make sure that the <span class="g variable">&lt;link&gt;</span> does
+                            not contain spaces (they must be encoded with %20 character combination)
+                            and other non-URL symbols. Note that there is a space between
+                            <span class="g variable">&lt;link&gt;</span> and <code class="inline pre">(</code> symbol.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p>
+                    Example:
+                </p>
+                <code class="pre"><span class="g">USER &gt; </span><span class="g keyword">write</span><span class="g"> </span><span class="g string">"Visit "</span><span class="g">, </span><span class="g keyword">$Char</span><span class="g">(</span><span class="g constant">27</span><span class="g">), </span><span class="g string">"!URL=https://github.com (GitHub)!"</span>
+<span class="g">Visit </span><a class="g" href="https://github.com" target="_blank">GitHub</a><span class="g">!</span></code>
+                <h2 id="docs.3.5">3.5. Printing HTML (WebTerminal Only)</h2>
+                <p>
+                    WebTerminal can print HTML! This opens almost infinite possibilities of
+                    extending WebTerminal applications with modern web technologies. See the table
+                    below for the HTML printing options.
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sequence</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;(<span class="g variable">&lt;classname&gt;</span>)m</code></td>
+                        <td>
+                            Prints the text wrapped into HTML &lt;span class="<span class="g variable">&lt;classname&gt;</span>"&gt;
+                            element. To clear the assigned class use <code class="inline pre">&lt;ESC&gt;[0m</code>
+                            escape sequence as well. Check the available WebTerminal classes <a target="_blank" href="https://github.com/intersystems-ru/webterminal/tree/master/src/client/scss">here</a>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">&lt;ESC&gt;!&lt;HTML&gt;<span class="g variable">{html}</span>&lt;/HTML&gt;</code></td>
+                        <td>
+                            Converts the current line in output to the HTML line. This line will
+                            include any <span class="g variable">{html}</span> given to the
+                            sequence. Once the given <span class="g variable">{html}</span> will be
+                            rendered on the screen, the height of the rendered part will be
+                            calculated instantly and assigned to the containing line (the height of
+                            the line may be slightly higher than the content height). This height
+                            will not be changed when content height changes.<br/>
+                            <span class="g variable">NOTE</span> that this sequence will block
+                            output until the closing &lt;/HTML&gt; comes.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p>
+                    Example:
+                </p>
+                <code class="pre"><span class="g">USER &gt; </span><span class="g keyword">write</span><span class="g"> </span><span class="g keyword">$Char</span><span class="g">(</span><span class="g constant">27</span><span class="g">), </span><span class="g string">"!&lt;HTML&gt;&lt;h1&gt;I am a very big title!&lt;/h1&gt;&lt;/HTML&gt;end."</span>
+<h1>I am a very big title!</h1>
+<span class="g">end.</span></code>
+                <h2 id="docs.3.6">3.6. Other Supported Output Options</h2>
+                <p>
+                    There are more escape sequences not mentioned above but is supported by VT100
+                    terminal standard. You can check the other escape sequences
+                    <a target="_blank" href="http://www.termsys.demon.co.uk/vtansi.htm">here</a>.
+                    If you find the escape sequence missing in WebTerminal, you can request for this
+                    sequence to be impemented. Go to <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">describe</a>
+                    an issue, or, you can even implement it by yourself starting from
+                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/output/esc.js">this</a>
+                    file.
+                </p>
+            </div>
+            <div class="segment">
+                <h1 id="docs.4">4. Embedding WebTerminal To Other Applications</h1>
+                <p>
+                    WebTerminal can be easily used inside any other web application. See the
+                    description below to find out more about embedding.
+                </p>
+                <h2 id="docs.4.1">4.1. Embedding With IFrame</h2>
+                <p>
+                    To embed WebTerminal to any other web application, you can use &lt;iframe&gt;
+                    HTML tag. Example:
+                </p>
+                <code>
+                    &lt;iframe id="terminal" src="http://127.0.0.1:57772/terminal/?ns=SAMPLES&amp;clean=1"&gt;&lt;/iframe&gt;
+                </code>
+                <p>
+                    The <code class="inline">id="terminal"</code> attribute will be used in examples
+                    below to refer the iFrame element on the page. You are free to use any other
+                    JavaScript references in your application.
+                </p>
+                <h3 id="docs.4.1.1">4.1.1. IFrame Attributes</h3>
+                <ul>
+                    <li>
+                        The <code class="inline">src</code> attribute specifies the URL of the WebTerminal web application.
+                    </li>
+                    <li>
+                        Any styles can be applied to iFrame element with HTML
+                        <code class="inline">style</code> or <code class="inline">class</code>
+                        attributes.
+                    </li>
+                </ul>
+                <h3 id="docs.4.1.2">4.1.2. URL Parameters</h3>
+                <p>
+                    URL parameters are specified after the <code class="inline">?</code> symbol in
+                    the URL. They are used to configure WebTerminal behavior when embedding.
+                    WebTerminal supports the following URL parameters:
+                </p>
+                <ul>
+                    <li>
+                        <div>
+                            Parameter <code class="inline">ns</code> allows to specify the namespace
+                            to start from. If the user logged is not allowed to access this
+                            namespace, the error message will appear and user will start from their
+                            startup namespace. Example:
+                            <code class="inline">http://127.0.0.1:57772/terminal/?ns=SAMPLES</code>
+                        </div>
+                    </li>
+                    <li>
+                        Parameter <code class="inline">clean</code> makes terminal start without
+                        printing any broadcast messages or update notifications.
+                        Example:
+                        <code class="inline">http://127.0.0.1:57772/terminal/?clean=1</code>
+                    </li>
+                </ul>
+                <h2 id="docs.4.2">4.2. JavaScript API</h2>
+                WebTerminal has its own JavaScript API. Please refer to the section below.
+                <h3 id="docs.4.2.1">4.2.1. Handling Terminal Initialization</h3>
+                <p>
+                    To use WebTerminal's API, you need to get WebTerminal instance first. Use
+                    iFrame's <code class="inline">onTerminalInit</code> function for this:
+                </p>
+                <code class="pre">document.querySelector("#terminal").contentWindow.onTerminalInit(function (term) {
+    // now you can access the term object here
+});</code>
+                <p>
+                    The callback is triggered only after WebTerminal establish an authorized
+                    connection. But we need to handle the iFrame load event before you can start
+                    using the <code class="inline">onTerminalInit</code> function. To do this, add
+                    the <code class="inline">load</code> listener to iFrame element:
+                </p>
+                <code class="pre">var iFrame = document.querySelector("#terminal");
+
+// This function will be shown in the examples below without iFrame binding code.
+function myInitHandler (term) {
+    // now you can access the term object here
+}
+
+// At first, handle iFrame load event. Note that the load handler won't work
+// if this code is executed at the moment when iFrame is already initialized.
+iFrame.addEventListener("load", function () {
+    iFrame.contentWindow.onTerminalInit(myInitHandler);
+});</code>
+                <h3 id="docs.4.2.2">4.2.2. Executing Commands</h3>
+                <p>
+                    To execute a line of Caché ObjectScript code in runtime, use
+                    <code class="inline">term.execute(command, [options], [callback])</code>
+                    function. It accepts three arguments:
+                </p>
+                <ul>
+                    <li>
+                        String <code class="inline">command</code>, specifying the command to be
+                        executed.
+                    </li>
+                    <li>
+                        Optional object <code class="inline">options</code>, which may have two
+                        boolean properties <code class="inline">echo</code> (default is
+                        <code class="inline">false</code>) and
+                        <code class="inline">prompt</code> (default is
+                        <code class="inline">false</code>). When <code class="inline">echo</code>
+                        is <code class="inline">true</code>, the command being executed will be
+                        output to the screen like it was entered by user. When
+                        <code class="inline">prompt</code> is <code class="inline">true</code>, the
+                        user will be prompted to enter a command after execution
+                        (<code class="inline">NAMESPACE > </code> will be printed as well).
+                    </li>
+                    <li>
+                        If <code class="inline">callback</code> is passed, the output buffer will
+                        come as a first argument of the <code class="inline">callback</code>
+                        function in a form of an array of strings.
+                    </li>
+                </ul>
+                <p>
+                    Example of executing the line of COS code at the startup:
+                </p>
+                <code class="pre">function myInitHandler (term) {
+    term.execute("set hiddenVariable = 7", {
+        echo: true,
+        prompt: false // the default is false, this is shown just for the demo
+    });
+}</code>
+                <h3 id="docs.4.2.3">4.2.3. Handling User Input</h3>
+                <p>
+                    To handle the commands user enters, use the
+                    <code class="inline">term.onUserInput(cb)</code> function.
+                    <code class="inline">callback(text, mode)</code> is fired right after user
+                    presses enter. Argument <code class="inline">text</code> is a
+                    <code class="inline">String</code> of user input, and
+                    <code class="inline">mode</code> is a <code class="inline">Number</code>, which
+                    can be compared with one of the terminal mode constants, such as
+                    <code class="inline">MODE_PROMPT</code>. The list of these constants is shown
+                    below:
+                </p>
+                <ul>
+                    <li>
+                        <code class="inline">term.MODE_PROMPT</code> handles regular input
+                        (COS command).
+                    </li>
+                    <li>
+                        <code class="inline">term.MODE_SQL</code> handles input in SQL mode
+                        (SQL command)
+                    </li>
+                    <li>
+                        <code class="inline">term.MODE_READ</code> handles prompt issued by COS
+                        <code class="inline">read x</code> command
+                    </li>
+                    <li>
+                        <code class="inline">term.MODE_READ_CHAR</code> handles prompt issued by COS
+                        <code class="inline">read *x</code> command
+                    </li>
+                    <li>
+                        <code class="inline">term.MODE_SPECIAL</code> handles special WebTerminal's
+                        commands like /help, /config etc.
+                    </li>
+                </ul>
+                <p>
+                    Here is example of user input handling:
+                </p>
+                <code class="pre">function myInitHandler (term) {
+    term.onUserInput(function (text, mode) {
+        if (mode !== term.MODE_PROMPT)
+            return; // expect only the COS input
+        if (text.indexOf("set secret = ") === 0)
+            alert("Do not set secret variables!!!");
+    });
+}</code>
+                <h3 id="docs.4.2.4">4.2.4. Printing</h3>
+                <p>
+                    To print something to terminal output, use
+                    <code class="inline">term.print(text)</code> function, where
+                    <code class="inline">text</code> is a simple string. This string can include any
+                    special characters and escape sequences. This function is input-safe, which
+                    means that you can print event when terminal is waiting for user input. In this
+                    case the input will reappear right after the printed text.
+                </p>
+                <p>
+                    Example:
+                </p>
+                <code class="pre">function myInitHandler (term) {
+    term.print("\r\nWe're ready!\r\n\n");
+}</code>
+                <h3 id="docs.4.2.5">4.2.5. Handling Output</h3>
+                <p>
+                    You can handle terminal output by using
+                    <code class="inline">term.onOutput([ options ], callback)</code>. By default,
+                    <b>callback</b>(<u>strings</u>) will be called before the user is prompted for
+                    input, and <code class="inline">strings</code> array will always contain an array of chunks
+                    of all the text printed between the prompts. For example, if user writes
+                    <code class="inline">write 123</code> and presses "Enter", the <code class="inline">strings</code> will
+                    contain this array: <code class="inline">["\r\n", "123", "\r\n"]</code>. However, when user
+                    enters <code class="inline">write 1, 2, 3</code>, <code class="inline">strings</code> will result with
+                    <code class="inline">["\r\n", "1", "2", "3", "\r\n"]</code>. You can join this array with
+                    <code class="inline">join("")</code> array method to get the full output.<br/>
+                    Optional <code class="inline">options</code> object may include <code class="inline">stream</code> property,
+                    which is <code class="inline">false</code> by default. When set to <code class="inline">true</code>,
+                    <b>callback</b> will be fired every time something is printed to the terminal
+                    simultaneously.
+                </p>
+                <p>
+                    Example:
+                </p>
+                <code class="pre">function myInitHandler (term) {
+    term.onOutput((chunks) => {
+        // If you "write 12", chunks are ["\r\n", "12", "\r\n"].
+        // If you "write 1, 2", chunks are ["\r\n", "1", "2", "\r\n"].
+        if (chunks.slice(1, -1).join("") === "duck") { // if the user enters: write "duck"
+            alert(`You've found a secret phrase!`);
+        }
+    });
+}</code>
+                <h3 id="docs.4.2.6">4.2.6. Removing Callbacks</h3>
+                <p>
+                    Every function that accepts callback also returns the same callback, which can
+                    be passed to <code class="inline">term.removeCallback(callback)</code>. After
+                    callback is passed to this function, it will not longer execute.
+                </p>
+            </div>
+            <div class="segment">
+                <h1 id="docs.5">5. Contributing To WebTerminal Project</h1>
+                <p>
+                    The Caché WebTerminal is an open-source project anyone can contribute to. Anyone
+                    are welcome to join and contribute to this project on InterSystems official
+                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal">GitHub</a>.
+                    This section describes the basic guidelines and principles of contributing.
+                </p>
+                <h2 id="docs.5.1">5.1. Development Workflow Set Up</h2>
+                <p>
+                    The development workflow of Caché WebTerminal lies completely outside Caché
+                    (without using Caché Studio / Atelier) and is possible for any platform. It
+                    uses a Gulp building tool to gather and build the Caché-ready project from bare
+                    sources, JavaScript ECMAScript 6 standard and SCSS (SASS) for styling.
+                </p>
+                <p>
+                    To set up the project, you have to have latest
+                    <a target="_blank" href="https://git-scm.com/">Git</a> and
+                    <a target="_blank" href="https://nodejs.org/en/">NodeJS</a> installed
+                    (tested on NodeJS v4-6). Then, use command line to download and setup the
+                    project:
+                </p>
+                <code class="pre">git clone https://github.com/intersystems-ru/webterminal
+cd webterminal                   # enter repository directory
+npm install                      # install all project's dependencies
+
+npm run build                    # build the project</code>
+                <p>
+                    After this, you will get the <code class="inline">build</code> directory
+                    containing Caché classes in UDL format. To import these classes to Caché,
+                    and to perform the build with one single command, go to edit the
+                    <code class="inline">import.cmd</code> or <code class="inline">import.sh</code>
+                    file (depending on your OS). There you need to change only constants like
+                    <code class="inline">CACHE_DIR</code>, which may be different for your system.
+                    Just do not commit this file after changing, and use the next command
+                </p>
+                <code>
+                    import
+                </code>
+                <p>
+                    to build and import new classes to Caché. Once you have imported classes, you
+                    should receive <code class="inline">IMPORT STATUS: OK</code> and
+                    <code class="inline">EXPORT STATUS: OK</code> messages.
+                </p>
+                <h2 id="docs.5.2">5.2. Guidelines</h2>
+                <p>
+                    There are several guidelines you should consider if you want to contribute to
+                    WebTerminal project by yourself:
+                </p>
+                <ol>
+                    <li>
+                        Create a new <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">issue</a>
+                        or open a pull request for every new contribution.
+                    </li>
+                    <li>
+                        Use spaces instead of tabs (4 spaces), comment and format well any
+                        contribution if needed.
+                    </li>
+                    <li>
+                        When introducing new features or extending WebTerminal API, open a new
+                        <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">issue</a>
+                        to discuss the way how to implement it as best as possible.
+                    </li>
+                </ol>
+                <h2 id="docs.5.3">5.3. Entry Points</h2>
+                <p>
+                    This section describes the main files of the project.
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>File name / Directory</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code class="inline pre">/import.*</code></td>
+                        <td>
+                            Script used to build and import the project to local Caché with one
+                            command. This script assumes editing before usage (changing constants).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">/src/client/</code></td>
+                        <td>
+                            Directory containing the client files (HTML, SCSS, JavaScript).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre">/src/cls/</code></td>
+                        <td>
+                            Directory containing the server files (HTML, SCSS, JavaScript). Both
+                            client and server files are pre-processed. For example, you may notice
+                            that server files include comments with special syntax (f.e.
+                            <code class="inline">&lt;!-- @echo package.title --&gt;</code>). These
+                            lines are pre-processed during the build and are replaced with
+                            corresponding values.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/output/esc.js">/src/client/js/
+output/esc.js</a></code></td>
+                        <td>
+                            File that describes all supported escape sequences. The exported
+                            object's keys contain the character pattern of escape sequence,
+                            and the regular expression patterns enclosed by
+                            <code class="inline">{}</code> characters. The function as a key is
+                            triggered once the sequence is printed. However, no characters will
+                            appear in the output if the sequence is recognized.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/parser/grammar.js">/src/client/js/
+parser/grammar.js</a></code></td>
+                        <td>
+                            <b>You can easily make pull requests on this file if you need to enhance
+                            Caché ObjectScript grammar recognition.</b><br/>
+                            This file describes the grammar for Caché ObjectScript and SQL
+                            languages. See the comments in this file to understand its structure
+                            and feel free to enhance the grammar file to improve highlighting and
+                            autocomplete.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/localization/dictionary.js">/src/client/js/
+localization/dictionary.js</a></code></td>
+                        <td>
+                            <b>You can easily make pull requests on this file if you need to
+                                support any UI language for WebTerminal.</b><br/>
+                            This file includes all available translations for WebTerminal user
+                            interface. Using the same file structure, new languages can be easily
+                            introduced just by adding text only to this file.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>others</td>
+                        <td>
+                            There are many other project files, please consider exploring their
+                            comments if you need more information.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="segment">
+                <h1 id="docs.6">6. Licensing (MIT)</h1>
+                <p>
+                    The Caché WebTerminal is an open-source project developed and supported
+                    primarily by <a target="_blank" href="https://github.com/ZitRos">Nikita
+                    Savchenko</a> for the InterSystems community. Anyone are welcome to join and
+                    contribute to this project on InterSystems official
+                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal">GitHub</a>.
+                </p>
+                <p>
+                    The project is distributed under the MIT license, which provides absolutely free
+                    non-commercial and commercial use of the software. The license text is shown
+                    below.
+                </p>
+                <p>
+                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/LICENSE">The MIT License (MIT)</a>
+                </p>
+                <p>
+                    Copyright (c) 2013-2017 Nikita Savchenko
+                </p>
+                <p>
+                    Permission is hereby granted, free of charge, to any person obtaining a copy
+                    of this software and associated documentation files (the "Software"), to deal
+                    in the Software without restriction, including without limitation the rights
+                    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+                    copies of the Software, and to permit persons to whom the Software is
+                    furnished to do so, subject to the following conditions:
+                </p>
+                <p>
+                    The above copyright notice and this permission notice shall be included in all
+                    copies or substantial portions of the Software.
+                </p>
+                <p>
+                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+                    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+                    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+                    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+                    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+                    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+                    SOFTWARE.
+                </p>
+            </div>
+                </div>
+            </div>
+
+            <div class="pageLayout" id="downloads">
+                <h1 class="center">Downloads</h1>
+                <img src="img/logos.png" style="width: 150px" class="imgFloatRight"/>
+                <h2>How to Install WebTerminal</h2>
+                <ol>
+                    <li>Download and import latest XML file (see below) into any namespace (preferably USER), compiling all the classes. Make sure you have system privileges to do it.</li>
+                    <li>Open <b>http://[host]:[port]/terminal/</b> (slash at the end is required) web page. (By default the URL is <a target="_blank" href="http://localhost:57772/terminal/">http://localhost:57772/terminal/</a>)</li>
+                    <li>Enter user credentials (by default it's _SYSTEM / SYS).</li>
+                    <li>That's all!</li>
+                </ol>
+                <p>
+                    Refer to the <a href="#docs.1.1">installation section</a> of documentation page
+                    to find out more. The guide above works for Caché WebTerminal version 3+. For
+                    versions 1-2 use <a href="#docs.1.1.4">this guide</a>.
+                </p>
+                <h2>The Latest Versions:</h2>
+                <ul class="downloadLinks">
+                    <li>
+                        <a href="files/WebTerminal-v4.7.3.xml">WebTerminal-v4.7.3</a>
+                        - Executing JOBs within WebTerminal is fixed, syntax and other improvements
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.6.3.xml">WebTerminal-v4.6.3</a>
+                        - WebTerminal API and SQL syntax highlighting enhancements
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.3.1.xml">WebTerminal-v4.3.1</a>
+                        - Caught error reporting fix, some other terminal core improvements
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.2.15.xml">WebTerminal-v4.2.15</a>
+                        - ^X364 mnemonics support add, modified line erasing escape sequences,
+                        error decomposing feature, syntax highlight enhancements (+JSON support)
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.1.2.xml">WebTerminal-v4.1.2</a>
+                        - Interrupts implementation, better auth errors reporting.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0.xml">WebTerminal-v4.0.0</a>
+                        - WebTerminal v4 release.
+                    </li>
+                </ul>
+                <h2>Old Beta Versions:</h2>
+                <ul class="downloadLinks">
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-beta.17.xml">WebTerminal-v4.0.0-beta.17</a>
+                        - Installer and Escape Sequences fixes, some new options add and other minor fixes.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-beta.12.xml">WebTerminal-v4.0.0-beta.12</a>
+                        - $X/$Y special variables accuracy fix.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-beta.11.xml">WebTerminal-v4.0.0-beta.11</a>
+                        - Several fixes and improvements.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-beta.8.xml">WebTerminal-v4.0.0-beta.8</a>
+                        - Log out support.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-beta.7.xml">WebTerminal-v4.0.0-beta.7</a>
+                        - Grammar enhancements, startup routine support and a different fixes.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-beta.1.xml">WebTerminal-v4.0.0-beta.1</a>
+                        - Re-invented WebTerminal. You are welcome to try it.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-alpha.57.xml">WebTerminal-v4.0.0-alpha.57</a>
+                        - Better installer and updater, error reporting, welcome message
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-alpha.53.xml">WebTerminal-v4.0.0-alpha.53</a>
+                        - Non-Chrome browsers output fixes, configuration and server naming add, installer improvements.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-alpha.44.xml">WebTerminal-v4.0.0-alpha.44</a>
+                        - Full VT100 escape sequences support, enhanced autocomplete, enhanced authorization algorithm.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-alpha.26.xml">WebTerminal-v4.0.0-alpha.26</a>
+                        - Basic intelligent syntax highlighting and autocomplete. Download for testing purposes only.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-v4.0.0-alpha.2.xml">WebTerminal-v4.0.0-alpha.2</a>
+                        - Reinvented WebTerminal, an early alpha test version. Download for testing purposes only.
+                    </li>
+                </ul>
+                <h2>Older Versions:</h2>
+                <ul class="downloadLinks">
+                    <li>
+                        <a href="files/CacheWebTerminal-v3.3.1.xml">CacheWebTerminal-v3.3.1</a>
+                        - Added Caché 2016.*+ system methods support for ##class constructions.
+                    </li>
+                    <li>
+                        <a href="files/CacheWebTerminal-v3.2.7.xml">CacheWebTerminal-v3.2.7</a>
+                        - Fixed role applying for <u>Caché normal security installations</u>.
+                    </li>
+                    <li>
+                        <a href="files/CacheWebTerminal-v3.2.5.xml">CacheWebTerminal-v3.2.5</a>
+                            - <u>Caché 2016.* support</u>, minor not noticeable changes.
+                    </li>
+                    <li>
+                        <a href="files/CacheWebTerminal-v3.2.2.xml">CacheWebTerminal-v3.2.2</a>
+                            - Fixed issues when connecting to default ports 80/443.
+                    </li>
+                    <li>
+                        <a href="files/CacheWebTerminal-v3.2.0.xml">CacheWebTerminal-v3.2.0</a>
+                            - Terminal instances rename feature added, engine class refactored.
+                    </li>
+                    <li>
+                        <a href="files/CacheWebTerminal-v3.1.4.xml">CacheWebTerminal-v3.1.4</a>
+                            - Fixed all CWT update issues. Please, update manually.
+                    </li>
+                    <li style="color: gray !important;">
+                        <a style="color: gray !important;" href="files/WebTerminal-3.0.0-alpha.6.xml">WebTerminal-3.0.0-alpha.6</a>
+                            - Fixed all CWT v2.* update issues with compiling downloaded classes. Please, update manually.
+                    </li>
+                    <li style="color: gray !important;">
+                        <a style="color: gray !important;" href="files/WebTerminal-3.0.0-alpha.5.xml">WebTerminal-3.0.0-alpha.5</a>
+                            - Caché WEB Terminal now RESTful! Minor fixes also included. This is a <b>test release.</b>
+                    </li>
+                </ul>
+                <h3>Versions 1-2.* to 3.* Migration Note</h3>
+                <p>
+                    After version 3.* <u>successful</u> (perform manual WebTerminal package compilation)
+                    install, please, remove <b>/csp/sys/webterminal</b> directory and <b>%WebTerminal</b> class manually -
+                    these files won't work anymore. Now use <b>http://[host]:[port]/terminal/</b>
+                    to access terminal WEB application (slash at the end of the URL is required).
+                </p>
+                <h2>The Oldest Versions:</h2>
+                <ul class="downloadLinks">
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.8.xml">WebTerminal-2.0.0-beta.8</a>
+                            - fixed local autocomplete for set/kill commands
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.7.xml">WebTerminal-2.0.0-beta.7</a>
+                            - <b>Auto update fix, use <b class="warn">/update</b> command
+                        to install future terminal versions > 2.0.0-beta.7</b>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.6.xml">WebTerminal-2.0.0-beta.6</a>
+                            - Autocomplete path case fix (some issues with autocomplete loading).
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.5.xml">WebTerminal-2.0.0-beta.5</a>
+                            - Important autocomplete fixes, not focused input fixes, other minor fixes.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.4.xml">CacheWebTerminal-2.0.0-beta.4</a> - Autocomplete crash fix, skip autocomplete in strings.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.3.xml">CacheWebTerminal-2.0.0-beta.3</a> - NS parameter added to set default namespace, localization fixes, lowercase CSP file.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.2.xml">CacheWebTerminal-2.0.0-beta.2</a> - mnemonics support, fixes in read command.
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.1.xml">CacheWebTerminal-2.0.0-beta.1</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-beta.xml">CacheWebTerminal-2.0.0-beta</a>
+                    </li>
+                </ul>
+                <h2>Ancient Versions:</h2>
+                <ul class="downloadLinks">
+                    <li>
+                        <a href="files/WebTerminal-2.0.0-alpha.1.xml">CacheWebTerminal-2.0.0-alpha.1</a>
+                    </li>
+					<li>
+                        <a href="files/WebTerminal-1.0-stable-beta.xml">CacheWebTerminal-1.0 stable beta</a>
+                    </li>
+					<li>
+                        <a href="files/WebTerminal-0.9.9.9-dev.xml">CacheWebTerminal-0.9.9.9 dev</a>
+                    </li>
+					<li>
+                        <a href="files/WebTerminal-0.9.9.8-dev.xml">CacheWebTerminal-0.9.9.8 dev</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.9.7-dev.xml">CacheWebTerminal-0.9.9.7 dev</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.9.5-dev.xml">CacheWebTerminal-0.9.9.5 dev</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.9-stable.xml">CacheWebTerminal-0.9.9 stable</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.7.8-dev.xml">CacheWebTerminal-0.9.7.8 dev</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.7-stable.xml">CacheWebTerminal-0.9.7 stable</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.6.8-dev.xml">CacheWebTerminal-0.9.6.8 dev</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.6-stable.xml">CacheWebTerminal-0.9.6 stable (2013.1 fix)</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.5-stable.xml">CacheWebTerminal-0.9.5 stable</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9.1-stable.xml">CacheWebTerminal-0.9.1 stable</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.9-dev.xml">CacheWebTerminal-0.9 dev</a>
+                    </li>
+		            <li>
+                        <a href="files/WebTerminal-0.89-dev.xml">CacheWebTerminal-0.8.9 dev</a>
+                    </li>
+		            <li>
+                        <a href="files/WebTerminal-0.85-dev.xml">CacheWebTerminal-0.8.5 dev</a>
+                    </li>
+		            <li>
+                        <a href="files/WebTerminal-0.6.7-stable.xml">CacheWebTerminal-0.6.7 stable</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.6-dev.xml">CacheWebTerminal-0.6 dev</a>
+                    </li>
+                    <li>
+                        <a href="files/WebTerminal-0.4-stable.xml">CacheWebTerminal-0.4 stable</a>
+                    </li>
+                </ul>
+                <h2>Notes</h2>
+                <ul>
+                    <li>WebTerminal is supported by <b class="warn">Caché versions at least 2014.1</b> (the older WebTerminal versions 1-2 are supported by Caché 2013.1).</li>
+                    <li>User need to have system privileges to install the terminal.</li>
+                    <li class="warn">Note that anyone who is able to authorize on /terminal/ web
+                    application will have almost full control under your Caché!</li>
+                </ul>
+                <p>
+                    Importing WebTerminal.Installer class will also create /terminal WEB-application.
+                    The WEB-application will be protected with a password authorization by default.
+                </p>
+                <p>
+                    Use <b>/update</b> terminal command (from CWT v2.0 only) to automatically update terminal application to the newest version.
+                </p>
+                <p>
+                    Please, take a note that starting from v4.0.0-alpha.53, Caché WebTerminal
+                    collects anonymous statistics (via Google Analytics) during the installation and
+                    usage process. The information WebTerminal collects includes:
+                </p>
+                <ul>
+                    <li>Success of the installation/update process, error messages occurring during the WebTerminal installation;</li>
+                    <li>Version of Caché ($zv), WebTerminal's version;</li>
+                    <li>Usage identifier telling whether WebTerminal is used for local or remote sessions.</li>
+                </ul>
+                <p>
+                    The only goal of statistics collection is to have analytics over WebTerminal
+                    usage by users for delivering a better product. Any error reports collected in
+                    this way will help <a href="#feedback">me</a>, the developer of WebTerminal to
+                    improve the application. This data is completely anonymous and will never
+                    include any licensing or Caché usage information, so feel free to use
+                    WebTerminal anytime, anywhere, for your needs. If you still don't want to use
+                    WebTerminal because of analytics collection - check WebTerminal's related
+                    source code (<a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/cls/WebTerminal/Analytics.cls">server</a>,
+                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/analytics/index.js">client</a>)
+                    by yourself. The project is completely safe to use and trusted by hundreds of
+                    users worldwide.
+                </p>
+            </div>
+
+            <div class="pageLayout" id="feedback">
+                <h1 class="center">Feedback / Contact Me</h1>
+                <h1>Follow the project <a href="https://github.com/intersystems-ru/webterminal">on GitHub</a>. </h1>
+                <p>
+                    We will be glad to hear any wishes, requests, and comments. Leave any issues and report bugs at <a href="https://github.com/intersystems-ru/webterminal/issues">GitHub's issue tracker</a>. If you have some extra
+                    information or questions - please feel free to <a href="mailto:nikita.savchenko@intersystems.com">contact me</a>, the developer of this application, <a href="http://nikita.tk">Nikita</a>.
+                </p>
+            </div>
+
+            <div class="pageLayout" id="main">
+                <img src="img/WebTerminal%20Preview.png" style="max-width: 35%;" class="imgFloatLeft"/>
+                <h1 class="center">Welcome to Caché Web Terminal Homepage!</h1>
+                <p>
+                    Caché Web Terminal is the first and the most powerful web-based terminal for
+                    InterSystems Caché®, Ensemble®, HealthShare®, TrakCare® and
+                    <a target="_blank" href="http://www.intersystems.com/our-products/overview/">other products</a>
+                    built on top of <a href="http://www.intersystems.com/our-products/cache/cache-overview/">InterSystems Caché</a>.
+                    It is a complete terminal utility packed with a lot of useful features in your
+                    favorite browser.
+                </p>
+                <p>
+                    WebTerminal can replace the standard Caché terminal for you at all. The goal of this project is
+                    to develop more than just a terminal, but the universal utility to ease developers
+                    workflow and save their time. It features a lot of useful things like syntax
+                    highlighting, autocomplete, embedded SQL mode and tracing, which are not
+                    included in the standard Caché TERM.
+                </p>
+                <p>
+                    To see the complete list of features in WebTerminal, please navigate to the
+                    <a href="#showcase">showcase tab</a>. To see the documentation, go to
+                    <a href="#docs">documentation tab</a>.
+                </p>
+                <h2 class="center">Good News</h2>
+                <div class="newsBlock">
+                    <div class="date">1/17/2017</div>
+                    <h1>Caché WebTerminal v4 Released!</h1>
+                    <div class="content">
+                        Today the <b>Caché WEB Terminal v4</b> gets released! Comparing to the
+                        previous WebTerminal versions, this release includes major stability
+                        and security improvements, intelligent syntax highlight and autocomplete
+                        features and a lot of small, but useful things!
+                    </div>
+                    <div class="content">
+                        Go to <a href="#downloads">downloads</a> page to get the latest version of
+                        WebTerminal, or, if you had any v4 betas installed just update them to
+                        the latest version. Check the <a href="#docs">documentation</a> to find out
+                        answers to any related questions.
+                    </div>
+                </div>
+                <div class="newsBlock">
+                    <div class="date">7/17/2016</div>
+                    <h1>Caché WebTerminal v4 Alpha Release</h1>
+                    <div class="content">
+                        A first early alpha version of <b>Caché WEB Terminal v4</b> is released.
+                        This release will introduce auto-updates to the newest versions, so you
+                        won't need to check <a href="https://github.com/intersystems-ru/webterminal/issues/61">the updates</a>
+                        by surfing the net. New version notifications will be displayed during the
+                        WebTerminal's startup as soon as new updates arrive.
+                    </div>
+                </div>
+                <div class="newsBlock">
+                    <div class="date">6/27/2016</div>
+                    <h1>Caché WEB Terminal v4 Is Under Development</h1>
+                    <div class="content">
+                        This new version will become more stable and will perform better as well as
+                        other great features like intelligent autocomplete will be introduced.
+                        Follow the progress <a href="https://github.com/intersystems-ru/webterminal/issues/61">here</a>.
+                    </div>
+                </div>
+                <div class="newsBlock">
+                    <div class="date">12/13/2015</div>
+                    <h1>Caché WEB Terminal v3.1.4 Major Fixes</h1>
+                    <div class="content">
+                        The new version comes with major changes: first, WebTerminal can now be
+                        installed to <u>any</u> namespace, not only to the %SYS. Secondly, some
+                        issues with /update command were fixed as well as other minor bugs.
+                    </div>
+                </div>
+                <div class="newsBlock">
+                    <div class="date">9/4/2014</div>
+                    <h1>Caché WEB Terminal v2 Beta Release</h1>
+                    <div class="content">
+                        Caché WEB Terminal v2 is available now. The new version brings VT100 and
+                        Caché TERM escape sequences support, some new features like self-updating,
+                        lots of performance and security improvements and more stable work. Check
+                        it out in downloads!
+                    </div>
+                </div>
+            </div>
+
+            <div class="pageFooter">
+                Web-based terminal for <a target="_blank" href="http://www.intersystems.com/">InterSystems</a> products by <a target="_blank" href="https://nikita.tk">Nikita</a>
+            </div>
+        </div>
+		<a id="forkLink" target="_blank" href="https://github.com/intersystems-ru/webterminal">
+			<img src="img/fork.png">
+		</a>
+    </body>
+
+</html>

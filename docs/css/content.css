@@ -1,0 +1,289 @@
+@-webkit-keyframes rainbow {
+    0% {
+        color: rgb(0, 255, 0);
+    }
+
+    33% {
+        color: rgb(0, 0, 255);
+    }
+
+    66% {
+        color: rgb(255, 0, 0);
+    }
+
+    100% {
+        color: rgb(0, 255, 0);
+    }
+}
+
+@-moz-keyframes rainbow {
+    0% {
+        color: rgb(0, 255, 0);
+    }
+
+    33% {
+        color: rgb(0, 0, 255);
+    }
+
+    66% {
+        color: rgb(255, 0, 0);
+    }
+
+    100% {
+        color: rgb(0, 255, 0);
+    }
+}
+
+@-o-keyframes rainbow {
+    0% {
+        color: rgb(0, 255, 0);
+    }
+
+    33% {
+        color: rgb(0, 0, 255);
+    }
+
+    66% {
+        color: rgb(255, 0, 0);
+    }
+
+    100% {
+        color: rgb(0, 255, 0);
+    }
+}
+
+@keyframes rainbow {
+    0% {
+        color: rgb(0, 255, 0);
+    }
+
+    33% {
+        color: rgb(0, 0, 255);
+    }
+
+    66% {
+        color: rgb(255, 0, 0);
+    }
+
+    100% {
+        color: rgb(0, 255, 0);
+    }
+}
+
+.rainbowText {
+    text-shadow: 1px 1px 1px #ffffff;
+    -webkit-animation: rainbow 4s infinite linear;
+    -moz-animation: rainbow 4s infinite linear;
+    -o-animation: rainbow 4s infinite linear;
+    animation: rainbow 4s infinite linear;
+}
+
+.imgFloatLeft {
+    float: left;
+    margin: 5px;
+}
+
+.imgFloatRight {
+    float: right;
+    margin: 5px;
+}
+
+.center {
+    text-align: center;
+}
+
+.screenShoot {
+    max-width: 60%;
+    box-shadow: 4px 4px 6px black;
+    margin: 15px;
+}
+
+.clearHL {
+    clear: both;
+}
+
+.warn {
+    color: #ff6500
+}
+
+.newsBlock {
+    overflow: hidden;
+    position: relative;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    padding: .3em;
+}
+
+.newsBlock h1 {
+    margin: 4px;
+    font-size: 20px;
+    text-decoration: underline;
+}
+
+.newsBlock .date {
+    float: right;
+    font-style: italic;
+}
+
+.newsBlock .content {
+    clear: both;
+    text-indent: 2.5em;
+}
+
+.newsBlock ~ .newsBlock {
+    margin-top: 10px;
+}
+
+#showcase > p:after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+/* Terminal Colors */
+
+
+.g.m1 { /* bright */
+    font-weight: 900;
+}
+
+.g.m2 { /* dim */
+    opacity: 0.7;
+}
+
+.g.m3 {
+    font-style: italic;
+}
+
+.g.m4 {
+    text-decoration: underline;
+}
+
+.g.m5 {
+@include animation(blink infinite 1s);
+}
+
+.g.m7 {
+@include filter(invert(100%));
+}
+
+.g.m8 {
+    opacity: 0;
+}
+
+.g.hint {
+    opacity: .5;
+}
+
+.g.m30 {
+    color: #000000;
+}
+
+.g.m31 {
+    color: #ff0000;
+}
+
+.g.m32 {
+    color: #008000;
+}
+
+.g.m33 {
+    color: yellow;
+}
+
+.g.m34 {
+    color: #0000ff;
+}
+
+.g.m35 {
+    color: magenta;
+}
+
+.g.m36 {
+    color: cyan;
+}
+
+.g.m37 {
+    color: white;
+}
+
+.g.m40 {
+    background-color: #000000;
+}
+
+.g.m41 {
+    background-color: #ff0000;
+}
+
+.g.m42 {
+    background-color: #008000;
+}
+
+.g.m43 {
+    background-color: yellow;
+}
+
+.g.m44 {
+    background-color: #0000ff;
+}
+
+.g.m45 {
+    background-color: magenta;
+}
+
+.g.m46 {
+    background-color: cyan;
+}
+
+.g.m47 {
+    background-color: white;
+}
+
+.g.keyword {
+    color: #4898ff;
+}
+
+.g.string {
+    color: #00c700;
+}
+
+.g.constant {
+    color: cyan;
+}
+
+.g.special {
+    color: yellow;
+}
+
+.g.variable {
+    color: lightsalmon;
+}
+
+.g.wrong {
+    color: red;
+}
+
+.g.selected {
+    color: white;
+    background-color: royalblue;
+}
+
+.g.argument {
+    color: magenta;
+}
+
+.segments {
+    position: relative;
+    overflow: hidden;
+}
+
+@media (min-width: 1200px) {
+    .segments {
+        column-count: 2;
+        column-gap: 0;
+    }
+    .segments > .segment {
+        break-inside: avoid;
+        padding: 5px;
+    }
+}

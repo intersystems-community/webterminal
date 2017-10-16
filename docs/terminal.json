@@ -1,0 +1,442 @@
+{
+  "motd": "",
+  "versions": [
+    {
+      "v": "4.0.0-alpha.1",
+      "url": "https://intersystems-ru.github.io/webterminal/files/CacheWebTerminal-v4.0.0-alpha.1.xml",
+      "changes": [
+        "Terminal core is changed",
+        "Almost full application rewrite"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.2",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.2.xml",
+      "changes": [
+        "New update system"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.3.xml",
+      "changes": [
+        "Extended API: onTerminalInit and onUserInput functions support"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.4",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.4.xml",
+      "changes": [
+        "COS read command incorrect behavior fix"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.5",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.5.xml",
+      "changes": [
+        "Terminal client's API onUserInput solid performance",
+        "Terminal client's API extended with the print function"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.8",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.8.xml",
+      "changes": [
+        "Caché 2013 compatibility fix",
+        "Temporary disabled autocomplete",
+        "Terminal API extend with the \"execute\" function"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.10",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.10.xml",
+      "changes": [
+        "Security update, now updating over https",
+        "Caché 2013 output fix"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.15",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.15.xml",
+      "changes": [
+        "Basic intelligent syntax highlighting for do, set, write and kill statements"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.26",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.26.xml",
+      "changes": [
+        "Output algorithm optimization and fixes",
+        "Error highlight behavior change",
+        "Autocomplete for keywords, class names, class members, variables and variable members",
+        "Enhanced COS grammar"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.31",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.31.xml",
+      "changes": [
+        "Enhanced grammar with read, znspace commands and post-conditions.",
+        "Enabled special commands: help & info",
+        "Empty line miss when scrolling starts fix",
+        "Redundant variable set after the error fix"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.33",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.33.xml",
+      "changes": [
+        "Enhanced authorization algorithm, now terminal requires a key in a different request",
+        "Tab control escape sequences add",
+        "Grammar enhance for do statements",
+        "Command history related fixes"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.41",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.41.xml",
+      "changes": [
+        "Grammar enhancements",
+        "Full VT-100 standard escape sequences support",
+        "WebTerminal API's onTerminalInit now fired after authorization success",
+        "Fixes to command history"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.44",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.44.xml",
+      "changes": [
+        "Suggesting routine names in do statements",
+        "Grammar enhancements and method suggesting improvements"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.50",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.50.xml",
+      "changes": [
+        "Terminal behavior is now configurable with \u001b[(special)m/config\u001b[0m special command",
+        "Server renaming feature add. Type \u001b[(special)m/config\u001b[0m \u001b[(variable)mserverName\u001b[0m = \u001b[(string)m\"Local Server\"\u001b[0m to set a browser's tab name.",
+        "Fix output for non-Chrome browsers",
+        "Fix update message clears the input",
+        "Cyrillic characters serialization fix",
+        "Russian translation to all phrases add"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.53",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.53.xml",
+      "changes": [
+        "Analytics and error reports collecting add",
+        "Installer improvements",
+        "Grammar enhanced with out parameters",
+        "Escape sequences processing improvements"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.55",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.55.xml",
+      "changes": [
+        "Initial welcome message add",
+        "Better WebSocket error reporting"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.57",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.57.xml",
+      "changes": [
+        "Installer and updater improvements.",
+        "Now updater will rollback installation and report an error if any errors are present."
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.58",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.58.xml",
+      "changes": [
+        "Wrong user assign during log in when multiple users enter fix"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.66",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.66.xml",
+      "changes": [
+        "Case-insensitive grammar support, grammar extended with for, if and while statements",
+        "Improved SQL terminal mode add",
+        "Clear special command add",
+        "HTML output WebTerminal's escape sequence add",
+        "Basic grammar set for SQL mode add"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.68",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.68.xml",
+      "changes": [
+        "Fixed a WebTerminal's error when SQL query has an empty response",
+        "Enhanced grammar with sql delete, multi-dimensional properties and $System keyword"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.71",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.71.xml",
+      "changes": [
+        "Default namespace option add",
+        "NS GET parameter add",
+        "User initial namespace support",
+        "History state enhancements, history configurable size",
+        "Favicon add"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.73",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.73.xml",
+      "changes": [
+        "Tracing feature restore, tracing refactoring"
+      ]
+    },
+    {
+      "v": "4.0.0-alpha.75",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.75.xml",
+      "changes": [
+        "Some autocomplete incorrect suggestions fixed",
+        "Favorites feature restored"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.1",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.1.xml",
+      "changes": [
+        "Grammar enhancements",
+        "Config fixes"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.3.xml",
+      "changes": [
+        "SQL UPDATE grammar enhance, SQL grammar strings support",
+        "Russian translation for the \u001b[(special)m/help\u001b[0m special command."
+      ]
+    },
+    {
+      "v": "4.0.0-beta.4",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.4.xml",
+      "changes": [
+        "Grammar enhancements: system routines and zload command"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.5",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.5.xml",
+      "changes": [
+        "Terminal API extension with CleanStart option, re-authorizing error message fix"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.7",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.7.xml",
+      "changes": [
+        "Startup routine configured for user support",
+        "Detailed WebSocket error messages"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.8",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.8.xml",
+      "changes": [
+        "Log out functionality support with new \u001b[(special)m/logout\u001b[0m command"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.11",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.11.xml",
+      "changes": [
+        "Hiding autocomplete after execution starts fix",
+        "Caret control escape sequences support",
+        "Freezes fixes when embedding WebTerminal"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.12",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.12.xml",
+      "changes": [
+        "Terminal $X/$Y variables accuracy fix"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.14",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.14.xml",
+      "changes": [
+        "Clean start URL option add (\u001b!URL=https://github.com/intersystems-ru/webterminal#integration-and-webterminals-api (docs))",
+        "sqlMaxResults config suggestion add",
+        "Preparing the \u001b!URL=https://intersystems-ru.github.io/webterminal/#docs (documentation) for WebTerminal release!"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.16",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.16.xml",
+      "changes": [
+        "Installer privileges error report enhancement",
+        "Default WebTerminal resource and role add"
+      ]
+    },
+    {
+      "v": "4.0.0-beta.17",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-beta.17.xml",
+      "changes": [
+        "8-bit coloring escape sequence fix",
+        "The documentation is \u001b!URL=https://intersystems-ru.github.io/webterminal/#docs (ready)!"
+      ]
+    },
+    {
+      "v": "4.0.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0.xml",
+      "changes": [
+        "Open/use/close commands grammar add",
+        "/update special command behavior fix when updates are turned off",
+        "WebTerminal \u001b!URL=https://intersystems-ru.github.io/webterminal/#docs (released)!"
+      ]
+    },
+    {
+      "v": "4.1.2",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.1.2.xml",
+      "changes": [
+        "Ctrl+C interrupt implementation!",
+        "Better auth errors reporting",
+        "Other minor fixes"
+      ]
+    },
+    {
+      "v": "4.2.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.0.xml",
+      "changes": [
+        "^X364 Mnemonics support add",
+        "Extended line erasing escape sequences support"
+      ]
+    },
+    {
+      "v": "4.2.2",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.2.xml",
+      "changes": [
+        "Fixed Esc[J, Esc[0J and Esc[1J erasing escape sequences",
+        "Syntax highlight improvements (\u001b!URL=https://github.com/intersystems-ru/webterminal/issues/85 (link))"
+      ]
+    },
+    {
+      "v": "4.2.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.3.xml",
+      "changes": [
+        "Esc[m escape sequence support"
+      ]
+    },
+    {
+      "v": "4.2.6",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.6.xml",
+      "changes": [
+        "Error decomposing feature add",
+        "Grammar enhancements (ObjectScript functions, etc)"
+      ]
+    },
+    {
+      "v": "4.2.8",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.8.xml",
+      "changes": [
+        "Child process termination alert",
+        "Principal device occasional change causes process termination fix"
+      ]
+    },
+    {
+      "v": "4.2.12",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.12.xml",
+      "changes": [
+        "Error decomposing without reason fix",
+        "Cursor Y position stick after window resize fix",
+        "Set and kill expressions grammar enhancements"
+      ]
+    },
+    {
+      "v": "4.2.13",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.13.xml",
+      "changes": [
+        "Globals highlight and auto-complete fixes, some description typos fixes, empty AC variants fix"
+      ]
+    },
+    {
+      "v": "4.2.14",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.14.xml",
+      "changes": [
+        "System globals highlighting and auto-complete add"
+      ]
+    },
+    {
+      "v": "4.2.15",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.2.15.xml",
+      "changes": [
+        "JSON syntax highlighting and some other highlighting improvements"
+      ]
+    },
+    {
+      "v": "4.3.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.3.0.xml",
+      "changes": [
+        "Caught error reporting fix, some other terminal core improvements"
+      ]
+    },
+    {
+      "v": "4.3.1",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.3.1.xml",
+      "changes": [
+        "Updating WebTerminal from WebTerminal with Firefox fix"
+      ]
+    },
+    {
+      "v": "4.4.1",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.4.1.xml",
+      "changes": [
+        "New WebTerminal's API function: onOutput",
+        "WebTerminal.execute MODE_SPECIAL fix"
+      ]
+    },
+    {
+      "v": "4.5.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.5.0.xml",
+      "changes": [
+        "WebTerminal API enhancements (terminal.execute callback add)"
+      ]
+    },
+    {
+      "v": "4.6.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.6.0.xml",
+      "changes": [
+        "WebTerminal API enhancements (terminal.removeCallback function add)"
+      ]
+    },
+    {
+      "v": "4.6.1",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.6.1.xml",
+      "changes": [
+        "WebTerminal API enhancements (error processing in terminal.execute)"
+      ]
+    },
+    {
+      "v": "4.6.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.6.3.xml",
+      "changes": [
+        "SQL syntax highlighting enhancements (\u001b!URL=https://github.com/intersystems-ru/webterminal/issues/110 (issue #110))"
+      ]
+    },
+    {
+      "v": "4.7.0",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.7.0.xml",
+      "changes": [
+        "Executing JOBs within WebTerminal fix (\u001b!URL=https://github.com/intersystems-ru/webterminal/issues/105 (issue #105)). Routines/Programs affecting $ZCHILD variable now should work properly."
+      ]
+    },
+    {
+      "v": "4.7.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.7.3.xml",
+      "changes": [
+        "Syntax improvements: added support for empty arguments and # remainder operation",
+        "Removed unnecessary \"err\" variable that adds each time when an error happens"
+      ]
+    }
+  ]
+}

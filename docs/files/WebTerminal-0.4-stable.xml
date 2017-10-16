@@ -1,0 +1,2719 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="%WebTerminal.Engine">
+<Description>
+This class represents core of web terminal.
+All operations with opened WebSocket placed here.
+USES GLOBAL ^TerminalAuthKey for client authorization.
+(Why global? Needed static (class-based) r/w variable. Any ideas?)</Description>
+<Super>%CSP.WebSocket,%Library.Routine,%CSP.REST</Super>
+<TimeCreated>63047,60359.445979</TimeCreated>
+
+<Property name="WebSocketID">
+<Description>
+The unique identity of this WebSocket.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="SharedConnection">
+<Description><![CDATA[
+This property determines whether the communication between the client and WebSocket server should be over a dedicated Gateway
+conection or over a pool of shared connections.  It may be set to one of the following:
+<br><ul>
+<li><b>SharedConnection=0</b> - The WebSocket server communicates with the client via a dedicated Gateway connection. In this mode of operation the hosting connection is effectively 'private' to the application session.</li>
+<li><b>SharedConnection=1</b> - The WebSocket server communicates asynchronously with the client via a fixed number of shared Gateway connections.</li>
+</ul>]]></Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="SessionId">
+<Description>
+The CSP Session ID from which this WebSocket was created.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="GWClientAddress">
+<Description><![CDATA[
+The address through which a WebSocket operating asynchronously (<property>SharedConnection=1</property>) can communicate with the hosting CSP Gateway.]]></Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="lastClientId">
+<Description>
+Last joined client id</Description>
+<Type>%Numeric</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="ACTIONAUTHORIZATION">
+<Description>
+Authorization identifier</Description>
+<Type>%Char</Type>
+<InitialExpression>"?"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONMESSAGE">
+<Description>
+Message identifier</Description>
+<Type>%Char</Type>
+<InitialExpression><![CDATA[">"]]></InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONSQL">
+<Type>%Char</Type>
+<InitialExpression>"@"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONCHANGENAMESPACE">
+<Description>
+Zone change identifier</Description>
+<Type>%Char</Type>
+<InitialExpression>"_"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONEXECUTED">
+<Description>
+When command executed</Description>
+<Type>%Char</Type>
+<InitialExpression>"!"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONTERMINATOR">
+<Description>
+ACTION</Description>
+<Type>%String</Type>
+<InitialExpression>"/END/"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="ACTIONLOADnEXECUTE">
+<Description>
+Execute file on client</Description>
+<Type>%String</Type>
+<InitialExpression>"js"</InitialExpression>
+<ReadOnly>1</ReadOnly>
+</Property>
+
+<Property name="CurrentNamespace">
+<Type>%String</Type>
+<InitialExpression>"USER"</InitialExpression>
+</Property>
+
+<Property name="InitialNamespace">
+<Type>%String</Type>
+<InitialExpression>"USER"</InitialExpression>
+</Property>
+
+<Property name="InitialZName">
+<Type>%String</Type>
+<InitialExpression>"Webterminal.Engine.1"</InitialExpression>
+</Property>
+
+<Property name="TerminalPID">
+<Type>%Numeric</Type>
+</Property>
+
+<Property name="ExperimentalAutocompleteOn">
+<Type>%Boolean</Type>
+<InitialExpression>1</InitialExpression>
+</Property>
+
+<Method name="redirects">
+<Description>
+Public point entries, using when redirecting i/o</Description>
+<Internal>1</Internal>
+<Private>1</Private>
+<ProcedureBlock>0</ProcedureBlock>
+<Implementation><![CDATA[
+readFromSocket(len,timeout,sharedConnection)
+	set sc = ""
+	Set $ZTrap="ReadError"
+	If len<1 Set len=32656
+	If (sharedConnection = 1) {
+		Set data=..ReadAsync(.len, .sc, timeout)
+		Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+		Set len=$Length(data1)
+		Quit data1
+	}
+	If ..BytesAvailable Goto ReadData
+	Set ..BytesAvailable=0,..AtEnd=0
+	Read header#5:timeout
+	If $Test=0 {
+		Set len=0
+		Set sc=$$$ERROR($$$CSPWebSocketTimeout,"WebSocket Read Operation timed-out")
+		Set ..AtEnd=1
+		Quit ""
+	}
+	Set type=$Extract(header,5)
+	If type=9 {
+		Set len=0
+		Set sc=$$$ERROR($$$CSPWebSocketClosed,"WebSocket Closed by the Client")
+		Set ..AtEnd=1
+		Quit ""
+	}
+	Set header=$Extract(header, 1, 4)
+	Set size=$ZLA(header)-1 If size<0 Set size=0
+	Set ..BytesAvailable=size
+ReadData
+	If ..BytesAvailable > len {
+		Set size=len
+		Set ..BytesAvailable=..BytesAvailable-len
+	}
+	else {
+		Set size=..BytesAvailable
+		Set ..BytesAvailable=0
+	}
+	If '..BytesAvailable Set ..AtEnd=1
+	If size=0 Set len=0,sc=$$$OK Quit ""
+	Read data#size
+	Set len=size
+	Set sc=$$$OK
+	Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+	Set len=$Length(data1)
+	Quit data1
+ReadError	
+	#; No interrupts during cleanup or error processing
+	$$$SetExternalInterrupts(0)
+	Set $ZTrap="ReadHalt"
+	Hang 5
+	Close 0
+ReadHalt 
+	Halt
+	
+PrepareOutput(data)
+	Try { Set data1=$zconvert(data,"O","UTF8") } Catch { Set data1=data }
+	quit data1
+	
+PrepareInput(data)
+	Try { Set data1=$zconvert(data,"I","UTF8") } Catch { Set data1=data }
+	quit data1
+	
+//////////////////////////////////////////////
+	
+wstr(s)
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	//do ..Write(s)
+	w $$PrepareOutput(s),*-3
+	do ##class(%Device).ReDirectIO(rd)
+	quit 
+wchr(c) 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	w $$PrepareOutput($c(s)),*-3
+	//do ..Write($c(c))
+	do ##class(%Device).ReDirectIO(rd) 
+	quit
+wnl 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	//do ..Write($c(13,10))
+	w $c(13,10),*-3
+	do ##class(%Device).ReDirectIO(rd)
+	quit 
+wff 
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	w $c(12),*-3
+	//do ..Write($c(12))
+	do ##class(%Device).ReDirectIO(rd)
+	quit 
+wtab(s)
+	set rd = ##class(%Device).ReDirectIO($$$NO) 
+	w $$PrepareOutput($j("",s-$x)),*-3
+	//do ..Write($j("",s-$x))
+	do ##class(%Device).ReDirectIO(rd) 
+	quit
+	
+rstr(len = 32656,timeout = 86400)
+	//do ..ClientAlertNamespace()
+	set rd=##class(%Device).ReDirectIO($$$NO)
+	read header#5:timeout
+	read data
+	set data = $$PrepareInput(data)
+	//set data = $$readFromSocket(len,timeout)
+	//set data = ..Read(len,.status,timeout)
+	do ##class(%Device).ReDirectIO(rd)
+	quit data
+rchr(timeout = 86400)
+	//do ..ClientAlertNamespace()
+	set rd=##class(%Device).ReDirectIO($$$NO)
+	read header#5:timeout
+	read *data
+	set data = $$PrepareInput(data)
+	//set data = $$readFromSocket(1,timeout)
+	//set data = $ASCII(..Read(1,.status,timeout))
+	do ##class(%Device).ReDirectIO(rd)
+	quit data
+
+	/* этот код нужно менять под Ваши нужды  
+rstr(len,timeout)
+	n rd,vr,rt
+	s vr="rt"
+	s rd=##class(%Device).ReDirectIO($$$NO)
+	s:$d(len) vr=vr_"#"_len s:$d(timeout) vr=vr_":"_timeout
+	r @vr
+	s rd=##class(%Device).ReDirectIO(rd)
+	s rd=$zu(96,4,$t)
+	q rt
+	*/
+]]></Implementation>
+</Method>
+
+<Method name="OnPreServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Debug">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>data:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	set ^debug($I(^debug)) = $ZTIMESTAMP _ ": " _ data
+]]></Implementation>
+</Method>
+
+<Method name="OnPostServer">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[ 	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetJSAutocompleteFilePath">
+<FormalSpec>namespace:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	
+	set data = ##class(%Library.File).ManagerDirectory()
+	set data = ##class(%Library.File).ParentDirectoryName(data)
+	set data = data _ "CSP\" _ $REPLACE(..InitialNamespace,"%","") _ "\webTerminal\js\autocomplete\" _ $REPLACE(namespace,"%","_") _ ".js" // UNIX?
+	quit data
+]]></Implementation>
+</Method>
+
+<Method name="GenNLoadJSAutocompleteFile">
+<FormalSpec>namespace:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set filename = ..GetJSAutocompleteFilePath($NAMESPACE)
+	set namespace = $REPLACE($NAMESPACE,"%","_")
+	if (##class(%File).Exists(filename)) {
+		do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
+		quit $$$OK
+	} elseif ('##class(%File).DirectoryExists(##class(%File).GetDirectory(filename))) {
+		set result = ##class(%File).CreateDirectory(##class(%File).GetDirectory(filename))
+		if (result '= 1) {
+			do ..SendData("Can't create dir js/autocomplete",..ACTIONMESSAGE)
+			quit $$$OK
+		}
+	}
+
+	do ..SendData("Generating autocomplete file for " _ namespace _ " classes, pleace, wait.")
+	
+	// write empty file to show (if happen) other applications that file generates
+	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))
+	do file.Open("WSN")
+	do file.WriteLine("{}")
+	do file.Close()
+	
+	// get all classes names
+	set result = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
+	do result.Execute()
+	set data = ""
+	
+	while (result.Next()) { // forming autocomplete for each class
+	
+		set className = result.Data("Name")
+		if ($EXTRACT(className,1) = "%") && (namespace '= "%SYS") {
+			continue
+		}
+		set data = data _ "terminalLanguage[""class""][""" _ className _ """]={"
+		
+		set cdefs = ##class(%Dictionary.ClassDefinition).%OpenId(className)
+ 		set count = cdefs.Properties.Count()
+ 		set data = data _ """properties"":{"
+ 		for i=1:1:count {
+     		set data = data _ """" _cdefs.Properties.GetAt(i).Name _ """:0"
+     		if (i'=count) set data = data _ ","
+ 		}
+ 		set data = data _ "},""methods"":{"
+ 		set count = cdefs.Methods.Count()
+ 		for i=1:1:count {
+     		set data = data _ """" _cdefs.Methods.GetAt(i).Name _ """:0"
+     		if (i'=count) set data = data _ ","
+ 		}
+ 		set data = data _ "},""parameters"":{"
+ 		set count = cdefs.Parameters.Count()
+ 		for i=1:1:count {
+     		set data = data _ """" _cdefs.Parameters.GetAt(i).Name _ """:0"
+     		if (i'=count) set data = data _ ","
+ 		}
+		
+		set data = data _ "}};"
+		
+	}
+	
+	set file=##class(%File).%New(..GetJSAutocompleteFilePath(namespace))
+	do file.Open("WSN")
+	do file.WriteLine(data)
+	do file.Close()
+	
+	do ..SendData("Autocomplete file for " _ $NAMESPACE _ " classes created.")
+	do ..SendData("js/autocomplete/" _ namespace _ ".js",..ACTIONLOADnEXECUTE)
+	
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GenerateAuthKey">
+<Description>
+Generating new authorization key</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set temp = ""
+	set length = 64 + $Random(33)
+	for {
+    	set temp = temp _ $Char(65 + $Random(25)) // over googol combinations!
+    	quit:$Length(temp)>length
+	}
+	set ^TerminalAuthKey = temp
+]]></Implementation>
+</Method>
+
+<Method name="GetAuthKey">
+<Description>
+Returns key for client authorization.
+If the key is empty, generates new key value.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	if ($get(^TerminalAuthKey) = "") {
+		Do ..GenerateAuthKey()
+	}
+	quit ^TerminalAuthKey
+]]></Implementation>
+</Method>
+
+<Method name="SendData">
+<Description>
+Function sends data derectly to server with specified action</Description>
+<FormalSpec>query:%String="",action:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	if (action = "") { set action = ..ACTIONMESSAGE }
+	
+	// using CTWPv2
+	do ..Write(action)
+	do ..Write(query)
+	do ..Write(..ACTIONTERMINATOR)
+]]></Implementation>
+</Method>
+
+<Method name="ExecuteSQL">
+<FormalSpec>query:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	USE $Principal:(/SEN=1)
+   	USE $Principal:(::"+Q")
+	do ..Write(..ACTIONMESSAGE)
+	
+  	set tStatement = ##class(%SQL.Statement).%New()
+  	set qStatus = tStatement.%Prepare(query)
+  	if qStatus'=1 {
+	  	write "Wrong sql query. Try to examine:",$System.Status.DisplayError(qStatus)
+	} else {
+		set rset = tStatement.%Execute()
+  		do rset.%Display()
+	}
+	
+	do ..Write(..ACTIONTERMINATOR)
+	use $Principal:(/SEN=0)
+   	use $Principal:(::"-Q")
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ClientAlertNamespace">
+<Implementation><![CDATA[
+	if (..CurrentNamespace '= $Znspace) { // change client namespace
+	    set ..CurrentNamespace = $Znspace
+	 	do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE) 
+	 	//do ..GenNLoadJSAutocompleteFile($Znspace)  
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ExecuteCommand">
+<Description>
+The heart of terminal application</Description>
+<FormalSpec>query:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	if (query = "") quit $$$OK
+	
+	#dim exception as %Exception.AbstractException
+	set value = $Replace(query,$CHAR(10)," ")
+	
+	do ..Write(..ACTIONMESSAGE) // execute session start
+	
+	set $ZERROR = ""
+	set io = $io
+  	use io::("^" _ ..InitialZName)
+  	USE io:(::"+T")
+  	do ..Debug("^" _ ..InitialZName)
+ 	do ##class(%Device).ReDirectIO($$$YES)
+ 	
+    try { xecute value } catch exception {
+	   	set $ZERROR = exception.DisplayString()
+	    }
+	    
+    do ##class(%Device).ReDirectIO($$$NO)
+    use io:(::"-T")
+   	
+   	if ($ZERROR '= "") {
+		do ..Write($ZERROR)
+   	}
+   	
+   	do ..Write(..ACTIONTERMINATOR) // execute session end
+	
+	if (..ExperimentalAutocompleteOn) do ..GenNLoadJSAutocompleteFile($Znspace)
+	do ..ClientAlertNamespace()
+	
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RequireAuthorization">
+<Description>
+This method holds process and expects only one package from
+the client - it includes authorization key.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set key = ..Read(,.status) // wait for package
+	set realKey = ..GetAuthKey() // remember current auth key
+	do ..GenerateAuthKey() // generate new auth key
+	
+	if (key = realKey) {
+		quit $$$OK	
+	}
+	
+	quit $$$NOTOK
+]]></Implementation>
+</Method>
+
+<Method name="ClientLoop">
+<Description><![CDATA[
+Main method for every new client.
+
+Authorization process description:
+	1.	Client requests cache server page called "WebTerminal.csp";
+	2.	Server return this page with ClassMethod GetAuthKey() value;
+	3.	After client receives page, it performs websocket connection;
+		to same web-resource, but with next URL changes:
+		"http://" -> "ws://", "WebTerminal.csp" -> "Webterminal.Engine.cls";
+	4.	After connection established, client sends his AuthKey to server
+		and removes it locally (because it needed only one time);
+	5.	Server compares again received key with ..GetAuthKey() value and
+		grants permission, if keys are equal.
+	>>	As a result - there is no way to autorize via websocket without
+		accessing WebTerminal.csp.
+
+Method description:
+	First, method requires from client 
+	a key, which will be compared with ..GetAuthKey() (global). If 
+	succeeded, method sets "authorized" flag to true and changes global
+	key with ..GenerateAuthKey() for the next client.]]></Description>
+<FormalSpec>clientID:%Numeric</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	kill // clear vars
+	
+	for {
+		
+		set action = ..Read(,.status)
+    
+    	if $$$ISOK(status) {
+	    		    	
+	    	if (action = ..ACTIONMESSAGE) { // autorized
+	    	
+	    		set data = ..Read(,.status)
+	    		
+		    	do ..ExecuteCommand(data)
+		    	
+	    	} elseif (action = ..ACTIONSQL) { // sql
+		    	
+	    		set data = ..Read(,.status)
+	    	
+		    	do ..ExecuteSQL(data)
+		    		
+	    	} elseif (action = ..ACTIONTERMINATOR) {
+		    	
+		    	// fuu
+		    	
+	    	} else { // something scary
+		    	
+		    	do ..SendData("Unrecognised action: " _ action,..ACTIONMESSAGE)
+		    		
+	    	}
+      		
+    	} else { // $$$ISOK(status)
+	    	 
+	    	do ..Debug($$$CSPWebSocketClosed)
+	    	do ..SendData("Error occured while reading data.",..ACTIONMESSAGE)
+      		quit:($$$GETERRORCODE(status)=$$$CSPWebSocketClosed)
+    
+    	}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Server">
+<Description>
+New connection established</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set ..lastClientId = ..lastClientId + 1
+	
+	if ($$$ISOK(..RequireAuthorization())) {
+		
+		set ..InitialNamespace = $Znspace
+		set ..InitialZName = $Zname
+		
+		if (..ExperimentalAutocompleteOn) do ..GenNLoadJSAutocompleteFile($Znspace)
+		do ..SendData("Terminal remote ready. Welcome.")
+		
+		set ..CurrentNamespace = $Znspace
+		do ..SendData(..CurrentNamespace,..ACTIONCHANGENAMESPACE)
+		   
+		do ..ClientLoop(..lastClientId)
+		
+	} else {
+		do ..SendData("Hello, mr. Hacker!")
+		do ..EndServer()	
+	}
+	
+	do ..SendData("Good bye!",..ACTIONMESSAGE)
+  	
+  	quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+<CSP name="webTerminal/css/base.css" application="/csp/sys/" default="1"><![CDATA[
+/*
+  Cache Web Terminal main stylesheet
+*/
+
+html {
+    background: url("../img/back.png") black;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    color: white;
+}
+
+#ruler { visibility: hidden; white-space: nowrap; }
+
+.hidden { visibility: hidden; }
+.center { text-align: center; }
+.bold { font-weight: 900; }
+.noMargin { margin: 0 }
+.noPadding { padding: 0 }
+
+table {
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+tr, td {
+    padding: 0 6px 6px 6px;
+    margin: 0;
+    border: 0;
+    border-spacing: 0;
+}]]></CSP>
+
+
+<CSP name="webTerminal/css/extra.css" application="/csp/sys/" default="1"><![CDATA[
+.warning {
+    color: #ffa500;
+}
+
+.hint {
+    color: #c7ff34;
+}
+
+.error {
+    color: #ff0000;
+}
+
+.info {
+    color: #fffd7c;
+}
+
+.executed {
+    color: #34ff00;
+}
+
+@-webkit-keyframes blinker {
+    from { opacity: 1.0; }
+    to { opacity: 0.0; }
+}
+
+.tab {
+    display: inline-block;
+    width: 24pt;
+}
+
+.blinking {
+    /*animation-name: blinker;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    -webkit-animation-duration: 1s;*/
+}
+]]></CSP>
+
+
+<CSP name="webTerminal/css/syntax.css" application="/csp/sys/" default="1"><![CDATA[
+
+.syntax-write, .syntax-w, .syntax-do, .syntax-set, .syntax-s, .syntax-quit, .syntax-kill,
+.syntax-close, .syntax-zw, .syntax-zwrite, .syntax-break, .syntax-catch, .syntax-read
+.syntax-continue, .syntax-goto, .syntax-halt, .syntax-hang, .syntax-job, .syntax-kill,
+.syntax-lock, .syntax-merge, .syntax-new, .syntax-open, .syntax-return, .syntax-tcommit,
+.syntax-throw, .syntax-trollback, .syntax-tstart, .syntax-use, .syntax-view, .syntax-xecute,
+.syntax-zkill, .syntax-znspace, .syntax-ztrap, .syntax-zzdump, .syntax-zzwrite, .syntax-d,
+.syntax-zn, .syntax-h, .syntax-read, .syntax-r
+{ color: #29cfe9; font-weight: 900; }
+
+.syntax-for, .syntax-while, .syntax-if, .syntax-else, .syntax-elseif, .syntax-try,
+.syntax-catch
+{ color: #ff00fe; }
+
+.syntax-help, .syntax-clear, .syntax-connect, .syntax-disconnect, .syntax-define, .syntax-siege
+{ color: #e2dc00; }
+
+.syntax-select, .syntax-from, .syntax-where, .syntax-join, .syntax-into
+{ color: #f34800; }
+
+/* Syntax highlighter styles. Required: parser.js */
+.syntax-_digit { color: #00ff89; } /* 6006 */
+.syntax-_symbol { color: #82fffa; } /* +*-/=,!_'#?\ */
+.syntax-_bracket { color: #82fffa; } /* {}[]() */
+.syntax-_string { color: #26e500; } /* "test" */
+.syntax-_function { color: #9291ff; } /* $LENGTH */
+.syntax-_userFunction { color: #cea3ff; } /* $$MY */
+.syntax-_macro { color: #cb64ff; } /* $$$test */
+.syntax-_sysMacro { color: #ff00fe; } /* ##test */
+.syntax-_classProp { color: #0091ff; } /* ..test */
+.syntax-_global { color: #ff5156; } /* ^test */
+.syntax-_other { color: #82fffa; } /* html-escaped symbols, unrecognised */
+
+]]></CSP>
+
+
+<CSP name="webTerminal/css/terminal.css" application="/csp/sys/" default="1"><![CDATA[
+.terminalBase {
+    position: relative;
+    margin: 20px;
+    font-family: FreeMono, monospace;
+    font-size: 14px;
+}
+
+.terminalOutputMessage {
+
+}
+
+.terminalInputContainer {
+    position: relative;
+}
+
+.terminalOutputContainer {
+    position: relative;
+    overflow: hidden;
+}
+
+/*.terminalOutputHeader:after {
+    content: ">";
+    margin: 0 6px 0 6px;
+}
+
+.terminalOutputBody {
+    word-wrap: break-word;
+}        */
+
+.terminalInputPreContainer {
+    position: relative;
+}
+
+.terminalInputHiddenPart {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.terminalInputWrapper, .terminalOutputWrapper {
+    margin-left: 100px;
+    position: relative;
+}
+
+.terminalOutputBody {
+    position: relative;
+    overflow: hidden;
+    display: block;
+}
+
+.terminalInputViewPart {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 0;
+}
+
+.terminalInput, .terminalOutput {
+    display: block;
+    margin: 0;
+    width: 100%;
+    padding: 0;
+    outline: none;
+    border: none;
+    line-height: inherit;
+    font: inherit;
+    background: none;
+    color: inherit;
+    overflow: hidden;
+    min-height: 12px;
+    word-wrap: break-word;
+    white-space: pre;
+    resize: none;
+}
+
+.terminalHiddenInput {
+    width: 100%;
+    color: rgba(255,255,255,0);
+}
+
+.terminalInputView {
+
+}
+
+.terminalInputHeader, .terminalOutputHeader { /* global zone (like "dev> ") */
+    float: left;
+    vertical-align: top;
+    width: 100px;
+}
+
+.terminalInputHeader:after, .terminalOutputHeader:after {
+    content: ">";
+    margin: 0 6px 0 6px;
+}
+
+.caret, .caret-blink {
+    position: relative;
+    display: inline-block;
+    width: 0;
+    height: 1pt;
+    vertical-align: bottom;
+}
+
+.caret-blink:after {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 1px;
+    background: #e300ff;
+    content: "";
+}
+
+.terminalAutocompleteOption {
+    opacity: 0.5;
+}]]></CSP>
+
+
+<CSPBase64 name="webTerminal/favicon.ico" application="/csp/sys/" default="1">
+AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAA
+AAAAAAD///8BAAAABQAAABEAAAAJAAAAAwAAAAMAAAAD////Af///wH///8B////Af///wH///8B
+////Af///wH///8B////AQAAAAcAAAAVLyoiXzcxJa09NijfPjcp4YiHhcWbm5ypioqLhWtrbF8v
+Ly85AAAAIQAAAAP///8B////AXt7fBGFhYZHiomLRXFua0FEPzNPOjMkY1dSSceqqqr/vLy9/7a2
+t/+vr7D/kZGS4wAAABkAAAAbAAAAFf///wGXlZKPq6qg57GtlK2vqIqjsaySt6+qlcOvr5/1t7es
+/76+t//GxsT/zMzM98fIyIW8vLxDwcHBKY6Njg////8BioZ8j5aTjpkUERGjHRIS4SIVFM8oGRa9
+Mh8ZrUc0KatfTT2tdWROsYZ1XauciHGVt6aQl7uwnp/GxLPRuLi2gYyIfo+XlJCZCQgIzQAAAP8A
+AAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8IBgX/Eg8O5bOwpXuOi4CPmZaSmQgI
+B80AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wICAfGqqKB3kY2C
+j5yZlJkIBwfNAAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8FBATt
+paKcd5SQhY+em5eZCAcHzQAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wUFBf8a
+Ghr/Li0s65+dl3WXk4iPop+amQgHB80AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AQEB/xIS
+Ev8mJib/MjIy/zk3NumamJJ1m5eMj6WinZkHBwfPXV1d/wcHB/9PT0//V1dX/0tLS/8AAAD/BQUF
+/xkZGf8nJyf/MjIy/zw8PP9CPz3nlJKNdZ+bj5GopZ+ZBwcHz25ubv+qqqr/ODg4/zg4OP8pKSn/
+CAgI/xwcHP8oKCj/MzMz/zw8PP9DQ0P/SENB55COiXOin5KRq6iimQcHBs9gYGD/m5ub/wAAAP8A
+AAD/DQ0N/x0dHf8oKCj/MzMz/z09Pf9DQ0P/R0dH/0pFQ+WMioVzpaGUkaunoZ8ICAjPc3Nz/wcH
+B/0GBgb1FBMT7x4eHecqKSfhNTMx3T89OttIRUHZT0xH2VVSTNtwbWTflZOQibKwrYe4tanplpGC
+s4uDcamblIOto52Ot6Gcj7+fmo69nZmNs5qWi6mVkombjoyFjYaFgH9/f3xxfXx9Y3t8fi+npqYb
+sbKyU7m4uE2/v787srKxKY+OjxdtbW0H////Af///wH///8B////Af///wH///8B////Af///wH/
+//8B//8AAPA/AAD8DwAAAA8AAAAAAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAA
+AAAADwAA//8AAA==
+</CSPBase64>
+
+
+<CSPBase64 name="webTerminal/img/back.png" application="/csp/sys/" default="1">
+iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAIAAADZSiLoAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB
+NmlDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjarY6xSsNQFEDPi6LiUCsEcXB4kygotupgxqQt
+RRCs1SHJ1qShSmkSXl7VfoSjWwcXd7/AyVFwUPwC/0Bx6uAQIYODCJ7p3MPlcsGo2HWnYZRhEGvV
+bjrS9Xw5+8QMUwDQCbPUbrUOAOIkjvjB5ysC4HnTrjsN/sZ8mCoNTIDtbpSFICpA/0KnGsQYMIN+
+qkHcAaY6addAPAClXu4vQCnI/Q0oKdfzQXwAZs/1fDDmADPIfQUwdXSpAWpJOlJnvVMtq5ZlSbub
+BJE8HmU6GmRyPw4TlSaqo6MukP8HwGK+2G46cq1qWXvr/DOu58vc3o8QgFh6LFpBOFTn3yqMnd/n
+4sZ4GQ5vYXpStN0ruNmAheuirVahvAX34y/Axk/96FpPYgAAACBjSFJNAAB6JQAAgIMAAPn/AACA
+6AAAUggAARVYAAA6lwAAF2/XWh+QAAAAGElEQVR42mJQVlJkQAZQPoQCAAAA//8DABISATPXp3mc
+AAAAAElFTkSuQmCC
+</CSPBase64>
+
+
+<CSP name="webTerminal/index.csp" application="/csp/sys/" default="1"><![CDATA[
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Remote Cache terminal</title>
+    <meta charset="utf-8">
+    <meta name="author" content="ZitRo - InterSystems">
+    <meta name="Description" content="Web-based terminal for Cache administration.">
+    <meta name="keywords" content="cache,cache,terminal,web,web-based,remote,control">
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/terminal.css">
+    <link rel="stylesheet" href="css/extra.css">
+    <link rel="stylesheet" href="css/syntax.css">
+    <script type="text/javascript" src="js/base.js"></script>
+    <script type="text/javascript" src="js/parser.js"></script>
+    <script type="text/javascript" src="js/terminal.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+</head>
+
+<body>
+    <div class="terminalBase">
+        <div class="terminalOutputBody">
+        </div>
+        <div class="terminalInputPreContainer">
+            <div class="terminalInputViewPart terminalInputContainer">
+                <div class="terminalInputHeader">emulate</div>
+                <div class="terminalInputWrapper">
+                    <div class="terminalInput terminalInputView">
+                		
+                    </div>
+                </div>
+            </div>
+            <div class="terminalInputHiddenPart terminalInputContainer">
+                <div class="terminalInputWrapper">
+                    <textarea class="terminalInput terminalHiddenInput"></textarea>
+                </div>
+            </div>
+        </div>
+        <span id="ruler">
+		 
+        </span> <!--Cross-browser string width-->
+    </div>
+    <script type="text/javascript" id="startup">terminalInitialize("#(##Class(%WebTerminal.Engine).GetAuthKey())#")</script>
+</body>
+
+</html>
+]]></CSP>
+
+
+<CSP name="webTerminal/js/app.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Basic application scripts.
+ *
+ * @author ZitRo
+ *
+ * Required:
+ *  base.js
+ *  terminal.js
+ *  parser.js
+ *  terminal.css
+ *  syntax.css
+ *  extra.css
+ *  base.css
+ *
+ *  TODO:
+ *      - A tons of features :)
+ */
+
+var terminalAppVersion = "0.4";
+
+var webSocket = null, // socket to exchange data with server
+    commandHistory = [""], // history of all submitted commands
+    historyCurrent = 0; // current position in this history
+
+var lastCommandId = -1; // every command has it's own id. It can be used to change logs, etc.
+
+// handlers. It is important to clear handler with null value if it became unnecessarily
+var handleInput = null, // function to call and prevent standard action for message submit. First argument - submitting data
+    handleMessageReceive = null; // function to call for received message from server
+
+var namespace = "default"; // shows current namespace (real on server, not on client!)
+
+var MODE_EXECUTE = 0, // executing commands on server
+    MODE_EXECUTION = 4,// real-time execution (while messageing) mode until /END/ from server
+    MODE_SQL = 1, // executing sql queries
+    MODE_MACRO = 2, // macro recording (set of commands)
+    MODE_LOGIN = 3, // used while logging in
+    MODE_DEFAULT = MODE_EXECUTE; // default terminal mode
+
+var terminalMode = MODE_EXECUTE, // mode changes current terminal submit action and behavior
+    terminalDebugModeOn = 1;
+
+var terminalCurrentOutputField, // all terminal output will be directed into this object
+    terminalOutputUpdateFrequency = 25; // how fast (in ms) update terminal output (incoming from server)
+
+var terminalDebug = {
+
+    emulateReceive: function(data) {
+        terminalMessageReceived(data);
+    },
+
+    emulateSend: function(data) {
+        terminalSendToServer(data);
+    },
+
+    log: function() {
+    ('console' in window && terminalDebugModeOn)?console.log(arguments):null
+    }
+
+};
+
+
+/**
+ * Function initializing basic application components, like events, etc.
+ *
+ * @param authKey
+ *  Default server-given parameter to access WebSocket application. 
+ */
+function terminalInitialize(authKey) {
+
+    terminalCurrentOutputField = terminalGetOutputObject();
+    for (var i = 0; i < 256; i++) keyPressed[i] = 0; // initializing keys
+
+    bindEvent( document, "keydown", bodyKeyDown );
+    bindEvent( document, "keyup", bodyKeyUp );
+    bindEvent( document, "keydown", terminalGlobalKeyDown );
+    bindEvent( terminalGetInputObject(), "click", terminalUpdateInputView );
+    bindEvent( terminalGetInputObject(), "blur", clearKeyStates );
+    window.onbeforeunload = function() {
+        webSocket.close(); // close socket (yes, onBeforeUnload)
+    };
+
+    addTextareasAutoresize();
+    if (!ie()) setInterval("terminalCaretTick()",500);
+    terminalSetNamespace("server");
+    terminalUpdateInputView();
+    terminalOutput("Terminal base ready. Type " +
+        "<span class=\"warning\">/help</span> to get more information.", 0, "<b>system</b>");
+    terminalServerConnect(document.URL.replace(/csp\/.*?\/.*/,"csp/sys/%25WebTerminal.Engine.cls").replace(/http:\/\//,"ws://"),authKey);
+    removeElement(document.getElementById("startup")); // remove forever any information about authKey on pages
+    setInterval(terminalFreeOutputStack,Math.max(terminalOutputUpdateFrequency,5));
+    terminalFocusOnInput();
+
+}
+
+/**
+ * Connects machine to server, add handlers, etc.
+ *
+ * @param server
+ *  URL or pair IP:PORT of server to connect to.
+ *
+ * @param authKey
+ *  Authorization parameter.
+ */
+function terminalServerConnect(server, authKey) {
+
+    var error = 0, url = (server.substr(0,5)=="ws://")?server:("ws://"+server+"/csp/sys/WebTerminal.Engine.cls");
+
+    if (webSocket != null) {
+        terminalOutput("Connection already established.", 0,"<span class=\"warning\">warning</span>");
+        terminalInternalCommand_disconnect()
+    }
+
+    terminalOutput("Connecting <span class=\"info\">" + url + "</span>...", 0, "server");
+    try {
+        webSocket = new WebSocket(url);
+    } catch (e) {
+        error = 1;
+    }
+
+    if (error) {
+        terminalOutput("Your browser does not support <b>WebSockets</b>. Please, update your browser.",
+            0,"<span style=\"color: red\">warning</span>");
+        return;
+    }
+
+    if (typeof webSocket == "undefined") {
+        terminalOutput("There is a problem to create <b>WebSocket</b>. Please, check the URL and class location.",
+            0,"<span style=\"color: red\">warning</span>");
+    }
+
+    webSocket.onopen = function() {
+        terminalOutput("Connection established. <span class=\"hint\">Authorizing...</span>", 0, "server");
+        terminalSendToServer(authKey); // CTWPv2
+        //terminalExecute(authKey,ACTION_AUTHORIZATION); // CTWPv1
+    };
+
+    webSocket.onclose = function(event) {
+
+        webSocket = null;
+        var t;
+        if (event.wasClean) {
+            t = "<span class=\"hint\">Connection closed cleanly.</span>"
+        } else {
+            t = "<span class=\"error\">Connection broken.</span>"
+        }
+        terminalOutput(t + " Code: " + event.code + ((event.reason)?"; reason: "+event.reason:"") );
+
+    };
+
+    webSocket.onmessage = function(event) { terminalMessageReceived(event.data) };
+
+    webSocket.onerror = function(error) {
+        log(error);
+        terminalOutput("<span class=\"error\">error: " + error.message + "</span>",1,"server")
+    };
+
+}
+
+/**
+ * Function executes local script.
+ *
+ * @param string
+ *  String to execute.
+ */
+function terminalInternalExecute(string) {
+
+    var args = string.split(/\s*\s+\s*/g);
+    var command = args.splice(0,1)[0];
+    var l = args.length, argss = "";
+    for (var i = 0; i < l; i++) {
+        eval("var arg"+i+" = \""+args[i]+"\"");
+        argss += ",arg"+i;
+    }
+    if (argss) argss = argss.replaceSymbol(0,"");
+    try {
+        log("terminalInternalCommand_"+command.toLowerCase()+"("+argss+")");
+        eval("terminalInternalCommand_"+command.toLowerCase()+"("+argss+")");
+    } catch (e) {
+        terminalOutput("Unknown command \""+command+"\".",0,"<span class=\"warning\">system</span>")
+    }
+
+}
+
+/**
+ * Shows help.
+ */
+function terminalInternalCommand_help() {
+
+    terminalOutput("<div style=\"white-space: normal\"><div class=\"center\"><h3>Cache Web Terminal <span class=\"warning\">" +
+        "v" + terminalAppVersion + "</span></h3></div>" +
+        "<table>" +
+        "   <tr>" +
+        "       <td class=\"hint\">Available client-side commands (type with slash)</td>" +
+        "       <td class=\"hint\">Description</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">help</td>" +
+        "       <td>Shows help</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">connect</td>" +
+        "       <td>Establish new connection to Cache server via <b>WebSocket</b></td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">disconnect</td>" +
+        "       <td>Disconnecting from current server</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">clear</td>" +
+        "       <td>Clears terminal command log. Just a visual feature</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">define {definition} {redefinition}</td>" +
+        "       <td>Every input occurrence of {definition} will be replaced with {redefinition}</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">sql</td>" +
+        "       <td>Enable/disable integrated SQL shell</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">siege {iterations = 60} {serverDelay = 0.02}</td>" +
+        "       <td>" +
+        "           Test server/client connection. Executes cycle with delay on server and measures time/packages transferred." +
+        "           Be careful with serverDelay variable!" +
+        "       </td>" +
+        "   </tr>" +
+        "</table>" +
+        "<div class=\"center\"><h3>Controls</h3></div>" +
+        "<table>" +
+        "   <tr>" +
+        "       <td class=\"hint\">Key</td>" +
+        "       <td class=\"hint\">Description</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">TAB</td>" +
+        "       <td>Ends current input with suggested autocomplete option</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">CTRL</td>" +
+        "       <td>While few autocomplete option is present, changes variant of option to next available</td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">keys UP/DOWN</td>" +
+        "       <td>Affords access to command history. <i>Current query will be saved.</i></td>" +
+        "   </tr>" +
+        "   <tr>" +
+        "       <td class=\"info\">SHIFT/CTRL + ENTER</td>" +
+        "       <td>Next line in current command stack.</td>" +
+        "   </tr>"+
+        "</table>"
+        ,0,"<span class=\"warning\">system</span></div>")
+
+}
+
+function terminalInternalCommand_connect() {
+
+    window.location.reload();
+    terminalOutput("Authorization key lost forever. Please, reload this page.",0,"<span class=\"error\">system</span>")
+
+}
+
+/**
+ * Just clears all logs
+ */
+function terminalInternalCommand_clear() { terminalClearLog() }
+
+function terminalInternalCommand_disconnect() {
+
+    terminalOutput("Closing connection...",0,"<span class=\"warning\">system</span>");
+    webSocket.close();
+    webSocket = null;
+
+}
+
+function terminalInternalCommand_define(definition, redefinition) {
+
+    try {
+        if (definition && redefinition) {
+            terminalRedefined.push(definition);
+            terminalDefines[definition] = redefinition;
+            terminalOutput("\"" + definition + "\" <span class=\"hint\">defined as</span> \"" + redefinition + "\"",0,"<span class=\"hint\">system</span>");
+        } else terminalOutput("Incorrect definition.",0,"<span class=\"error\">system</span>");
+    } catch (e) {
+        log(e);
+    }
+
+}
+
+function terminalInternalCommand_sql() {
+
+    terminalMode = (terminalMode != MODE_SQL)?MODE_SQL:MODE_DEFAULT;
+    terminalOutput("SQL mode " + ((terminalMode == MODE_SQL)?"enabled":"disabled") + ".",
+        0,"<span class=\"hint\">system</span>");
+    terminalSetNamespace((terminalMode == MODE_SQL)?"SQL":namespace);
+
+}
+
+function terminalInternalCommand_siege(iterations, serverDelay) {
+
+    if (typeof iterations == "undefined") { iterations = 60 }
+    if (typeof serverDelay == "undefined") { serverDelay = 0.02 }
+    var serverCommand = "for i=1:1:"+iterations+" {\n  set s = \"\"\n  write s,$CHAR(33+$RANDOM(93))\n" +
+        "  if ($RANDOM(5) = 0) { write \" \" }\n  h "+serverDelay+"\n}";
+
+    terminalSetInputValue( serverCommand );
+    terminalSubmit( terminalGetInputValue() );
+    var startTime = new Date().getTime();
+    var packages = 0;
+
+    handleMessageReceive = function(data) {
+        packages++;
+        if (data == ACTION_TERMINATOR) {
+            handleMessageReceive = null;
+            var timeDifference = new Date().getTime() - startTime;
+            terminalFreeOutputStack();
+            terminalLog("<span class=\"info\"><br>Query client execution time: "+timeDifference+"/"+(serverDelay*iterations*1000)+
+                "ms (current/ideal)<br>Packages from server: "+packages+"</span>\n");
+        }
+    }
+
+}
+]]></CSP>
+
+
+<CSP name="webTerminal/js/base.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Basic scripts for handling events, logging, etc.
+ */
+
+var keyPressed = []; // shows if certain key is pressed on the moment. Usage: keyPressed[keyCode]
+
+String.prototype.replaceSymbol = function (index, string) {
+    return this.substr(0, index) + string + this.substr(index + 1);
+};
+
+String.prototype.reverse = function () {
+    return this.split("").reverse().join("")
+};
+
+String.prototype.visualLength = function() {
+    var ruler = document.getElementById("ruler");
+    ruler.innerHTML = this;
+    return ruler.offsetWidth;
+};
+
+Number.prototype.limit = function(value) {
+    return (this.valueOf() > value)?value:this.valueOf();
+};
+
+/*Array.prototype.clean = function(deleteValue) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] == deleteValue) {
+            this.splice(i, 1);
+            i--;
+        }
+    }
+    return this;
+}; */
+
+Array.prototype.getOptimized = function() {
+
+    return this.filter(function (e, i, arr) {
+        return arr.lastIndexOf(e) === i;
+    });
+
+};
+
+/**
+ * Makes any str searchable by regexp.
+ *
+ * @param str
+ *  String.
+ * @returns {XML|string|void}
+ */
+function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+}
+
+/**
+ * Analog of console.log() created to prevent Internet Explorer javascript error.
+ */
+function log() { ('console' in window)?console.log(arguments):null }
+
+/**
+ * Places caret at the end of input (editable div).
+ *
+ * @param input 
+ *  Input.
+ */
+function placeCaretAtEnd(input) {
+
+    setCaretPosition(input, input.value.length)
+
+}
+
+function addTextareasAutoresize() {
+
+    var t = document.getElementsByTagName("textarea")[0];
+    var offset = !window.opera?
+        (t.offsetHeight - t.clientHeight):
+        (t.offsetHeight + parseInt(window.getComputedStyle(t, null).getPropertyValue("border-top-width")));
+
+    var resize  = function(t) {
+        t.style.height = "auto";
+        t.style.height = t.scrollHeight  + offset + "px";
+    };
+
+    t.addEventListener && t.addEventListener("input", function(event) {
+        resize(t);
+    });
+
+    t["attachEvent"]  && t.attachEvent("onkeyup", function() {
+        resize(t);
+    });
+
+}
+
+/**
+ * Sets the cater position on element (input).
+ *
+ * @param element
+ *  Input where to set position.
+ * @param position
+ *  Position to set.
+ */
+function setCaretPosition(element, position) {
+
+    if(element != null) {
+        if(element.createTextRange) {
+            var range = element.createTextRange();
+            range.move('character', position);
+            range.select();
+        }
+        else {
+            if(element.selectionStart) {
+                element.focus();
+                element.setSelectionRange(position, position);
+            }
+            else
+                element.focus();
+        }
+    }
+
+}
+
+/**
+ * Simply returns key code of keyPress event.
+ *
+ * @param event
+ *  KeyPress event.
+ * @returns {Number}
+ *  Code of key.
+ */
+function getKeyCode(event) { return (window.event)?event.keyCode:event.which } // returns code of pressed key (key event)
+
+/**
+ * Function clears keyPressed status of keys. Usage: safe onblur
+ */
+function clearKeyStates() {
+
+    for (var i = 0; i < 256; i++) keyPressed[i] = 0;
+
+}
+/**
+ * Sets global keyPressed[keyCode] variable to 1, if key pressed, and 0, if it had released.
+ *
+ * @param event
+ *  KeyPress event.
+ */
+function bodyKeyDown(event) { var c = getKeyCode(event); (c)?keyPressed[c]=1:log("Key unrecognised.") }
+function bodyKeyUp(event) { var c = getKeyCode(event); (c)?keyPressed[c]=0:log("Key unrecognised.") }
+
+/**
+ * Binds event to object with callback function handler(event).
+ *
+ * @param object {object}
+ *  Object to bind event on.
+ * @param event {string}
+ *  Event name.
+ * @param handler {function}
+ *  Function, that will handle event.
+ */
+function bindEvent(object, event, handler) {
+
+    if(object.addEventListener ) {
+        object.addEventListener(event,handler,false);
+    } else if(object.attachEvent ) {
+        var exp = (event.substr(0, 5) == "mouse") ? "" : "on"; // Internet Explorer binding
+        object.attachEvent(exp+event,handler); // IE
+    }
+
+}
+
+/**
+ * Scrolling functions.
+ *
+ * @param object
+ *  Just scrollable object.
+ * @param value
+ *  "Height" to scroll to.
+ */
+function scrollTo(object,value) { object.scrollTop = value }
+function scrollToBottom(object) { scrollTo(object,object.scrollHeight) }
+
+/**
+ * Function return caret position in editable div.
+ *
+ * @param input
+ * @returns {number}
+ *  Position.
+ */
+
+function getCaretPosition(input) {
+    input.focus();
+    if(input.selectionStart) return input.selectionStart;
+    else if(!document.selection) return 0;
+    var c = "\001";
+    var sel	= document.selection.createRange();
+    var dul	= sel.duplicate();
+    dul.moveToElementText(input);
+    sel.text = c;
+    var len = dul.text.indexOf(c);
+    sel.moveStart('character',-1);
+    sel.text = "";
+    return len;
+}
+
+function getElementInnerHeight(element) {
+    return element.scrollHeight;
+}
+
+function ie() {
+    return navigator.appName == "Microsoft Internet Explorer"
+}
+
+/**
+ * Function prevents browser default action for event.
+ *
+ * @param event
+ */
+function preventDefaultEvent(event) {
+    if (event && event.preventDefault) {
+        event.stopPropagation();
+        event.preventDefault();
+    } else {
+        window.event.cancelBubble = true; // IE
+    }
+}
+
+/**
+ * Uses browser inbuilt HTML escape functionality to convert all symbols to html entities.
+ *
+ * @param string
+ *  String to escape.
+ *
+ * @returns {string}
+ *  Escaped string.
+ */
+function htmlEncode(string)
+{
+    var el = document.createElement("div");
+    el.innerText = el.textContent = string;
+    string = el.innerHTML;
+    return string;
+}
+
+/**
+ * Animates object fading in during timeout.
+ *
+ * @param object
+ *  Object to animate.
+ * @param timeout
+ * [ @param value ]
+ *  Value to reach between 0..1 ( default = 1 )
+ * [ @param startTime ]
+ *  Function-used value.
+ * [ @param initialValue ]
+ *  Function-used value.
+ */
+function animationFadeIn(object, timeout, value, startTime, initialValue) {
+
+    if (object) {
+        var speed = 20;
+        log("animating",timeout,value);
+        if (timeout > 0) {
+            if (typeof initialValue == "undefined") initialValue = object.opacity;
+            if (typeof startTime == "undefined") startTime = timeout;
+            object.opacity = value + (initialValue - value)*(startTime - timeout)/startTime; // [0 -> 1]
+            setTimeout("animationFadeIn(object,timeout-speed,value)",speed);
+        } else {
+            object.opacity = value;
+        }
+    }
+
+}
+
+function removeElement(element) {
+    element.parentNode.removeChild(element);
+}]]></CSP>
+
+
+<CSP name="webTerminal/js/parser.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Contains functions that take part in text processing.
+ *
+ * @author ZitRo
+ */
+
+var tAC = ["/help","/clear","/connect","/disconnect","/define","/siege",
+    "set","write","zwrite","for","while","kill","quit","close","else","read",
+    "select","from","where","join","into",
+    "$$$OK","$$$ISERR","$$$ISOK",
+    "##class("];
+
+/**
+ * This is the base of terminal main language dictionary. It holds data about classes, variables and functions.
+ * Each value has frequency indicator: for example, number of times used.
+ * Each root must have an "+syntaxRegExp" property. It determines how property name must be constructed. This is
+ * used to suggest autocomplete, for example.
+ *
+ * @type {object}
+ */
+var terminalLanguage = {
+    "client": {
+        "+syntaxRegExp": new RegExp("^/([a-zA-Z_]+[a-zA-Z0-9_]*)*$"),
+        "/help": 1,
+        "/clear": 0,
+        "/connect": 0,
+        "/siege": 0,
+        "/disconnect": 0,
+        "/define": 0
+    },
+    "commands": {
+        "+syntaxRegExp": new RegExp("^[a-zA-Z]+$"),
+        "SET": 0,
+        "set": 0,
+        "KILL": 0,
+        "kill": 0,
+        "WRITE": 0,
+        "write": 0,
+        "ZWRITE": 0,
+        "zwrite": 0,
+        "FOR": 0,
+        "for": 0,
+        "ELSE": 0,
+        "else": 0,
+        "QUIT": 0,
+        "quit": 0,
+        "READ": 0,
+        "read": 0,
+        "WHILE": 0,
+        "while": 0,
+        "CLOSE": 0,
+        "close": 0
+    },
+    "functions": { // prefix: $
+        "+syntaxRegExp": new RegExp("^\\$[a-zA-Z]+[a-zA-Z0-9]*$"),
+        "$CHAR": 0,
+        "$DATA": 0
+    },
+    "variables": { // prefix: $
+        "+syntaxRegExp": new RegExp("^\\$[a-zA-Z]+[a-zA-Z0-9]*$"),
+        "$DEVICE": 0,
+        "$ECODE": 0
+    },
+    "staticMethod": { // prefix: $
+        "+syntaxRegExp": new RegExp("^##[a-zA-Z0-9]*$"),
+        "##class(": 0
+    },
+    "class": {
+        // WARNING: RegExp must have remembering parentheses at: [1]: class, [2]: classProp
+        "+syntaxRegExp": new RegExp("^##class\\((%?[a-zA-Z]*[a-zA-Z0-9\\.]*)\\)?\\.?%?([a-zA-Z]+[a-zA-Z0-9]*)*$"),
+        "+childRegExp": new RegExp("^##class\\((%?[a-zA-Z]*[a-zA-Z0-9\\.]*)\\)\\.%?([a-zA-Z]+[a-zA-Z0-9]*)*$")
+        /*"EXAMPLE": {
+            "methods": {
+                "method": 0,
+                "methodic": 0
+            },
+            "properties": {
+                "prop": 0,
+                "poropop": 0
+            },
+            "parameters": {
+                "param": 0,
+                "pam": 0,
+                "papam": 0
+            }
+        } */
+    }
+};
+
+/**
+ * Function removes any tags in content.
+ * @param content {string}
+ *  String to parse.
+ */
+function parserRemoveTags(content) { return content.replace(/(<([^>]+)>)/ig, "") }
+
+/**
+ * Inserts string to text in position pos. If pos is incorrect, += operation will be performed.
+ *
+ * @param text 
+ *  Text to insert into.
+ * @param position
+ *  Position where to insert.
+ * @param string
+ *  String to insert.
+ */
+function parserInsertString(text,position,string) {
+    try {
+        text = text.substring(0,position) + string + text.substring(position,text.length);
+    } catch (e) { log(e); text += string }
+    return text;
+}
+
+/**
+ * Function returns array of string variants, which best fits in current string position.
+ * Note that function try to guess paying attention only to the symbols BEFORE position.
+ *
+ * @param string
+ *  String with some text.
+ * @param position
+ *  Position in string where function will try to guess.
+ * @returns {Array}
+ *  Array with possible variants.
+ */
+function parserGetAutocompleteVariants(string,position) {
+
+
+    var i = Math.min(position-1,string.length-1), s = '', variants = [];
+    if (i<0) return variants;
+    if (i+1<string.length && string[i+1].match(/\w/g)) return []; // leave autocomplete if next letter detected
+    while (i >= 0) { // get the part of string
+        if (string[i].match(/[\w\$%#\.\^/]/g)) s += string[i]; else break;
+        i--;
+    }
+    if (s == '') return [];
+
+    var kk = 0;
+    s = s.reverse();
+    var l = tAC.length;
+    //s = s.toLowerCase();
+    for (i= 0; i < l; i++) {
+        if (tAC[i].indexOf(s) === 0) { // word beginning
+            if (s == tAC[i]) return [];
+            variants.push(tAC[i].substring(s.length,tAC[i].length));
+            kk++;
+        }
+    }
+    return variants;
+
+}
+
+/**
+ * This function searches for ##class(...)... construction in string and returns array of current available variants.
+ *
+ * @param string
+ *  String to search in.\
+ * @param position
+ *  Position of cursor where autocomplete needed
+ * @returns {Array}
+ *  Array with available autocomplete variants.
+ */
+function parserGetCleverAutocompleteVariants(string,position) {
+
+    var systemSymbol = "+";
+
+    // constructs object with two properties:
+    // @property "languageRoot": name of root language node
+    // @property "string": commonly selected string
+    // returns null if not fitting at all
+    var mostCommonAutocompleteRoot = function(fullString,limit) {
+        if (typeof limit == "undefined") limit = 30; // characters to limit fit (time regexp will be compared)
+
+        // returns best fitting language root variant for string (object with variants)
+        var fitsString = function(string) {
+            var lastFitRoot = null, type = "root"; // root and type of AC
+            for(var key in terminalLanguage){
+                if (!terminalLanguage.hasOwnProperty(key)) continue;
+                if (!terminalLanguage[key].hasOwnProperty("+syntaxRegExp")) continue;
+                if (terminalLanguage[key]["+syntaxRegExp"].test(string)) {
+                    type = key;
+                    lastFitRoot = terminalLanguage[key]; // remember fitting
+                    if (key == "class" && terminalLanguage[key].hasOwnProperty("+childRegExp")) { // check if class method
+                        if (terminalLanguage[key]["+childRegExp"].test(string)) { // fits class
+                            var result = terminalLanguage[key]["+childRegExp"].exec(string);
+                            if (result && result.length > 2 && terminalLanguage[key][result[1]]) { // result[1]: className
+                                var temp = {};
+                                for(var method in terminalLanguage[key][result[1]]["methods"]) {
+                                    temp[method] = terminalLanguage[key][result[1]]["methods"][method];
+                                }
+                                for(var property in terminalLanguage[key][result[1]]["properties"]) {
+                                    temp[property] = terminalLanguage[key][result[1]]["properties"][property];
+                                }
+                                for(var parameter in terminalLanguage[key][result[1]]["parameters"]) {
+                                    temp[parameter] = terminalLanguage[key][result[1]]["parameters"][parameter];
+                                }
+                                type = "classMethod";
+                                lastFitRoot = temp;
+                            }
+                        }
+                    }
+                }
+            }
+            if (lastFitRoot) lastFitRoot[systemSymbol+"type"] = type;
+            return lastFitRoot; // OBJECT now - last, then - best.
+        };
+
+        var i = fullString.length - 1, fittingString = "", fittingRoot = null;
+
+        while (i > -1 && limit > 0) { // @todo IMPROVE!
+            var string = fullString.substr(i,fullString.length);
+            var bestFitting = fitsString(string);
+            if (bestFitting != null) { fittingString = string; fittingRoot = bestFitting }
+            i--; limit--;
+        }
+
+        return (fittingRoot)?{ languageRoot: fittingRoot, string: fittingString }:null;
+
+    };
+
+    // returns array of full property names in object by it's beginning
+    var partsToComplete = function(object, propertyNameBeginning) {
+        var variants = [];
+
+        var type = "";
+        if (object.hasOwnProperty(systemSymbol+"type")) {
+            type = object[systemSymbol+"type"];
+        }
+
+        switch (type) {
+            case "class": {
+                propertyNameBeginning = terminalLanguage["class"]["+syntaxRegExp"].exec(propertyNameBeginning)[1];
+            } break;
+            case "classMethod": {
+                propertyNameBeginning = terminalLanguage["class"]["+childRegExp"].exec(propertyNameBeginning)[2];
+            } break;
+            default: {
+                // leave
+            }
+        }
+        if (typeof propertyNameBeginning == "undefined") propertyNameBeginning = "";
+
+        for(var key in object){
+            if (!object.hasOwnProperty(key)) continue;
+            if (key.indexOf(propertyNameBeginning) === 0 && key.charAt(0) != systemSymbol) {
+                variants.push(key.substring(propertyNameBeginning.length,key.length));
+            }
+        }
+
+        return variants;
+    };
+
+    position = position.limit(string.length); // limit position up to string length
+    if (string.charAt(position).match(/\w/g)) // check for the next letter
+        return [];
+    else
+        string = string.substring(0,position); // cut letters right
+
+    // now we will examine string using a dictionary patterns
+    var root = mostCommonAutocompleteRoot(string);
+    if (root == null) return [];
+
+    if (root.languageRoot) {
+
+        return partsToComplete(root.languageRoot,root.string);
+    } else {
+        return []
+    }
+
+}
+
+/**
+ * Analyzing stringPart, function returns correct name of element to use.
+ * Usage: for example, to form highlighting "class" attribute. "set" -> "-set"
+ * "$function" -> "-f_function", "$$$macro" -> "-m_macro" etc.
+ *
+ * @param stringPart
+ *  Part of string, which name needed to return.
+ */
+function parserSyntaxGetAttrName(stringPart) {
+
+    var result = null;
+    if (stringPart.match(/^[a-zA-Z][a-zA-Z0-9]*$/)) { // simple words
+        result = stringPart.toLowerCase();
+    } else if (stringPart.match(/^[0-9]+$/)) {
+        result = "_digit"
+    } else if (stringPart.match(/^".*"$/)) {
+        result = "_string"
+    } else if (stringPart.match(/^\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_function"
+    } else if (stringPart.match(/^\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_userFunction"
+    } else if (stringPart.match(/^[{}\]\[\(\)]+$/)) {
+        result = "_bracket"
+    } else if (stringPart.match(/^\^[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_global"
+    } else if (stringPart.match(/^##[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_sysMacro"
+    } else if (stringPart.match(/^\.\.[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_classProp"
+    } else if (stringPart.match(/^\$\$\$[a-zA-Z][a-zA-Z0-9]*$/)) {
+        result = "_macro"
+    } else if (stringPart.match(/^[\+\-=\*\/<>\\!_'#\?]+$/)) {
+        result = "_symbol"
+    } else { result = "_other" }
+    return (result)?"-"+result:result;
+
+}
+
+/**
+ * Parses text for tags and unnecessary symbols and returns correct text ready to execute on server side.
+ *
+ * @param data
+ *  not formatted string which must be prepared to execute on server side
+ * @returns {string}
+ *  formatted string ready-to-execute on server side
+ */
+function parserPrepareSubmitData(data) {
+    return parserRemoveTags(data).trim().replace(/\r\n|\r|\n/g,"\n") + "\n"; // adds last terminator character
+}
+
+/**
+ * Function inserts color tags to string and returns string with tags.
+ *
+ * @deprecated
+ *
+ * @param string
+ *  String to highlight.
+ * @returns {string}
+ *  Highlighted string.
+ */
+function parserHighlight(string) {
+
+    return string.replace(/(\w+|\W)/g, function(a) {  // \S+   //  \w+
+
+        if (a.match(/(lt|gt|<|>|&|br|nbsp|amp|;)/g) || // html special characters
+            //a.match(/^[^\s]*<div$/) ||
+            //a.match(/^class="caret-blink"><\/div>[^\s]*$/)) {
+            a.match(/.*(<|>).*/g)) { // any tag symbol
+            return a; // just skip
+        }
+        return "<span class=\"syntax" + parserSyntaxGetAttrName(a) + "\">" + a + "</span>";
+
+    });
+
+}
+
+/**
+ * Function breaks code for parts with span tags and according styles, but skips &*; html-symbol combinations and tag <br>
+ *
+ * @param string
+ *  String to parse.
+ * @returns {string}
+ *  Parsed string.
+ */
+function parserHighlightHTML(string) {
+    return string.replace(/(((<|&|&#)|\^|\${0,3}|#{0,2}|%|\.|(\.\.))?[A-Za-z0-9]+[;>]?)|[{}\]\[\(\)!_'\\#\?\+\-\*\/=<>,]|("[^"]*")/g,
+        function(part) {
+            return "<span class=\"syntax" + parserSyntaxGetAttrName(part) + "\">" + part + "</span>";
+    });
+}
+
+/**
+ * Function returns real position in string, according to visible position pos.
+ * In other words, it skips tags and special html symbols like &nbsp;
+ *
+ * @param string
+ *  String
+ * @param position
+ *  Position to convert.
+ * @returns {number}
+ *  New real position according to html-string.
+ */
+function parserGetRealPosition(string,position) {
+
+    var i = 0, l = string.length, pos = 0;
+    while (i<l && pos<position) {
+        if (string[i]=="&") {
+            var m = string.substr(i+1,5).match(/(nbsp|lt|gt|amp|#09);/g);
+            if (m) i += m[0].length;
+        } else if (string[i]=="<") {
+            var p = string.indexOf(">",i+1);
+            var inside = string.substring(i+1,p);
+            if (inside == "br" || inside.substr(0,3) == "br/" || inside.substr(0,3) == "br ") {
+                pos++;
+            }
+            if (p==-1) { i = pos = l-1 } else { i += p-i; pos--; }
+        }
+        pos++; i++;
+    }
+    return i;
+}
+
+/**
+ * Function inserts caret html code to position, missing tags and &nbsp; symbols.
+ * With any problems caret will be inserted at the end.
+ *
+ * @param text
+ *  Text insert to.
+ * @param position
+ *  Position where to insert without tags.
+ * @returns {string}
+ *  String with caret code inside.
+ */
+function parserInsertCaret(text,position) {
+
+    return parserInsertString(text,parserGetRealPosition(text,position),"<div class=\"caret-blink\"></div>");
+
+}
+
+/**
+ * Replaces space characters and line endings to make it correctly displayed after insertion to html code.
+ *
+ * @param text
+ *  Text where to replace.
+ *
+ * @returns {string}
+ *  Replaced text.
+ */
+function parserFillHTMLSpaces(text) {
+
+    if (text.length>0) {
+        if (text[text.length-1] == " ") text = text.replaceSymbol(text.length - 1,"&nbsp;");
+        if (text[0] == " ") text = text.replaceSymbol(0,"&nbsp;");
+        text = text.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;").replace(/>\s/g,">&nbsp;");
+    }
+
+    return text;//.replace(/\t/g,"<span class=\"tab\">&nbsp;</span>");
+
+}
+
+/**
+ * Replaces all user-defined symbols/words.
+ *
+ * @param text
+ *  Text where to search.
+ * @returns {string}
+ *  Replaced string.
+ */
+function parserReplaceUserRedefinitions(text) {
+
+    var regex = null, def = null;
+    if (typeof terminalRedefined == "undefined") return text;
+    for (var i = 0; i < terminalRedefined.length; i++) {
+        def = terminalRedefined[i];
+        if (def) {
+            regex = new RegExp(escapeRegExp(def), 'g');
+            text = text.replace(regex,terminalDefines[def]);
+        }
+
+    }
+
+    return text;
+
+}
+
+/**
+ * Function parses input text for view. Adds styles, etc.
+ *
+ * @param text
+ *  Text to parse.
+ * @return {string}
+ *  Parsed stylized string.
+ */
+function parseInput(text) {
+
+    var p = getCaretPosition(terminalGetInputObject());
+
+    text = htmlEncode(text);
+    text = parserHighlightHTML(text);
+    //text = parserFillHTMLSpaces(text);
+    //text = parserHighlight(text);
+    text = parserInsertAutocompleteOption(text);
+    if (!ie()) text = parserInsertCaret(text,p); // do not show caret in IE - here's the native caret impossible to hide
+
+    return text;
+
+}
+]]></CSP>
+
+
+<CSP name="webTerminal/js/terminal.js" application="/csp/sys/" default="1"><![CDATA[
+/**
+ * Basic scripts for web-based Cache terminal.
+ *
+ * @author ZitRo
+ *
+ * Required:
+ *  parser.js
+ *  base.js
+ *
+ * Cache terminal protocol over-WebSocket description (CTWPv2):
+ *  WebSocket data exchange based on messages transferring between server and client. The rules for exchanging
+ *  for CTWPv2 are the next:
+ *
+ *  AUTHORIZATION:
+ *      First package: client sends string to server which includes ONLY authorization key. If server accepts
+ *      key, it forming ACTION_AUTHORIZATION package (including one character), which means for client that
+ *      authorization was successful and execution can be performed. If authorization fails, server closes
+ *      connection immediately.
+ *  MESSAGING:
+ *      Server-client messaging based on less-three-packages rule. Every command (or command stack) transfers
+ *      between server and client according to the next rules:
+ *          - FIRST PACKAGE (any of the first received after authorization succeeded or ACTION_END) includes
+ *          identifier that shows client/server suitable action. It means that next package(s) will be
+ *          interpreted as one unit and action.
+ *          - SECOND+ PACKAGE(s) (also called intermediate data) includes information to be interpreted by
+ *          established rules in first package.
+ *          - LAST PACKAGE includes terminator symbol combination - it brings client/server to break current
+ *          action and start waiting for FIRST PACKAGE again.
+ *      + Note that even second package can include terminator string (last package). In this case package will
+ *      be interpreted as null string.
+ *      ? If one of the second packages will include terminator string, and than terminator string will come
+ *      again, it means that previous terminator was a simple string. *This situation causes special action for
+ *      whole "intermediate data".
+ *
+ */
+
+var terminalAutocompleteVariants = []; // currently available variants of autocomplete
+
+var terminalRedefined = []; // holds user-defined words that are stored in  //  terminalRedefined[i] = "word"
+var terminalDefines = []; // holds redefinition of defined words  //  terminalDefines["word"] = "word"
+
+var terminalOutputStack = ""; // data which waits for outputting.
+
+/**
+ * Actions are used as server-client communication prefixes and shows what action server/client have to perform.
+ * For example, message from server ">test" means, that client must put to log text "test", when message "_USER"
+ * meaning is to change current namespace to USER.
+ *
+ * @type {string}
+ */
+var ACTION_NONE = "", // makes terminal to listen for action
+    ACTION_MESSAGE = ">",// stores message. Second separator means for server that message has it's own id
+    ACTION_AUTHORIZATION = "?",// used to authorize client, holds authorization key
+    ACTION_NAMESPACE = "_", // holds namespace to change
+    ACTION_EXECUTED = "!", // holds the id of message that has been just executed
+    ACTION_SQL = "@", // includes sql-query to server
+    ACTION_TERMINATOR = "/END/", // end of operation identifier (start from CTWPv2)
+    ACTION_LOADnEXECUTE = "js"; // client-side execution of loaded script. Value: relative/patch/to/script.js
+
+var terminalCurrentAction = ACTION_NONE, // current action shows what to expect from the server and how to handle it
+    terminalActionsRegExp = new RegExp("["+escapeRegExp(ACTION_MESSAGE+ACTION_AUTHORIZATION+ACTION_NAMESPACE+ACTION_EXECUTED+
+    ACTION_SQL+"("+ACTION_TERMINATOR+")"+"("+ACTION_LOADnEXECUTE+")")+"]", "g");
+
+/**
+ * Functions terminalGet*Object[s] return objects (terminal parts) to work with.
+ *
+ * @returns {object} 
+ *  Returns required object.
+ */
+function terminalGetInputObject() { return document.getElementsByClassName("terminalHiddenInput")[0] }
+function terminalGetInputViewObject() { return document.getElementsByClassName("terminalInputView")[0] }
+function terminalGetOutputObject() { return document.getElementsByClassName("terminalOutputBody")[0] }
+function terminalGetInputWrappersObjects() { return document.getElementsByClassName("terminalInputWrapper") }
+function terminalGetInputHeaderObject() { return document.getElementsByClassName("terminalInputHeader")[0] }
+function terminalGetCaretObject() { return document.getElementsByClassName("caret")[0] ||
+    document.getElementsByClassName("caret-blink")[0] }
+function terminalGetAutocompleteObject() { return document.getElementsByClassName("terminalAutocompleteOption")[0] }
+function terminalGetOutputMessage(id) { return document.getElementById("terminalCommand"+id) }
+function terminalGetOutputMessageOutput(id) {
+    var a = document.getElementById("terminalCommand"+id);
+    if (a) {
+        var b = a.lastChild;
+        if (b) {
+            var c = b.firstChild;
+            if (c) return c;
+        }
+    }
+    return null;
+}
+
+/**
+ * Focuses on terminal input object.
+ */
+function terminalFocusOnInput() {
+    terminalGetInputObject().focus();
+    placeCaretAtEnd(terminalGetInputObject());
+}
+
+/**
+ * Function pastes output stack to outputObject. If outputObject isn't assigned, it just clears terminalOutputStack
+ *
+ * [ @param outputObject ]
+ *  Object to insert output to. If not specified, output will be written to current output object.
+ * [ @param highlight ]
+ *  Highlight code?
+ */
+function terminalFreeOutputStack(outputObject,highlight) {
+
+    if (terminalOutputStack == "") return;
+    if (typeof outputObject == "undefined") outputObject = terminalCurrentOutputField;
+    if (typeof highlight == "undefined") highlight = 1;
+    if (outputObject && (typeof outputObject.innerHTML != "undefined") ) {
+        outputObject.innerHTML += (highlight)?parserHighlightHTML(htmlEncode(terminalOutputStack)):htmlEncode(terminalOutputStack);
+        scrollToBottom(document.body);
+    } else log("Output cleared without target.");
+    terminalOutputStack = "";
+
+}
+
+/**
+ * Function by default called every .5-1 second and does input caret blink.
+ */
+function terminalCaretTick() {
+    var caret = terminalGetCaretObject();
+    if (caret) (caret.getAttribute("class") == "caret-blink") ?
+        caret.setAttribute("class", "caret") :
+        caret.setAttribute("class", "caret-blink");
+}
+
+/**
+ * Sets current command zone to zoneName.
+ *
+ * @param zoneName
+ *  Command zone.
+ */
+function terminalSetNamespace(zoneName) {
+
+    var header = terminalGetInputHeaderObject();
+    var wrappers = terminalGetInputWrappersObjects();
+
+    // we need to update terminalInputHeader.width && terminalInputWrappers[].margin-left property
+
+    var l = zoneName.visualLength() + 20; // @const
+    var length = wrappers.length;
+
+    for (var i = 0; i < length; i++) {
+        wrappers[i].style.marginLeft = l + "px";
+    }
+
+    header.style.width = l + "px";
+    header.innerHTML = zoneName;
+
+}
+
+/**
+ * Function returns current working command zone.
+ *
+ * @returns {string}
+ *  E.g. Namespace
+ */
+function terminalGetNamespace() {
+    return terminalGetInputHeaderObject().innerHTML;
+}
+
+/**
+ * Returns data typed to terminal input field.
+ *
+ * @returns {string}
+ *  Value of terminal input
+ */
+function terminalGetInputValue() {
+    var input = terminalGetInputObject();
+    return input.value;
+}
+
+/**
+ * Sets the value of terminal input object.
+ */
+function terminalSetInputValue(value) {
+
+    var input = terminalGetInputObject();
+    input.value = value;
+    placeCaretAtEnd(input);
+
+}
+
+/**
+ * Returns data within terminal input (highlighted).
+ *
+ * @returns {string}
+ *  Value of terminal input
+ */
+function terminalGetInputViewValue() {
+    var input = terminalGetInputViewObject();
+    return input.innerHTML;
+}
+
+/**
+ * Simply check if output object is default terminal output object.
+ *
+ * @param output
+ *  Object to check.
+ * @returns {boolean}
+ */
+function terminalCheckForDefaultOutput(output) {
+    return output.getAttribute("class") == "terminalOutputBody"
+}
+
+/**
+ * Outputs data to terminal output.
+ * @param data
+ *  Data to output.
+ * [ @param highlight ]
+ *  Set to positive if it is necessary to highlight output. Default: no highlight.
+ * [ @param zone ]
+ *  Set output visible zone to any zone you want. If not defined, default zone will be used.
+ * [ @param id ]
+ *  Insert command identifier.
+ */
+function terminalOutput(data, highlight, zone, id) {
+
+    var normalOutput = terminalGetOutputObject(); // indicates normal output. Unusual output will provide only text insertion
+    var output = terminalCurrentOutputField || normalOutput;
+    highlight = (typeof highlight !== "undefined") ? highlight : 0;
+    data = ((highlight)?parserHighlightHTML(data):data);
+
+    if (terminalCheckForDefaultOutput(output)) {
+
+        id = ((typeof id !== "undefined") && (typeof terminalGetOutputMessage(id) !== "undefined"))?" id=\"terminalCommand"+id+"\"":"";
+        zone = (typeof zone !== "undefined") ? zone : terminalGetNamespace();
+
+        var ww = zone.visualLength() + 20; // @const
+
+        output.innerHTML += "<div class=\"terminalOutputContainer\" " + id + ">" +
+            "<div class=\"terminalOutputHeader\" style=\"width: " + ww + "px;\">" + zone + "</div>" +
+            "<div class=\"terminalOutputWrapper\" style=\"margin-left: " + ww + "px;\">" +
+            "<div class=\"terminalOutput\">" + data + "</div>" +
+            "</div>" +
+            "</div>";
+
+    } else {
+
+        output.innerHTML += data;
+
+    }
+
+}
+
+/**
+ * Submits data from terminal input to server with all necessary actions. Clears input.
+ */
+function terminalSubmit(data) {
+
+    //if (data.trim() != "") {
+
+        data = parserReplaceUserRedefinitions(data);
+
+        if (handleInput) { // scenario script
+
+            try {
+                handleInput.call(this,data);
+            } catch (e) {
+                terminalLog("Error handling function. " + e.message);
+            }
+
+        } else {
+
+            terminalOutput(parserFillHTMLSpaces(htmlEncode(data)), 1, terminalGetNamespace(), lastCommandId+1);
+
+            // increase command stack for history
+            lastCommandId++;
+            if (data.trim() != "") {
+                historyCurrent = commandHistory.length;
+                commandHistory[historyCurrent - 1] = terminalGetInputValue();
+                commandHistory.push("");
+            }
+
+            if (data[0]=="/") { // internal (browser-side) instruction
+
+                terminalInternalExecute(data.substr(1,data.length-1));
+
+            } else {
+
+                if (terminalMode == MODE_EXECUTE || terminalMode == MODE_EXECUTION)
+                    terminalExecute(data);
+                else if (terminalMode == MODE_SQL)
+                    terminalExecute(data,ACTION_SQL);
+
+            }
+
+        }
+
+
+    //} else terminalOutput(""); // just for geeks :)
+
+    terminalClearInput();
+    terminalUpdateInputView();
+    scrollToBottom(document.body);
+
+}
+
+/**
+ * Function clears all visual logs
+ */
+function terminalClearLog() {
+    terminalGetOutputObject().innerHTML = ""
+}
+
+/**
+ * Function clears all command history
+ */
+function terminalClearHistory() {
+    commandHistory = [""];
+    historyCurrent = 0;
+}
+
+/**
+ * Function executes every submit time when handleInput flag equals true.
+ *
+ * @param data
+ *  Input data.
+ */
+function terminalHandledInput(data) {
+
+    // by flag handleInput
+    handleInput = 0;
+
+}
+
+/**
+ * Function called when message received from the server.
+ *
+ * @param event
+ *  Event data.
+ */
+function terminalMessageReceived(data) {
+
+    terminalDebug.log("Server: ",data);
+
+    if (data == ACTION_TERMINATOR) terminalCurrentAction = ACTION_TERMINATOR;
+    if (handleMessageReceive) {
+        try {
+            handleMessageReceive.call(this,data);
+        } catch (e) {
+            terminalLog("Error while handling server output. " + e.message);
+        }
+    }
+
+    switch (terminalCurrentAction) { // CTWPv2
+
+        case ACTION_NONE: { // assign new action
+            if (data.match(terminalActionsRegExp)) {
+                terminalCurrentAction = data;
+            } else {
+                terminalLog("Unrecognised data from server: " + data)
+            }
+        } break;
+
+        case ACTION_EXECUTED: {
+            terminalMarkOutputMessageAsExecuted(data); // @deprecated
+        } break;
+
+        case ACTION_NAMESPACE: {
+            namespace = data;
+            terminalSetNamespace(data);
+        } break;
+
+        case ACTION_MESSAGE: {
+
+            if (terminalCheckForDefaultOutput(terminalCurrentOutputField)) { // while first message, create specified output
+                lastCommandId++;
+                terminalOutput("",0,terminalGetNamespace(),lastCommandId);
+                var out = terminalGetOutputMessageOutput(lastCommandId);
+                if (out) { terminalCurrentOutputField = out; }
+            }
+            terminalOutputStack += data;
+
+        } break;
+
+        case ACTION_LOADnEXECUTE: {
+            try {
+                var oHead = document.getElementsByTagName('HEAD').item(0);
+                var oScript= document.createElement("script");
+                oScript.type = "text/javascript";
+                oScript.src=data;
+                oHead.appendChild(oScript);
+            } catch (e) {
+                log(e)
+            }
+        } break;
+
+        case ACTION_TERMINATOR: {
+            if (terminalMode == MODE_EXECUTION) terminalMode = MODE_EXECUTE;
+            terminalFreeOutputStack();
+            terminalCurrentOutputField = terminalGetOutputObject();
+            terminalMarkOutputMessageAsExecuted(lastCommandId);
+            terminalCurrentAction = ACTION_NONE; // todo: special function for 2nd+ occurrence
+        } break;
+
+    }
+
+    scrollToBottom(document.body);
+
+}
+
+function terminalMarkOutputMessageAsExecuted(messageId) {
+
+    var obj = terminalGetOutputMessage(messageId);
+    if (obj) {
+        var header = obj.firstChild;
+        if (header) {
+            header.innerHTML = "<span class=\"executed\">" + header.innerHTML + "</span>"
+        }
+    } else {
+        log("Message with id="+messageId+" executed, but log of this message does not exists (or just was cleared).")
+    }
+
+}
+
+/**
+ * Logs message to terminal.
+ *
+ * @param message
+ */
+function terminalLog(message) {
+    terminalOutput(message,0,"<span class=\"warning\">log</span>")
+}
+
+/**
+ * Just sends data to server. Returns 1 if succeeded, else returns 0.
+ *
+ * @param stringData
+ *
+ * @returns {number}
+ */
+function terminalSendToServer(stringData) {
+    try {
+        //terminalDebug.log("Sending: ",stringData);
+        webSocket.send(stringData);
+    } catch (e) {
+        terminalLog("WebSocket error. Data: " + e.message)
+    }
+}
+
+/**
+ * Executes command on server side. Simply sends command to server.
+ *
+ * @param command
+ *  Command to execute.
+ * [ @param action ]
+ *  Action prefix for server. Default: ACTION_MESSAGE.
+ */
+function terminalExecute(command,action) {
+
+    if (typeof action == "undefined") action = ACTION_MESSAGE;
+    var data = parserPrepareSubmitData(command);
+    //if ( (action == ACTION_MESSAGE) || (action == ACTION_SQL) ) data = lastCommandId + ACTION_MESSAGE + data;
+
+    if (webSocket == null) {
+        terminalOutput("No connection established. Please, use <span class=\"hint\">/connect</span> command first.",
+            0,"<span class=\"error\">system</span>");
+    } else try {
+        //webSocket.send(action+data); // CTWPv1
+        if (terminalMode != MODE_EXECUTION) terminalSendToServer(action);
+        terminalSendToServer(data);
+        //terminalSendToServer(ACTION_TERMINATOR); // CTWPv2
+    } catch (e) {
+        terminalOutput("Problems with <b>WebSocket</b>. Exception: " + e,
+            0,"<span class=\"error\">system</span>");
+    }
+
+    if (action == ACTION_MESSAGE) terminalMode = MODE_EXECUTION;
+
+}
+
+function terminalSaveCurrentQueryToHistory() {
+    commandHistory[commandHistory.length-1] = terminalGetInputValue();
+}
+
+/**
+ * Clears input of the terminal.
+ */
+function terminalClearInput() {
+
+    terminalGetInputObject().value = "";
+    placeCaretAtEnd(terminalGetInputObject());
+
+}
+
+/**
+ * Performs suitable actions for terminal input, basing on keyPress event:
+ * - Performs submitting while enter pressed;
+ * - Prevents and handles <tab> key press;
+ *
+ * @param event
+ *  Key press event.
+ */
+function terminalKeyDowned(event) {
+
+    var keyCode = getKeyCode(event);
+
+    if ( keyCode == 9 || (keyCode == 13 && !(keyPressed[16] || keyPressed[17])) || keyCode == 17) {
+        preventDefaultEvent(event);
+    }
+
+    if (keyCode != 13 || ( keyCode == 13 && !(keyPressed[16] || keyPressed[17])))
+        if (terminalPerformKeyAction(keyCode)) { // SHIFT/CTRL + ENTER
+            preventDefaultEvent(event);
+        } else setTimeout("terminalSaveCurrentQueryToHistory()",1);
+
+    // SHIFT == 16
+
+    if (keyCode != 17) setTimeout("terminalUpdateInputView()",1); // CTRL
+
+}
+
+/**
+ * Function focuses on terminal input, if focus locates somewhere else and
+ * calls terminalKeyDowned(event) function.
+ *
+ * @param event
+ *  Keyboard event.
+ */
+function terminalGlobalKeyDown(event) {
+
+    if (document.activeElement != terminalGetInputObject()) {
+        if (keyPressed[17] == 0)
+            terminalFocusOnInput();
+    }
+    terminalKeyDowned(event);
+
+}
+
+/**
+ * Function just updates input view: highlights it and do some other stuff.
+ */
+function terminalUpdateInputView() {
+
+    terminalGetInputViewObject().innerHTML = parseInput(terminalGetInputValue());
+
+}
+
+/**
+ * Just returns value of current autocomplete option.
+ *
+ * @returns {string}
+ *  Part of string autocomplete object holds.
+ */
+function terminalGetAutocompleteValue() {
+
+    var obj = terminalGetAutocompleteObject();
+    return (obj)?terminalGetAutocompleteObject().innerHTML:"";
+
+}
+
+/**
+ * Sets value directly to autocomplete object.
+ * @param value
+ *  Value to set.
+ */
+function terminalSetAutocompleteValue(value) {
+
+    var obj = terminalGetAutocompleteObject();
+    if (obj) { obj.innerHTML = value } else { log("No autocomplete object found to set value to.") }
+
+}
+
+/**
+ * Function returns one of query results from command history.
+ *
+ * @param increment
+ *  Relative value to seek in history stack
+ *
+ * @returns {string}
+ *  Command from history.
+ */
+function terminalLoadFromHistory(increment) {
+
+    historyCurrent += increment;
+    if (historyCurrent < 0) historyCurrent = commandHistory.length-1;
+    if (historyCurrent >= commandHistory.length) historyCurrent = 0;
+    return commandHistory[historyCurrent].toString();
+
+}
+
+/**
+ * Inserts autocomplete option (if exists) into current cursor position of input.
+ */
+function terminalPerformAutocomplete() {
+
+    var input = terminalGetInputObject();
+    var caretPosition = getCaretPosition(input);
+    var autocompleteValue = terminalGetAutocompleteValue();
+    terminalSetInputValue(parserInsertString(terminalGetInputValue(),caretPosition,autocompleteValue));
+    setCaretPosition(input,caretPosition + autocompleteValue.length);
+
+}
+
+/**
+ * Performs specified action according to key.
+ *
+ * @param key
+ *  Code of trigger key.
+ * @returns {number}
+ *  Returns default action preventing. If 0, default key pressed action will be performed.
+ */
+function terminalPerformKeyAction(key) {
+
+    var caretPos, nPos;
+
+    switch (key) {
+        case 9: { // TAB
+            if (terminalAutocompleteVariants.length == 0) {
+                var p = getCaretPosition(terminalGetInputObject())-1;
+                var val = terminalGetInputValue();
+                terminalSetInputValue(val.replaceSymbol(p,val.charAt(p)+"\t"));
+                setCaretPosition(terminalGetInputObject(),p+2);
+            }
+            terminalPerformAutocomplete();
+        } break;
+        case 13: terminalSubmit( terminalGetInputValue() ); break; // ENTER
+        case 17: terminalChangeAutocompleteVariant(1); break; // CTRL
+        case 38: {
+            caretPos = getCaretPosition(terminalGetInputObject());
+            nPos = terminalGetInputValue().indexOf("\n");
+            if (caretPos < nPos || nPos == -1) { // if placed on first line of input
+                terminalSetInputValue(terminalLoadFromHistory(-1));
+                //setTimeout("placeCaretAtEnd(terminalGetInputObject())",1);
+                return 1;
+            }
+        } break;
+        case 40: {
+            caretPos = getCaretPosition(terminalGetInputObject());
+            nPos = terminalGetInputValue().lastIndexOf("\n");
+            if (caretPos > nPos || nPos == -1) { // if placed on last line of input
+                terminalSetInputValue(terminalLoadFromHistory(1));
+                //setTimeout("placeCaretAtEnd(terminalGetInputObject())",1);
+                return 1;
+            }
+        } break;
+    }
+
+    return 0;
+
+}
+
+/**
+ * Changes variants of autocomplete to one of the next available.
+ *
+ * @param dir
+ *  Direction to list.
+ */
+function terminalChangeAutocompleteVariant(dir) {
+
+    var val = terminalGetAutocompleteValue();
+    var ll = terminalAutocompleteVariants.length;
+    if (val != "") {
+        for (var i = 0; i < ll; i++) {
+            if (terminalAutocompleteVariants[i] == val) {
+                var v;
+                if (dir > 0) {
+                    v = (i+1 < ll)?terminalAutocompleteVariants[i+1]:terminalAutocompleteVariants[0];
+                } else {
+                    v = (i-1 < 0)?terminalAutocompleteVariants[ll-2]:terminalAutocompleteVariants[i-1];
+                }
+                terminalSetAutocompleteValue(v);
+                return;
+            }
+        }
+    }
+
+}
+
+/**
+ * Checks for autocomplete in current position and guesses variants
+ */
+function parserInsertAutocompleteOption(text) {
+
+    var input = terminalGetInputObject();
+    var caretPosition = getCaretPosition(input);
+    var data = terminalGetInputValue();
+    terminalAutocompleteVariants = parserGetCleverAutocompleteVariants(data,caretPosition);// parserGetAutocompleteVariants(data,caretPosition);
+    if (terminalAutocompleteVariants.length > 0) {
+        text = parserInsertString(text,parserGetRealPosition(text,caretPosition),
+            "<span class=\"terminalAutocompleteOption\">"+terminalAutocompleteVariants[0]+"</span>");
+    }
+    return text;
+
+}
+]]></CSP>
+
+
+<Project name="WebTerminal" LastModified="2013-08-14 17:33:46.026813">
+  <Items>
+    <ProjectItem name="%WebTerminal.Engine" type="CLS"></ProjectItem>
+    <ProjectItem name="csp/sys/webTerminal" type="DIR"></ProjectItem>
+    <ProjectItem name="csp/sys/webTerminal/css" type="DIR"></ProjectItem>
+    <ProjectItem name="csp/sys/webTerminal/img" type="DIR"></ProjectItem>
+    <ProjectItem name="csp/sys/webTerminal/js" type="DIR"></ProjectItem>
+  </Items>
+</Project>
+</Export>
