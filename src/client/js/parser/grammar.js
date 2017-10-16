@@ -833,6 +833,7 @@ rule("argumentList").split(
 
 rule("nonEmptyArgumentList").branch().split(
     char({ value: ".", class: "argument" }).id({ class: "argument" }),
+    char(",").optWhitespace().merge(),
     call("expression")
 ).split(
     char(",").optWhitespace().merge(),
