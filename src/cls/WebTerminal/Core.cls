@@ -340,12 +340,14 @@ ClassMethod Loop(startupRoutine As %String = "") As %Status
     if (startupRoutine '= "") {
         return ..StartupRoutine(startupRoutine)
     }
-    kill // Kill any temporary variables ProcedureBlock may have. Keep procedure block free of vars
+    kill // Kill any temporary variables ProcedureBlock may have.
+    // Procedure block will hold only user-defined variables, so any declarations here may
+    // potentially influence user experience. Do not add any set expressions in this procedure block
     for {
         do ..StartExecMode()
         try {
             xecute ..WaitCommand()
-        } catch err {
+        } catch {
             do ..EndExecMode($ZERROR)
             continue
         }
