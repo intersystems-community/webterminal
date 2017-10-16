@@ -1317,6 +1317,49 @@ npm run build                    # build the project</code>
                     should receive <code class="inline">IMPORT STATUS: OK</code> and
                     <code class="inline">EXPORT STATUS: OK</code> messages.
                 </p>
+                <p>
+                    The workflow to release a new version of WebTerminal is presented below.
+                    Please, be very careful when releasing new versions, as all the WebTerminal
+                    users will start receiving updates. To release a new WebTerminal version, do the following:
+                </p>
+                <ol>
+                    <li>
+                        Build and carefully test the project as described above.
+                    </li>
+                    <li>
+                        Copy <code class="inline">build/WebTerminal-vX.Y.Z.xml</code> file to the
+                        <code class="inline">docs/files</code> directory.
+                    </li>
+                    <li>
+                        Append a record describing changes to <code class="inline">docs/terminal.json</code> file.
+                        You can accurately copy-paste-edit records from the previous records. Make sure you changed
+                        the <code class="inline">/versions/X/v</code> and <code class="inline">/versions/X/url</code>
+                        to the latest version and the location of the file respectively. Note that the latest version
+                        bust be <b>greater</b> than the previous version. Make sure that the JSON structure is still
+                        valid.
+                    </li>
+                    <li>
+                        If the change is pretty important, add it to visible releases by editing
+                        <code class="inline">docs/index.html</code> file.
+                    </li>
+                    <li>
+                        After you push these changes to repository, test whether terminal receives the new version and
+                        properly updates.
+                    </li>
+                </ol>
+                <p>
+                    A special care must be taken while altering WebTerminal <b>updating mechanism</b>
+                    (<code class="inline">WebTerminal.Updater</code> class). If you push a broken change, WebTerminal
+                    will update itself normally, but possibly only for the first time. For the next updates WebTerminal
+                    will use the new update code which can make it never update again (user will need to reinstall it manually).
+                </p>
+                <p>
+                    You can put the <code class="inline">/motd</code> (message of the day) message to
+                    <code class="inline">docs/terminal.json</code>: all WebTerminal users will start to see this
+                    message in console. Do it <b>only when absolute necessary</b>: do not distract users. This functionality
+                    is kept for the critical WebTerminal update faults: when users will need to reinstall WebTerminal
+                    manually (hopefully never).
+                </p>
                 <h2 id="docs.5.2">5.2. Guidelines</h2>
                 <p>
                     There are several guidelines you should consider if you want to contribute to
