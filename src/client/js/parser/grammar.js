@@ -642,7 +642,8 @@ rule("expression").split(
         ),
         char({ value: "|", class: "special" }).char({ value: "|", class: "special" }),
         char({ value: "[", class: "special" }),
-        char({ value: "]", class: "special" })
+        char({ value: "]", class: "special" }),
+        char({ value: "#", class: "special" })
     ).optWhitespace().call("expression"),
     any()
 ).exit().end();
