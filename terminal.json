@@ -429,6 +429,14 @@
       "changes": [
         "Executing JOBs within WebTerminal fix (\u001b!URL=https://github.com/intersystems-ru/webterminal/issues/105 (issue #105)). Routines/Programs affecting $ZCHILD variable now should work properly."
       ]
+    },
+    {
+      "v": "4.7.3",
+      "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.7.3.xml",
+      "changes": [
+        "Syntax improvements: added support for empty arguments and # remainder operation",
+        "Removed unnecessary \"err\" variable that adds each time when an error happens"
+      ]
     }
   ]
 }
