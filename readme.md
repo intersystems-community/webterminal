@@ -220,5 +220,5 @@ cd webterminal # enter repository directory
 import         # build & import the project. YOU NEED TO EDIT CONSTANTS IN THIS FILE FIRST
 ```
 
-Now, in `build` folder you will find `WebTerminal-v*.xml` file. Every time you
-changes is ready to be tested, just run `import` again. 
+Now, in `build` folder you will find `WebTerminal-v*.xml` file. Every time your
+changes are ready to be tested, just run `import` again. 
