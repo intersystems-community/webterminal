@@ -437,6 +437,13 @@
         "Syntax improvements: added support for empty arguments and # remainder operation",
         "Removed unnecessary \"err\" variable that adds each time when an error happens"
       ]
+    },
+    {
+      "v": "4.7.4",
+      "url": "https://intersystems-community.github.io/webterminal/files/WebTerminal-v4.7.4.xml",
+      "changes": [
+        "WebTerminal project moved to \u001b!URL=https://intersystems-community.github.io/webterminal/ (intersystems-community) repository, this update fixes updating WebTerminal in the future"
+      ]
     }
   ]
 }

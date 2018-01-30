@@ -5,7 +5,7 @@
   "printableName": "Cache Web Terminal",
   "description": "Web-based terminal emulator for Caché administering.",
   "author": "ZitRo",
-  "version": "4.7.3",
+  "version": "4.7.4",
   "gaID": "UA-83005064-2",
   "releaseNumber": 26,
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/intersystems-ru/webterminal.git"
+    "url": "https://github.com/intersystems-community/webterminal.git"
   },
   "devDependencies": {
     "babel-core": "^6.23.1",

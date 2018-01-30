@@ -11,7 +11,7 @@ if (config.get(`updateCheck`)) {
 }
 
 export function checkUpdate (force = false) {
-    get("https://intersystems-ru.github.io/webterminal/terminal.json", (data = {}) => {
+    get("https://intersystems-community.github.io/webterminal/terminal.json", (data = {}) => {
         if (data.error || typeof data[`motd`] === "undefined")
             return;
         terminal.onAuth(() => handleNetworkData(data, force));
@@ -61,7 +61,9 @@ function printUpdate (versions) {
     ));
     if (!updateURL) {
         output.printLine(
-            locale.get(`noUpdUrl`, `https://intersystems-ru.github.io/webterminal/#downloads`)
+            locale.get(
+                `noUpdUrl`, `https://intersystems-community.github.io/webterminal/#downloads`
+            )
         );
         return;
     }

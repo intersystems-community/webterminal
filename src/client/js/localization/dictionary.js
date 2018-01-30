@@ -101,12 +101,12 @@ export default {
     "sUpdRes": {
         en: "Update failed. Possibly, the new WebTerminal version is not compatible with your "
             + "system anymore, or the update was not tested for this system. Please report this "
-            + "issue \x1b!URL=https://github.com/intersystems-ru/webterminal/issues (here) and "
+            + "issue \x1b!URL=https://github.com/intersystems-community/webterminal/issues (here) and "
             + "attach the update log. You can try waiting some time (finite or infinite) until this"
             + " problem is identified and fixed.",
         ru: `Обновление не удалось. Возможно, новая версия веб-терминала больше не совместима `
             + `с вашей системой, или обновление не было протестировано для неё. Пожалуйста, обратитесь в `
-            + `\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (поддержку) с `
+            + `\x1b!URL=https://github.com/intersystems-community/webterminal/issues (поддержку) с `
             + `вопросом, прикрепив лог обновления или подождите некоторое количество времени `
             + `(конечное или бесконечное), пока проблема не будет выявлена и исправлена.`
     },
@@ -162,7 +162,7 @@ export default {
 \r\x1B[(special)mTAB\x1B[0m\x1B[20GComplete the input with proposed autocomplete variant.
 \r\x1B[(special)mRight/left CTRL\x1B[0m\x1B[20GSwitch autocomplete variant when multiple are available.
 \r
-\rPress \x1B!URL=http://intersystems-ru.github.io/webterminal/#docs (here) to see the full documentation.`,
+\rPress \x1B!URL=http://intersystems-community.github.io/webterminal/#docs (here) to see the full documentation.`,
         ru: `\x1b[1mCaché WEB Terminal \x1b[(keyword)mv/* @echo package.version */\x1b[0m
 \r
 \r\x1B[4mДоступные команды:\x1B[0m
@@ -181,24 +181,24 @@ export default {
 \r\x1B[(special)mTAB\x1B[0m\x1B[20GЗавершить ввод предложенным вариантом.
 \r\x1B[(special)mПравый/левый CTRL\x1B[0m\x1B[20GПереключить вариант автодополнения, когда их доступно несколько.
 \r
-\rНажмите \x1B!URL=http://intersystems-ru.github.io/webterminal/#docs (здесь) чтобы ознакомиться с полной документацией.`
+\rНажмите \x1B!URL=http://intersystems-community.github.io/webterminal/#docs (здесь) чтобы ознакомиться с полной документацией.`
     },
     "info": {
         en:
 `Caché WEB Terminal v/* @echo package.version */
 \rAuthor:\x1B[32G\x1b!URL=https://github.com/zitros (Nikita Savchenko) (ZitRo)
-\rProject:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Homepage)
-\rDocumentation:\x1B[32G\x1B!URL=http://intersystems-ru.github.io/webterminal/#docs (On the project's homepage)
-\rRepository:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
-\rBug/Feature Tracker:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
+\rProject:\x1B[32G\x1b!URL=https://intersystems-community.github.io/webterminal (Homepage)
+\rDocumentation:\x1B[32G\x1B!URL=http://intersystems-community.github.io/webterminal/#docs (On the project's homepage)
+\rRepository:\x1B[32G\x1b!URL=https://github.com/intersystems-community/webterminal (GitHub)
+\rBug/Feature Tracker:\x1B[32G\x1b!URL=https://github.com/intersystems-community/webterminal/issues (GitHub)
 \r2013-${ new Date().getFullYear() } © Nikita Savchenko`,
         ru:
 `Caché WEB Terminal v/* @echo package.version */
 \rАвтор:\x1B[32G\x1b!URL=https://github.com/zitros (Никита Савченко) (ZitRo)
-\rПроект:\x1B[32G\x1b!URL=https://intersystems-ru.github.io/webterminal (Страница проекта)
-\rДокументация:\x1B[32G\x1B!URL=http://intersystems-ru.github.io/webterminal/#docs (На странице проекта)
-\rРепозиторий:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal (GitHub)
-\rБаг/Фич трекер:\x1B[32G\x1b!URL=https://github.com/intersystems-ru/webterminal/issues (GitHub)
+\rПроект:\x1B[32G\x1b!URL=https://intersystems-community.github.io/webterminal (Страница проекта)
+\rДокументация:\x1B[32G\x1B!URL=http://intersystems-community.github.io/webterminal/#docs (На странице проекта)
+\rРепозиторий:\x1B[32G\x1b!URL=https://github.com/intersystems-community/webterminal (GitHub)
+\rБаг/Фич трекер:\x1B[32G\x1b!URL=https://github.com/intersystems-community/webterminal/issues (GitHub)
 \r2013-${ new Date().getFullYear() } © Никита Савченко`
     },
     "beforeInit": {

@@ -48,8 +48,8 @@
         <div class="pageBody">
             <div class="pageHeader">
                 Caché Web Terminal <sup class="rainbowText">v4</sup>
-                <a href="https://github.com/intersystems-ru/webterminal" target="_blank">
-                    <img src="https://img.shields.io/github/stars/intersystems-ru/webterminal.svg?style=social&label=Star"/>
+                <a href="https://github.com/intersystems-community/webterminal" target="_blank">
+                    <img src="https://img.shields.io/github/stars/intersystems-community/webterminal.svg?style=social&label=Star"/>
                 </a>
             </div>
             <ul class="siteNavigator">
@@ -115,7 +115,7 @@
                 <p>
                     WebTerminal is customizable. As time goes by, the more and more customization
                     options may appear. You can even request the ones you would like to see! Follow
-                    <a href="https://github.com/intersystems-ru/webterminal/issues">GitHub's issue
+                    <a href="https://github.com/intersystems-community/webterminal/issues">GitHub's issue
                     tracker</a> and leave your request there.
                 </p>
                 <p>
@@ -852,7 +852,7 @@
                         <td>
                             Changes the font color according to 8-bit color table. The
                             <span class="g variable">Y</span> here can take integers from 0 to 255,
-                            which corresponds to <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/25e47a17a95e0155ab6f8b4cc0fe4c6b594c5917/src/client/js/output/const.js">pre-defined 8-bit color table</a>.
+                            which corresponds to <a target="_blank" href="https://github.com/intersystems-community/webterminal/blob/25e47a17a95e0155ab6f8b4cc0fe4c6b594c5917/src/client/js/output/const.js">pre-defined 8-bit color table</a>.
                         </td>
                     </tr>
                     </tbody>
@@ -1021,7 +1021,7 @@
                         <td>
                             Prints the text wrapped into HTML &lt;span class="<span class="g variable">&lt;classname&gt;</span>"&gt;
                             element. To clear the assigned class use <code class="inline pre">&lt;ESC&gt;[0m</code>
-                            escape sequence as well. Check the available WebTerminal classes <a target="_blank" href="https://github.com/intersystems-ru/webterminal/tree/master/src/client/scss">here</a>.
+                            escape sequence as well. Check the available WebTerminal classes <a target="_blank" href="https://github.com/intersystems-community/webterminal/tree/master/src/client/scss">here</a>.
                         </td>
                     </tr>
                     <tr>
@@ -1052,9 +1052,9 @@
                     terminal standard. You can check the other escape sequences
                     <a target="_blank" href="http://www.termsys.demon.co.uk/vtansi.htm">here</a>.
                     If you find the escape sequence missing in WebTerminal, you can request for this
-                    sequence to be impemented. Go to <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">describe</a>
+                    sequence to be impemented. Go to <a target="_blank" href="https://github.com/intersystems-community/webterminal/issues">describe</a>
                     an issue, or, you can even implement it by yourself starting from
-                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/output/esc.js">this</a>
+                    <a target="_blank" href="https://github.com/intersystems-community/webterminal/blob/master/src/client/js/output/esc.js">this</a>
                     file.
                 </p>
             </div>
@@ -1278,7 +1278,7 @@ iFrame.addEventListener("load", function () {
                 <p>
                     The Caché WebTerminal is an open-source project anyone can contribute to. Anyone
                     are welcome to join and contribute to this project on InterSystems official
-                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal">GitHub</a>.
+                    <a target="_blank" href="https://github.com/intersystems-community/webterminal">GitHub</a>.
                     This section describes the basic guidelines and principles of contributing.
                 </p>
                 <h2 id="docs.5.1">5.1. Development Workflow</h2>
@@ -1295,7 +1295,7 @@ iFrame.addEventListener("load", function () {
                     (tested on NodeJS v4-6). Then, use command line to download and setup the
                     project:
                 </p>
-                <code class="pre">git clone https://github.com/intersystems-ru/webterminal
+                <code class="pre">git clone https://github.com/intersystems-community/webterminal
 cd webterminal                   # enter repository directory
 npm install                      # install all project's dependencies
 
@@ -1373,7 +1373,7 @@ npm run build                    # build the project</code>
                 </p>
                 <ol>
                     <li>
-                        Create a new <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">issue</a>
+                        Create a new <a target="_blank" href="https://github.com/intersystems-community/webterminal/issues">issue</a>
                         or open a pull request for every new contribution.
                     </li>
                     <li>
@@ -1382,7 +1382,7 @@ npm run build                    # build the project</code>
                     </li>
                     <li>
                         When introducing new features or extending WebTerminal API, open a new
-                        <a target="_blank" href="https://github.com/intersystems-ru/webterminal/issues">issue</a>
+                        <a target="_blank" href="https://github.com/intersystems-community/webterminal/issues">issue</a>
                         to discuss the way how to implement it as best as possible.
                     </li>
                 </ol>
@@ -1423,7 +1423,7 @@ npm run build                    # build the project</code>
                         </td>
                     </tr>
                     <tr>
-                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/output/esc.js">/src/client/js/
+                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-community/webterminal/blob/master/src/client/js/output/esc.js">/src/client/js/
 output/esc.js</a></code></td>
                         <td>
                             File that describes all supported escape sequences. The exported
@@ -1435,7 +1435,7 @@ output/esc.js</a></code></td>
                         </td>
                     </tr>
                     <tr>
-                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/parser/grammar.js">/src/client/js/
+                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-community/webterminal/blob/master/src/client/js/parser/grammar.js">/src/client/js/
 parser/grammar.js</a></code></td>
                         <td>
                             <b>You can easily make pull requests on this file if you need to enhance
@@ -1447,7 +1447,7 @@ parser/grammar.js</a></code></td>
                         </td>
                     </tr>
                     <tr>
-                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/localization/dictionary.js">/src/client/js/
+                        <td><code class="inline pre"><a target="_blank" href="https://github.com/intersystems-community/webterminal/blob/master/src/client/js/localization/dictionary.js">/src/client/js/
 localization/dictionary.js</a></code></td>
                         <td>
                             <b>You can easily make pull requests on this file if you need to
@@ -1474,7 +1474,7 @@ localization/dictionary.js</a></code></td>
                     primarily by <a target="_blank" href="https://github.com/ZitRos">Nikita
                     Savchenko</a> for the InterSystems community. Anyone are welcome to join and
                     contribute to this project on InterSystems official
-                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal">GitHub</a>.
+                    <a target="_blank" href="https://github.com/intersystems-community/webterminal">GitHub</a>.
                 </p>
                 <p>
                     The project is distributed under the MIT license, which provides absolutely free
@@ -1482,7 +1482,7 @@ localization/dictionary.js</a></code></td>
                     below.
                 </p>
                 <p>
-                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/LICENSE">The MIT License (MIT)</a>
+                    <a target="_blank" href="https://github.com/intersystems-community/webterminal/blob/master/LICENSE">The MIT License (MIT)</a>
                 </p>
                 <p>
                     Copyright (c) 2013-2017 Nikita Savchenko
@@ -1771,8 +1771,8 @@ localization/dictionary.js</a></code></td>
                     include any licensing or Caché usage information, so feel free to use
                     WebTerminal anytime, anywhere, for your needs. If you still don't want to use
                     WebTerminal because of analytics collection - check WebTerminal's related
-                    source code (<a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/cls/WebTerminal/Analytics.cls">server</a>,
-                    <a target="_blank" href="https://github.com/intersystems-ru/webterminal/blob/master/src/client/js/analytics/index.js">client</a>)
+                    source code (<a target="_blank" href="https://github.com/intersystems-community/webterminal/blob/master/src/cls/WebTerminal/Analytics.cls">server</a>,
+                    <a target="_blank" href="https://github.com/intersystems-community/webterminal/blob/master/src/client/js/analytics/index.js">client</a>)
                     by yourself. The project is completely safe to use and trusted by hundreds of
                     users worldwide.
                 </p>
@@ -1780,9 +1780,9 @@ localization/dictionary.js</a></code></td>
 
             <div class="pageLayout" id="feedback">
                 <h1 class="center">Feedback / Contact Me</h1>
-                <h1>Follow the project <a href="https://github.com/intersystems-ru/webterminal">on GitHub</a>. </h1>
+                <h1>Follow the project <a href="https://github.com/intersystems-community/webterminal">on GitHub</a>. </h1>
                 <p>
-                    We will be glad to hear any wishes, requests, and comments. Leave any issues and report bugs at <a href="https://github.com/intersystems-ru/webterminal/issues">GitHub's issue tracker</a>. If you have some extra
+                    We will be glad to hear any wishes, requests, and comments. Leave any issues and report bugs at <a href="https://github.com/intersystems-community/webterminal/issues">GitHub's issue tracker</a>. If you have some extra
                     information or questions - please feel free to <a href="mailto:nikita.savchenko@intersystems.com">contact me</a>, the developer of this application, <a href="http://nikita.tk">Nikita</a>.
                 </p>
             </div>
@@ -1833,7 +1833,7 @@ localization/dictionary.js</a></code></td>
                     <div class="content">
                         A first early alpha version of <b>Caché WEB Terminal v4</b> is released.
                         This release will introduce auto-updates to the newest versions, so you
-                        won't need to check <a href="https://github.com/intersystems-ru/webterminal/issues/61">the updates</a>
+                        won't need to check <a href="https://github.com/intersystems-community/webterminal/issues/61">the updates</a>
                         by surfing the net. New version notifications will be displayed during the
                         WebTerminal's startup as soon as new updates arrive.
                     </div>
@@ -1844,7 +1844,7 @@ localization/dictionary.js</a></code></td>
                     <div class="content">
                         This new version will become more stable and will perform better as well as
                         other great features like intelligent autocomplete will be introduced.
-                        Follow the progress <a href="https://github.com/intersystems-ru/webterminal/issues/61">here</a>.
+                        Follow the progress <a href="https://github.com/intersystems-community/webterminal/issues/61">here</a>.
                     </div>
                 </div>
                 <div class="newsBlock">
@@ -1872,7 +1872,7 @@ localization/dictionary.js</a></code></td>
                 Web-based terminal for <a target="_blank" href="http://www.intersystems.com/">InterSystems</a> products by <a target="_blank" href="https://nikita.tk">Nikita</a>
             </div>
         </div>
-		<a id="forkLink" target="_blank" href="https://github.com/intersystems-ru/webterminal">
+		<a id="forkLink" target="_blank" href="https://github.com/intersystems-community/webterminal">
 			<img src="img/fork.png">
 		</a>
     </body>
