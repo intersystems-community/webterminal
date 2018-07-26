@@ -1,11 +1,11 @@
 {
-  "name": "CWT",
+  "name": "cache-web-terminal",
   "title": "Cache WEB Terminal",
   "packageName": "WebTerminal",
   "printableName": "Cache Web Terminal",
   "description": "Web-based terminal emulator for Caché administering.",
   "author": "ZitRo",
-  "version": "4.7.4",
+  "version": "4.8.0",
   "gaID": "UA-83005064-2",
   "releaseNumber": 26,
   "scripts": {

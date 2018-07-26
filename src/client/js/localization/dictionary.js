@@ -186,16 +186,16 @@ export default {
     "info": {
         en:
 `Caché WEB Terminal v/* @echo package.version */
-\rAuthor:\x1B[32G\x1b!URL=https://github.com/zitros (Nikita Savchenko) (ZitRo)
-\rProject:\x1B[32G\x1b!URL=https://intersystems-community.github.io/webterminal (Homepage)
-\rDocumentation:\x1B[32G\x1B!URL=http://intersystems-community.github.io/webterminal/#docs (On the project's homepage)
+\rAuthor:\x1B[32G\x1b!URL=https://nikita.tk (Nikita Savchenko) (ZitRo)
+\rWebsite:\x1B[32G\x1b!URL=https://intersystems-community.github.io/webterminal (GitHub Pages)
+\rDocumentation:\x1B[32G\x1B!URL=http://intersystems-community.github.io/webterminal/#docs (GitHub Pages)
 \rRepository:\x1B[32G\x1b!URL=https://github.com/intersystems-community/webterminal (GitHub)
 \rBug/Feature Tracker:\x1B[32G\x1b!URL=https://github.com/intersystems-community/webterminal/issues (GitHub)
 \r2013-${ new Date().getFullYear() } © Nikita Savchenko`,
         ru:
 `Caché WEB Terminal v/* @echo package.version */
-\rАвтор:\x1B[32G\x1b!URL=https://github.com/zitros (Никита Савченко) (ZitRo)
-\rПроект:\x1B[32G\x1b!URL=https://intersystems-community.github.io/webterminal (Страница проекта)
+\rАвтор:\x1B[32G\x1b!URL=https://nikita.tk (Никита Савченко) (ZitRo)
+\rВебсайт:\x1B[32G\x1b!URL=https://intersystems-community.github.io/webterminal (Страница проекта)
 \rДокументация:\x1B[32G\x1B!URL=http://intersystems-community.github.io/webterminal/#docs (На странице проекта)
 \rРепозиторий:\x1B[32G\x1b!URL=https://github.com/intersystems-community/webterminal (GitHub)
 \rБаг/Фич трекер:\x1B[32G\x1b!URL=https://github.com/intersystems-community/webterminal/issues (GitHub)
