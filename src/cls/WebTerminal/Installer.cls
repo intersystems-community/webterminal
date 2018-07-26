@@ -81,7 +81,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set cspProperties("Description") = "An application representing the open socket for /terminal application."
     set cspProperties("DispatchClass") = ""
     set role = ..GetDBRole(dbdir)
-    if ($system.Version.GetISCProduct() = 4) {
+    if ($system.Version.GetISCProduct() >= 4) {
         set cspProperties("MatchRoles")=":%DB_IRISSYS" _ $case($get(role)'="", 1: ":"_role, :"")
     } else {
         set cspProperties("MatchRoles")=":%DB_CACHESYS" _ $case($get(role)'="", 1: ":"_role, :"")
@@ -184,7 +184,7 @@ ClassMethod CreateAllNamespace() As %Status
 	set st = $$$OK
 	if ('##Class(Config.Namespaces).Exists(ns)) {
 
-        if ($system.Version.GetISCProduct() = 4) {
+        if ($system.Version.GetISCProduct() >= 4) {
             set Properties("Globals") = "IRISTEMP"
             set Properties("Library") = "IRISLIB"
             set Properties("Routines") = "IRISTEMP"
