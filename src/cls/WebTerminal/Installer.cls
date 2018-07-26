@@ -81,7 +81,12 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set cspProperties("Description") = "An application representing the open socket for /terminal application."
     set cspProperties("DispatchClass") = ""
     set role = ..GetDBRole(dbdir)
-    set cspProperties("MatchRoles")=":%DB_CACHESYS" _ $case($get(role)'="", 1: ":"_role, :"")
+    if ($system.Version.GetISCProduct() >= 4) {
+        set cspProperties("MatchRoles")=":%DB_IRISSYS" _ $case($get(role)'="", 1: ":"_role, :"")
+    } else {
+        set cspProperties("MatchRoles")=":%DB_CACHESYS" _ $case($get(role)'="", 1: ":"_role, :"")
+    }
+
     set st = ..RegisterWebApplication("/terminalsocket", .cspProperties)
     do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
     return:$$$ISERR(st) st
@@ -178,12 +183,23 @@ ClassMethod CreateAllNamespace() As %Status
 	set ns = "%All"
 	set st = $$$OK
 	if ('##Class(Config.Namespaces).Exists(ns)) {
-		set Properties("Globals") = "CACHETEMP"
-		set Properties("Library") = "CACHELIB"
-		set Properties("Routines") = "CACHETEMP"
-		set Properties("SysGlobals") = "CACHESYS"
-		set Properties("SysRoutines") = "CACHESYS"
-		set Properties("TempGlobals") = "CACHETEMP"
+
+        if ($system.Version.GetISCProduct() >= 4) {
+            set Properties("Globals") = "IRISTEMP"
+            set Properties("Library") = "IRISLIB"
+            set Properties("Routines") = "IRISTEMP"
+            set Properties("SysGlobals") = "IRISSYS"
+            set Properties("SysRoutines") = "IRISSYS"
+            set Properties("TempGlobals") = "IRISTEMP"
+        } else {
+            set Properties("Globals") = "CACHETEMP"
+            set Properties("Library") = "CACHELIB"
+            set Properties("Routines") = "CACHETEMP"
+            set Properties("SysGlobals") = "CACHESYS"
+            set Properties("SysRoutines") = "CACHESYS"
+            set Properties("TempGlobals") = "CACHETEMP"
+        }
+		
 		set st = ##Class(Config.Namespaces).Create(ns, .Properties)
 		if ($$$ISERR(st)) {
         	do $System.Status.DisplayError(st)
