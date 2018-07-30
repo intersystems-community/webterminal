@@ -1,4 +1,7 @@
 # Caché Web Terminal
+
+[![Gitter](https://img.shields.io/badge/chat-on%20telegram-blue.svg)](https://t.me/joinchat/FoZ4M0jbeW8PVp2l5tqrgg)
+
 Web-based Caché terminal for InterSystems products. Access your database from everywhere!
 
 + Visit the [project's page](http://intersystems-ru.github.io/webterminal) for more details. 
