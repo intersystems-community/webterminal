@@ -12,6 +12,13 @@ Projection Reference As Installer;
 
 Parameter VERSION = "<!-- @echo package.version -->";
 
+/// In older Cache versions, method "GetISCProduct" does not exists
+Parameter iscProductVersion = {$case(
+        ##class(%Dictionary.CompiledMethod).IDKEYExists("%SYSTEM.Version", "GetISCProduct"),
+        1: $CLASSMETHOD("%SYSTEM.Version", "GetISCProduct"),
+        : 2
+    )};
+
 ClassMethod RegisterWebApplication(name As %String, spec) As %Status
 {
     new $Namespace
@@ -91,7 +98,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set cspProperties("Description") = "An application representing the open socket for /terminal application."
     set cspProperties("DispatchClass") = ""
 
-    set requiredRole = $case($system.Version.GetISCProduct() >= 4, 1: "%DB_IRISSYS", : "%DB_CACHESYS")
+    set requiredRole = $case(..#iscProductVersion >= 4, 1: "%DB_IRISSYS", : "%DB_CACHESYS")
     set roles = ..GetDBRole(dbdir)
     set extractedRoles = $case($get(roles) '= "", 1: ":" _ roles, : "")
     set cspProperties("MatchRoles") = ":" _ $case(
@@ -190,36 +197,33 @@ ClassMethod GetDBRole(directory As %String) As %String
 
 ClassMethod CreateAllNamespace() As %Status
 {
+
 	new $Namespace
     set $Namespace = "%SYS"
 	set ns = "%All"
-	set st = $$$OK
+    set st = $$$OK
+
 	if ('##Class(Config.Namespaces).Exists(ns)) {
 
-        if ($system.Version.GetISCProduct() >= 4) {
-            set Properties("Globals") = "IRISTEMP"
-            set Properties("Library") = "IRISLIB"
-            set Properties("Routines") = "IRISTEMP"
-            set Properties("SysGlobals") = "IRISSYS"
-            set Properties("SysRoutines") = "IRISSYS"
-            set Properties("TempGlobals") = "IRISTEMP"
-        } else {
-            set Properties("Globals") = "CACHETEMP"
-            set Properties("Library") = "CACHELIB"
-            set Properties("Routines") = "CACHETEMP"
-            set Properties("SysGlobals") = "CACHESYS"
-            set Properties("SysRoutines") = "CACHESYS"
-            set Properties("TempGlobals") = "CACHETEMP"
-        }
+        set dbPrefix = $case(..#iscProductVersion >= 4, 1: "IRIS", : "CACHE")
+        set Properties("Globals") = dbPrefix _ "TEMP"
+        set Properties("Library") = dbPrefix _ "LIB"
+        set Properties("Routines") = dbPrefix _ "TEMP"
+        set Properties("SysGlobals") = dbPrefix _ "SYS"
+        set Properties("SysRoutines") = dbPrefix _ "SYS"
+        set Properties("TempGlobals") = dbPrefix _ "TEMP"
 		
 		set st = ##Class(Config.Namespaces).Create(ns, .Properties)
 		if ($$$ISERR(st)) {
         	do $System.Status.DisplayError(st)
     	} else {
         	write !, "%All namespace is created."
-    	}
-	}
-	return st
+        }
+
+    }
+
+    return st
+
 }
 
 ClassMethod Map(fromNS = "") As %Status
