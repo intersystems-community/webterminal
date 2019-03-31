@@ -451,6 +451,13 @@
       "changes": [
         "InterSystems IRIS support add"
       ]
+    },
+    {
+      "v": "4.8.3",
+      "url": "https://intersystems-community.github.io/webterminal/files/WebTerminal-v4.8.3.xml",
+      "changes": [
+        "Installer fixes: now IRIS 2019.1 and older Caché versions (2013.1+) are supported"
+      ]
     }
   ]
 }
