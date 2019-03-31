@@ -1,8 +1,8 @@
-# Caché Web Terminal
+# Web Terminal
 
 [![Gitter](https://img.shields.io/badge/chat-on%20telegram-blue.svg)](https://t.me/joinchat/FoZ4M0jbeW8PVp2l5tqrgg)
 
-Web-based Caché terminal for InterSystems products. Access your database from everywhere!
+Web-based terminal for InterSystems products. Access your database from everywhere!
 
 + Visit the [project's page](http://intersystems-ru.github.io/webterminal) for more details. 
 + **Download** the latest version from [here](http://intersystems-ru.github.io/webterminal/#downloads).
@@ -211,7 +211,7 @@ iFrame.addEventListener("load", function () {
 WebTerminal Project Development
 -------------------------------
 
-We are glad to see anyone who want to contribute to Caché Web Terminal development! Check our 
+We are glad to see anyone who want to contribute to Web Terminal development! Check our 
 [developer's guide](http://intersystems-ru.github.io/webterminal/#docs.5).
 
 To be short, the "hot start" is extremely easy. Having latest [Git](https://git-scm.com/) and
