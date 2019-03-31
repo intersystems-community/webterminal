@@ -1,11 +1,14 @@
 {
-  "name": "cache-web-terminal",
-  "title": "Cache WEB Terminal",
+  "name": "web-terminal",
+  "title": "Web Terminal",
   "packageName": "WebTerminal",
-  "printableName": "Cache Web Terminal",
-  "description": "Web-based terminal emulator for Caché administering.",
-  "author": "ZitRo",
-  "version": "4.8.0",
+  "printableName": "Web Terminal",
+  "description": "Web-based terminal emulator for InterSystems products administering.",
+  "author": {
+    "name" : "Nikita Savchenko",
+    "url" : "https://nikita.tk"
+  },
+  "version": "4.8.1",
   "gaID": "UA-83005064-2",
   "releaseNumber": 26,
   "scripts": {

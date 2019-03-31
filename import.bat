@@ -6,7 +6,7 @@
 @echo off
 
 :: CHANGE THIS PATH TO YOUR CACHÉ INSTALLATION PATH ON WINDOWS (folder that contains bin, CSP, mgr and other folders)
-set CACHE_DIR=C:\Program Files\InterSystems\Ensemble
+set CACHE_DIR=C:\Program Files\Ensemble-2017
 :: NAMESPACE TO IMPORT PACKAGE TO
 set NAMESPACE=USER
 :: Other variables

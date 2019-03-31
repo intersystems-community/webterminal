@@ -47,6 +47,17 @@ ClassMethod RemoveWebApplication(name As %String)
     return st
 }
 
+ClassMethod ReportInstallStatus(st, ns = {^WebTerminal("HomeNamespace")}) As %Status
+{
+    set $Namespace = ns
+    if (st '= 1) {
+        do $System.Status.DisplayError(st)
+    }
+    set status = ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+    set $Namespace = "%SYS"
+    return status
+}
+
 /// This method is invoked when a class is compiled.
 ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
 {
@@ -63,8 +74,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
             _ " to enter the %SYS namespace. Please, log in as a privileged user"
             _ " to set up the WebTerminal application."
         set err = $$$ERROR($$$GeneralError, mes)
-        do ##class(WebTerminal.Analytics).ReportInstallStatus(err)
-        write !, mes
+        do ..ReportInstallStatus(err, ns)
         return err
     }
     
@@ -74,7 +84,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set cspProperties("IsNameSpaceDefault") = $$$NO
     set cspProperties("DispatchClass") = ..#DispatchClass
     set st = ..RegisterWebApplication("/terminal", .cspProperties)
-    do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+    do:($$$ISERR(st)) ..ReportInstallStatus(st, ns)
     return:$$$ISERR(st) st
     
     set cspProperties("AutheEnabled") = $$$AutheUnauthenticated
@@ -88,7 +98,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     }
 
     set st = ..RegisterWebApplication("/terminalsocket", .cspProperties)
-    do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+    do:($$$ISERR(st)) ..ReportInstallStatus(st, ns)
     return:$$$ISERR(st) st
     
     do ..CreateAllNamespace()
@@ -96,11 +106,10 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     write !, "Mapping %WebTerminal package into all namespaces:"
     set st = ..Map(ns)
     if ($$$ISERR(st)) {
-        do $System.Status.DisplayError(st)
-        do ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+        do ..ReportInstallStatus(st, ns)
     } else {
 	    write !, "WebTerminal package successfully mapped into all namespaces."
-	    do ##class(WebTerminal.Analytics).ReportInstallStatus(1)
+	    do ..ReportInstallStatus(1, ns)
     }
 
     if (##class(Security.Resources).Exists(..#ResourceName) = 0) {
@@ -129,19 +138,19 @@ ClassMethod RemoveProjection(cls As %String, ByRef params, recompile As %Boolean
     write !, "Uninstalling WebTerminal application from ", ns
     zn "%SYS"
     set st = ..RemoveWebApplication("/terminal")
-    do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+    do:($$$ISERR(st)) ..ReportInstallStatus(st, ns)
     return:($$$ISERR(st)) st
     set st = ..RemoveWebApplication("/terminalsocket")
-    do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+    do:($$$ISERR(st)) ..ReportInstallStatus(st, ns)
     return:($$$ISERR(st)) st
     if (##class(Security.Resources).Exists(..#ResourceName) = 1) {
         set st = ##class(Security.Resources).Delete(..#ResourceName)
-        do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+        do:($$$ISERR(st)) ..ReportInstallStatus(st, ns)
         return:($$$ISERR(st)) st
     }
     if (##class(Security.Roles).Exists(..#RoleName) = 1) {
         set st = ##class(Security.Roles).Delete(..#RoleName)
-        do:($$$ISERR(st)) ##class(WebTerminal.Analytics).ReportInstallStatus(st)
+        do:($$$ISERR(st)) ..ReportInstallStatus(st, ns)
         return:($$$ISERR(st)) st
     }
 
@@ -151,8 +160,7 @@ ClassMethod RemoveProjection(cls As %String, ByRef params, recompile As %Boolean
     write !, "Unmapping %WebTerminal package from all namespaces:"
 	set st = ..UnMap(ns)
     if ($$$ISERR(st)) {
-        do $System.Status.DisplayError(st)
-        try { do ##class(WebTerminal.Analytics).ReportInstallStatus(st) } catch (e) {}
+        do ..ReportInstallStatus(st, ns)
     } else {
 	    write !, "Unmapping complete."
     }

@@ -12,7 +12,12 @@ ClassMethod ReportInstallStatus (status As %Status = 1, type As %String = "Insta
         _"&t=event&aiid="_$ZCONVERT($zv, "O", "URL")_"&ec="_$ZCONVERT(type, "O", "URL")_"&ea="
         _$case($$$ISOK(status), 1: "Success", : "Failure")_"&el="
         _$ZCONVERT($System.Status.GetErrorText(status), "O", "URL"))
-    return req.Post("/collect")
+    try {
+        return req.Post("/collect")
+    } catch e {
+        write "Unable to send analytics to " _ req.Server _ ", skipping analytics collection."
+        return $$$OK
+    }
 }
 
 }
