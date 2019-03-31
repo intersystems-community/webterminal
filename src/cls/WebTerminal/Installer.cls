@@ -90,12 +90,16 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set cspProperties("AutheEnabled") = $$$AutheUnauthenticated
     set cspProperties("Description") = "An application representing the open socket for /terminal application."
     set cspProperties("DispatchClass") = ""
-    set role = ..GetDBRole(dbdir)
-    if ($system.Version.GetISCProduct() >= 4) {
-        set cspProperties("MatchRoles")=":%DB_IRISSYS" _ $case($get(role)'="", 1: ":"_role, :"")
-    } else {
-        set cspProperties("MatchRoles")=":%DB_CACHESYS" _ $case($get(role)'="", 1: ":"_role, :"")
-    }
+
+    set requiredRole = $case($system.Version.GetISCProduct() >= 4, 1: "%DB_IRISSYS", : "%DB_CACHESYS")
+    set roles = ..GetDBRole(dbdir)
+    set extractedRoles = $case($get(roles) '= "", 1: ":" _ roles, : "")
+    set cspProperties("MatchRoles") = ":" _ $case(
+        $find(extractedRoles, requiredRole) = 0,
+        1: requiredRole _ extractedRoles,
+        : requiredRole
+    )
+    write !, "Assigning role " _ requiredRole _ " to a web application; resulting roles: " _ cspProperties("MatchRoles")
 
     set st = ..RegisterWebApplication("/terminalsocket", .cspProperties)
     do:($$$ISERR(st)) ..ReportInstallStatus(st, ns)
