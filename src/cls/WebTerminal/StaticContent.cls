@@ -19,28 +19,28 @@ ClassMethod Write(Const As %String) As %Status
 XData Themecache
 {
 <data>
-<![CDATA[<!-- @include ../client/css/themes/cache.css -->]]>
+<![CDATA[<!-- @include client/css/themes/cache.css -->]]>
 </data>
 }
 
 XData html
 {
 <data>
-<![CDATA[<!-- @include ../client/index.html -->]]>
+<![CDATA[<!-- @include client/index.html -->]]>
 </data>
 }
 
 XData css
 {
 <data>
-<![CDATA[<!-- @include ../client/css/index.css -->]]>
+<![CDATA[<!-- @include client/css/index.css -->]]>
 </data>
 }
 
 XData js
 {
 <data>
-<![CDATA[<!-- @include ../client/js/index.js -->]]>
+<![CDATA[<!-- @include client/js/index.js -->]]>
 </data>
 }
 
