@@ -22,7 +22,8 @@ let dir = __dirname,
     dest = `${dir}/build`,
     source = `${dir}/src`,
     context = {
-        context: {
+        includeBase: dest,
+        context: {            
             package: pkg,
             compileAfter: "", // is set during "pre-cls" task.
             themes: "", // is set after css move task
@@ -120,22 +121,8 @@ gulp.task("css", ["scss", "copy-css-themes"], function (cb) {
     cb();
 });
 
-gulp.task("pre-cls", ["js", "js", "html", "css", "readme"], () => {
+gulp.task("cls", ["js", "js", "html", "css", "readme"], () => {
     return gulp.src([`${ source }/cls/**/*.cls`])
-        .pipe(rename((f) => {
-            f.basename = `${ f.dirname === "." ? "" : f.dirname + "." }${
-                f.basename
-            }`;
-            f.dirname = ".";
-            if (f.basename !== INSTALLER_CLASS_NAME)
-                context.context.compileAfter +=
-                    (context.context.compileAfter ? "," : "") + f.basename;
-        }))
-        .pipe(gulp.dest(`${dest}/cls`));
-});
-
-gulp.task("cls", ["pre-cls"], () => {
-    return gulp.src([`${dest}/cls/**/*.cls`])
         .pipe(preprocess(context))
         .pipe(gulp.dest(`${dest}/cls`));
 });

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+  <Document name="webterminal.MODULE">
+    <Module>
+      <Name>webterminal</Name>
+      <Version>4.9.2</Version>
+      <GlobalScope>true</GlobalScope>
+      <ExternalName>Web Terminal</ExternalName>
+      <Packaging>module</Packaging>
+      <SourcesRoot>build</SourcesRoot>
+      <Resource Name="WebTerminal.PKG" />
+    </Module>
+  </Document>
+</Export>
