@@ -153,7 +153,7 @@ export default {
 \r\x1B[(special)m/favorite\x1B[0m ...\x1B[20GAllows you to save or restore any frequently used commands. Enter this command to get more information.
 \r\x1B[(special)m/info\x1B[0m\x1B[20GShow the information about the WebTerminal project.
 \r\x1B[(special)m/logout\x1B[0m\x1B[20GLog out the current WebTerminal user and prompt for the authentication again.
-\r\x1B[(special)m/sql\x1B[0m\x1B[20GSwitches terminal to SQL mode. Type SQL commands instead of COS. To exit SQL mode, enter this command again.
+\r\x1B[(special)m/sql\x1B[0m\x1B[20GSwitches terminal to SQL mode. Type SQL commands instead of ObjectScript. To exit SQL mode, enter this command again.
 \r\x1B[(special)m/trace\x1B[0m ...\x1B[20GEnables global/file tracing. Type this command to get more information.
 \r\x1B[(special)m/update\x1B[0m\x1B[20GChecks for available updates.
 \r
@@ -172,7 +172,7 @@ export default {
 \r\x1B[(special)m/favorite\x1B[0m ...\x1B[20GПозволяет сохранять и загружать любые часто используемые команды. Введите эту команду, чтобы получить больше информации.
 \r\x1B[(special)m/info\x1B[0m\x1B[20GПоказать информацию про проект веб-терминала.
 \r\x1B[(special)m/logout\x1B[0m\x1B[20GВыйти из текущего сеанса и снова пройти аутентификацию.
-\r\x1B[(special)m/sql\x1B[0m\x1B[20GПереключить терминал в режим SQL. Далее вводите SQL команды вместо COS. Чтобы выйти из режима SQL, введите эту команду ещё раз.
+\r\x1B[(special)m/sql\x1B[0m\x1B[20GПереключить терминал в режим SQL. Далее вводите SQL команды вместо ObjectScript. Чтобы выйти из режима SQL, введите эту команду ещё раз.
 \r\x1B[(special)m/trace\x1B[0m ...\x1B[20GВключает трассировку глобала/файла. Введите эту команду, чтобы получить больше информации.
 \r\x1B[(special)m/update\x1B[0m\x1B[20GПроверяет наличие обновлений.
 \r
@@ -296,11 +296,11 @@ export default {
         ru: "На данный момент наблюдаем за %s."
     },
     "favDesc": {
-        en: "To save the command, enter \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mname\x1b[0m \x1b[(keyword)mdo\x1b[0m \x1b[(string)many COS code\x1b[0m."
+        en: "To save the command, enter \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mname\x1b[0m \x1b[(keyword)mdo\x1b[0m \x1b[(string)many ObjectScript code\x1b[0m."
             + "\r\nTo load the command, enter \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mname\x1b[0m."
             + "\r\nTo delete saved commands, use \x1b[(special)m/favorite\x1b[0m \x1b[(wrong)mdelete\x1b[0m \x1b[(constant)mname\x1b[0m."
             + "\r\nTo delete all saved commands, use just \x1b[(special)m/favorite\x1b[0m \x1b[(wrong)mdelete\x1b[0m.",
-        ru: "Для того чтобы запомнить команду, введите \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mимя\x1b[0m \x1b[(keyword)mdo\x1b[0m \x1b[(string)mлюбой COS код\x1b[0m."
+        ru: "Для того чтобы запомнить команду, введите \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mимя\x1b[0m \x1b[(keyword)mdo\x1b[0m \x1b[(string)mлюбой ObjectScript код\x1b[0m."
             + "\r\nДля того чтобы загрузить команду, введите \x1b[(special)m/favorite\x1b[0m \x1b[(constant)mимя\x1b[0m."
             + "\r\nЧтобы удалять сохранённые команды, используйте \x1b[(special)m/favorite\x1b[0m \x1b[(wrong)mdelete\x1b[0m \x1b[(constant)mимя\x1b[0m."
             + "\r\nЧтобы удалить все команды, введите \x1b[(special)m/favorite\x1b[0m \x1b[(wrong)mdelete\x1b[0m.",

@@ -43,7 +43,7 @@ Even more features!
 	</tr>
 	<tr>
 		<td class="info">Syntax highlighting</td>
-		<td>Intelligently highlighted input both for COS and SQL.</td>
+		<td>Intelligently highlighted input both for ObjectScript and SQL.</td>
 	</tr>
 	<tr>
 		<td class="info">Favorites</td>
@@ -111,7 +111,7 @@ The next table demonstrates available API. Left column are `terminal` object pro
 	<tr>
         <td>execute(<b>command</b>, [<b>options</b>], [<b>callback</b>])</td>
         <td>
-            Executes the COS <b>command</b> right as if it is entered
+            Executes the ObjectScript <b>command</b> right as if it is entered
             to the terminal. However, <b>options</b> provide an
             additional flags setup.<br/>
             <b>options.echo</b> (<b>false</b> by default) - prints the
@@ -171,10 +171,10 @@ The next table demonstrates available API. Left column are `terminal` object pro
 		<td>Constant</td>
 		<td>Description</td>
 	</tr>
-    <tr><td>MODE_PROMPT</td><td>Regular input (COS command)</td></tr>
+    <tr><td>MODE_PROMPT</td><td>Regular input (ObjectScript command)</td></tr>
     <tr><td>MODE_SQL</td><td>Input in SQL mode (SQL command)</td></tr>
-    <tr><td>MODE_READ</td><td>Prompt issued by COS <code>read c</code> command</td></tr>
-    <tr><td>MODE_READ_CHAR</td><td>Prompt issued by COS <code>read *c</code> command</td></tr>
+    <tr><td>MODE_READ</td><td>Prompt issued by ObjectScript <code>read c</code> command</td></tr>
+    <tr><td>MODE_READ_CHAR</td><td>Prompt issued by ObjectScript <code>read *c</code> command</td></tr>
     <tr><td>MODE_SPECIAL</td><td>Special CWT's input (commands like /help, /config etc)</td></tr>
 </table>
 

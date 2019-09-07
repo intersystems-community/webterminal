@@ -1,5 +1,5 @@
 /// <!-- @echo package.title --> version <!-- @echo package.version --> core.
-/// The core class which handles client requests and executes COS code.
+/// The core class which handles client requests and executes ObjectScript code.
 /// All writes used here are used for $X and $Y compatibility, but they actually do not
 /// write any code to the screen.
 Class WebTerminal.Core Extends Common [ Not ProcedureBlock ]

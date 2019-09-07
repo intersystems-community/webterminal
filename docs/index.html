@@ -723,7 +723,7 @@
                 </p>
                 <p>
                     The <code class="inline">&lt;ESC&gt;</code> designation in this section stands for
-                    the non-printable character with ASCII code 27 (equivalent of COS
+                    the non-printable character with ASCII code 27 (equivalent of ObjectScript
                     <code class="inline">$Char(27)</code> result), which is commonly used escape
                     character. This character begins the control sequence, and it is usually
                     followed by other characters which apply the different conditions and control
@@ -731,7 +731,7 @@
                 </p>
                 <p>
                     For example, <code class="inline">&lt;ESC&gt;[31m</code> stands for printing
-                    these characters using the next COS code:
+                    these characters using the next ObjectScript code:
                     <code class="inline">write $Char(27), "[31m"</code>.
                 </p>
                 <h2 id="docs.3.1">3.1. Changing Output Color And Font</h2>
@@ -1169,7 +1169,7 @@ iFrame.addEventListener("load", function () {
                     </li>
                 </ul>
                 <p>
-                    Example of executing the line of COS code at the startup:
+                    Example of executing the line of ObjectScript code at the startup:
                 </p>
                 <code class="pre">function myInitHandler (term) {
     term.execute("set hiddenVariable = 7", {
@@ -1192,18 +1192,18 @@ iFrame.addEventListener("load", function () {
                 <ul>
                     <li>
                         <code class="inline">term.MODE_PROMPT</code> handles regular input
-                        (COS command).
+                        (ObjectScript command).
                     </li>
                     <li>
                         <code class="inline">term.MODE_SQL</code> handles input in SQL mode
                         (SQL command)
                     </li>
                     <li>
-                        <code class="inline">term.MODE_READ</code> handles prompt issued by COS
+                        <code class="inline">term.MODE_READ</code> handles prompt issued by ObjectScript
                         <code class="inline">read x</code> command
                     </li>
                     <li>
-                        <code class="inline">term.MODE_READ_CHAR</code> handles prompt issued by COS
+                        <code class="inline">term.MODE_READ_CHAR</code> handles prompt issued by ObjectScript
                         <code class="inline">read *x</code> command
                     </li>
                     <li>
@@ -1217,7 +1217,7 @@ iFrame.addEventListener("load", function () {
                 <code class="pre">function myInitHandler (term) {
     term.onUserInput(function (text, mode) {
         if (mode !== term.MODE_PROMPT)
-            return; // expect only the COS input
+            return; // expect only the ObjectScript input
         if (text.indexOf("set secret = ") === 0)
             alert("Do not set secret variables!!!");
     });

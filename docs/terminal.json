@@ -27,7 +27,7 @@
       "v": "4.0.0-alpha.4",
       "url": "https://intersystems-ru.github.io/webterminal/files/WebTerminal-v4.0.0-alpha.4.xml",
       "changes": [
-        "COS read command incorrect behavior fix"
+        "ObjectScript read command incorrect behavior fix"
       ]
     },
     {
@@ -69,7 +69,7 @@
         "Output algorithm optimization and fixes",
         "Error highlight behavior change",
         "Autocomplete for keywords, class names, class members, variables and variable members",
-        "Enhanced COS grammar"
+        "Enhanced ObjectScript grammar"
       ]
     },
     {

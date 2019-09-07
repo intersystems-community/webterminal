@@ -8,8 +8,8 @@
 //     Introduction                                                                               \\
 //     To get an intelligent autocomplete/syntax highlight which WebTerminal has, there is a need \\
 // to teach machine how to parse code. We will tell it the general rules of how the character     \\
-// sequences (COS code) must be placed, and it will look ahead to predict which ones it can       \\
-// suggest.                                                                                       \\
+// sequences (ObjectScript code) must be placed, and it will look ahead to predict which ones it  \\
+// can suggest.                                                                                   \\
 //     Everything here is defined by rules. The parsing begins with the main rule named COS. This \\
 // rule is an infinite loop which loops again and again with the "command" rule. Let's begin with \\
 // some simple examples of creating programming languages rules here.                             \\
@@ -153,7 +153,7 @@ const CI = true; // case insensitive
 
 rule("CWTInput").split(
     char({ value: "/", class: "special" }).call("CWTSpecial").exit(),
-    any().branch().call("cosCommand").whitespace().merge()
+    any().branch().call("OSCommand").whitespace().merge()
 ).end();
 // EXPLANATION:
 // rule("CWTInput")    Defines a new rule named "CWTInput".
@@ -201,7 +201,7 @@ rule("CWTSpecial").split(
             id({ class: "constant", type: "favorites" }),
             constant({ type: "favorites" })
         ).whitespace().split(
-            any().call("cosCommand")
+            any().call("OSCommand")
         )
     ),
     id({ value: "info", class: "special" }),
@@ -222,7 +222,7 @@ rule("CWTSpecial").split(
     id({ value: "update", class: "special" })
 ).exit().end();
 
-rule("cosCommand").split(
+rule("OSCommand").split(
     id([
         { CI, value: "break", class: "keyword" },
         { CI, value: "b", class: "keyword" }
@@ -337,9 +337,9 @@ rule("cosCommand").split(
                     id({ class: "variable" })
                 ).optWhitespace().char("{").branch().optWhitespace().split(
                     char("}"),
-                    call("cosCommand").whitespace().merge()
+                    call("OSCommand").whitespace().merge()
                 ),
-            call("cosCommand").whitespace().merge()
+            call("OSCommand").whitespace().merge()
     ).exit(),
     id([
         { CI, value: "kill", class: "keyword" },
@@ -432,10 +432,10 @@ rule("cosCommand").split(
         { CI, value: "if", class: "keyword" },
         { CI, value: "i", class: "keyword" }
     ]).whitespace().call("expression").optWhitespace().split(
-        char("{").optWhitespace().branch().call("cosCommand").optWhitespace().split(
+        char("{").optWhitespace().branch().call("OSCommand").optWhitespace().split(
             char("}").optWhitespace().split(
                 id({ CI, value: "else", class: "keyword" }).optWhitespace()
-                    .char("{").optWhitespace().branch().call("cosCommand").optWhitespace().split(
+                    .char("{").optWhitespace().branch().call("OSCommand").optWhitespace().split(
                         char("}").exit(),
                         any().merge()
                     ),
@@ -444,7 +444,7 @@ rule("cosCommand").split(
             ),
             any().merge()
         ),
-        call("cosCommand")
+        call("OSCommand")
     ).exit(),
     id([
         { CI, value: "for", class: "keyword" },
@@ -460,14 +460,14 @@ rule("cosCommand").split(
     ).optWhitespace().split(
         char(",").optWhitespace().merge(),
         any()
-    ).char("{").optWhitespace().branch().call("cosCommand").optWhitespace().split(
+    ).char("{").optWhitespace().branch().call("OSCommand").optWhitespace().split(
         char("}").exit(),
         any().merge()
     ),
     id({ CI, value: "while", class: "keyword" }).whitespace().branch().call("expression")
         .optWhitespace().split(
             char(",").optWhitespace().merge(),
-            char("{").optWhitespace().branch().call("cosCommand").optWhitespace().split(
+            char("{").optWhitespace().branch().call("OSCommand").optWhitespace().split(
                 char("}").exit(),
                 any().merge()
             )
