@@ -255,6 +255,10 @@ export default {
         en: "Mistake in SQL statement, %s",
         ru: "Ошибка в SQL-запросе, %s"
     },
+    "sqlErr": {
+        en: "SQL Error, %s",
+        ru: "SQL ошибка, %s"
+    },
     "sqlMaxRows": {
         en: "The maximum number of rows displayed is %s. Adjust the limit by typing <span class='m special'>/config</span> <span class='m variable'>sqlMaxResults</span> = <span class='m constant'>100500</span> if you need more.",
         ru: "Выведено максимум %s результатов. Если необходимо отображать больше результатов, вы можете изменить этот лимит, набрав <span class='m special'>/config</span> <span class='m variable'>sqlMaxResults</span> = <span class='m constant'>100500</span>."

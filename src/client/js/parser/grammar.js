@@ -844,7 +844,8 @@ rule("SQLMode").split(
     char({ value: "/", class: "special" }).call("CWTSpecial").exit(),
     id({ CI, value: "delete", class: "keyword" }).whitespace().call("SQLDelete"),
     id({ CI, value: "update", class: "keyword" }).whitespace().call("SQLUpdate"),
-    id({ CI, value: "select", class: "keyword" }).whitespace().call("SQLSelect")
+    id({ CI, value: "select", class: "keyword" }).whitespace().call("SQLSelect"),
+    id({ CI, value: "call", class: "keyword" }).whitespace().call("SQLCall")
 ).exit().end();
 
 rule("SQLVar").branch()
@@ -856,6 +857,12 @@ rule("SQLVar").branch()
         .id({ class: "variable", type: "sqlFieldName" }).optWhitespace().merge(),
     any()
 ).exit().end();
+
+rule("SQLCall").call("SQLClassName").branch().split(
+    char({ value: "_", type: "sqlClassname", class: "classname" }).merge(),
+    id({ CI, type: "sqlClassname", class: "classname" }).merge(),
+    any()
+).char("(").optWhitespace().call("SQLCallArgList").optWhitespace().char(")").exit().end();
 
 rule("SQLSelect").split(
     id({ CI, value: "top", class: "keyword" }).whitespace().constant().whitespace(),
@@ -937,6 +944,25 @@ rule("SQLClassName").split(
             .id({ CI, type: "sqlClassname", class: "classname" }),
         any()
 )).exit().end();
+
+rule("SQLCallArgList").branch().split(
+    char("(").optWhitespace().call("SQLCallArgList").optWhitespace().char(")"),
+    constant(),
+    char({ value: "'", class: "string" }).branch().split(
+        char({ value: "'", class: "string" }),
+        split(
+            constant({ class: "string" }),
+            id({ class: "string" }),
+            string({ class: "string" }),
+            char({ class: "string" }),
+            whitespace()
+        ).merge()
+    ),
+    any()
+).optWhitespace().split(
+    char(",").optWhitespace().merge(),
+    any()
+).exit().end();
 
 rule("SQLExpression").split(
 

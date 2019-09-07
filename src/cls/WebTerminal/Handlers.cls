@@ -199,30 +199,38 @@ ClassMethod SQL (client As WebTerminal.Engine, data As %ZEN.proxyObject = "") As
     set $Namespace = client.childNamespace
     set sql = data.sql
     set max = $case(data.max = "", 1: 777, :data.max)
-    set rs = ##class(%ResultSet).%New()
     set obj = ##class(%ZEN.proxyObject).%New()
-    set st = rs.Prepare(sql)
+    
+    SET tStatement = ##class(%SQL.Statement).%New()
+    SET st = tStatement.%Prepare(sql)
     if (st '= $$$OK) {
         set obj.error = "%badSQL("_$System.Status.GetErrorText(st)_")"
         return client.Send(, obj)
     }
-    set st = rs.Execute()
-    set headers = ##class(%ListOfDataTypes).%New()
-    set dt = ##class(%ListOfDataTypes).%New()
-    set cols = rs.GetColumnCount()
-    for c=1:1:cols {
-        do headers.Insert(rs.GetColumnHeader(c))
+    SET rset = tStatement.%Execute()
+    if (rset.%SQLCODE '= 0) {
+    	set obj.error = "%sqlErr(SQLCODE="_rset.%SQLCODE_"; "_rset.%Message_")"
+    	return client.Send(, obj)
     }
-    while rs.Next() {
-        if (rs.%ROWCOUNT > max) quit
-        set l = ##class(%ListOfDataTypes).%New()
-        do dt.Insert(l)
-        for c=1:1:cols {
-            do l.Insert(rs.GetData(c))
-        }
-    }
-    set:(headers.Count() > 0) obj.headers = headers
-    set:(dt.Count() > 0) obj.data = dt
+
+	set headers = ##class(%ListOfDataTypes).%New()
+	for i=1:1:tStatement.%Metadata.columns.Count() {
+		do headers.Insert(tStatement.%Metadata.columns.GetAt(i).colName)
+	}
+
+	set dt = ##class(%ListOfDataTypes).%New()
+	while rset.%Next() {
+		if (rset.%ROWCOUNT > max) quit
+		set line = ##class(%ListOfDataTypes).%New()
+		for i=1:1:headers.Count() {
+			do line.Insert(rset.%GetData(i))
+		}
+		do dt.Insert(line)
+	}
+
+	set:(dt.Count() > 0) obj.data = dt
+	set:(headers.Count() > 0) obj.headers = headers
+	
     do client.Send(, obj)
     return $$$OK
 }
