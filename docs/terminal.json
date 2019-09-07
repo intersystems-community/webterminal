@@ -458,6 +458,14 @@
       "changes": [
         "Installer fixes: now IRIS 2019.1 and older Caché versions (2013.1+) are supported"
       ]
+    },
+    {
+      "v": "4.9.0",
+      "url": "https://intersystems-community.github.io/webterminal/files/WebTerminal-v4.9.0.xml",
+      "changes": [
+        "call support in /sql mode",
+        "Minor copywriting fixes"
+      ]
     }
   ]
 }

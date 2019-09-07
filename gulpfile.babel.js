@@ -8,13 +8,13 @@ import scss from "gulp-sass";
 import rename from "gulp-rename";
 import preprocess from "gulp-preprocess";
 import browserify from "browserify";
-import babelify from "babelify";
+import "babelify";
 import sourceStream from "vinyl-source-stream";
 import buffer from "vinyl-buffer";
 import fs from "fs";
 import preprocessify from "preprocessify";
 //import sourcemaps from "gulp-sourcemaps";
-import { getAutomaton, getRuleMappings } from "./src/client/js/parser/_build";
+import { getAutomaton } from "./src/client/js/parser/_build";
 
 let INSTALLER_CLASS_NAME = `${ pkg["packageName"] }.Installer`;
 

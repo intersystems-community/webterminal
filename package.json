@@ -5,8 +5,8 @@
   "printableName": "Web Terminal",
   "description": "Web-based terminal emulator for InterSystems products administering.",
   "author": {
-    "name" : "Nikita Savchenko",
-    "url" : "https://nikita.tk"
+    "name": "Nikita Savchenko",
+    "url": "https://nikita.tk"
   },
   "version": "4.9.0",
   "gaID": "UA-83005064-2",
