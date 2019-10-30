@@ -473,6 +473,13 @@
       "changes": [
         "Improve input copy/paste when multiple lines are copied"
       ]
+    },
+    {
+      "v": "4.9.2",
+      "url": "https://intersystems-community.github.io/webterminal/files/WebTerminal-v4.9.2.xml",
+      "changes": [
+        "Removed useless autocomplete suggesting comma expressions"
+      ]
     }
   ]
 }
