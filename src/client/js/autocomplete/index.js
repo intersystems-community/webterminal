@@ -37,6 +37,8 @@ export function suggest (state, base = "") {
                 continue;
             if (row[0].type !== TYPE_CHAR && row[0].type !== TYPE_ID)
                 continue;
+            if (row[0].type === TYPE_CHAR && type === null && row[0].value && row[0].value.value === ",")
+                continue; // Do not suggest variants starting with comma
             if (cls && row[0].value.class && row[0].value.class !== cls
                 || type && row[0].value.type && row[0].value.type !== type)
                 continue;
@@ -52,9 +54,11 @@ export function suggest (state, base = "") {
                     row[0].value.class || cls,
                     row[0].value.type || type
                 );
-                for (let r of a)
-                    if (r[0] && r[0].value) // suggest only / ids with value
+                for (let r of a) {
+                    if (r[0] && r[0].value) { // suggest only / ids with value
                         arr.push([ row[0].value ].concat(r));
+                    }
+                }
             }
             if (row[0].type === TYPE_ID) {
                 if (base !== "" && typeof row[0].value.value === "string") {
