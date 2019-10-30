@@ -466,6 +466,13 @@
         "call support in /sql mode",
         "Minor copywriting fixes"
       ]
+    },
+    {
+      "v": "4.9.1",
+      "url": "https://intersystems-community.github.io/webterminal/files/WebTerminal-v4.9.1.xml",
+      "changes": [
+        "Improve input copy/paste when multiple lines are copied"
+      ]
     }
   ]
 }

@@ -39,6 +39,9 @@ window.addEventListener(`keydown`, (e) => {
 }, true);
 window.addEventListener(`click`, focusInput, true);
 elements.input.addEventListener(`input`, () => {
+    if (/\r?\n/.test(elements.input.value)) {
+        elements.input.value = elements.input.value.replace(/(?:\r?\n)+/g, ` `);
+    }
     history.setLast(elements.input.value);
     update();
     inputUpdated();
