@@ -171,8 +171,8 @@ Method ProcessRequest(handler As %String, data) As %Status [ Private ]
 /// Main method for every new client.
 Method ClientLoop() As %Status [ Private ]
 {
-    job ##class(WebTerminal.Core).Loop(..StartupRoutine):($NAMESPACE)
-    if ($TEST '= 1) {
+    job ##class(WebTerminal.Core).Loop(..StartupRoutine):($NAMESPACE):5
+    if ($TEST '= 1) { // $TEST=0 for JOB only when timeouted
         do ..Send("error", "%noJob")
         return $$$NOTOK
     }
