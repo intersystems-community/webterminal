@@ -480,6 +480,13 @@
       "changes": [
         "Removed useless autocomplete suggesting comma expressions"
       ]
+    },
+    {
+      "v": "4.9.3",
+      "url": "https://intersystems-community.github.io/webterminal/files/WebTerminal-v4.9.3.xml",
+      "changes": [
+        "IRIS 2020 compatibility add"
+      ]
     }
   ]
 }
