@@ -18,5 +18,5 @@ set PACKAGE_NAME=WebTerminal
 :: Build and import application to Caché
 echo Building the project...
 npm run build && ^
-echo s st = $system.Status.GetErrorText($system.OBJ.ImportDir("%~dp0%BUILD_DIR%",,"ck")) w "IMPORT STATUS: "_$case(st="",1:"OK",:st) halt | "%CACHE_DIR%\bin\cache.exe" -s "%CACHE_DIR%\mgr" -U %NAMESPACE% && ^
+echo s st = $system.Status.GetErrorText($system.OBJ.ImportDir("%~dp0%BUILD_DIR%",,"ck",,1)) w "IMPORT STATUS: "_$case(st="",1:"OK",:st) halt | "%CACHE_DIR%\bin\cache.exe" -s "%CACHE_DIR%\mgr" -U %NAMESPACE% && ^
 echo s st = $system.Status.GetErrorText($system.OBJ.ExportPackage("%PACKAGE_NAME%", "%~dp0%XML_EXPORT_DIR%\%PACKAGE_NAME%-v"_##class(%PACKAGE_NAME%.Installer).#VERSION_".xml")) w $c(13,10)_"EXPORT STATUS: "_$case(st="",1:"OK",:st) halt | "%CACHE_DIR%\bin\cache.exe" -s "%CACHE_DIR%\mgr" -U %NAMESPACE%
