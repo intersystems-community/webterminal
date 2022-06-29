@@ -57,7 +57,7 @@ function getNewWs () {
     return new WebSocket(`${ (location.protocol === "https:" ? "wss:" : "ws:")
         }//${ location.hostname }:${ location.port ||
         (location.protocol === "https:" ? "443" : "80")
-        }/terminalsocket/${ encodeURIComponent(CACHE_CLASS_NAME) }`);
+        }${ location.pathname.includes('/terminal') ? location.pathname.replace(/\/terminal.*/, "/terminalsocket") : "/terminalsocket" }/${ encodeURIComponent(CACHE_CLASS_NAME) }`);
 }
 
 function onOpen () {
