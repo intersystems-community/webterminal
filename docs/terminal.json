@@ -487,6 +487,13 @@
       "changes": [
         "IRIS 2020 compatibility add"
       ]
+    },
+    {
+      "v": "4.9.4",
+      "url": "https://intersystems-community.github.io/webterminal/files/WebTerminal-v4.9.4.xml",
+      "changes": [
+        "No longer require /terminal to be at the root of the URL"
+      ]
     }
   ]
 }
