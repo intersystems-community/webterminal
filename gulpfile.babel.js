@@ -33,6 +33,8 @@ let dir = __dirname,
     },
     themes = []; // reassigned
 
+const sass = require('gulp-sass')(require('sass'));
+
 function themesReady () { // triggered when build is done
     themes = fs.readdirSync(`${ dest }/client/css/themes`);
     context.context.themes = themes.map(function (n) {
@@ -58,28 +60,42 @@ gulp.task("prepare", function (cb) {
     cb();
 });
 
-gulp.task("clean", ["prepare"], function () {
-    return gulp.src(dest, { read: false })
+gulp.task("clean", gulp.series("prepare", function () {
+    return gulp.src(dest, { read: false, allowEmpty: true })
         .pipe(rimraf());
-});
+}));
 
-gulp.task("html", ["clean"], function () {
+gulp.task("html", gulp.series(function () {
     return gulp.src(`${ source }/client/index.html`)
         .pipe(preprocess(context))
         .pipe(gulp.dest(`${ dest }/client`));
-});
+}));
 
-gulp.task("scss", ["clean"], () => {
+gulp.task("scss", gulp.series(() => {
     return gulp.src([`${source}/client/scss/index.scss`])
         .pipe(preprocess(context))
-        .pipe(scss())
+        .pipe(sass())
         .pipe(cssNano({
             zindex: false
         }))
         .pipe(gulp.dest(`${dest}/client/css`));
-});
+}));
 
-gulp.task("js", ["clean", "css"], function () {
+gulp.task("copy-css-themes", gulp.series(function () {
+    return gulp.src(`${ source }/client/scss/themes/*.*`)
+        .pipe(preprocess(context))
+        .pipe(sass())
+        .pipe(cssNano())
+        .pipe(gulp.dest(`${ dest }/client/css/themes/`));
+}));
+
+// Need css themes directory copied to collect themes names.
+gulp.task("css", gulp.series("scss", "copy-css-themes", function (cb) {
+    themesReady();
+    cb();
+}));
+
+gulp.task("js", gulp.series("css", function () {
     let bundler = browserify({
         entries: `${source}/client/js/index.js`,
         debug: true
@@ -97,39 +113,25 @@ gulp.task("js", ["clean", "css"], function () {
             output: {
                 ascii_only: true,
                 width: 25000,
-                max_line_len: 15000
+                max_line_len: 15000,
+                comments: "some"
             },
-            preserveComments: "some"
         }))
         .pipe(replace(/\x0b|\x1b/g, e => `\\x${ e === "\x0b" ? 0 : 1 }b`))
         .pipe(replace(/[\x00-\x08]/g, e =>  `\\x0${ e.charCodeAt(0) }`))
         //.pipe(sourcemaps.write())
         .pipe(gulp.dest(`${ dest }/client/js`));
-});
+}));
 
-gulp.task("copy-css-themes", ["clean"], function () {
-    return gulp.src(`${ source }/client/scss/themes/*.*`)
-        .pipe(preprocess(context))
-        .pipe(scss())
-        .pipe(cssNano())
-        .pipe(gulp.dest(`${ dest }/client/css/themes/`));
-});
+gulp.task("readme", gulp.series(function () {
+    return gulp.src(`${ dir }/readme.md`)
+        .pipe(gulp.dest(`${ dest }`));
+}));
 
-// Need css themes directory copied to collect themes names.
-gulp.task("css", ["scss", "copy-css-themes"], function (cb) {
-    themesReady();
-    cb();
-});
-
-gulp.task("cls", ["js", "js", "html", "css", "readme"], () => {
+gulp.task("cls", gulp.series("js", "js", "html", "css", "readme", () => {
     return gulp.src([`${ source }/cls/**/*.cls`])
         .pipe(preprocess(context))
         .pipe(gulp.dest(`${dest}/cls`));
-});
+}));
 
-gulp.task("readme", ["clean"], function () {
-    return gulp.src(`${ dir }/readme.md`)
-        .pipe(gulp.dest(`${ dest }`));
-});
-
-gulp.task("default", ["cls"]);
+gulp.task("default", gulp.series("clean", "cls"));
