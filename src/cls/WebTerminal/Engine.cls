@@ -189,8 +189,10 @@ Method ClientLoop() As %Status [ Private ]
     for {
         set message = ..GetMessage()
         quit:(message = "") // if client is gone, finish looping
-        if (message.error) {
-            set st = ..Send("error", message.error)
+        if (message.error '= "") {
+            if (message.error '[ "ERROR #7951") { // don't try and send message if it was a WS close error
+                set st = ..Send("error", message.error)
+            }
             quit
         }
         if (message."_cb" '= "") { set ..handler = message."_cb" }
@@ -250,6 +252,7 @@ Method Server() As %Status
         do ..Send("oLocalized", "%wsRefuse(" _ authMessage _ ")")
     }
     do ..EndServer()
+    set %session.EndSession = 1
     quit $$$OK
 }
 
