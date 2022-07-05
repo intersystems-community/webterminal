@@ -12,12 +12,8 @@ Projection Reference As Installer;
 
 Parameter VERSION = "<!-- @echo package.version -->";
 
-/// In older Cache versions, method "GetISCProduct" does not exists
-Parameter iscProductVersion = {$case(
-        ##class(%Dictionary.CompiledMethod).IDKEYExists("%SYSTEM.Version", "GetISCProduct"),
-        1: $CLASSMETHOD("%SYSTEM.Version", "GetISCProduct"),
-        : 2
-    )};
+/// Cache or IRIS
+Parameter iscProductBase = {$piece($zversion," ")};
 
 ClassMethod RegisterWebApplication(name As %String, spec) As %Status
 {
@@ -98,7 +94,7 @@ ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
     set cspProperties("Description") = "An application representing the open socket for /terminal application."
     set cspProperties("DispatchClass") = ""
 
-    set requiredRole = $case(..#iscProductVersion >= 4, 1: "%DB_IRISSYS", : "%DB_CACHESYS")
+    set requiredRole = $case(..#iscProductBase = "IRIS", 1: "%DB_IRISSYS", : "%DB_CACHESYS")
     set roles = ..GetDBRole(dbdir)
     set extractedRoles = $case($get(roles) '= "", 1: ":" _ roles, : "")
     set cspProperties("MatchRoles") = ":" _ $case(
@@ -205,7 +201,7 @@ ClassMethod CreateAllNamespace() As %Status
 
 	if ('##Class(Config.Namespaces).Exists(ns)) {
 
-        set dbPrefix = $case(..#iscProductVersion >= 4, 1: "IRIS", : "CACHE")
+        set dbPrefix = $case(..#iscProductBase = "IRIS", 1: "IRIS", : "CACHE")
         set Properties("Globals") = dbPrefix _ "TEMP"
         set Properties("Library") = dbPrefix _ "LIB"
         set Properties("Routines") = dbPrefix _ "TEMP"
@@ -223,7 +219,6 @@ ClassMethod CreateAllNamespace() As %Status
     }
 
     return st
-
 }
 
 ClassMethod Map(fromNS = "") As %Status
