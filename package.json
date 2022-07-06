@@ -3,15 +3,25 @@
   "title": "Web Terminal",
   "packageName": "WebTerminal",
   "printableName": "Web Terminal",
-  "description": "Web-based terminal emulator for InterSystems products administering.",
+  "description": "Web-based terminal emulator for InterSystems products.",
   "author": {
     "name": "Nikita Savchenko",
     "url": "https://nikita.tk"
   },
-  "version": "4.9.4",
+  "version": "4.9.5",
   "gaID": "UA-83005064-2",
   "releaseNumber": 26,
-  "scripts": {
+  "contributors": [
+    {
+      "name": "Nikita Savchenko",
+      "email": "me@nikita.tk"
+    },
+    {
+      "name": "John Murray",
+      "email": "johnm@georgejames.com"
+    }
+  ],
+"scripts": {
     "build": "gulp"
   },
   "repository": {
