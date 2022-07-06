@@ -494,6 +494,15 @@
       "changes": [
         "No longer require /terminal to be at the root of the URL"
       ]
+    },
+    {
+      "v": "4.9.5",
+      "url": "https://intersystems-community.github.io/webterminal/files/WebTerminal-v4.9.5.xml",
+      "changes": [
+        "End the /terminalsocket session when window is closed or /logout command issued",
+        "Detect IRIS-based Health* platforms correctly"
+
+      ]
     }
   ]
 }
