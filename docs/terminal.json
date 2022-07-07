@@ -501,7 +501,6 @@
       "changes": [
         "End the /terminalsocket session when window is closed or /logout command issued",
         "Detect IRIS-based Health* platforms correctly"
-
       ]
     }
   ]
