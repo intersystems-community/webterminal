@@ -3,7 +3,7 @@
   <Document name="webterminal.MODULE">
     <Module>
       <Name>webterminal</Name>
-      <Version>4.9.2</Version>
+      <Version>4.9.5</Version>
       <GlobalScope>true</GlobalScope>
       <ExternalName>Web Terminal</ExternalName>
       <Packaging>module</Packaging>
