@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  iris:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    command: --check-caps false    
+    ports: 
+      - 51663:1972
+      - 52663:52773
+      - 53773
+    volumes:
+      - ./:/irisdev/app
