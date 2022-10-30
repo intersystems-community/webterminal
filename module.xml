@@ -3,7 +3,7 @@
   <Document name="webterminal.ZPM">
     <Module>
       <Name>webterminal</Name>
-      <Version>4.9.5</Version>
+      <Version>4.9.6</Version>
       <GlobalScope>true</GlobalScope>
       <ExternalName>Web Terminal</ExternalName>
       <Packaging>module</Packaging>
