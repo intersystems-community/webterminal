@@ -4,10 +4,10 @@
 
 Web-based terminal for InterSystems products. Access your database from everywhere!
 
-+ Visit the [project's page](http://intersystems-ru.github.io/webterminal) for more details. 
-+ **Download** the latest version from [here](http://intersystems-ru.github.io/webterminal/#downloads).
++ Visit the [project's page](http://intersystems-community.github.io/webterminal) for more details. 
++ **Download** the latest version from [here](http://intersystems-community.github.io/webterminal/#downloads).
 + Read more and discuss WebTerminal on [InterSystems Developer Community](https://community.intersystems.com/post/cach%C3%A9-webterminal-v4-release).
-+ Read [complete documentation](http://intersystems-ru.github.io/webterminal/#docs) about WebTerminal.
++ Read [complete documentation](http://intersystems-community.github.io/webterminal/#docs) about WebTerminal.
 
 ### Preview
 
@@ -66,7 +66,7 @@ Even more features!
 Installation
 ------------
 
-Download the latest version from the <a href="http://intersystems-ru.github.io/webterminal/#downloads">project page</a> and import downloaded XML file into any namespace. Compile imported items and the WebTerminal is ready!
+Download the latest version from the <a href="http://intersystems-community.github.io/webterminal/#downloads">project page</a> and import downloaded XML file into any namespace. Compile imported items and the WebTerminal is ready!
 
 Usage
 -----
@@ -212,13 +212,13 @@ WebTerminal Project Development
 -------------------------------
 
 We are glad to see anyone who want to contribute to Web Terminal development! Check our 
-[developer's guide](http://intersystems-ru.github.io/webterminal/#docs.5).
+[developer's guide](http://intersystems-community.github.io/webterminal/#docs.5).
 
 To be short, the "hot start" is extremely easy. Having latest [Git](https://git-scm.com/) and
 [NodeJS](https://nodejs.org/en/) installed (tested on NodeJS v4-8), execute the following:
 
 ```sh
-git clone https://github.com/intersystems-ru/webterminal
+git clone https://github.com/intersystems-community/webterminal
 cd webterminal # enter repository directory
 import         # build & import the project. YOU NEED TO EDIT CONSTANTS IN THIS FILE FIRST
 ```
